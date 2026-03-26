@@ -1,0 +1,18 @@
+<Project>
+  <Target Name="InstallGitHooks"
+          BeforeTargets="Restore;CollectPackageReferences"
+          Condition="'$(RESTORE_TOOLS)' != '0' and '$(HUSKY)' != '0'"
+          Inputs="$(MSBuildThisFileDirectory).config\dotnet-tools.json"
+          Outputs="$(MSBuildThisFileDirectory).husky\pre-commit">
+    <Exec Command="dotnet tool restore"
+          StandardOutputImportance="Low"
+          StandardErrorImportance="High"
+          WorkingDirectory="$(MSBuildThisFileDirectory)"
+          ContinueOnError="true" />
+    <Exec Command="dotnet husky install"
+          StandardOutputImportance="Low"
+          StandardErrorImportance="High"
+          WorkingDirectory="$(MSBuildThisFileDirectory)"
+          ContinueOnError="true" />
+  </Target>
+</Project>

@@ -1,0 +1,66 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# .NET
+*.orig
+
+# Agent files
+.claude/**/*local*
+.cursor/**
+docs/superpowers/**
+**/obj-codex/**
+CLAUDE.md
+AGENTS.md
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+# Environment / secrets
+.env
+.env.local
+*.env
+appsettings.Development.json
+
+# Docker
+docker-compose.override.yml
+
+# Test results
+TestResults/
+coverage/
+*.trx
+*.coveragexml
+
+# Published output
+publish/
+
+
+# Git worktrees
+.worktrees/
+

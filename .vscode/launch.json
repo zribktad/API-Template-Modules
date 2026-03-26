@@ -1,0 +1,128 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": ".NET API (HTTP)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "prepare: debug http",
+      "program": "${workspaceFolder}/src/APITemplate.Api/bin/Debug/net10.0/APITemplate.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/APITemplate.Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5174",
+        "ConnectionStrings__DefaultConnection": "Host=localhost;Port=5432;Database=apitemplate;Username=postgres;Password=postgres",
+        "MongoDB__ConnectionString": "mongodb://localhost:27017",
+        "MongoDB__DatabaseName": "apitemplate",
+        "Keycloak__realm": "api-template",
+        "Keycloak__auth-server-url": "http://localhost:8180/",
+        "Keycloak__resource": "api-template",
+        "Keycloak__credentials__secret": "dev-client-secret"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": ".NET API (HTTPS + HTTP)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "prepare: debug https",
+      "program": "${workspaceFolder}/src/APITemplate.Api/bin/Debug/net10.0/APITemplate.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/APITemplate.Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7289;http://localhost:5174",
+        "ConnectionStrings__DefaultConnection": "Host=localhost;Port=5432;Database=apitemplate;Username=postgres;Password=postgres",
+        "MongoDB__ConnectionString": "mongodb://localhost:27017",
+        "MongoDB__DatabaseName": "apitemplate",
+        "Keycloak__realm": "api-template",
+        "Keycloak__auth-server-url": "http://localhost:8180/",
+        "Keycloak__resource": "api-template",
+        "Keycloak__credentials__secret": "dev-client-secret"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": ".NET API + Aspire Dashboard",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "prepare: debug aspire",
+      "program": "${workspaceFolder}/src/APITemplate.Api/bin/Debug/net10.0/APITemplate.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/APITemplate.Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5174",
+        "ConnectionStrings__DefaultConnection": "Host=localhost;Port=5432;Database=apitemplate;Username=postgres;Password=postgres",
+        "MongoDB__ConnectionString": "mongodb://localhost:27017",
+        "MongoDB__DatabaseName": "apitemplate",
+        "Keycloak__realm": "api-template",
+        "Keycloak__auth-server-url": "http://localhost:8180/",
+        "Keycloak__resource": "api-template",
+        "Keycloak__credentials__secret": "dev-client-secret",
+        "Dragonfly__ConnectionString": "localhost:6379",
+        "Observability__Aspire__Endpoint": "http://localhost:4317",
+        "Observability__Exporters__Aspire__Enabled": "true",
+        "Observability__Exporters__Otlp__Enabled": "false"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": ".NET API + Observability",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "prepare: debug observability",
+      "program": "${workspaceFolder}/src/APITemplate.Api/bin/Debug/net10.0/APITemplate.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/APITemplate.Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5174",
+        "ConnectionStrings__DefaultConnection": "Host=localhost;Port=5432;Database=apitemplate;Username=postgres;Password=postgres",
+        "MongoDB__ConnectionString": "mongodb://localhost:27017",
+        "MongoDB__DatabaseName": "apitemplate",
+        "Keycloak__realm": "api-template",
+        "Keycloak__auth-server-url": "http://localhost:8180/",
+        "Keycloak__resource": "api-template",
+        "Keycloak__credentials__secret": "dev-client-secret",
+        "Dragonfly__ConnectionString": "localhost:6379",
+        "Observability__Otlp__Endpoint": "http://localhost:4317",
+        "Observability__Exporters__Aspire__Enabled": "false",
+        "Observability__Exporters__Otlp__Enabled": "true"
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": ".NET API + Full Observability",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "prepare: debug observability full",
+      "program": "${workspaceFolder}/src/APITemplate.Api/bin/Debug/net10.0/APITemplate.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/APITemplate.Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5174",
+        "ConnectionStrings__DefaultConnection": "Host=localhost;Port=5432;Database=apitemplate;Username=postgres;Password=postgres",
+        "MongoDB__ConnectionString": "mongodb://localhost:27017",
+        "MongoDB__DatabaseName": "apitemplate",
+        "Keycloak__realm": "api-template",
+        "Keycloak__auth-server-url": "http://localhost:8180/",
+        "Keycloak__resource": "api-template",
+        "Keycloak__credentials__secret": "dev-client-secret",
+        "Dragonfly__ConnectionString": "localhost:6379",
+        "Observability__Aspire__Endpoint": "http://localhost:18889",
+        "Observability__Otlp__Endpoint": "http://localhost:4317",
+        "Observability__Exporters__Aspire__Enabled": "true",
+        "Observability__Exporters__Otlp__Enabled": "true"
+      },
+      "console": "integratedTerminal"
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+services:
+  alloy:
+    image: grafana/alloy:v1.10.2
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "12345:12345"
+    volumes:
+      - ./infrastructure/observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+    command:
+      - run
+      - /etc/alloy/config.alloy
+
+  prometheus:
+    image: prom/prometheus:v3.4.2
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-remote-write-receiver
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infrastructure/observability/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheusdata:/prometheus
+
+  loki:
+    image: grafana/loki:3.5.5
+    command: ["-config.file=/etc/loki/config.yml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./infrastructure/observability/loki/config.yml:/etc/loki/config.yml:ro
+      - lokidata:/loki
+
+  tempo:
+    image: grafana/tempo:2.9.1
+    command: ["-config.file=/etc/tempo/config.yml"]
+    ports:
+      - "3200:3200"
+      - "4319:4317"
+    volumes:
+      - ./infrastructure/observability/tempo/config.yml:/etc/tempo/config.yml:ro
+      - tempodata:/var/tempo
+
+  grafana:
+    image: grafana/grafana:12.3.1
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    volumes:
+      - ./infrastructure/observability/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafanadata:/var/lib/grafana
+
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.5
+    profiles: ["aspire"]
+    ports:
+      - "${ASPIRE_OTLP_GRPC_PORT:-4317}:18889"
+      - "${ASPIRE_OTLP_HTTP_PORT:-4318}:18890"
+      - "18888:18888"
+    environment:
+      ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+      ASPIRE_DASHBOARD_OTLP_HTTP_ENDPOINT_URL: http://0.0.0.0:18890
+
+  postgres:
+    image: postgres:18.3
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: apitemplate
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:8.2
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak-db:
+    image: postgres:18.3
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      POSTGRES_DB: keycloak
+    volumes:
+      - keycloak-pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HTTP_PORT: 8180
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8180"
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    volumes:
+      - ./infrastructure/keycloak/realms:/opt/keycloak/data/import
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8180"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
+    ports:
+      - "6379:6379"
+    volumes:
+      - dragonflydata:/data
+    command: dragonfly --maxmemory 512mb --proactor_threads 2
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit:v1.29.0
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    healthcheck:
+      test: ["CMD", "mailpit", "ready-check"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: src/APITemplate.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=apitemplate;Username=postgres;Password=postgres"
+      MongoDB__ConnectionString: "mongodb://mongodb:27017"
+      MongoDB__DatabaseName: "apitemplate"
+      Keycloak__realm: "api-template"
+      Keycloak__auth-server-url: "http://keycloak:8180/"
+      Keycloak__resource: "api-template"
+      Keycloak__credentials__secret: "${KC_DEV_CLIENT_SECRET:-dev-client-secret}"
+      Dragonfly__ConnectionString: "dragonfly:6379"
+      Observability__Otlp__Endpoint: "http://alloy:4317"
+      Observability__Exporters__Otlp__Enabled: "true"
+      Observability__Exporters__Aspire__Enabled: "false"
+      Email__SmtpHost: "mailpit"
+      Email__SmtpPort: "1025"
+      Email__UseSsl: "false"
+    depends_on:
+      alloy:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      dragonfly:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+
+volumes:
+  prometheusdata:
+  lokidata:
+  tempodata:
+  grafanadata:
+  pgdata:
+  mongodata:
+  keycloak-pgdata:
+  dragonflydata:
+
+

@@ -1,0 +1,304 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build: api",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/APITemplate.Api/APITemplate.Api.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "test: run all",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/tests/APITemplate.Tests/APITemplate.Tests.csproj",
+        "--filter",
+        "Category!=Integration.Postgres"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "test: run all (with Postgres)",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/tests/APITemplate.Tests/APITemplate.Tests.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "docker: infra up (dev)",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "up",
+        "-d",
+        "postgres",
+        "mongodb",
+        "keycloak",
+        "dragonfly"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: mailpit up",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "up",
+        "-d",
+        "mailpit"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: mailpit down",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "down",
+        "mailpit"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: infra ensure up (dev)",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$ErrorActionPreference = 'Stop'; function Start-Or-Skip([string]$service) { $output = docker compose up -d $service 2>&1; $exitCode = $LASTEXITCODE; if ($exitCode -eq 0) { $output | Out-Host; return }; $msg = ($output | Out-String); if ($msg -match 'port is already allocated' -or $msg -match 'Bind for 0\\.0\\.0\\.0') { Write-Host \"$service port is already allocated. Continuing.\"; return }; throw $msg }; Start-Or-Skip 'postgres'; Start-Or-Skip 'mongodb'; Start-Or-Skip 'keycloak'; Start-Or-Skip 'dragonfly'; exit 0"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: observability up (aspire)",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "--profile",
+        "aspire",
+        "up",
+        "-d",
+        "postgres",
+        "mongodb",
+        "keycloak-db",
+        "keycloak",
+        "dragonfly",
+        "aspire-dashboard"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: observability up",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "up",
+        "-d",
+        "postgres",
+        "mongodb",
+        "keycloak-db",
+        "keycloak",
+        "dragonfly",
+        "alloy",
+        "prometheus",
+        "loki",
+        "tempo",
+        "grafana"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: observability up (full)",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "--profile",
+        "aspire",
+        "up",
+        "-d",
+        "postgres",
+        "mongodb",
+        "keycloak-db",
+        "keycloak",
+        "dragonfly",
+        "alloy",
+        "prometheus",
+        "loki",
+        "tempo",
+        "grafana",
+        "aspire-dashboard"
+      ],
+      "options": {
+        "env": {
+          "ASPIRE_OTLP_GRPC_PORT": "18889",
+          "ASPIRE_OTLP_HTTP_PORT": "18890"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: observability down",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "--profile",
+        "aspire",
+        "stop",
+        "aspire-dashboard",
+        "grafana",
+        "tempo",
+        "loki",
+        "prometheus",
+        "alloy",
+        "dragonfly",
+        "keycloak",
+        "keycloak-db",
+        "mongodb",
+        "postgres"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: infra down (dev)",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "stop",
+        "dragonfly",
+        "postgres",
+        "mongodb",
+        "keycloak",
+        "keycloak-db"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: app up (full dev)",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "up",
+        "--build",
+        "-d"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: app down (full dev)",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "down"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: production up",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "docker-compose.production.yml",
+        "up",
+        "--build",
+        "-d"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: production down",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "docker-compose.production.yml",
+        "down"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker: production logs",
+      "type": "process",
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "docker-compose.production.yml",
+        "logs",
+        "-f",
+        "--tail",
+        "100"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare: debug http",
+      "dependsOn": [
+        "docker: infra ensure up (dev)",
+        "build: api"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare: debug https",
+      "dependsOn": [
+        "docker: infra ensure up (dev)",
+        "build: api"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare: debug aspire",
+      "dependsOn": [
+        "docker: observability up (aspire)",
+        "build: api"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare: debug observability",
+      "dependsOn": [
+        "docker: observability up",
+        "build: api"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "prepare: debug observability full",
+      "dependsOn": [
+        "docker: observability up (full)",
+        "build: api"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ]
+}

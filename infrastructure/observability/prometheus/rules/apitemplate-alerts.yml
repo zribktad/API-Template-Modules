@@ -1,0 +1,38 @@
+groups:
+  - name: apitemplate-observability
+    rules:
+      - alert: APITemplateTelemetryMissing
+        expr: absent(http_server_request_duration_seconds_count)
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: APITemplate telemetry is missing
+          description: Prometheus has not received request metrics from the API for 10 minutes.
+
+      - alert: APITemplateHigh5xxRate
+        expr: sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~"5.."}[5m])) / clamp_min(sum(rate(http_server_request_duration_seconds_count[5m])), 1) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: APITemplate 5xx rate is elevated
+          description: More than 5% of requests returned 5xx responses over the last 5 minutes.
+
+      - alert: APITemplateHighP95Latency
+        expr: histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket[5m]))) > 0.75
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: APITemplate p95 latency is elevated
+          description: The API p95 latency has been above 750 ms for 10 minutes.
+
+      - alert: APITemplateBackendHealthDegraded
+        expr: max_over_time(apitemplate_healthcheck_status{service=~"postgresql|mongodb|dragonfly"}[5m]) < 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: A backend dependency health check is failing
+          description: One of the database or cache dependencies has reported an unhealthy state.

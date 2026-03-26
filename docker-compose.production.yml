@@ -1,0 +1,206 @@
+services:
+  alloy:
+    image: grafana/alloy:v1.10.2
+    restart: unless-stopped
+    volumes:
+      - ./infrastructure/observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+    command:
+      - run
+      - /etc/alloy/config.alloy
+
+  prometheus:
+    image: prom/prometheus:v3.4.2
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-remote-write-receiver
+    volumes:
+      - ./infrastructure/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infrastructure/observability/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheusdata:/prometheus
+
+  loki:
+    image: grafana/loki:3.5.5
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/config.yml"]
+    volumes:
+      - ./infrastructure/observability/loki/config.yml:/etc/loki/config.yml:ro
+      - lokidata:/loki
+
+  tempo:
+    image: grafana/tempo:2.9.1
+    restart: unless-stopped
+    command: ["-config.file=/etc/tempo/config.yml"]
+    volumes:
+      - ./infrastructure/observability/tempo/config.yml:/etc/tempo/config.yml:ro
+      - tempodata:/var/tempo
+
+  grafana:
+    image: grafana/grafana:12.3.1
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    volumes:
+      - ./infrastructure/observability/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafanadata:/var/lib/grafana
+
+  postgres:
+    image: postgres:17.2
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-apitemplate}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:8.0.4
+    restart: unless-stopped
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak-db:
+    image: postgres:17.2
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${KC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+      POSTGRES_DB: keycloak
+    volumes:
+      - keycloak-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KC_DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    restart: unless-stopped
+    command: start --optimized
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key
+    ports:
+      - "8443:8443"
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8443"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  dragonfly-master:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
+    restart: unless-stopped
+    volumes:
+      - dragonfly-master-data:/data
+    command: dragonfly --maxmemory 512mb --proactor_threads 2 --requirepass ${DRAGONFLY_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${DRAGONFLY_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dragonfly-replica:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
+    restart: unless-stopped
+    volumes:
+      - dragonfly-replica-data:/data
+    command: dragonfly --maxmemory 512mb --proactor_threads 2 --replicaof dragonfly-master 6379 --masterauth ${DRAGONFLY_PASSWORD:-} --requirepass ${DRAGONFLY_PASSWORD:-}
+    depends_on:
+      dragonfly-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${DRAGONFLY_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dragonfly-proxy:
+    image: haproxy:3.1-alpine
+    restart: unless-stopped
+    volumes:
+      - ./infrastructure/dragonfly/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      dragonfly-master:
+        condition: service_healthy
+      dragonfly-replica:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "haproxy", "-c", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: src/APITemplate.Api/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${DB_NAME:-apitemplate};Username=${DB_USERNAME};Password=${DB_PASSWORD}"
+      MongoDB__ConnectionString: "mongodb://mongodb:27017"
+      MongoDB__DatabaseName: "${DB_NAME:-apitemplate}"
+      Keycloak__realm: "${KC_REALM:-api-template}"
+      Keycloak__auth-server-url: "https://keycloak:8443/"
+      Keycloak__resource: "${KC_CLIENT_ID:-api-template}"
+      Keycloak__credentials__secret: "${KC_CLIENT_SECRET}"
+      Dragonfly__ConnectionString: "dragonfly-proxy:6379,password=${DRAGONFLY_PASSWORD:-}"
+      APITEMPLATE_REDACTION_HMAC_KEY: "${REDACTION_HMAC_KEY}"
+      Observability__Otlp__Endpoint: "http://alloy:4317"
+      Observability__Exporters__Otlp__Enabled: "true"
+      Observability__Exporters__Aspire__Enabled: "false"
+    depends_on:
+      alloy:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      dragonfly-proxy:
+        condition: service_healthy
+
+volumes:
+  prometheusdata:
+  lokidata:
+  tempodata:
+  grafanadata:
+  pgdata:
+  mongodata:
+  keycloak-pgdata:
+  dragonfly-master-data:
+  dragonfly-replica-data:

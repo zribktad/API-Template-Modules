@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/APITemplate.Api/APITemplate.Api.csproj" />
+    <Project Path="src/APITemplate.Application/APITemplate.Application.csproj" />
+    <Project Path="src/APITemplate.Domain/APITemplate.Domain.csproj" />
+    <Project Path="src/APITemplate.Infrastructure/APITemplate.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/APITemplate.Tests/APITemplate.Tests.csproj" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/README.md" />
+  </Folder>
+  <Folder Name="/infrastructure/">
+    <File Path="infrastructure/keycloak/realms/api-template-realm.json" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+    <File Path="CLAUDE.md" />
+    <File Path="TODO.md" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="docker-compose.yml" />
+    <File Path="docker-compose.production.yml" />
+    <File Path=".dockerignore" />
+  </Folder>
+</Solution>

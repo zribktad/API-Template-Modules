@@ -1,0 +1,99 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="APITemplate.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="artifacts\**\*.cs" />
+    <Compile Remove="obj-codex\**\*.cs" />
+    <None Remove="artifacts\**\*" />
+    <None Remove="obj-codex\**\*" />
+    <Compile Update="Internal\Generated\**\*.cs" Watch="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\APITemplate.Application\APITemplate.Application.csproj" />
+    <ProjectReference Include="..\APITemplate.Infrastructure\APITemplate.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MongoDB -->
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" />
+    <PackageReference Include="Kot.MongoDB.Migrations" />
+    <PackageReference Include="Kot.MongoDB.Migrations.DI" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+    <PackageReference Include="Microsoft.AspNetCore.OutputCaching.StackExchangeRedis" />
+    <PackageReference Include="AspNetCore.HealthChecks.MongoDb" />
+
+    <!-- OpenAPI + Scalar -->
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="Scalar.AspNetCore" />
+
+    <!-- GraphQL -->
+    <PackageReference Include="HotChocolate.AspNetCore" />
+    <PackageReference Include="HotChocolate.Data.EntityFramework" />
+    <PackageReference Include="HotChocolate.Diagnostics" />
+    <PackageReference Include="SystemTextJsonPatch" />
+
+    <!-- Wolverine -->
+    <PackageReference Include="WolverineFx" />
+
+    <!-- EF Core + PostgreSQL -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Npgsql.OpenTelemetry" />
+
+    <!-- Authentication -->
+    <PackageReference Include="Keycloak.AuthServices.Authentication" />
+    <PackageReference Include="Keycloak.AuthServices.Authorization" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+
+<!-- API Versioning -->
+    <PackageReference Include="Asp.Versioning.Mvc" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
+
+    <!-- Resilience -->
+    <PackageReference Include="Microsoft.Extensions.Resilience" />
+
+    <!-- Logging -->
+    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
+    <PackageReference Include="Microsoft.Extensions.Telemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Enrichers.Environment" />
+    <PackageReference Include="Serilog.Enrichers.Thread" />
+    <PackageReference Include="Serilog.Expressions" />
+    <PackageReference Include="Serilog.Formatting.Compact" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+  </ItemGroup>
+
+</Project>
+
+

@@ -1,0 +1,10 @@
+#!/bin/sh
+# Husky.Net pre-commit hook
+dotnet husky run --group pre-commit
+
+if [ $? -ne 0 ]; then
+  echo "Pre-commit hook failed!" >&2
+  exit 1
+fi
+
+exit 0

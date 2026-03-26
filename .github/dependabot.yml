@@ -1,0 +1,55 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      microsoft-packages:
+        patterns:
+          - "Microsoft.*"
+          - "Asp.Versioning.*"
+      test-packages:
+        patterns:
+          - "Moq"
+          - "MockQueryable.Moq"
+          - "Shouldly"
+          - "xunit.*"
+          - "Microsoft.NET.Test.Sdk"
+          - "DotNet.Testcontainers"
+          - "Testcontainers.*"
+      graphql-packages:
+        patterns:
+          - "HotChocolate.*"
+      logging-packages:
+        patterns:
+          - "Serilog.*"
+      infrastructure-packages:
+        patterns:
+          - "MongoDB.*"
+          - "Npgsql.*"
+          - "Keycloak.*"
+          - "Kot.MongoDB.Migrations*"
+          - "AspNetCore.HealthChecks.*"
+      other-packages:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "docker"
+    directory: "/src/APITemplate"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

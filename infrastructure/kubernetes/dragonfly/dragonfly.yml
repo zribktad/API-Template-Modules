@@ -1,0 +1,19 @@
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: dragonfly
+  namespace: apitemplate
+spec:
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  args:
+    - "--maxmemory"
+    - "500mb"
+    - "--proactor_threads"
+    - "2"
