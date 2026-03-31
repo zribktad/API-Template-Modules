@@ -5,6 +5,12 @@
     <Project Path="src/APITemplate.Domain/APITemplate.Domain.csproj" />
     <Project Path="src/APITemplate.Infrastructure/APITemplate.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Contracts/">
+    <Project Path="src/Contracts/Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/SharedKernel/">
+    <Project Path="src/SharedKernel/SharedKernel.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/APITemplate.Tests/APITemplate.Tests.csproj" />
   </Folder>
