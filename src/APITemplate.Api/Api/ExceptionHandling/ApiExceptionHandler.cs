@@ -1,19 +1,10 @@
 using SharedKernel.Domain.Exceptions;
-using APITemplate.Infrastructure.Observability;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace APITemplate.Api.ExceptionHandling;
 
-/// <summary>
-/// Central REST exception translator for the HTTP pipeline.
-/// </summary>
-/// <remarks>
-/// Converts domain/application exceptions to RFC7807 <see cref="ProblemDetails"/>
-/// responses with stable status codes and error codes. GraphQL requests are intentionally
-/// bypassed because GraphQL uses a separate error handling pipeline.
-/// </remarks>
 public sealed class ApiExceptionHandler : IExceptionHandler
 {
     private const int ClientClosedRequestStatusCode = 499;
@@ -29,18 +20,13 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         _problemDetailsService = problemDetailsService;
     }
 
-    /// <summary>
-    /// Maps an exception to HTTP status + payload metadata, logs it with severity by status code,
-    /// and writes an RFC7807 response through <see cref="IProblemDetailsService"/>.
-    /// </summary>
     public async ValueTask<bool> TryHandleAsync(
         HttpContext context,
         Exception exception,
         CancellationToken cancellationToken
     )
     {
-        // GraphQL has its own error format and middleware, so let that pipeline handle GraphQL exceptions.
-        if (context.Request.Path.StartsWithSegments(TelemetryPathPrefixes.GraphQl))
+        if (context.Request.Path.StartsWithSegments("/graphql"))
             return false;
 
         if (IsClientAbortedRequest(context, exception, cancellationToken))
@@ -58,7 +44,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             Title = title,
             Detail = detail,
             Instance = context.Request.Path,
-            Type = BuildTypeUri(errorCode),
+            Type = $"https://api-template.local/errors/{errorCode}",
         };
 
         problemDetails.Extensions["errorCode"] = errorCode;
@@ -66,25 +52,13 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             problemDetails.Extensions["metadata"] = metadata;
 
         if (statusCode >= StatusCodes.Status500InternalServerError)
-        {
-            _logger.UnhandledException(exception, statusCode, errorCode, context.TraceIdentifier);
-        }
+            _logger.LogError(exception, "Unhandled exception for trace {TraceId}.", context.TraceIdentifier);
         else
-        {
-            _logger.HandledApplicationException(
-                exception,
-                statusCode,
-                errorCode,
-                context.TraceIdentifier
-            );
-        }
-
-        ApiMetrics.RecordHandledException(statusCode, errorCode, exception.GetType().Name);
-
-        ConflictTelemetry.Record(exception, errorCode);
+            _logger.LogWarning(exception, "Handled exception for trace {TraceId}.", context.TraceIdentifier);
 
         context.Response.StatusCode = statusCode;
-        var wasWritten = await _problemDetailsService.TryWriteAsync(
+
+        return await _problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext
             {
                 HttpContext = context,
@@ -92,8 +66,6 @@ public sealed class ApiExceptionHandler : IExceptionHandler
                 ProblemDetails = problemDetails,
             }
         );
-
-        return wasWritten;
     }
 
     private static bool IsClientAbortedRequest(
@@ -102,10 +74,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         CancellationToken cancellationToken
     ) =>
         exception is OperationCanceledException
-        && (
-            context.RequestAborted.IsCancellationRequested
-            || cancellationToken.IsCancellationRequested
-        );
+        && (context.RequestAborted.IsCancellationRequested || cancellationToken.IsCancellationRequested);
 
     private static (
         int StatusCode,
@@ -118,9 +87,11 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         if (exception is AppException appException)
         {
             var (statusCode, title, defaultErrorCode) = MapToHttp(appException);
-            var errorCode = ResolveErrorCode(appException, defaultErrorCode);
+            var errorCode = string.IsNullOrWhiteSpace(appException.ErrorCode)
+                ? defaultErrorCode
+                : appException.ErrorCode;
 
-            return (statusCode, title, appException.Message, errorCode, appException.Metadata);
+            return (statusCode, title, appException.Message, errorCode!, appException.Metadata);
         }
 
         if (exception is DbUpdateConcurrencyException)
@@ -143,10 +114,8 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         );
     }
 
-    private static (int StatusCode, string Title, string ErrorCode) MapToHttp(
-        AppException appException
-    ) =>
-        appException switch
+    private static (int StatusCode, string Title, string ErrorCode) MapToHttp(AppException exception) =>
+        exception switch
         {
             ValidationException => (
                 StatusCodes.Status400BadRequest,
@@ -179,25 +148,4 @@ public sealed class ApiExceptionHandler : IExceptionHandler
                 ErrorCatalog.General.Unknown
             ),
         };
-
-    private static string ResolveErrorCode(AppException appException, string defaultErrorCode)
-    {
-        if (!string.IsNullOrWhiteSpace(appException.ErrorCode))
-            return appException.ErrorCode!;
-
-        if (
-            appException.Metadata is not null
-            && appException.Metadata.TryGetValue("errorCode", out var metadataErrorCode)
-            && metadataErrorCode is string value
-            && !string.IsNullOrWhiteSpace(value)
-        )
-        {
-            return value;
-        }
-
-        return defaultErrorCode;
-    }
-
-    private static string BuildTypeUri(string errorCode) =>
-        $"https://api-template.local/errors/{errorCode}";
 }

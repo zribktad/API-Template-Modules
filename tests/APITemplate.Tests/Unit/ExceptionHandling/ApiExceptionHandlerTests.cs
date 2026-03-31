@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
+using SharedKernel.Application.Errors;
 using SharedKernel.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
