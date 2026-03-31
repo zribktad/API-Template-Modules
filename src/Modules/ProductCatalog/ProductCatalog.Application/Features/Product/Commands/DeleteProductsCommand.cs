@@ -14,19 +14,31 @@ public sealed record DeleteProductsCommand(BatchDeleteRequest Request);
 /// <summary>Handles <see cref="DeleteProductsCommand"/> by loading all products, soft-deleting links and products in a single transaction.</summary>
 public sealed class DeleteProductsCommandHandler
 {
-    public static async Task<ErrorOr<BatchResponse>> HandleAsync(
+    public sealed record DeleteProductsState(
+        IReadOnlyList<ProductCatalog.Domain.Entities.Product> Products,
+        Guid ActorId,
+        DateTime DeletedAtUtc
+    );
+
+    public static async Task<(
+        HandlerContinuation,
+        DeleteProductsState?,
+        OutgoingMessages
+    )> LoadAsync(
         DeleteProductsCommand command,
         ProductRepositoryContract repository,
-        IUnitOfWork unitOfWork,
-        IMessageBus bus,
+        IActorProvider actorProvider,
+        TimeProvider timeProvider,
         CancellationToken ct
     )
     {
-        var ids = command.Request.Ids;
-        var context = new BatchFailureContext<Guid>(ids);
+        IReadOnlyList<Guid> ids = command.Request.Ids;
+        Guid actorId = actorProvider.ActorId;
+        DateTime deletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        BatchFailureContext<Guid> context = new(ids);
 
         // Load all target products and mark missing ones as failed
-        var products = await repository.ListAsync(
+        IReadOnlyList<ProductCatalog.Domain.Entities.Product> products = await repository.ListAsync(
             new ProductsByIdsWithLinksSpecification(ids.ToHashSet()),
             ct
         );
@@ -41,24 +53,51 @@ public sealed class DeleteProductsCommandHandler
         );
 
         if (context.HasFailures)
-            return context.ToFailureResponse();
+        {
+            OutgoingMessages failureMessages = new();
+            failureMessages.RespondToSender(context.ToFailureResponse());
+            return (HandlerContinuation.Stop, null, failureMessages);
+        }
 
+        return (
+            HandlerContinuation.Continue,
+            new DeleteProductsState(products, actorId, deletedAtUtc),
+            new OutgoingMessages()
+        );
+    }
+
+    public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(
+        DeleteProductsCommand command,
+        DeleteProductsState state,
+        ProductRepositoryContract repository,
+        IUnitOfWork unitOfWork,
+        CancellationToken ct
+    )
+    {
         // Soft-delete product-data links and remove products in a single transaction
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                foreach (var product in products)
+                foreach (ProductCatalog.Domain.Entities.Product product in state.Products)
                     product.SoftDeleteProductDataLinks();
 
-                await repository.DeleteRangeAsync(products, ct);
+                await repository.DeleteRangeAsync(state.Products, ct);
             },
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Products));
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Reviews));
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
+        foreach (Guid productId in state.Products.Select(product => product.Id))
+        {
+            messages.Add(
+                new ProductSoftDeletedNotification(productId, state.ActorId, state.DeletedAtUtc)
+            );
+        }
 
-        return new BatchResponse([], ids.Count, 0);
+        return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
 }
 

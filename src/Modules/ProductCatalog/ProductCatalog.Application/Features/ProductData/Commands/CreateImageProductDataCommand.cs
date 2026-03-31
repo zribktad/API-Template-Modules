@@ -12,11 +12,10 @@ public sealed record CreateImageProductDataCommand(CreateImageProductDataRequest
 
 public sealed class CreateImageProductDataCommandHandler
 {
-    public static async Task<ErrorOr<ProductDataResponse>> HandleAsync(
+    public static async Task<(ErrorOr<ProductDataResponse>, OutgoingMessages)> HandleAsync(
         CreateImageProductDataCommand command,
         IProductDataRepository repository,
         ITenantProvider tenantProvider,
-        IMessageBus bus,
         TimeProvider timeProvider,
         CancellationToken ct
     )
@@ -34,8 +33,9 @@ public sealed class CreateImageProductDataCommandHandler
         };
 
         var created = await repository.CreateAsync(entity, ct);
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.ProductData));
-        return created.ToResponse();
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.ProductData));
+        return (created.ToResponse(), messages);
     }
 }
 

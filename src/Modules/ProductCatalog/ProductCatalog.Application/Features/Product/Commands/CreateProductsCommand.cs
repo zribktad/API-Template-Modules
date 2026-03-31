@@ -16,19 +16,20 @@ public sealed record CreateProductsCommand(CreateProductsRequest Request);
 /// <summary>Handles <see cref="CreateProductsCommand"/> by validating all items, bulk-validating references, and persisting in a single transaction.</summary>
 public sealed class CreateProductsCommandHandler
 {
-    public static async Task<ErrorOr<BatchResponse>> HandleAsync(
+    public static async Task<(
+        HandlerContinuation,
+        IReadOnlyList<ProductEntity>?,
+        OutgoingMessages
+    )> LoadAsync(
         CreateProductsCommand command,
-        ProductRepositoryContract repository,
         ICategoryRepository categoryRepository,
         IProductDataRepository productDataRepository,
-        IUnitOfWork unitOfWork,
-        IMessageBus bus,
         IValidator<CreateProductRequest> itemValidator,
         CancellationToken ct
     )
     {
-        var items = command.Request.Items;
-        var context = new BatchFailureContext<CreateProductRequest>(items);
+        IReadOnlyList<CreateProductRequest> items = command.Request.Items;
+        BatchFailureContext<CreateProductRequest> context = new(items);
 
         await context.ApplyRulesAsync(
             ct,
@@ -48,13 +49,16 @@ public sealed class CreateProductsCommandHandler
         );
 
         if (context.HasFailures)
-            return context.ToFailureResponse();
+        {
+            OutgoingMessages failureMessages = new();
+            failureMessages.RespondToSender(context.ToFailureResponse());
+            return (HandlerContinuation.Stop, null, failureMessages);
+        }
 
-        // Build entities and persist in a single transaction
-        var entities = items
+        List<ProductEntity> entities = items
             .Select(item =>
             {
-                var productId = Guid.NewGuid();
+                Guid productId = Guid.NewGuid();
                 return new ProductEntity
                 {
                     Id = productId,
@@ -70,6 +74,17 @@ public sealed class CreateProductsCommandHandler
             })
             .ToList();
 
+        return (HandlerContinuation.Continue, entities, new OutgoingMessages());
+    }
+
+    public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(
+        CreateProductsCommand command,
+        IReadOnlyList<ProductEntity> entities,
+        ProductRepositoryContract repository,
+        IUnitOfWork unitOfWork,
+        CancellationToken ct
+    )
+    {
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
@@ -78,8 +93,10 @@ public sealed class CreateProductsCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Products));
-        return new BatchResponse([], items.Count, 0);
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }
 

@@ -233,7 +233,13 @@ public class ProductDataRequestHandlersTests
                 ),
             Times.Once
         );
-        _busMock.Verify(p => p.PublishAsync(It.IsAny<CacheInvalidationNotification>()), Times.Once);
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.ProductData)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -280,7 +286,13 @@ public class ProductDataRequestHandlersTests
                 ),
             Times.Once
         );
-        _busMock.Verify(p => p.PublishAsync(It.IsAny<CacheInvalidationNotification>()), Times.Once);
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.ProductData)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -360,7 +372,20 @@ public class ProductDataRequestHandlersTests
                 ),
             Times.Once
         );
-        _busMock.Verify(p => p.PublishAsync(It.IsAny<CacheInvalidationNotification>()), Times.Once);
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.ProductData)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Products)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]

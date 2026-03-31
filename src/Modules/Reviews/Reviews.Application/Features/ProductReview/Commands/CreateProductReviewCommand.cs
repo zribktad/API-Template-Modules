@@ -17,35 +17,62 @@ public sealed record CreateProductReviewCommand(CreateProductReviewRequest Reque
 /// <summary>Handles <see cref="CreateProductReviewCommand"/>.</summary>
 public sealed class CreateProductReviewCommandHandler
 {
-    public static async Task<ErrorOr<ProductReviewResponse>> HandleAsync(
+    public sealed record CreateProductReviewState(Guid ProductId, Guid UserId, string? Comment, int Rating);
+
+    public static async Task<(
+        HandlerContinuation,
+        CreateProductReviewState?,
+        OutgoingMessages
+    )> LoadAsync(
         CreateProductReviewCommand command,
-        IProductReviewRepository reviewRepository,
         IProductRepository productRepository,
-        IUnitOfWork unitOfWork,
         IActorProvider actorProvider,
-        IMessageBus bus,
         CancellationToken ct
     )
     {
-        var userId = actorProvider.ActorId;
-        var productResult = await productRepository.GetByIdOrError(
+        Guid userId = actorProvider.ActorId;
+        ErrorOr<ProductCatalog.Domain.Entities.Product> productResult = await productRepository.GetByIdOrError(
             command.Request.ProductId,
             DomainErrors.Reviews.ProductNotFoundForReview(command.Request.ProductId),
             ct
         );
         if (productResult.IsError)
-            return productResult.Errors;
+        {
+            OutgoingMessages failureMessages = new();
+            failureMessages.RespondToSender(productResult.Errors);
+            return (HandlerContinuation.Stop, null, failureMessages);
+        }
 
+        return (
+            HandlerContinuation.Continue,
+            new CreateProductReviewState(
+                command.Request.ProductId,
+                userId,
+                command.Request.Comment,
+                command.Request.Rating
+            ),
+            new OutgoingMessages()
+        );
+    }
+
+    public static async Task<(ErrorOr<ProductReviewResponse>, OutgoingMessages)> HandleAsync(
+        CreateProductReviewCommand command,
+        CreateProductReviewState state,
+        IProductReviewRepository reviewRepository,
+        IUnitOfWork unitOfWork,
+        CancellationToken ct
+    )
+    {
         var review = await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                var entity = new ProductReviewEntity
+                ProductReviewEntity entity = new()
                 {
                     Id = Guid.NewGuid(),
-                    ProductId = command.Request.ProductId,
-                    UserId = userId,
-                    Comment = command.Request.Comment,
-                    Rating = command.Request.Rating,
+                    ProductId = state.ProductId,
+                    UserId = state.UserId,
+                    Comment = state.Comment,
+                    Rating = state.Rating,
                 };
 
                 await reviewRepository.AddAsync(entity, ct);
@@ -54,8 +81,10 @@ public sealed class CreateProductReviewCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Reviews));
-        return review.ToResponse();
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        return (review.ToResponse(), messages);
     }
 }
 

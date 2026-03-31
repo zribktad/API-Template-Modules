@@ -302,11 +302,15 @@ public sealed class PostgresSoftDeleteTests(SharedPostgresContainer postgres)
 
         await using (var deleteContext = await CreateDbContextAsync(true, tenantId, actorId, ct))
         {
+            Mock<IActorProvider> actorProviderMock = new();
+            actorProviderMock.SetupGet(x => x.ActorId).Returns(actorId);
             await DeleteProductsCommandHandler.HandleAsync(
                 new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
                 new ProductRepository(deleteContext),
                 CreateUnitOfWork(deleteContext),
                 Mock.Of<IMessageBus>(),
+                actorProviderMock.Object,
+                TimeProvider.System,
                 ct
             );
         }

@@ -14,17 +14,24 @@ public sealed record UpdateCategoriesCommand(UpdateCategoriesRequest Request);
 /// <summary>Handles <see cref="UpdateCategoriesCommand"/> by validating all items, loading categories in bulk, and updating in a single transaction.</summary>
 public sealed class UpdateCategoriesCommandHandler
 {
-    public static async Task<ErrorOr<BatchResponse>> HandleAsync(
+    public sealed record UpdateCategoriesState(
+        IReadOnlyList<UpdateCategoryItem> Items,
+        IReadOnlyDictionary<Guid, ProductCatalog.Domain.Entities.Category> CategoryMap
+    );
+
+    public static async Task<(
+        HandlerContinuation,
+        UpdateCategoriesState?,
+        OutgoingMessages
+    )> LoadAsync(
         UpdateCategoriesCommand command,
         ICategoryRepository repository,
-        IUnitOfWork unitOfWork,
-        IMessageBus bus,
         IValidator<UpdateCategoryItem> itemValidator,
         CancellationToken ct
     )
     {
-        var items = command.Request.Items;
-        var context = new BatchFailureContext<UpdateCategoryItem>(items);
+        IReadOnlyList<UpdateCategoryItem> items = command.Request.Items;
+        BatchFailureContext<UpdateCategoryItem> context = new(items);
         await context.ApplyRulesAsync(
             ct,
             new FluentValidationBatchRule<UpdateCategoryItem>(itemValidator)
@@ -49,16 +56,35 @@ public sealed class UpdateCategoriesCommandHandler
         );
 
         if (context.HasFailures)
-            return context.ToFailureResponse();
+        {
+            OutgoingMessages failureMessages = new();
+            failureMessages.RespondToSender(context.ToFailureResponse());
+            return (HandlerContinuation.Stop, null, failureMessages);
+        }
 
+        return (
+            HandlerContinuation.Continue,
+            new UpdateCategoriesState(items, categoryMap),
+            new OutgoingMessages()
+        );
+    }
+
+    public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(
+        UpdateCategoriesCommand command,
+        UpdateCategoriesState state,
+        ICategoryRepository repository,
+        IUnitOfWork unitOfWork,
+        CancellationToken ct
+    )
+    {
         // Apply changes in a single transaction
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                for (var i = 0; i < items.Count; i++)
+                for (int i = 0; i < state.Items.Count; i++)
                 {
-                    var item = items[i];
-                    var category = categoryMap[item.Id];
+                    UpdateCategoryItem item = state.Items[i];
+                    ProductCatalog.Domain.Entities.Category category = state.CategoryMap[item.Id];
 
                     category.Name = item.Name;
                     category.Description = item.Description;
@@ -69,9 +95,10 @@ public sealed class UpdateCategoriesCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Categories));
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
 
-        return new BatchResponse([], items.Count, 0);
+        return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }
 

@@ -1,5 +1,7 @@
 using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
 using Contracts.Events;
+using ProductCatalog.Application.Features.Product.Specifications;
 using ProductCatalog.Domain.Entities;
 using ErrorOr;
 using FluentValidation;
@@ -32,38 +34,62 @@ public sealed class UpdateProductsCommandHandler
         CancellationToken ct
     )
     {
-        (BatchResponse? failure, Dictionary<Guid, ProductEntity>? productMap) =
-            await UpdateProductsValidator.ValidateAndLoadAsync(
-                command,
-                repository,
+        IReadOnlyList<UpdateProductItem> items = command.Request.Items;
+        BatchFailureContext<UpdateProductItem> context = new(items);
+
+        await context.ApplyRulesAsync(
+            ct,
+            new FluentValidationBatchRule<UpdateProductItem>(itemValidator)
+        );
+
+        HashSet<Guid> requestedIds = items
+            .Where((_, i) => !context.IsFailed(i))
+            .Select(item => item.Id)
+            .ToHashSet();
+        Dictionary<Guid, ProductEntity> productMap = (
+            await repository.ListAsync(new ProductsByIdsWithLinksSpecification(requestedIds), ct)
+        ).ToDictionary(product => product.Id);
+
+        await context.ApplyRulesAsync(
+            ct,
+            new MarkMissingByIdBatchRule<UpdateProductItem>(
+                item => item.Id,
+                productMap.Keys.ToHashSet(),
+                ErrorCatalog.Products.NotFoundMessage
+            )
+        );
+
+        context.AddFailures(
+            await ProductValidationHelper.CheckProductReferencesAsync(
+                items,
                 categoryRepository,
                 productDataRepository,
-                itemValidator,
+                context.FailedIndices,
                 ct
-            );
+            )
+        );
 
         OutgoingMessages messages = new();
 
-        if (failure is not null)
+        if (context.HasFailures)
         {
-            messages.RespondToSender(failure);
+            messages.RespondToSender(context.ToFailureResponse());
             return (HandlerContinuation.Stop, null, messages);
         }
 
         return (
             HandlerContinuation.Continue,
-            new EntityLookup<ProductEntity>(productMap!),
+            new EntityLookup<ProductEntity>(productMap),
             messages
         );
     }
 
     /// <summary>Applies changes and syncs product-data links in a single transaction.</summary>
-    public static async Task<ErrorOr<BatchResponse>> HandleAsync(
+    public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(
         UpdateProductsCommand command,
         EntityLookup<ProductEntity> lookup,
         ProductRepositoryContract repository,
         IUnitOfWork unitOfWork,
-        IMessageBus bus,
         CancellationToken ct
     )
     {
@@ -94,8 +120,10 @@ public sealed class UpdateProductsCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Products));
-        return new BatchResponse([], items.Count, 0);
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        return (new BatchResponse([], items.Count, 0), messages);
     }
 }
 

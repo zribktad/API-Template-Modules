@@ -14,17 +14,18 @@ public sealed record CreateCategoriesCommand(CreateCategoriesRequest Request);
 /// <summary>Handles <see cref="CreateCategoriesCommand"/> by validating all items and persisting in a single transaction.</summary>
 public sealed class CreateCategoriesCommandHandler
 {
-    public static async Task<ErrorOr<BatchResponse>> HandleAsync(
+    public static async Task<(
+        HandlerContinuation,
+        IReadOnlyList<CategoryEntity>?,
+        OutgoingMessages
+    )> LoadAsync(
         CreateCategoriesCommand command,
-        ICategoryRepository repository,
-        IUnitOfWork unitOfWork,
-        IMessageBus bus,
         IValidator<CreateCategoryRequest> itemValidator,
         CancellationToken ct
     )
     {
-        var items = command.Request.Items;
-        var context = new BatchFailureContext<CreateCategoryRequest>(items);
+        IReadOnlyList<CreateCategoryRequest> items = command.Request.Items;
+        BatchFailureContext<CreateCategoryRequest> context = new(items);
 
         await context.ApplyRulesAsync(
             ct,
@@ -32,9 +33,13 @@ public sealed class CreateCategoriesCommandHandler
         );
 
         if (context.HasFailures)
-            return context.ToFailureResponse();
+        {
+            OutgoingMessages failureMessages = new();
+            failureMessages.RespondToSender(context.ToFailureResponse());
+            return (HandlerContinuation.Stop, null, failureMessages);
+        }
 
-        var entities = items
+        List<CategoryEntity> entities = items
             .Select(item => new CategoryEntity
             {
                 Id = Guid.NewGuid(),
@@ -43,6 +48,17 @@ public sealed class CreateCategoriesCommandHandler
             })
             .ToList();
 
+        return (HandlerContinuation.Continue, entities, new OutgoingMessages());
+    }
+
+    public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(
+        CreateCategoriesCommand command,
+        IReadOnlyList<CategoryEntity> entities,
+        ICategoryRepository repository,
+        IUnitOfWork unitOfWork,
+        CancellationToken ct
+    )
+    {
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
@@ -51,8 +67,9 @@ public sealed class CreateCategoriesCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Categories));
-        return new BatchResponse([], items.Count, 0);
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }
 

@@ -12,11 +12,10 @@ public sealed record CreateVideoProductDataCommand(CreateVideoProductDataRequest
 
 public sealed class CreateVideoProductDataCommandHandler
 {
-    public static async Task<ErrorOr<ProductDataResponse>> HandleAsync(
+    public static async Task<(ErrorOr<ProductDataResponse>, OutgoingMessages)> HandleAsync(
         CreateVideoProductDataCommand command,
         IProductDataRepository repository,
         ITenantProvider tenantProvider,
-        IMessageBus bus,
         TimeProvider timeProvider,
         CancellationToken ct
     )
@@ -34,8 +33,9 @@ public sealed class CreateVideoProductDataCommandHandler
         };
 
         var created = await repository.CreateAsync(entity, ct);
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.ProductData));
-        return created.ToResponse();
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.ProductData));
+        return (created.ToResponse(), messages);
     }
 }
 

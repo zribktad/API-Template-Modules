@@ -13,19 +13,21 @@ public sealed record DeleteCategoriesCommand(BatchDeleteRequest Request);
 /// <summary>Handles <see cref="DeleteCategoriesCommand"/> by loading all categories and deleting in a single transaction.</summary>
 public sealed class DeleteCategoriesCommandHandler
 {
-    public static async Task<ErrorOr<BatchResponse>> HandleAsync(
+    public static async Task<(
+        HandlerContinuation,
+        IReadOnlyList<ProductCatalog.Domain.Entities.Category>?,
+        OutgoingMessages
+    )> LoadAsync(
         DeleteCategoriesCommand command,
         ICategoryRepository repository,
-        IUnitOfWork unitOfWork,
-        IMessageBus bus,
         CancellationToken ct
     )
     {
-        var ids = command.Request.Ids;
-        var context = new BatchFailureContext<Guid>(ids);
+        IReadOnlyList<Guid> ids = command.Request.Ids;
+        BatchFailureContext<Guid> context = new(ids);
 
         // Load all target categories and mark missing ones as failed
-        var categories = await repository.ListAsync(
+        IReadOnlyList<ProductCatalog.Domain.Entities.Category> categories = await repository.ListAsync(
             new CategoriesByIdsSpecification(ids.ToHashSet()),
             ct
         );
@@ -40,8 +42,23 @@ public sealed class DeleteCategoriesCommandHandler
         );
 
         if (context.HasFailures)
-            return context.ToFailureResponse();
+        {
+            OutgoingMessages failureMessages = new();
+            failureMessages.RespondToSender(context.ToFailureResponse());
+            return (HandlerContinuation.Stop, null, failureMessages);
+        }
 
+        return (HandlerContinuation.Continue, categories, new OutgoingMessages());
+    }
+
+    public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(
+        DeleteCategoriesCommand command,
+        IReadOnlyList<ProductCatalog.Domain.Entities.Category> categories,
+        ICategoryRepository repository,
+        IUnitOfWork unitOfWork,
+        CancellationToken ct
+    )
+    {
         // Remove categories in a single transaction
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
@@ -51,9 +68,10 @@ public sealed class DeleteCategoriesCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Categories));
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
 
-        return new BatchResponse([], ids.Count, 0);
+        return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
 }
 

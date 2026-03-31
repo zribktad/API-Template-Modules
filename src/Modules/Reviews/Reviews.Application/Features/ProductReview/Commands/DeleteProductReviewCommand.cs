@@ -14,28 +14,50 @@ public sealed record DeleteProductReviewCommand(Guid Id) : IHasId;
 /// <summary>Handles <see cref="DeleteProductReviewCommand"/>.</summary>
 public sealed class DeleteProductReviewCommandHandler
 {
-    public static async Task<ErrorOr<Success>> HandleAsync(
+    public static async Task<(
+        HandlerContinuation,
+        Reviews.Domain.Entities.ProductReview?,
+        OutgoingMessages
+    )> LoadAsync(
         DeleteProductReviewCommand command,
         IProductReviewRepository reviewRepository,
-        IUnitOfWork unitOfWork,
         IActorProvider actorProvider,
-        IMessageBus bus,
         CancellationToken ct
     )
     {
-        var userId = actorProvider.ActorId;
-        var reviewResult = await reviewRepository.GetByIdOrError(
+        Guid userId = actorProvider.ActorId;
+        ErrorOr<Reviews.Domain.Entities.ProductReview> reviewResult = await reviewRepository.GetByIdOrError(
             command.Id,
             DomainErrors.Reviews.NotFound(command.Id),
             ct
         );
         if (reviewResult.IsError)
-            return reviewResult.Errors;
-        var review = reviewResult.Value;
+        {
+            OutgoingMessages failureMessages = new();
+            failureMessages.RespondToSender(reviewResult.Errors);
+            return (HandlerContinuation.Stop, null, failureMessages);
+        }
+
+        Reviews.Domain.Entities.ProductReview review = reviewResult.Value;
 
         if (review.UserId != userId)
-            return DomainErrors.Auth.ForbiddenOwnReviewsOnly();
+        {
+            OutgoingMessages failureMessages = new();
+            failureMessages.RespondToSender(DomainErrors.Auth.ForbiddenOwnReviewsOnly());
+            return (HandlerContinuation.Stop, null, failureMessages);
+        }
 
+        return (HandlerContinuation.Continue, review, new OutgoingMessages());
+    }
+
+    public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
+        DeleteProductReviewCommand command,
+        Reviews.Domain.Entities.ProductReview review,
+        IProductReviewRepository reviewRepository,
+        IUnitOfWork unitOfWork,
+        CancellationToken ct
+    )
+    {
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
@@ -44,8 +66,10 @@ public sealed class DeleteProductReviewCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Reviews));
-        return Result.Success;
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        return (Result.Success, messages);
     }
 }
 
