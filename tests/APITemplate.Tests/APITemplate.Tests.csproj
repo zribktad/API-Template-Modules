@@ -29,10 +29,15 @@
     <Compile Include="Unit\Middleware\RequestContextMiddlewareTests.cs" />
     <Compile Include="Unit\Security\PermissionAuthorizationHandlerTests.cs" />
     <Compile Include="Unit\Security\StaticRolePermissionMapTests.cs" />
+    <Compile Include="Unit\BackgroundJobs\Jobs\JobExecutionTests.cs" />
+    <Compile Include="Unit\BackgroundJobs\Jobs\GetJobStatusQueryHandlerTests.cs" />
+    <Compile Include="Unit\BackgroundJobs\Jobs\SubmitJobCommandHandlerTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\APITemplate.Api\APITemplate.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.Application\BackgroundJobs.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.Domain\BackgroundJobs.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\Identity.Application\Identity.Application.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\Contracts\Contracts.csproj" />

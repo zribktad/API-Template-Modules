@@ -59,7 +59,7 @@
 
 ## Unit 6: BackgroundJobs Module
 - [x] Create 4 domain-driven projects for BackgroundJobs
-- [ ] Setup `BackgroundJobs.Domain` (`JobExecution`, `JobStatus`, `IJobExecutionRepository`)
+- [x] Setup `BackgroundJobs.Domain` (`JobExecution`, `JobStatus`, `IJobExecutionRepository`)
 - [ ] Setup `BackgroundJobs.Application` (Job features, options)
 - [ ] Setup `BackgroundJobs.Infrastructure` (`BackgroundJobsDbContext`, `JobExecutionRepository`, `JobExecutionConfiguration`)
 - [ ] Setup `TickerQ` and `Services` in `BackgroundJobs.Infrastructure`
