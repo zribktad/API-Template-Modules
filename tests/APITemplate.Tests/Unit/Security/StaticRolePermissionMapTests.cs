@@ -1,4 +1,5 @@
 using Identity.Application.Common.Security;
+using Identity.Domain.Enums;
 using Shouldly;
 using Xunit;
 

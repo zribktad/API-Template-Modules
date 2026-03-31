@@ -1,6 +1,8 @@
+using Identity.Api;
+using Identity.Application.Features.User;
 using ProductCatalog.Api;
 using ProductCatalog.Application.Features.Product;
-using Reviews;
+using Reviews.Api;
 using Reviews.Application.Features.ProductReview;
 using Serilog;
 using SharedKernel.Application.Middleware;
@@ -24,11 +26,13 @@ builder.Host.UseSerilog(
 builder.Services.AddApiFoundation(builder.Configuration);
 builder.Services.AddApplicationComposition(builder.Configuration);
 builder.Services.AddObservability(builder.Configuration, builder.Environment);
+builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddProductCatalogModule(builder.Configuration);
-builder.Services.AddReviewsRuntimeBridge(builder.Configuration);
+builder.Services.AddReviewsModule(builder.Configuration);
 
 builder.Host.UseWolverine(options =>
 {
+    options.Discovery.IncludeAssembly(typeof(CreateUserCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(CreateProductReviewCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(Program).Assembly);
@@ -36,6 +40,7 @@ builder.Host.UseWolverine(options =>
         typeof(ErrorOrValidationMiddleware),
         chain =>
             chain.ShouldApplyErrorOrValidation(
+                typeof(CreateUserCommand).Assembly,
                 typeof(CreateProductsCommand).Assembly,
                 typeof(CreateProductReviewCommand).Assembly
             )

@@ -20,7 +20,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
     private readonly TContext _dbContext;
     private readonly TransactionDefaultsOptions _transactionDefaults;
     private readonly ILogger _logger;
-    private readonly IDbTransactionProvider _transactionProvider;
+    private readonly IDbTransactionProvider<TContext> _transactionProvider;
     private readonly ManagedTransactionScope _managedTransactionScope = new();
     private readonly DbContextTrackedStateManager _trackedStateManager;
     private readonly DbContextCommandTimeoutScope _commandTimeoutScope;
@@ -30,8 +30,8 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
     public UnitOfWork(
         TContext dbContext,
         IOptions<TransactionDefaultsOptions> transactionDefaults,
-        ILogger logger,
-        IDbTransactionProvider transactionProvider
+        ILogger<UnitOfWork<TContext>> logger,
+        IDbTransactionProvider<TContext> transactionProvider
     )
     {
         _dbContext = dbContext;

@@ -1,0 +1,45 @@
+using Identity.Application.Common.Security;
+using SharedKernel.Domain.Entities.Contracts;
+using Identity.Domain.Interfaces;
+using SharedKernel.Domain.Interfaces;
+using SharedKernel.Application.Errors;
+using SharedKernel.Application.Events;
+using SharedKernel.Application.Extensions;
+using ErrorOr;
+using Wolverine;
+
+namespace Identity.Application.Features.User;
+
+public sealed record SetUserActiveCommand(Guid Id, bool IsActive) : IHasId;
+
+public sealed class SetUserActiveCommandHandler
+{
+    public static async Task<ErrorOr<Success>> HandleAsync(
+        SetUserActiveCommand command,
+        IUserRepository repository,
+        IUnitOfWork unitOfWork,
+        IMessageBus bus,
+        IKeycloakAdminService keycloakAdmin,
+        CancellationToken ct
+    )
+    {
+        var userResult = await repository.GetByIdOrError(
+            command.Id,
+            DomainErrors.Users.NotFound(command.Id),
+            ct
+        );
+        if (userResult.IsError)
+            return userResult.Errors;
+        var user = userResult.Value;
+
+        if (user.KeycloakUserId is not null)
+            await keycloakAdmin.SetUserEnabledAsync(user.KeycloakUserId, command.IsActive, ct);
+
+        user.IsActive = command.IsActive;
+        await repository.UpdateAsync(user, ct);
+        await unitOfWork.CommitAsync(ct);
+
+        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Users));
+        return Result.Success;
+    }
+}

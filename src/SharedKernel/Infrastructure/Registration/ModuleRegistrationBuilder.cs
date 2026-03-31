@@ -39,7 +39,6 @@ public sealed class ModuleRegistrationBuilder<TContext>
     )
     {
         _services.AddDbContext<TContext>(configure);
-        _services.AddScoped<DbContext>(sp => sp.GetRequiredService<TContext>());
         return this;
     }
 
@@ -90,7 +89,9 @@ public sealed class ModuleRegistrationBuilder<TContext>
 
     public ModuleRegistrationBuilder<TContext> AddStoredProcedureSupport()
     {
-        _services.TryAddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
+        _services.AddScoped<IStoredProcedureExecutor>(sp => 
+            new StoredProcedureExecutor(sp.GetRequiredService<TContext>())
+        );
         return this;
     }
 
@@ -104,16 +105,9 @@ public sealed class ModuleRegistrationBuilder<TContext>
         _services.TryAddSingleton<IEntityNormalizationService, PassthroughEntityNormalizationService>();
         _services.TryAddSingleton<IAuditableEntityStateManager, AuditableEntityStateManager>();
         _services.TryAddSingleton<ISoftDeleteProcessor, SoftDeleteProcessor>();
-        _services.TryAddScoped<IDbTransactionProvider, EfCoreTransactionProvider>();
-        _services.TryAddScoped<IUnitOfWork<TContext>>(sp =>
-        {
-            TContext dbContext = sp.GetRequiredService<TContext>();
-            Microsoft.Extensions.Options.IOptions<TransactionDefaultsOptions> defaults =
-                sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<TransactionDefaultsOptions>>();
-            ILogger<UnitOfWork<TContext>> logger = sp.GetRequiredService<ILogger<UnitOfWork<TContext>>>();
-            IDbTransactionProvider provider = sp.GetRequiredService<IDbTransactionProvider>();
-            return new UnitOfWork<TContext>(dbContext, defaults, logger, provider);
-        });
+        
+        _services.AddScoped<IDbTransactionProvider<TContext>, EfCoreTransactionProvider<TContext>>();
+        _services.AddScoped<IUnitOfWork<TContext>, UnitOfWork<TContext>>();
 
         return this;
     }
