@@ -1,5 +1,5 @@
 using APITemplate.Application.Common.BackgroundJobs;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.BackgroundJobs.Services;

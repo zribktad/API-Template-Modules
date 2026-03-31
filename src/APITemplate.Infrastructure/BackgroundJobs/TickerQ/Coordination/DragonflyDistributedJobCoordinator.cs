@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;

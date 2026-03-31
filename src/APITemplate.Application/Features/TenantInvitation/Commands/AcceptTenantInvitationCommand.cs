@@ -1,6 +1,7 @@
 using APITemplate.Application.Common.Email;
-using APITemplate.Application.Common.Errors;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Errors;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Domain.Enums;
 using APITemplate.Domain.Interfaces;
 using ErrorOr;

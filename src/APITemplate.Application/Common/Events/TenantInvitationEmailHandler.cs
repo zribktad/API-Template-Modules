@@ -1,5 +1,6 @@
 using APITemplate.Application.Common.Email;
-using APITemplate.Application.Common.Options;
+using Contracts.Events;
+using SharedKernel.Application.Options;
 using Microsoft.Extensions.Options;
 
 namespace APITemplate.Application.Common.Events;

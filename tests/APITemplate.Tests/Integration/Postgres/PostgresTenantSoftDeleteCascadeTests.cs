@@ -1,6 +1,6 @@
 using APITemplate.Api.Extensions;
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Options;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;

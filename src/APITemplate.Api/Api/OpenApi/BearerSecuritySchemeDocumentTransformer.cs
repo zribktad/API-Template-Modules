@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Security;
 using APITemplate.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication;

@@ -1,6 +1,6 @@
 using System.Text;
-using APITemplate.Application.Common.Contracts;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Contracts;
+using SharedKernel.Application.Options;
 using Microsoft.Extensions.Options;
 
 namespace APITemplate.Infrastructure.Webhooks;

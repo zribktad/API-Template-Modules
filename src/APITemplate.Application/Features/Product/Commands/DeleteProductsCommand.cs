@@ -1,6 +1,7 @@
-using APITemplate.Application.Common.Batch;
-using APITemplate.Application.Common.Batch.Rules;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Features.Product.Specifications;
 using ErrorOr;
 using Wolverine;

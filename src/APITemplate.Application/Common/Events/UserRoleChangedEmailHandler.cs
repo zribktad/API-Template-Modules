@@ -1,4 +1,5 @@
 using APITemplate.Application.Common.Email;
+using Contracts.Events;
 
 namespace APITemplate.Application.Common.Events;
 

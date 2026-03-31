@@ -1,7 +1,7 @@
 using APITemplate.Domain.Entities;
-using APITemplate.Domain.Exceptions;
+using SharedKernel.Domain.Exceptions;
 using APITemplate.Domain.Interfaces;
-using APITemplate.Application.Common.Context;
+using SharedKernel.Application.Context;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;

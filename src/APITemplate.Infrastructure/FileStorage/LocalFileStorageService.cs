@@ -1,6 +1,6 @@
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Contracts;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Contracts;
+using SharedKernel.Application.Options;
 using Microsoft.Extensions.Options;
 
 namespace APITemplate.Infrastructure.FileStorage;

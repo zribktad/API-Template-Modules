@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Security.Claims;
-using APITemplate.Application.Common.Http;
+using SharedKernel.Application.Http;
 using APITemplate.Application.Common.Security;
 using APITemplate.Infrastructure.Observability;
 using Microsoft.AspNetCore.Http.Features;

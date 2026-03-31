@@ -1,6 +1,6 @@
 using APITemplate.Api.Middleware;
-using APITemplate.Application.Common.Http;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Http;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Resilience;
 using APITemplate.Application.Common.Security;
 using APITemplate.Application.Common.Startup;

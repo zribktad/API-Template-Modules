@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using APITemplate.Application.Common.Context;
+using SharedKernel.Application.Context;
 using APITemplate.Application.Common.Security;
 using Microsoft.AspNetCore.Http;
 

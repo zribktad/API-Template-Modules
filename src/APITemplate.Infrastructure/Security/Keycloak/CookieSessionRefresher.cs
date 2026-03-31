@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Security;
 using APITemplate.Infrastructure.Observability;
 using Microsoft.AspNetCore.Authentication;

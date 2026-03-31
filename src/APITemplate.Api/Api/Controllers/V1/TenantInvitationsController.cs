@@ -1,8 +1,9 @@
 using APITemplate.Api.Authorization;
 using APITemplate.Api.Controllers;
 using APITemplate.Api.ErrorOrMapping;
-using APITemplate.Application.Common.DTOs;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.DTOs;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Common.Security;
 using APITemplate.Application.Features.TenantInvitation;
 using APITemplate.Application.Features.TenantInvitation.DTOs;

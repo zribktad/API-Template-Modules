@@ -1,5 +1,5 @@
-using APITemplate.Application.Common.Contracts;
-using APITemplate.Application.Common.DTOs;
+using SharedKernel.Application.Contracts;
+using SharedKernel.Application.DTOs;
 using APITemplate.Domain.Enums;
 
 namespace APITemplate.Application.Features.User.DTOs;

@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Search;
+using SharedKernel.Application.Search;
 using APITemplate.Application.Features.Tenant.DTOs;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;

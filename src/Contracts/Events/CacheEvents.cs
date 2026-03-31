@@ -1,3 +1,5 @@
+using SharedKernel.Application.Events;
+
 namespace Contracts.Events;
 
 /// <summary>

@@ -1,8 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using APITemplate.Application.Common.DTOs;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.DTOs;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Features.Product;
 using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.ProductReview;

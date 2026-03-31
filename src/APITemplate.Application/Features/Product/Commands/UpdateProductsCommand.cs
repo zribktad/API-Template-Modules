@@ -1,5 +1,6 @@
-using APITemplate.Application.Common.Batch;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Batch;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Domain.Entities;
 using ErrorOr;
 using FluentValidation;

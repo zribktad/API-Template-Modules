@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Context;
+using SharedKernel.Application.Context;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;

@@ -1,4 +1,4 @@
-using APITemplate.Domain.Exceptions;
+using SharedKernel.Domain.Exceptions;
 using APITemplate.Infrastructure.Observability;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;

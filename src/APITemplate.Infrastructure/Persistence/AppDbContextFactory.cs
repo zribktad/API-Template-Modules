@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Context;
+using SharedKernel.Application.Context;
 using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;

@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.DTOs;
+using SharedKernel.Application.DTOs;
 using APITemplate.Domain.Enums;
 
 namespace APITemplate.Application.Features.TenantInvitation.DTOs;

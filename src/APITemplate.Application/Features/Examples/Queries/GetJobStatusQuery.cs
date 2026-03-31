@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Errors;
+using SharedKernel.Application.Errors;
 using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Domain.Interfaces;
 using ErrorOr;

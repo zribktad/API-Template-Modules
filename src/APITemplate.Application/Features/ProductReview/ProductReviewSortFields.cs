@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Sorting;
+using SharedKernel.Application.Sorting;
 using ProductReviewEntity = APITemplate.Domain.Entities.ProductReview;
 
 namespace APITemplate.Application.Features.ProductReview;

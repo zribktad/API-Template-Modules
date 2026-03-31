@@ -1,10 +1,11 @@
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Context;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Common.Resilience;
 using APITemplate.Application.Features.ProductData;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Moq;

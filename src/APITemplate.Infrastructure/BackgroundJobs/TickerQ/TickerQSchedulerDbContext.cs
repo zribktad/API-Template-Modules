@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using Microsoft.EntityFrameworkCore;
 using TickerQ.EntityFrameworkCore.DbContextFactory;
 using TickerQ.Utilities.Entities;

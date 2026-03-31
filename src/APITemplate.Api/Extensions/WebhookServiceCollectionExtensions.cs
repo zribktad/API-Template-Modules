@@ -1,7 +1,7 @@
 using APITemplate.Api.Extensions.Resilience;
 using APITemplate.Application.Common.BackgroundJobs;
-using APITemplate.Application.Common.Contracts;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Contracts;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Resilience;
 using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Infrastructure.Webhooks;

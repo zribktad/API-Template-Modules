@@ -1,5 +1,5 @@
 using APITemplate.Application.Common.Email;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

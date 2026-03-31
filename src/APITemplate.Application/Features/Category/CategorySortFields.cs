@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Sorting;
+using SharedKernel.Application.Sorting;
 using CategoryEntity = APITemplate.Domain.Entities.Category;
 
 namespace APITemplate.Application.Features.Category;

@@ -1,5 +1,5 @@
-using APITemplate.Application.Common.Batch;
-using APITemplate.Application.Common.Batch.Rules;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
 using APITemplate.Application.Features.Product.Specifications;
 using FluentValidation;
 using ProductEntity = APITemplate.Domain.Entities.Product;

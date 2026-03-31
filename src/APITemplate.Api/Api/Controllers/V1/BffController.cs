@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using APITemplate.Api.Controllers;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Security;
 using APITemplate.Application.Features.Bff.DTOs;
 using Asp.Versioning;

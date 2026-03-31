@@ -1,4 +1,4 @@
-using SharedKernel.Application.Security;
+using APITemplate.Application.Common.Security;
 
 namespace SharedKernel.Application.Options.Security;
 

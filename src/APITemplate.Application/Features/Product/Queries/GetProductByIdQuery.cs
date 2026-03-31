@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Errors;
+using SharedKernel.Application.Errors;
 using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.Product.Specifications;
 using ErrorOr;

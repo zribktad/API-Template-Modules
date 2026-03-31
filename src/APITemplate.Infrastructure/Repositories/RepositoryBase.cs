@@ -1,4 +1,4 @@
-using APITemplate.Domain.Exceptions;
+using SharedKernel.Domain.Exceptions;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Repositories.Pagination;
 using Ardalis.Specification;

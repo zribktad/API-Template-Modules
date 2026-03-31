@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Context;
+using SharedKernel.Application.Context;
 using APITemplate.Application.Common.Startup;
 using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;

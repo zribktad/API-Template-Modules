@@ -1,9 +1,10 @@
-using APITemplate.Application.Common.Events;
-using APITemplate.Application.Common.Options;
+using Contracts.Events;
+using SharedKernel.Application.Events;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Features.ProductReview;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Repositories;
 using APITemplate.Tests.Integration.Helpers;

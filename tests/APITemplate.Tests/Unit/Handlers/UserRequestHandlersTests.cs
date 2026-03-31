@@ -1,5 +1,6 @@
 using System.Net.Http;
-using APITemplate.Application.Common.Events;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Common.Security;
 using APITemplate.Application.Features.User;
 using APITemplate.Application.Features.User.DTOs;

@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Context;
+using SharedKernel.Application.Context;
 using APITemplate.Application.Features.Product.Validation;
 using APITemplate.Infrastructure.Security;
 using Asp.Versioning;

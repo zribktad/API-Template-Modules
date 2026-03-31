@@ -1,5 +1,5 @@
 using APITemplate.Domain.Interfaces;
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using Moq;
 
 namespace APITemplate.Tests.Unit.Handlers;

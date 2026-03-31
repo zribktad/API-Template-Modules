@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Search;
+using SharedKernel.Application.Search;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;
 using ProductEntity = APITemplate.Domain.Entities.Product;

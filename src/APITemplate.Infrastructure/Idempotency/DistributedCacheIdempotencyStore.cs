@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using APITemplate.Application.Common.Contracts;
+using SharedKernel.Application.Contracts;
 using StackExchange.Redis;
 
 namespace APITemplate.Infrastructure.Idempotency;

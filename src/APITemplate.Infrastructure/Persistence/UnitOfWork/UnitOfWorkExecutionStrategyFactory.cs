@@ -1,4 +1,4 @@
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL;

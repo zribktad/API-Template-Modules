@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Sorting;
+using SharedKernel.Application.Sorting;
 using TenantEntity = APITemplate.Domain.Entities.Tenant;
 
 namespace APITemplate.Application.Features.Tenant;

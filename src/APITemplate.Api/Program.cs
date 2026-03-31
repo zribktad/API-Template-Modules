@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Middleware;
+using SharedKernel.Application.Middleware;
 using JasperFx;
 using JasperFx.CodeGeneration;
 using Serilog;

@@ -1,7 +1,7 @@
-using APITemplate.Application.Common.Contracts;
-using APITemplate.Application.Common.Errors;
+using SharedKernel.Application.Contracts;
+using SharedKernel.Application.Errors;
 using APITemplate.Application.Features.Examples.DTOs;
-using APITemplate.Domain.Exceptions;
+using SharedKernel.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace APITemplate.Api.Filters.Webhooks;

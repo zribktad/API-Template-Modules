@@ -1,5 +1,5 @@
-using APITemplate.Application.Common.Contracts;
-using APITemplate.Application.Common.DTOs;
+using SharedKernel.Application.Contracts;
+using SharedKernel.Application.DTOs;
 
 namespace APITemplate.Application.Features.ProductReview.DTOs;
 

@@ -1,5 +1,6 @@
-using APITemplate.Application.Common.Errors;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Errors;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Features.Tenant.DTOs;
 using APITemplate.Application.Features.Tenant.Mappings;
 using APITemplate.Domain.Interfaces;

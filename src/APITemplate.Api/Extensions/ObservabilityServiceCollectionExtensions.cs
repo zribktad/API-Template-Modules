@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.Observability;
 using HotChocolate.Diagnostics;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;

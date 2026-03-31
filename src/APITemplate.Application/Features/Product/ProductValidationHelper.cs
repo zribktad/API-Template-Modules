@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Batch;
+using SharedKernel.Application.Batch;
 
 namespace APITemplate.Application.Features.Product;
 

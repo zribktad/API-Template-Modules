@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Sorting;
+using SharedKernel.Application.Sorting;
 using APITemplate.Domain.Entities;
 
 namespace APITemplate.Application.Features.User;

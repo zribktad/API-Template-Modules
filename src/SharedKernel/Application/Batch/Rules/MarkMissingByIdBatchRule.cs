@@ -1,6 +1,6 @@
 namespace SharedKernel.Application.Batch.Rules;
 
-internal sealed class MarkMissingByIdBatchRule<TItem>(
+public sealed class MarkMissingByIdBatchRule<TItem>(
     Func<TItem, Guid> idSelector,
     IReadOnlySet<Guid> foundIds,
     string notFoundMessageTemplate

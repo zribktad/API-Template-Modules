@@ -1,6 +1,6 @@
 using System.Net.Mime;
 using System.Text.Json;
-using APITemplate.Application.Common.Contracts;
+using SharedKernel.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 

@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Http;
+using SharedKernel.Application.Http;
 using Shouldly;
 using Xunit;
 

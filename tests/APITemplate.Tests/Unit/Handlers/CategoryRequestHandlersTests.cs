@@ -1,10 +1,11 @@
-using APITemplate.Application.Common.Events;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Features.Category;
 using APITemplate.Application.Features.Category.Mappings;
 using APITemplate.Application.Features.Category.Specifications;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;

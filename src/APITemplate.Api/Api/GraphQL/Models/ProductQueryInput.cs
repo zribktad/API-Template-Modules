@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.DTOs;
+using SharedKernel.Application.DTOs;
 
 namespace APITemplate.Api.GraphQL.Models;
 

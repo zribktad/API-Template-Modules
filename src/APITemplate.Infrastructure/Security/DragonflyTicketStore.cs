@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;

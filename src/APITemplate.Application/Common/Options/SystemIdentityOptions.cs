@@ -1,4 +1,4 @@
-using APITemplate.Domain.Entities;
+using SharedKernel.Domain.Entities;
 
 namespace SharedKernel.Application.Options.Security;
 

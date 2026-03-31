@@ -3,7 +3,7 @@ using SharedKernel.Domain.Entities.Contracts;
 
 namespace SharedKernel.Application.Batch.Rules;
 
-internal sealed class FluentValidationBatchRule<TItem>(IValidator<TItem> validator)
+public sealed class FluentValidationBatchRule<TItem>(IValidator<TItem> validator)
     : IBatchRule<TItem>
 {
     private readonly IValidator<TItem> _validator = validator;

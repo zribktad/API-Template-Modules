@@ -1,5 +1,5 @@
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Errors;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Errors;
 using APITemplate.Application.Features.ProductData.Mappings;
 using APITemplate.Domain.Interfaces;
 using ErrorOr;

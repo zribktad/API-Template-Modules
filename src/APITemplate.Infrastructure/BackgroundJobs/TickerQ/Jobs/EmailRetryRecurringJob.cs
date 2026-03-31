@@ -1,5 +1,5 @@
 using APITemplate.Application.Common.BackgroundJobs;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

@@ -1,4 +1,4 @@
-using APITemplate.Application.Features.Examples.DTOs;
+using SharedKernel.Application.Contracts;
 
 namespace APITemplate.Application.Common.BackgroundJobs;
 

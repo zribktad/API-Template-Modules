@@ -1,4 +1,5 @@
-using APITemplate.Application.Common.Events;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Common.Resilience;
 using Microsoft.Extensions.Logging;
 using Polly.Registry;

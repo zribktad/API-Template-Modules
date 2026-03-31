@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Context;
+using SharedKernel.Application.Context;
 using APITemplate.Application.Features.User.DTOs;
 using APITemplate.Application.Features.User.Specifications;
 using APITemplate.Domain.Entities;

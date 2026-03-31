@@ -1,8 +1,9 @@
-using APITemplate.Application.Common.Context;
+using SharedKernel.Application.Context;
 using APITemplate.Application.Common.Email;
-using APITemplate.Application.Common.Errors;
-using APITemplate.Application.Common.Events;
-using APITemplate.Application.Common.Extensions;
+using SharedKernel.Application.Errors;
+using Contracts.Events;
+using SharedKernel.Application.Events;
+using SharedKernel.Application.Extensions;
 using APITemplate.Domain.Enums;
 using APITemplate.Domain.Interfaces;
 using ErrorOr;

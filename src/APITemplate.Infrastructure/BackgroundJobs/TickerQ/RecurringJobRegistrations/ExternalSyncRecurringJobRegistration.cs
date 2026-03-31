@@ -1,5 +1,5 @@
 using APITemplate.Application.Common.BackgroundJobs;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 
 namespace APITemplate.Infrastructure.BackgroundJobs.TickerQ.RecurringJobRegistrations;
 

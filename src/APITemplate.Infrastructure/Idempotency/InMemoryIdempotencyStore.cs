@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using APITemplate.Application.Common.Contracts;
+using SharedKernel.Application.Contracts;
 
 namespace APITemplate.Infrastructure.Idempotency;
 

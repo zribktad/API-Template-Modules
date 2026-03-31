@@ -23,7 +23,7 @@ public static class ConflictTelemetry
     /// <summary>
     /// Increments the appropriate conflict counter based on the exception type.
     /// EF Core concurrency exceptions increment the concurrency counter; domain
-    /// <see cref="Domain.Exceptions.ConflictException"/> increments the domain-conflicts counter tagged with <paramref name="errorCode"/>.
+    /// <see cref="SharedKernel.Domain.Exceptions.ConflictException"/> increments the domain-conflicts counter tagged with <paramref name="errorCode"/>.
     /// </summary>
     public static void Record(Exception exception, string errorCode)
     {
@@ -33,7 +33,7 @@ public static class ConflictTelemetry
             return;
         }
 
-        if (exception is Domain.Exceptions.ConflictException)
+        if (exception is SharedKernel.Domain.Exceptions.ConflictException)
         {
             DomainConflicts.Add(
                 1,

@@ -1,6 +1,6 @@
 namespace SharedKernel.Application.Batch;
 
-internal interface IBatchRule<TItem>
+public interface IBatchRule<TItem>
 {
     Task ApplyAsync(BatchFailureContext<TItem> context, CancellationToken ct);
 }

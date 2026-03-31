@@ -12,9 +12,9 @@
 - [x] Create `Contracts` project
   - [x] Configure `Contracts.csproj` (reference SharedKernel)
   - [x] Move existing Integration Events (Cache, Email, SoftDelete)
-  - [ ] Define new `ProductSoftDeletedNotification` and extend `TenantSoftDeletedNotification`
-- [ ] Add both to `APITemplate.slnx` and add references to legacy projects
-- [ ] Ensure full solution compiles (`dotnet build`)
+  - [x] Define new `ProductSoftDeletedNotification` and extend `TenantSoftDeletedNotification`
+- [x] Add both to `APITemplate.slnx` and add references to legacy projects
+- [x] Ensure full solution compiles (`dotnet build`)
 
 ## Unit 1: ProductCatalog Module
 - [ ] Create 4 projects (`ProductCatalog.Domain`, `ProductCatalog.Application`, `ProductCatalog.Infrastructure`, `ProductCatalog.Api`)

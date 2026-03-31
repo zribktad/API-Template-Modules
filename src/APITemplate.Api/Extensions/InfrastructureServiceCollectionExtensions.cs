@@ -1,6 +1,6 @@
 using APITemplate.Application.Common.BackgroundJobs;
-using APITemplate.Application.Common.Contracts;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Contracts;
+using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
 using APITemplate.Infrastructure.FileStorage;
 using APITemplate.Infrastructure.Idempotency;

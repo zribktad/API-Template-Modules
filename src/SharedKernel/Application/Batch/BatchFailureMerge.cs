@@ -5,9 +5,9 @@ namespace SharedKernel.Application.Batch;
 /// <summary>
 /// Merges per-item batch failures that share the same index (e.g. missing category and missing product data).
 /// </summary>
-internal static class BatchFailureMerge
+public static class BatchFailureMerge
 {
-    internal static List<BatchResultItem> MergeByIndex(
+    public static List<BatchResultItem> MergeByIndex(
         IEnumerable<BatchResultItem> first,
         IEnumerable<BatchResultItem> second
     )

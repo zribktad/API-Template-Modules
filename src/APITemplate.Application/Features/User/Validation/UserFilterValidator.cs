@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Validation;
+using SharedKernel.Application.Validation;
 using APITemplate.Application.Features.User.DTOs;
 using APITemplate.Domain.Enums;
 using FluentValidation;

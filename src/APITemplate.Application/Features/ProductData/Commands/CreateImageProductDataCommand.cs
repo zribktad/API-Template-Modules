@@ -1,5 +1,6 @@
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Context;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Features.ProductData.Mappings;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;

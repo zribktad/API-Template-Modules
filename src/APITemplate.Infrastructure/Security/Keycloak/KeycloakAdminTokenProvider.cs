@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

@@ -1,5 +1,5 @@
 using APITemplate.Application.Common.Email;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Resilience;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;

@@ -1,5 +1,5 @@
 using APITemplate.Api.Extensions.Resilience;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Resilience;
 using APITemplate.Application.Common.Security;
 using APITemplate.Infrastructure.Security;

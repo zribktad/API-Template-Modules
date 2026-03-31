@@ -1,11 +1,12 @@
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Context;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.ProductReview;
 using APITemplate.Application.Features.ProductReview.Specifications;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using ErrorOr;
 using Moq;
 using Shouldly;

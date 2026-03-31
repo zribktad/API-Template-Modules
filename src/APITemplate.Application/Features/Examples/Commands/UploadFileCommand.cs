@@ -1,6 +1,6 @@
-using APITemplate.Application.Common.Contracts;
-using APITemplate.Application.Common.Errors;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Contracts;
+using SharedKernel.Application.Errors;
+using SharedKernel.Application.Options;
 using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;

@@ -1,5 +1,5 @@
 using APITemplate.Application.Common.BackgroundJobs;
-using APITemplate.Application.Common.Contracts;
+using SharedKernel.Application.Contracts;
 using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 
 namespace APITemplate.Application.Common.BackgroundJobs;
 

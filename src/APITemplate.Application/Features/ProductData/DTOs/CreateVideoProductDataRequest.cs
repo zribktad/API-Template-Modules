@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using APITemplate.Application.Common.Validation;
+using SharedKernel.Application.Validation;
 
 namespace APITemplate.Application.Features.ProductData.DTOs;
 

@@ -1,6 +1,6 @@
 using APITemplate.Application.Features.Product.Specifications;
 using APITemplate.Domain.Entities;
-using APITemplate.Domain.Exceptions;
+using SharedKernel.Domain.Exceptions;
 using APITemplate.Infrastructure.Persistence;
 using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;

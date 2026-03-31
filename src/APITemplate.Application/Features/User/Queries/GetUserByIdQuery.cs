@@ -1,6 +1,6 @@
-using APITemplate.Application.Common.Errors;
+using SharedKernel.Application.Errors;
 using APITemplate.Application.Features.User.Specifications;
-using APITemplate.Domain.Entities.Contracts;
+using SharedKernel.Domain.Entities.Contracts;
 using APITemplate.Domain.Interfaces;
 using ErrorOr;
 

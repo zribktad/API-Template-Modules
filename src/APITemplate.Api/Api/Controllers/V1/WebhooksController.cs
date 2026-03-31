@@ -1,7 +1,7 @@
 using APITemplate.Api.Controllers;
 using APITemplate.Api.Filters.Webhooks;
 using APITemplate.Application.Common.BackgroundJobs;
-using APITemplate.Application.Features.Examples.DTOs;
+using SharedKernel.Application.Contracts;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

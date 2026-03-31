@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Validation;
+using SharedKernel.Application.Validation;
 
 namespace APITemplate.Application.Features.ProductReview.Validation;
 

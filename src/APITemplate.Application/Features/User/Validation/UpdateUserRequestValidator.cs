@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Validation;
+using SharedKernel.Application.Validation;
 using APITemplate.Application.Features.User.DTOs;
 
 namespace APITemplate.Application.Features.User.Validation;
