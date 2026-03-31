@@ -192,6 +192,20 @@ public class ProductReviewRequestHandlersTests
                 ),
             Times.Once
         );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Reviews)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Categories)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -252,6 +266,20 @@ public class ProductReviewRequestHandlersTests
                     It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>(),
                     It.IsAny<TransactionOptions?>()
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Reviews)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Categories)
                 ),
             Times.Once
         );

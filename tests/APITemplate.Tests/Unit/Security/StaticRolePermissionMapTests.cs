@@ -1,5 +1,4 @@
-using APITemplate.Application.Common.Security;
-using APITemplate.Domain.Enums;
+using Identity.Application.Common.Security;
 using Shouldly;
 using Xunit;
 

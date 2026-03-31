@@ -27,10 +27,13 @@
     <Compile Include="Unit\Common\ConfigurationExtensionsTests.cs" />
     <Compile Include="Unit\ExceptionHandling\ApiExceptionHandlerTests.cs" />
     <Compile Include="Unit\Middleware\RequestContextMiddlewareTests.cs" />
+    <Compile Include="Unit\Security\PermissionAuthorizationHandlerTests.cs" />
+    <Compile Include="Unit\Security\StaticRolePermissionMapTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\APITemplate.Api\APITemplate.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\Identity.Application\Identity.Application.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\Contracts\Contracts.csproj" />
   </ItemGroup>

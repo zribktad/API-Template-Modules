@@ -22,18 +22,18 @@
 - [x] Run targeted Unit 0 regression tests (`UnitOfWork`, configuration/options, startup coordination, queues/webhooks, soft-delete`)
 
 ## Unit 1: ProductCatalog Module
-- [ ] Create 4 projects (`ProductCatalog.Domain`, `ProductCatalog.Application`, `ProductCatalog.Infrastructure`, `ProductCatalog.Api`)
-- [ ] Migrate Domain entities & repos (`Product`, `Category`, `ProductDataLink`, etc.)
-- [ ] Migrate Application features (`Features/Product`, `Features/Category`, etc.)
-- [ ] Migrate Infrastructure (`ProductCatalogDbContext`, MongoDB, configs, cascade rules)
-- [ ] Migrate API & GraphQL
-- [ ] Verify `dotnet build` & tests
+- [x] Create 4 projects (`ProductCatalog.Domain`, `ProductCatalog.Application`, `ProductCatalog.Infrastructure`, `ProductCatalog.Api`)
+- [x] Migrate Domain entities & repos (`Product`, `Category`, `ProductDataLink`, etc.)
+- [x] Migrate Application features (`Features/Product`, `Features/Category`, etc.)
+- [x] Migrate Infrastructure (`ProductCatalogDbContext`, MongoDB, configs, cascade rules)
+- [x] Migrate API & GraphQL
+- [x] Verify `dotnet build` & tests
 
 ## Unit 2: Reviews Module
 - [ ] Create 4 domain-driven projects
-- [ ] Setup `ReviewsDbContext` and ProductReview entity
-- [ ] Implement `ProductSoftDeletedEventHandler`
-- [ ] Verify `dotnet build` & tests
+- [x] Setup `ReviewsDbContext` and ProductReview entity
+- [x] Implement `ProductSoftDeletedEventHandler`
+- [x] Verify `dotnet build` & tests
 
 ## Unit 3: Identity Module
 - [ ] Create 4 domain-driven projects
@@ -66,7 +66,7 @@
 - [ ] Verify `dotnet build` & tests
 
 ## Unit 8: Host Rewiring + Cleanup
-- [ ] Wire up `Program.cs` extension methods
-- [ ] Update `APITemplate.Api.csproj` references
+- [x] Wire up `Program.cs` extension methods
+- [x] Update `APITemplate.Api.csproj` references
 - [ ] Delete legacy `APITemplate.Domain`, `APITemplate.Application`, `APITemplate.Infrastructure` (except Migrations)
-- [ ] Final verification (`dotnet build`, `dotnet test`)
+- [x] Final verification (`dotnet build`, `dotnet test`)
