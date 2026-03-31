@@ -4,7 +4,7 @@ using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using APITemplate.Infrastructure.Persistence.SoftDelete;
+using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.Persistence.Startup;
 using APITemplate.Tests.Helpers;
 using Microsoft.EntityFrameworkCore;

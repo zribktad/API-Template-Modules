@@ -10,7 +10,7 @@ namespace APITemplate.Infrastructure.Persistence.Auditing;
 /// </summary>
 public sealed class AuditableEntityStateManager
     : SharedKernel.Infrastructure.Auditing.AuditableEntityStateManager,
-        IAuditableEntityStateManager
+        SharedKernel.Infrastructure.Auditing.IAuditableEntityStateManager
 {
     public override void StampAdded(
         EntityEntry entry,

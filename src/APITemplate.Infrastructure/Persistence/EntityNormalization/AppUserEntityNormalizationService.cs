@@ -6,7 +6,7 @@ namespace APITemplate.Infrastructure.Persistence.EntityNormalization;
 /// Normalizes <see cref="AppUser"/> fields (username and email) to their canonical
 /// casing before the entity is persisted, enabling case-insensitive uniqueness checks.
 /// </summary>
-public sealed class AppUserEntityNormalizationService : IEntityNormalizationService
+public sealed class AppUserEntityNormalizationService : SharedKernel.Infrastructure.EntityNormalization.IEntityNormalizationService
 {
     /// <summary>
     /// Applies normalization to <paramref name="entity"/> when it is an <see cref="AppUser"/>;

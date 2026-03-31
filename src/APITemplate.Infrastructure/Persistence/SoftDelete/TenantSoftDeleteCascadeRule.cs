@@ -8,7 +8,7 @@ namespace APITemplate.Infrastructure.Persistence.SoftDelete;
 /// When a <see cref="Tenant"/> is soft-deleted, all active users, products, and categories
 /// belonging to that tenant are soft-deleted as well.
 /// </summary>
-public sealed class TenantSoftDeleteCascadeRule : ISoftDeleteCascadeRule
+public sealed class TenantSoftDeleteCascadeRule : SharedKernel.Infrastructure.SoftDelete.ISoftDeleteCascadeRule
 {
     /// <summary>Handles only <see cref="Tenant"/> entities.</summary>
     public bool CanHandle(IAuditableTenantEntity entity) => entity is Tenant;

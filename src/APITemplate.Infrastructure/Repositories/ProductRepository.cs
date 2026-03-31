@@ -10,6 +10,8 @@ namespace APITemplate.Infrastructure.Repositories;
 /// </summary>
 public class ProductRepository : RepositoryBase<Product>, IProductRepository
 {
+    private AppDbContext AppDb => (AppDbContext)DbContext;
+
     private static readonly IReadOnlyList<ProductPriceFacetBucketResponse> DefaultPriceBuckets =
     [
         new("0 - 50", 0m, 50m, 0),

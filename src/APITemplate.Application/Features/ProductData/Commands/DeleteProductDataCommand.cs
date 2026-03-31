@@ -2,7 +2,7 @@ using SharedKernel.Application.Context;
 using SharedKernel.Application.Errors;
 using Contracts.Events;
 using SharedKernel.Application.Events;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Domain.Interfaces;
 using ErrorOr;
 using Microsoft.Extensions.Logging;

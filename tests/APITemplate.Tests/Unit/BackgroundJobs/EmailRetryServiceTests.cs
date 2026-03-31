@@ -1,6 +1,6 @@
 using APITemplate.Application.Common.Email;
 using SharedKernel.Application.Options;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.BackgroundJobs.Services;

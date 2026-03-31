@@ -1,13 +1,14 @@
 using System.Data;
 using SharedKernel.Application.Context;
-using SharedKernel.Application.Options;
+using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Infrastructure.SoftDelete;
+using SharedKernel.Infrastructure.UnitOfWork;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using SharedKernel.Domain.Options;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using APITemplate.Infrastructure.Persistence.SoftDelete;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -17,6 +18,8 @@ using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Persistence;
+
+using AppDbUnitOfWork = SharedKernel.Infrastructure.UnitOfWork.UnitOfWork<APITemplate.Infrastructure.Persistence.AppDbContext>;
 
 public class UnitOfWorkTests
 {
@@ -361,14 +364,14 @@ public class UnitOfWorkTests
         (await dbContext.Categories.CountAsync(TestContext.Current.CancellationToken)).ShouldBe(1);
     }
 
-    private static UnitOfWork CreateUnitOfWork(
+    private static AppDbUnitOfWork CreateUnitOfWork(
         AppDbContext dbContext,
         TransactionDefaultsOptions defaults,
         IDbTransactionProvider transactionProvider)
         => new(
             dbContext,
             Options.Create(defaults),
-            NullLogger<UnitOfWork>.Instance,
+            NullLogger<AppDbUnitOfWork>.Instance,
             transactionProvider);
 
     private static AppDbContext CreateDbContext()

@@ -1,8 +1,8 @@
 using SharedKernel.Application.Context;
 using APITemplate.Domain.Entities;
-using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using APITemplate.Infrastructure.Persistence.SoftDelete;
+using SharedKernel.Infrastructure.Auditing;
+using SharedKernel.Infrastructure.EntityNormalization;
+using SharedKernel.Infrastructure.SoftDelete;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Design;

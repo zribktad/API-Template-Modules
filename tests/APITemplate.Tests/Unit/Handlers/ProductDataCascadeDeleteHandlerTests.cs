@@ -1,6 +1,6 @@
 using Contracts.Events;
 using SharedKernel.Application.Events;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Application.Features.ProductData.Handlers;
 using Microsoft.Extensions.Logging;
 using Moq;

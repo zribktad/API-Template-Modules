@@ -1,6 +1,8 @@
 using APITemplate.Api.Extensions;
 using SharedKernel.Application.Context;
-using SharedKernel.Application.Options;
+using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Infrastructure.SoftDelete;
+using SharedKernel.Infrastructure.UnitOfWork;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
@@ -14,6 +16,8 @@ using Respawn;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Postgres;
+
+using AppDbUnitOfWork = SharedKernel.Infrastructure.UnitOfWork.UnitOfWork<APITemplate.Infrastructure.Persistence.AppDbContext>;
 
 [Trait("Category", "Integration.Postgres")]
 public abstract class PostgresTestBase : IAsyncLifetime
@@ -90,11 +94,11 @@ public abstract class PostgresTestBase : IAsyncLifetime
         return context;
     }
 
-    protected static UnitOfWork CreateUnitOfWork(AppDbContext dbContext) =>
+    protected static AppDbUnitOfWork CreateUnitOfWork(AppDbContext dbContext) =>
         new(
             dbContext,
             Options.Create(new TransactionDefaultsOptions()),
-            NullLogger<UnitOfWork>.Instance,
+            NullLogger<AppDbUnitOfWork>.Instance,
             new EfCoreTransactionProvider(dbContext)
         );
 

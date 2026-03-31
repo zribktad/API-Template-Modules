@@ -1,6 +1,6 @@
 using APITemplate.Api.Authorization;
 using SharedKernel.Application.Options;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Application.Common.Security;
 using APITemplate.Domain.Enums;
 using APITemplate.Infrastructure.Health;

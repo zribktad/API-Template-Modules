@@ -1,7 +1,7 @@
 using SharedKernel.Application.Context;
 using Contracts.Events;
 using SharedKernel.Application.Events;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Application.Features.ProductData;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;

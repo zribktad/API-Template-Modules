@@ -8,7 +8,7 @@ namespace APITemplate.Infrastructure.Persistence.SoftDelete;
 /// When a <see cref="Product"/> is soft-deleted, all active reviews belonging
 /// to the same tenant are soft-deleted as well.
 /// </summary>
-public sealed class ProductSoftDeleteCascadeRule : ISoftDeleteCascadeRule
+public sealed class ProductSoftDeleteCascadeRule : SharedKernel.Infrastructure.SoftDelete.ISoftDeleteCascadeRule
 {
     /// <summary>
     /// Handles only <see cref="Product"/> entities.

@@ -1,4 +1,4 @@
-namespace APITemplate.Api.Extensions.Configuration;
+namespace APITemplate.Api.Extensions.Startup;
 
 /// <summary>
 /// Source-generated high-performance logger methods for Keycloak readiness-check events

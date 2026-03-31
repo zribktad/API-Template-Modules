@@ -1,5 +1,5 @@
 using APITemplate.Application.Common.Email;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
 using Microsoft.Extensions.Logging;
 using Polly.Registry;

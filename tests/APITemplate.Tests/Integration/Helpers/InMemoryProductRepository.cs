@@ -2,6 +2,7 @@ using APITemplate.Application.Features.Product.Specifications;
 using APITemplate.Domain.Entities;
 using SharedKernel.Domain.Exceptions;
 using APITemplate.Infrastructure.Persistence;
+using SharedKernel.Infrastructure.Repositories;
 using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -240,7 +241,7 @@ internal sealed class InMemoryProductRepository : IProductRepository
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         _inner.SaveChangesAsync(cancellationToken);
 
-    private sealed class InnerRepository : RepositoryBase<ProductEntity>
+    private sealed class InnerRepository : SharedKernel.Infrastructure.Repositories.RepositoryBase<ProductEntity>
     {
         public InnerRepository(AppDbContext dbContext)
             : base(dbContext) { }

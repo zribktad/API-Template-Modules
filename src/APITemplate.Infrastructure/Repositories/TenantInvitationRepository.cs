@@ -13,6 +13,8 @@ public sealed class TenantInvitationRepository
     : RepositoryBase<TenantInvitation>,
         ITenantInvitationRepository
 {
+    private AppDbContext AppDb => (AppDbContext)DbContext;
+
     public TenantInvitationRepository(AppDbContext dbContext)
         : base(dbContext) { }
 

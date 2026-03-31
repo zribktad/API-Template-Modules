@@ -1,5 +1,5 @@
 global using APITemplate.Api.Extensions;
-global using APITemplate.Api.Extensions.Configuration;
+global using SharedKernel.Infrastructure.Configuration;
 global using APITemplate.Api.Extensions.Startup;
 global using SharedKernel.Application.DTOs;
 global using SharedKernel.Application.Errors;

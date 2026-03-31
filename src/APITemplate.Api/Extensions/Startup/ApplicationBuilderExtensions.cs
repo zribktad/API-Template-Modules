@@ -1,7 +1,7 @@
 using APITemplate.Api.Middleware;
 using SharedKernel.Application.Http;
 using SharedKernel.Application.Options;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Application.Common.Security;
 using SharedKernel.Application.Startup;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;

@@ -12,6 +12,8 @@ namespace APITemplate.Infrastructure.Repositories;
 /// </summary>
 public sealed class TenantRepository : RepositoryBase<Tenant>, ITenantRepository
 {
+    private AppDbContext AppDb => (AppDbContext)DbContext;
+
     public TenantRepository(AppDbContext dbContext)
         : base(dbContext) { }
 

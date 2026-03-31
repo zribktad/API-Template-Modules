@@ -3,7 +3,7 @@ using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using APITemplate.Infrastructure.Persistence.SoftDelete;
+using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.StoredProcedures;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;

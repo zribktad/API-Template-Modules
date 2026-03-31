@@ -1,8 +1,8 @@
-using APITemplate.Api.Extensions.Resilience;
+using SharedKernel.Infrastructure.Resilience;
 using APITemplate.Application.Common.BackgroundJobs;
 using SharedKernel.Application.Contracts;
 using SharedKernel.Application.Options;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Infrastructure.Webhooks;
 using Microsoft.Extensions.Http.Resilience;

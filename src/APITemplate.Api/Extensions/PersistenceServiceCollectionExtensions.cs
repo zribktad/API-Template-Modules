@@ -1,6 +1,10 @@
-using APITemplate.Api.Extensions.Resilience;
+using SharedKernel.Infrastructure.Resilience;
+using SharedKernel.Infrastructure.Auditing;
+using SharedKernel.Infrastructure.EntityNormalization;
+using SharedKernel.Infrastructure.SoftDelete;
+using SharedKernel.Infrastructure.UnitOfWork;
 using SharedKernel.Application.Options;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Application.Common.Security;
 using SharedKernel.Application.Startup;
 using APITemplate.Application.Features.Product.Repositories;
@@ -17,7 +21,10 @@ using APITemplate.Infrastructure.StoredProcedures;
 using Kot.MongoDB.Migrations;
 using Kot.MongoDB.Migrations.DI;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Polly;
+using AppDbUnitOfWork = SharedKernel.Infrastructure.UnitOfWork.UnitOfWork<APITemplate.Infrastructure.Persistence.AppDbContext>;
 
 namespace APITemplate.Api.Extensions;
 
@@ -61,16 +68,28 @@ public static class PersistenceServiceCollectionExtensions
 
         // Infrastructure / persistence helpers
         services.AddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
-        services.AddScoped<IDbTransactionProvider, EfCoreTransactionProvider>();
-        services.AddScoped<UnitOfWork>();
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());
-        services.AddScoped<IUnitOfWork<AppDbContext>>(sp => sp.GetRequiredService<UnitOfWork>());
+        services.AddScoped<IDbTransactionProvider>(sp =>
+            new EfCoreTransactionProvider(sp.GetRequiredService<AppDbContext>())
+        );
+        services.AddScoped<AppDbUnitOfWork>(sp =>
+            new AppDbUnitOfWork(
+                sp.GetRequiredService<AppDbContext>(),
+                sp.GetRequiredService<IOptions<TransactionDefaultsOptions>>(),
+                sp.GetRequiredService<ILogger<AppDbUnitOfWork>>(),
+                sp.GetRequiredService<IDbTransactionProvider>()
+            )
+        );
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbUnitOfWork>());
+        services.AddScoped<IUnitOfWork<AppDbContext>>(sp => sp.GetRequiredService<AppDbUnitOfWork>());
         services.AddScoped<IStartupTaskCoordinator, PostgresAdvisoryLockStartupTaskCoordinator>();
 
         // Auditing / normalization / soft delete behavior
         services.AddSingleton<IEntityNormalizationService, AppUserEntityNormalizationService>();
-        services.AddSingleton<IAuditableEntityStateManager, AuditableEntityStateManager>();
-        services.AddSingleton<ISoftDeleteProcessor, SoftDeleteProcessor>();
+        services.AddSingleton<
+            IAuditableEntityStateManager,
+            APITemplate.Infrastructure.Persistence.Auditing.AuditableEntityStateManager
+        >();
+        services.AddSingleton<ISoftDeleteProcessor, SharedKernel.Infrastructure.SoftDelete.SoftDeleteProcessor>();
         services.AddScoped<ISoftDeleteCascadeRule, ProductSoftDeleteCascadeRule>();
         services.AddScoped<ISoftDeleteCascadeRule, TenantSoftDeleteCascadeRule>();
 

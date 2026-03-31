@@ -1,6 +1,6 @@
-using APITemplate.Api.Extensions.Resilience;
+using SharedKernel.Infrastructure.Resilience;
 using SharedKernel.Application.Options;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Resilience;
 using APITemplate.Application.Common.Security;
 using APITemplate.Infrastructure.Security;
 using Keycloak.AuthServices.Sdk;
