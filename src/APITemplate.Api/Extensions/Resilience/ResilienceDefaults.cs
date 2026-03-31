@@ -2,7 +2,10 @@ namespace APITemplate.Api.Extensions.Resilience;
 
 internal static class ResilienceDefaults
 {
-    public const int MaxRetryAttempts = 3;
-    public static readonly TimeSpan ShortDelay = TimeSpan.FromSeconds(1);
-    public static readonly TimeSpan LongDelay = TimeSpan.FromSeconds(2);
+    public const int MaxRetryAttempts =
+        SharedKernel.Infrastructure.Resilience.ResilienceDefaults.MaxRetryAttempts;
+    public static readonly TimeSpan ShortDelay =
+        SharedKernel.Infrastructure.Resilience.ResilienceDefaults.ShortDelay;
+    public static readonly TimeSpan LongDelay =
+        SharedKernel.Infrastructure.Resilience.ResilienceDefaults.LongDelay;
 }

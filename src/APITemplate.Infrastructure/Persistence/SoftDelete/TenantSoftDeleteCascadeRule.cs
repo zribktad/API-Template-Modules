@@ -18,18 +18,18 @@ public sealed class TenantSoftDeleteCascadeRule : ISoftDeleteCascadeRule
     /// bypassing global query filters to ensure already-filtered rows are still found.
     /// </summary>
     public async Task<IReadOnlyCollection<IAuditableTenantEntity>> GetDependentsAsync(
-        AppDbContext dbContext,
+        DbContext dbContext,
         IAuditableTenantEntity entity,
         CancellationToken cancellationToken = default
     )
     {
-        if (entity is not Tenant tenant)
+        if (entity is not Tenant tenant || dbContext is not AppDbContext appDbContext)
             return [];
 
         var dependents = new List<IAuditableTenantEntity>();
 
         dependents.AddRange(
-            await dbContext
+            await appDbContext
                 .Users.IgnoreQueryFilters(["SoftDelete", "Tenant"])
                 .Where(u => u.TenantId == tenant.Id && !u.IsDeleted)
                 .Cast<IAuditableTenantEntity>()
@@ -37,7 +37,7 @@ public sealed class TenantSoftDeleteCascadeRule : ISoftDeleteCascadeRule
         );
 
         dependents.AddRange(
-            await dbContext
+            await appDbContext
                 .Products.IgnoreQueryFilters(["SoftDelete", "Tenant"])
                 .Where(p => p.TenantId == tenant.Id && !p.IsDeleted)
                 .Cast<IAuditableTenantEntity>()
@@ -45,7 +45,7 @@ public sealed class TenantSoftDeleteCascadeRule : ISoftDeleteCascadeRule
         );
 
         dependents.AddRange(
-            await dbContext
+            await appDbContext
                 .Categories.IgnoreQueryFilters(["SoftDelete", "Tenant"])
                 .Where(c => c.TenantId == tenant.Id && !c.IsDeleted)
                 .Cast<IAuditableTenantEntity>()

@@ -1,5 +1,5 @@
 using SharedKernel.Application.Context;
-using APITemplate.Application.Common.Startup;
+using SharedKernel.Application.Startup;
 using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;

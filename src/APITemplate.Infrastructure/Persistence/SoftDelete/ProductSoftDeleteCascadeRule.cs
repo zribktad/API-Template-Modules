@@ -21,18 +21,18 @@ public sealed class ProductSoftDeleteCascadeRule : ISoftDeleteCascadeRule
     /// be filtered from normal query paths during delete operations.
     /// </summary>
     public async Task<IReadOnlyCollection<IAuditableTenantEntity>> GetDependentsAsync(
-        AppDbContext dbContext,
+        DbContext dbContext,
         IAuditableTenantEntity entity,
         CancellationToken cancellationToken = default
     )
     {
-        if (entity is not Product product)
+        if (entity is not Product product || dbContext is not AppDbContext appDbContext)
             return [];
 
         var dependents = new List<IAuditableTenantEntity>();
 
         dependents.AddRange(
-            await dbContext
+            await appDbContext
                 .ProductReviews.IgnoreQueryFilters(["SoftDelete", "Tenant"])
                 .Where(r =>
                     r.ProductId == product.Id && r.TenantId == product.TenantId && !r.IsDeleted
@@ -42,7 +42,7 @@ public sealed class ProductSoftDeleteCascadeRule : ISoftDeleteCascadeRule
         );
 
         dependents.AddRange(
-            await dbContext
+            await appDbContext
                 .ProductDataLinks.IgnoreQueryFilters(["SoftDelete", "Tenant"])
                 .Where(d =>
                     d.ProductId == product.Id && d.TenantId == product.TenantId && !d.IsDeleted

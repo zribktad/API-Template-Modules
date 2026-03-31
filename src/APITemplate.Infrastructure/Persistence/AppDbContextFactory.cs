@@ -80,12 +80,12 @@ public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
     private sealed class NullSoftDeleteProcessor : ISoftDeleteProcessor
     {
         public Task ProcessAsync(
-            AppDbContext dbContext,
+            DbContext dbContext,
             EntityEntry entry,
             IAuditableTenantEntity entity,
             DateTime now,
             Guid actor,
-            IReadOnlyCollection<ISoftDeleteCascadeRule> softDeleteCascadeRules,
+            IReadOnlyCollection<SharedKernel.Infrastructure.SoftDelete.ISoftDeleteCascadeRule> softDeleteCascadeRules,
             CancellationToken cancellationToken
         ) => Task.CompletedTask;
     }

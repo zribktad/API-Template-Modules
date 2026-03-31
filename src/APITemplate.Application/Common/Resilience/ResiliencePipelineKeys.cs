@@ -6,9 +6,13 @@ namespace APITemplate.Application.Common.Resilience;
 /// </summary>
 public static class ResiliencePipelineKeys
 {
-    public const string MongoProductDataDelete = "mongo-productdata-delete";
-    public const string SmtpSend = "smtp-send";
-    public const string KeycloakAdmin = "keycloak-admin";
-    public const string KeycloakReadiness = "keycloak-readiness";
-    public const string OutgoingWebhook = "outgoing-webhook";
+    public const string MongoProductDataDelete =
+        SharedKernel.Application.Resilience.ResiliencePipelineKeys.MongoProductDataDelete;
+    public const string SmtpSend = SharedKernel.Application.Resilience.ResiliencePipelineKeys.SmtpSend;
+    public const string KeycloakAdmin =
+        SharedKernel.Application.Resilience.ResiliencePipelineKeys.KeycloakAdmin;
+    public const string KeycloakReadiness =
+        SharedKernel.Application.Resilience.ResiliencePipelineKeys.KeycloakReadiness;
+    public const string OutgoingWebhook =
+        SharedKernel.Application.Resilience.ResiliencePipelineKeys.OutgoingWebhook;
 }

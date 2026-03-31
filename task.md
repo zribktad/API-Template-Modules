@@ -5,16 +5,21 @@
 - [x] Create `Contracts` project
 - [x] Extract core `APITemplate.Domain` entities to `SharedKernel`
 - [x] Update `APITemplate.Domain` legacy references to point to `SharedKernel`
-- [x] Fix module references and missing usings in `SharedKernel`
+- [x] Finish `SharedKernel` alignment with the agreed Unit 0 scope from `implementation_plan.md`
   - [x] Move Application layer components (Context, DTOs, Batch, Sorting, Validation, Errors, Search, Http, Middleware, Options)
-  - [x] Refactor & generalize Infrastructure components (ModuleDbContext, SoftDelete with `DbContext`, UnitOfWork with `DbContext`, Registration extensions)
-  - [x] Set up `global using` re-exports in old legacy projects
-- [x] Create `Contracts` project
+  - [x] Move remaining planned Application components (`Resilience`, `Startup`)
+  - [x] Add `IUnitOfWork<TContext>` to `SharedKernel.Domain.Interfaces`
+  - [x] Move/refactor planned `SharedKernel.Infrastructure` components (`ModuleDbContext`, generalized `RepositoryBase`, `UnitOfWork<TContext>`, `SoftDelete`, configuration/registration utilities)
+  - [x] Move configuration/resilience helpers from `APITemplate.Api` to `SharedKernel.Infrastructure`
+  - [x] Move `AddQueueWithConsumer<>` registration to `SharedKernel.Infrastructure`
+  - [x] Replace legacy compatibility imports with explicit namespace shims / wrappers for moved types
   - [x] Configure `Contracts.csproj` (reference SharedKernel)
-  - [x] Move existing Integration Events (Cache, Email, SoftDelete)
+  - [x] Move existing integration event records (Cache invalidation, Email, SoftDelete)
+  - [x] Keep `Contracts` event-only; leave `CacheTags` and `MessageBusExtensions` public in `SharedKernel`
   - [x] Define new `ProductSoftDeletedNotification` and extend `TenantSoftDeletedNotification`
 - [x] Add both to `APITemplate.slnx` and add references to legacy projects
 - [x] Ensure full solution compiles (`dotnet build`)
+- [x] Run targeted Unit 0 regression tests (`UnitOfWork`, configuration/options, startup coordination, queues/webhooks, soft-delete`)
 
 ## Unit 1: ProductCatalog Module
 - [ ] Create 4 projects (`ProductCatalog.Domain`, `ProductCatalog.Application`, `ProductCatalog.Infrastructure`, `ProductCatalog.Api`)

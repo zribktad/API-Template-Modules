@@ -1,27 +1,12 @@
-using System.Data;
-using SharedKernel.Domain.Options;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace APITemplate.Infrastructure.Persistence;
 
 /// <summary>
-/// EF Core implementation of <see cref="IDbTransactionProvider"/> that delegates transaction
-/// management and execution strategy creation to the underlying <see cref="AppDbContext"/>.
+/// Legacy namespace wrapper for the SharedKernel EF Core transaction provider.
 /// </summary>
-public sealed class EfCoreTransactionProvider : IDbTransactionProvider
+public sealed class EfCoreTransactionProvider
+    : SharedKernel.Infrastructure.UnitOfWork.EfCoreTransactionProvider,
+        IDbTransactionProvider
 {
-    private readonly DbContext _dbContext;
-
-    public EfCoreTransactionProvider(AppDbContext dbContext) => _dbContext = dbContext;
-
-    public IDbContextTransaction? CurrentTransaction => _dbContext.Database.CurrentTransaction;
-
-    public Task<IDbContextTransaction> BeginTransactionAsync(
-        IsolationLevel isolationLevel,
-        CancellationToken ct
-    ) => _dbContext.Database.BeginTransactionAsync(isolationLevel, ct);
-
-    public IExecutionStrategy CreateExecutionStrategy(TransactionOptions options) =>
-        UnitOfWorkExecutionStrategyFactory.Create(_dbContext, options);
+    public EfCoreTransactionProvider(AppDbContext dbContext)
+        : base(dbContext) { }
 }

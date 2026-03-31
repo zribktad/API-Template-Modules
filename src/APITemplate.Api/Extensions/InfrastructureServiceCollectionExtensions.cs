@@ -69,11 +69,10 @@ public static class InfrastructureServiceCollectionExtensions
         where TQueue : class
         where TReader : class
         where TService : class, IHostedService
-    {
-        services.AddSingleton<TImpl>();
-        services.AddSingleton<TQueue>(sp => sp.GetRequiredService<TImpl>());
-        services.AddSingleton<TReader>(sp => sp.GetRequiredService<TImpl>());
-        services.AddHostedService<TService>();
-        return services;
-    }
+        => SharedKernel.Infrastructure.Registration.QueueRegistrationExtensions.AddQueueWithConsumer<
+            TImpl,
+            TQueue,
+            TReader,
+            TService
+        >(services);
 }

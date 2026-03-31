@@ -1,4 +1,4 @@
-namespace APITemplate.Application.Common.Startup;
+namespace SharedKernel.Application.Startup;
 
 /// <summary>
 /// Coordinates one-time startup tasks across multiple application instances using distributed locking,

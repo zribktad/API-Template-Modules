@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Startup;
+using SharedKernel.Application.Startup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;

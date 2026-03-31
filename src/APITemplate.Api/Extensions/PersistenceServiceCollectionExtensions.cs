@@ -2,7 +2,7 @@ using APITemplate.Api.Extensions.Resilience;
 using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Resilience;
 using APITemplate.Application.Common.Security;
-using APITemplate.Application.Common.Startup;
+using SharedKernel.Application.Startup;
 using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Health;
@@ -62,7 +62,9 @@ public static class PersistenceServiceCollectionExtensions
         // Infrastructure / persistence helpers
         services.AddScoped<IStoredProcedureExecutor, StoredProcedureExecutor>();
         services.AddScoped<IDbTransactionProvider, EfCoreTransactionProvider>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<UnitOfWork>();
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UnitOfWork>());
+        services.AddScoped<IUnitOfWork<AppDbContext>>(sp => sp.GetRequiredService<UnitOfWork>());
         services.AddScoped<IStartupTaskCoordinator, PostgresAdvisoryLockStartupTaskCoordinator>();
 
         // Auditing / normalization / soft delete behavior

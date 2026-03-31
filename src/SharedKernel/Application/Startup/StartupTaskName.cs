@@ -1,4 +1,4 @@
-namespace APITemplate.Application.Common.Startup;
+namespace SharedKernel.Application.Startup;
 
 /// <summary>
 /// Enumerates the named startup tasks whose distributed execution is coordinated via

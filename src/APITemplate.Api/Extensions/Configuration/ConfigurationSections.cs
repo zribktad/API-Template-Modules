@@ -7,9 +7,8 @@ namespace APITemplate.Api.Extensions.Configuration;
 /// </summary>
 internal static class ConfigurationSections
 {
-    /// <summary>GetConnectionString key for the primary PostgreSQL connection.</summary>
-    public const string DefaultConnection = "DefaultConnection";
-
-    /// <summary>MongoDbSettings does not carry the "Options" suffix.</summary>
-    public const string MongoDB = "MongoDB";
+    public const string DefaultConnection =
+        SharedKernel.Infrastructure.Configuration.ConfigurationSections.DefaultConnection;
+    public const string MongoDB =
+        SharedKernel.Infrastructure.Configuration.ConfigurationSections.MongoDB;
 }

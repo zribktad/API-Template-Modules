@@ -155,7 +155,7 @@ public static class BackgroundJobsServiceCollectionExtensions
 
     private static void RegisterSoftDeleteCleanupStrategies(IServiceCollection services)
     {
-        var softDeletableTypes = typeof(ISoftDeletable)
+        var softDeletableTypes = typeof(Product)
             .Assembly.GetTypes()
             .Where(t =>
                 t is { IsClass: true, IsAbstract: false }

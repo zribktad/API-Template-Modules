@@ -3,7 +3,7 @@ using SharedKernel.Application.Http;
 using SharedKernel.Application.Options;
 using APITemplate.Application.Common.Resilience;
 using APITemplate.Application.Common.Security;
-using APITemplate.Application.Common.Startup;
+using SharedKernel.Application.Startup;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using APITemplate.Infrastructure.Observability;
 using APITemplate.Infrastructure.Persistence;
