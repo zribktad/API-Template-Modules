@@ -1,7 +1,5 @@
 using Asp.Versioning;
 using ErrorOr;
-using Identity.Api.Authorization;
-using Identity.Api.ErrorOrMapping;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;

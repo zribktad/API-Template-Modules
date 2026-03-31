@@ -1,4 +1,6 @@
 global using Contracts.Events;
+global using ProductCatalog.Application.Errors;
+global using ProductCatalog.Application.Events;
 global using ProductCatalog.Application.Features.Category.DTOs;
 global using ProductCatalog.Application.Features.Product.DTOs;
 global using ProductCatalog.Application.Features.Product.Repositories;
@@ -11,7 +13,6 @@ global using SharedKernel.Application.Batch.Rules;
 global using SharedKernel.Application.Context;
 global using SharedKernel.Application.Contracts;
 global using SharedKernel.Application.DTOs;
-global using SharedKernel.Application.Errors;
 global using SharedKernel.Application.Events;
 global using SharedKernel.Application.Extensions;
 global using SharedKernel.Application.Resilience;

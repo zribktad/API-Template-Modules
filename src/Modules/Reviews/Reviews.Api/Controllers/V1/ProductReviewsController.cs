@@ -2,8 +2,6 @@ using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
-using Reviews.Api.Authorization;
-using Reviews.Api.ErrorOrMapping;
 using Wolverine;
 
 namespace Reviews.Api.Controllers.V1;

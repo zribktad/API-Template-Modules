@@ -1,4 +1,6 @@
-global using Identity.Application.Common.Security;
+global using Contracts.Api;
+global using Contracts.Security;
+global using Reviews.Application.Events;
 global using Reviews.Application.Features.ProductReview;
 global using Reviews.Application.Features.ProductReview.DTOs;
 global using SharedKernel.Application.DTOs;

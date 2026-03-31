@@ -43,8 +43,6 @@ public static class NotificationsRuntimeBridge
         >();
         
         services.AddSingleton<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
-        // Using it directly here because it was coupled to emails before. Identity might recreate or share.
-        services.AddSingleton<ISecureTokenGenerator, Notifications.Infrastructure.Security.SecureTokenGenerator>(); 
         services.AddTransient<IEmailSender, MailKitEmailSender>();
         services.AddSingleton<IFailedEmailStore, FailedEmailStore>();
         

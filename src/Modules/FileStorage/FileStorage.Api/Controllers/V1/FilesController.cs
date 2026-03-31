@@ -4,11 +4,7 @@ using FileStorage.Api.Requests;
 using FileStorage.Application.Features.Download;
 using FileStorage.Application.Features.DTOs;
 using FileStorage.Application.Features.Upload;
-using FileStorage.Api.Authorization;
-using Identity.Application.Common.Security;
 using Microsoft.AspNetCore.Mvc;
-using FileStorage.Api.Controllers;
-using FileStorage.Api.ErrorOrMapping;
 using Wolverine;
 
 namespace FileStorage.Api.Controllers.V1;

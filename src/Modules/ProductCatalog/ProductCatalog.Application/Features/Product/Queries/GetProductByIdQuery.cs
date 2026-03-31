@@ -1,4 +1,3 @@
-using SharedKernel.Application.Errors;
 using ProductCatalog.Application.Features.Product.Repositories;
 using ProductCatalog.Application.Features.Product.Specifications;
 using ErrorOr;

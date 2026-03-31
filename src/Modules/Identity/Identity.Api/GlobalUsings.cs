@@ -1,5 +1,8 @@
+global using Contracts.Api;
 global using Contracts.Events;
+global using Contracts.Security;
 global using Identity.Application.Common.Security;
+global using Identity.Application.Events;
 global using Identity.Application.Features.Tenant;
 global using Identity.Application.Features.Tenant.DTOs;
 global using Identity.Application.Features.TenantInvitation;

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Application.Contracts;
+using FileStorage.Application.Contracts;
 using SharedKernel.Application.Options;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Infrastructure.Configuration;

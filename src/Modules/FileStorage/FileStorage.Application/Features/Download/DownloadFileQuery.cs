@@ -1,10 +1,3 @@
-using SharedKernel.Application.Contracts;
-using SharedKernel.Application.Errors;
-using FileStorage.Application.Features.DTOs;
-using FileStorage.Domain;
-using SharedKernel.Domain.Interfaces;
-using ErrorOr;
-
 namespace FileStorage.Application.Features.Download;
 
 public sealed record DownloadFileQuery(DownloadFileRequest Request);
@@ -20,13 +13,13 @@ public sealed class DownloadFileQueryHandler
         CancellationToken ct
     )
     {
-        var entity = await repository.GetByIdAsync(query.Request.Id, ct);
+        StoredFile? entity = await repository.GetByIdAsync(query.Request.Id, ct);
         if (entity is null)
-            return DomainErrors.Examples.FileNotFound(query.Request.Id.ToString());
+            return DomainErrors.Files.FileNotFound(query.Request.Id.ToString());
 
-        var stream = await storage.OpenReadAsync(entity.StoragePath, ct);
+        Stream? stream = await storage.OpenReadAsync(entity.StoragePath, ct);
         if (stream is null)
-            return DomainErrors.Examples.FileNotFound(entity.OriginalFileName);
+            return DomainErrors.Files.FileNotFound(entity.OriginalFileName);
 
         return new FileDownloadResult(stream, entity.ContentType, entity.OriginalFileName);
     }

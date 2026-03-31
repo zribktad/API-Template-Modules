@@ -2,7 +2,6 @@ using Identity.Application.Features.User.DTOs;
 using SharedKernel.Domain.Entities.Contracts;
 using Identity.Application.Features.User.Specifications;
 using Identity.Domain.Interfaces;
-using SharedKernel.Application.Errors;
 using ErrorOr;
 
 namespace Identity.Application.Features.User;

@@ -1,5 +1,5 @@
 using SharedKernel.Application.Context;
-using SharedKernel.Application.Contracts;
+using FileStorage.Application.Contracts;
 using SharedKernel.Application.Options.Infrastructure;
 using Microsoft.Extensions.Options;
 

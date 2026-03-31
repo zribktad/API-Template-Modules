@@ -1,11 +1,5 @@
-using SharedKernel.Application.Contracts;
-using SharedKernel.Application.Errors;
-using SharedKernel.Application.Options.Infrastructure;
-using FileStorage.Application.Features.DTOs;
-using FileStorage.Domain;
-using SharedKernel.Domain.Interfaces;
-using ErrorOr;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options.Infrastructure;
 
 namespace FileStorage.Application.Features.Upload;
 
@@ -22,20 +16,20 @@ public sealed class UploadFileCommandHandler
         CancellationToken ct
     )
     {
-        var req = command.Request;
-        var opts = options.Value;
-        var extension = Path.GetExtension(req.FileName)?.ToLowerInvariant();
+        UploadFileRequest req = command.Request;
+        FileStorageOptions opts = options.Value;
+        string? extension = Path.GetExtension(req.FileName)?.ToLowerInvariant();
         if (string.IsNullOrEmpty(extension) || !opts.AllowedExtensions.Contains(extension))
-            return DomainErrors.Examples.InvalidFileType(extension ?? "none");
+            return DomainErrors.Files.InvalidFileType(extension ?? "none");
 
         if (req.SizeBytes > opts.MaxFileSizeBytes)
-            return DomainErrors.Examples.FileTooLarge(opts.MaxFileSizeBytes);
+            return DomainErrors.Files.FileTooLarge(opts.MaxFileSizeBytes);
 
-        var storageResult = await storage.SaveAsync(req.FileStream, req.FileName, ct);
+        FileStorageResult storageResult = await storage.SaveAsync(req.FileStream, req.FileName, ct);
 
         try
         {
-            var entity = new StoredFile
+            StoredFile entity = new()
             {
                 Id = Guid.NewGuid(),
                 OriginalFileName = req.FileName,

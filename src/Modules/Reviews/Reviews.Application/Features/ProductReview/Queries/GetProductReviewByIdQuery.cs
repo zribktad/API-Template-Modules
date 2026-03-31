@@ -1,4 +1,3 @@
-using SharedKernel.Application.Errors;
 using Reviews.Application.Features.ProductReview.Mappings;
 using Reviews.Domain.Interfaces;
 using ErrorOr;
