@@ -18,11 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modules\Identity\Identity.Application\Identity.Application.csproj" />
+    <ProjectReference Include="..\Modules\Identity\Identity.Api\Identity.Api.csproj" />
     <ProjectReference Include="..\Modules\ProductCatalog\ProductCatalog.Api\ProductCatalog.Api.csproj" />
     <ProjectReference Include="..\Modules\ProductCatalog\ProductCatalog.Application\ProductCatalog.Application.csproj" />
+    <ProjectReference Include="..\Modules\Reviews\Reviews.Api\Reviews.Api.csproj" />
     <ProjectReference Include="..\Modules\Reviews\Reviews.Application\Reviews.Application.csproj" />
-    <ProjectReference Include="..\Modules\Reviews\Reviews.Infrastructure\Reviews.Infrastructure.csproj" />
     <ProjectReference Include="..\SharedKernel\SharedKernel.csproj" />
     <ProjectReference Include="..\Contracts\Contracts.csproj" />
   </ItemGroup>

@@ -30,17 +30,17 @@
 - [x] Verify `dotnet build` & tests
 
 ## Unit 2: Reviews Module
-- [ ] Create 4 domain-driven projects
+- [x] Create 4 domain-driven projects
 - [x] Setup `ReviewsDbContext` and ProductReview entity
 - [x] Implement `ProductSoftDeletedEventHandler`
 - [x] Verify `dotnet build` & tests
 
 ## Unit 3: Identity Module
-- [ ] Create 4 domain-driven projects
-- [ ] Setup `IdentityDbContext` (`AppUser`, `Tenant`, `TenantInvitation`)
-- [ ] Migrate Auth infrastructure (Keycloak, BFF, Providers)
-- [ ] Migrate Controllers & Authorization
-- [ ] Verify `dotnet build` & tests
+- [x] Create 4 domain-driven projects
+- [x] Setup `IdentityDbContext` (`AppUser`, `Tenant`, `TenantInvitation`)
+- [x] Migrate Auth infrastructure (Keycloak, BFF, Providers)
+- [x] Migrate Controllers & Authorization
+- [x] Verify `dotnet build` & tests
 
 ## Unit 4: Notifications Module
 - [ ] Create 4 domain-driven projects

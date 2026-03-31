@@ -24,3 +24,14 @@ public class EfCoreTransactionProvider : IDbTransactionProvider
     public IExecutionStrategy CreateExecutionStrategy(TransactionOptions options) =>
         UnitOfWorkExecutionStrategyFactory.Create(_dbContext, options);
 }
+
+/// <summary>
+/// EF Core implementation of <see cref="IDbTransactionProvider{TContext}"/> backed by a specific module's <see cref="DbContext"/>.
+/// </summary>
+public class EfCoreTransactionProvider<TContext> : EfCoreTransactionProvider, IDbTransactionProvider<TContext>
+    where TContext : DbContext
+{
+    public EfCoreTransactionProvider(TContext dbContext) : base(dbContext)
+    {
+    }
+}

@@ -27,6 +27,16 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
             context.HttpContext.User.FindFirstValue(AuthConstants.Claims.TenantId) ?? string.Empty;
         context.CacheVaryByRules.VaryByValues[AuthConstants.Claims.TenantId] = tenantId;
 
+        if (!string.IsNullOrEmpty(tenantId))
+        {
+            var originalTags = context.Tags.ToList();
+            context.Tags.Clear();
+            foreach (var tag in originalTags)
+            {
+                context.Tags.Add($"{tag}-{tenantId}");
+            }
+        }
+
         return ValueTask.CompletedTask;
     }
 

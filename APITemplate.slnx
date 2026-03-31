@@ -6,7 +6,10 @@
     <Project Path="src/Contracts/Contracts.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/Identity.Domain/Identity.Domain.csproj" />
     <Project Path="src/Modules/Identity/Identity.Application/Identity.Application.csproj" />
+    <Project Path="src/Modules/Identity/Identity.Infrastructure/Identity.Infrastructure.csproj" />
+    <Project Path="src/Modules/Identity/Identity.Api/Identity.Api.csproj" />
   </Folder>
   <Folder Name="/src/Modules/ProductCatalog/">
     <Project Path="src/Modules/ProductCatalog/ProductCatalog.Domain/ProductCatalog.Domain.csproj" />
@@ -18,6 +21,7 @@
     <Project Path="src/Modules/Reviews/Reviews.Domain/Reviews.Domain.csproj" />
     <Project Path="src/Modules/Reviews/Reviews.Application/Reviews.Application.csproj" />
     <Project Path="src/Modules/Reviews/Reviews.Infrastructure/Reviews.Infrastructure.csproj" />
+    <Project Path="src/Modules/Reviews/Reviews.Api/Reviews.Api.csproj" />
   </Folder>
   <Folder Name="/src/SharedKernel/">
     <Project Path="src/SharedKernel/SharedKernel.csproj" />

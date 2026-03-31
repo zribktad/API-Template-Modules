@@ -1,0 +1,13 @@
+global using Contracts.Events;
+global using Identity.Application.Common.Security;
+global using Identity.Domain.Entities;
+global using Identity.Domain.Enums;
+global using Identity.Domain.Interfaces;
+global using SharedKernel.Application.Context;
+global using SharedKernel.Domain.Interfaces;
+global using SharedKernel.Infrastructure.Auditing;
+global using SharedKernel.Infrastructure.EntityNormalization;
+global using Identity.Infrastructure.Persistence;
+global using SharedKernel.Infrastructure.Persistence;
+global using SharedKernel.Infrastructure.Repositories;
+global using SharedKernel.Infrastructure.SoftDelete;

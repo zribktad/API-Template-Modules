@@ -12,6 +12,7 @@
 
 ## Tenant Management
 
+- [x] Ensure tenant-scoping for Output Cache tags (prevent cross-tenant cache invalidation).
 - [ ] Add tenant creation workflow.
 - [ ] Add tenant removal workflow.
 

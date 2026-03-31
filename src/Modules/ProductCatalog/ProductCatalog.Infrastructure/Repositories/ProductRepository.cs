@@ -1,4 +1,3 @@
-using ProductCatalog.Domain.Entities;
 using ProductCatalog.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using ProductApplicationRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
@@ -106,15 +105,15 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
             .Select(bucket =>
                 bucket with
                 {
-                    Count = bucket.Label switch
+                    Count = counts != null ? bucket switch
                     {
-                        "0 - 50" => counts?.ZeroToFifty ?? 0,
-                        "50 - 100" => counts?.FiftyToOneHundred ?? 0,
-                        "100 - 250" => counts?.OneHundredToTwoHundredFifty ?? 0,
-                        "250 - 500" => counts?.TwoHundredFiftyToFiveHundred ?? 0,
-                        "500+" => counts?.FiveHundredAndAbove ?? 0,
+                        { MinPrice: 0m, MaxPrice: 50m } => counts.ZeroToFifty,
+                        { MinPrice: 50m, MaxPrice: 100m } => counts.FiftyToOneHundred,
+                        { MinPrice: 100m, MaxPrice: 250m } => counts.OneHundredToTwoHundredFifty,
+                        { MinPrice: 250m, MaxPrice: 500m } => counts.TwoHundredFiftyToFiveHundred,
+                        { MinPrice: 500m, MaxPrice: null } => counts.FiveHundredAndAbove,
                         _ => 0,
-                    },
+                    } : 0,
                 }
             )
             .ToArray();
@@ -128,5 +127,3 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
         int FiveHundredAndAbove
     );
 }
-
-

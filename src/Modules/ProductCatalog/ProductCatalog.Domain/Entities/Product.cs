@@ -68,17 +68,26 @@ public sealed class Product : IAuditableTenantEntity, IHasId
         Dictionary<Guid, ProductDataLink> existingById
     )
     {
-        foreach (
-            var link in ProductDataLinks
-                .Where(link => !targetIds.Contains(link.ProductDataId))
-                .ToArray()
-        )
+        var linksToRemove = ProductDataLinks
+            .Where(link => !targetIds.Contains(link.ProductDataId))
+            .ToArray();
+
+        foreach (var link in linksToRemove)
+        {
             ProductDataLinks.Remove(link);
+        }
 
         foreach (var productDataId in targetIds)
         {
-            if (!existingById.ContainsKey(productDataId))
+            var existingLink = ProductDataLinks.FirstOrDefault(l => l.ProductDataId == productDataId);
+
+            if (existingLink == null)
             {
+                ProductDataLinks.Add(ProductDataLink.Create(Id, productDataId));
+            }
+            else if (existingLink.IsDeleted)
+            {
+                ProductDataLinks.Remove(existingLink);
                 ProductDataLinks.Add(ProductDataLink.Create(Id, productDataId));
             }
         }
@@ -93,5 +102,3 @@ public sealed class Product : IAuditableTenantEntity, IHasId
             ProductDataLinks.Remove(link);
     }
 }
-
-
