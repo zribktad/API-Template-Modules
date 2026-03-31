@@ -1,3 +1,4 @@
+using ProductCatalog.Api;
 using APITemplate.Api.Middleware;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
@@ -13,6 +14,9 @@ public static class ApplicationBuilderExtensions
         app.UseHttpsRedirection();
         app.UseMiddleware<RequestContextMiddleware>();
         app.UseSerilogRequestLogging();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseOutputCache();
         app.UseApiDocumentation();
 
         return app;
@@ -29,6 +33,7 @@ public static class ApplicationBuilderExtensions
             .WithTags("Host");
 
         app.MapHealthChecks("/health").WithTags("Health").AllowAnonymous();
+        app.MapProductCatalogEndpoints();
 
         return app;
     }

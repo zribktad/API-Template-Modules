@@ -160,7 +160,9 @@ internal sealed record ExactPairVersionRule(
             )
             .ToList();
 
-        if (pair.Count != 2)
+        bool hasFirst = pair.Any(reference => reference.Include == FirstPackageId);
+        bool hasSecond = pair.Any(reference => reference.Include == SecondPackageId);
+        if (!hasFirst || !hasSecond)
         {
             errors.Add(
                 $"{Name} package pair must include both {FirstPackageId} and {SecondPackageId}."
@@ -169,13 +171,18 @@ internal sealed record ExactPairVersionRule(
         }
 
         var parsed = PackageVersionParsing.Parse(Name, pair, errors);
-        if (parsed.Count != 2)
+        if (parsed.Count == 0)
             return;
 
-        if (parsed[0].Version != parsed[1].Version)
+        var distinctVersions = parsed
+            .Select(item => item.Version)
+            .Distinct()
+            .ToList();
+
+        if (distinctVersions.Count > 1)
         {
             errors.Add(
-                $"{Name} packages must share the exact same version. Found: {parsed[0].Reference.Include}={parsed[0].Version}, {parsed[1].Reference.Include}={parsed[1].Version}."
+                $"{Name} packages must share the exact same version. Found: {string.Join(", ", parsed.Select(item => $"{item.Reference.Include}={item.Version}"))}."
             );
         }
     }
@@ -267,6 +274,70 @@ internal static class PackagePolicyTestFiles
             Path.Combine(repoRoot, "src", "APITemplate.Api", "APITemplate.Api.csproj"),
             Path.Combine(repoRoot, "src", "SharedKernel", "SharedKernel.csproj"),
             Path.Combine(repoRoot, "src", "Contracts", "Contracts.csproj"),
+            Path.Combine(
+                repoRoot,
+                "src",
+                "Modules",
+                "Identity",
+                "Identity.Application",
+                "Identity.Application.csproj"
+            ),
+            Path.Combine(
+                repoRoot,
+                "src",
+                "Modules",
+                "ProductCatalog",
+                "ProductCatalog.Domain",
+                "ProductCatalog.Domain.csproj"
+            ),
+            Path.Combine(
+                repoRoot,
+                "src",
+                "Modules",
+                "ProductCatalog",
+                "ProductCatalog.Application",
+                "ProductCatalog.Application.csproj"
+            ),
+            Path.Combine(
+                repoRoot,
+                "src",
+                "Modules",
+                "ProductCatalog",
+                "ProductCatalog.Infrastructure",
+                "ProductCatalog.Infrastructure.csproj"
+            ),
+            Path.Combine(
+                repoRoot,
+                "src",
+                "Modules",
+                "ProductCatalog",
+                "ProductCatalog.Api",
+                "ProductCatalog.Api.csproj"
+            ),
+            Path.Combine(
+                repoRoot,
+                "src",
+                "Modules",
+                "Reviews",
+                "Reviews.Domain",
+                "Reviews.Domain.csproj"
+            ),
+            Path.Combine(
+                repoRoot,
+                "src",
+                "Modules",
+                "Reviews",
+                "Reviews.Application",
+                "Reviews.Application.csproj"
+            ),
+            Path.Combine(
+                repoRoot,
+                "src",
+                "Modules",
+                "Reviews",
+                "Reviews.Infrastructure",
+                "Reviews.Infrastructure.csproj"
+            ),
         };
 
         var packageReferences = projectPaths

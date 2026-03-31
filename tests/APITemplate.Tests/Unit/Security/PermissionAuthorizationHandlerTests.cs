@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using APITemplate.Api.Authorization;
-using APITemplate.Application.Common.Security;
-using APITemplate.Domain.Enums;
+using Identity.Application.Common.Security;
 using Microsoft.AspNetCore.Authorization;
 using Shouldly;
 using Xunit;
