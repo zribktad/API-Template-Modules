@@ -1,11 +1,7 @@
 using Identity.Application.Common.Email;
-using Identity.Domain.Enums;
-using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Errors;
-using SharedKernel.Application.Events;
 using ErrorOr;
 using Wolverine;
+using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
 
 namespace Identity.Application.Features.TenantInvitation;
 
@@ -23,13 +19,13 @@ public sealed class AcceptTenantInvitationCommandHandler
         CancellationToken ct
     )
     {
-        var tokenHash = tokenGenerator.HashToken(command.Token);
-        var invitation = await invitationRepository.GetValidByTokenHashAsync(tokenHash, ct);
+        string tokenHash = tokenGenerator.HashToken(command.Token);
+        TenantInvitationEntity? invitation = await invitationRepository.GetValidByTokenHashAsync(tokenHash, ct);
 
         if (invitation is null)
             return DomainErrors.Invitations.NotFoundOrExpired();
 
-        var now = timeProvider.GetUtcNow().UtcDateTime;
+        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
 
         if (invitation.ExpiresAtUtc < now)
             return DomainErrors.Invitations.Expired();

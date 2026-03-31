@@ -49,15 +49,22 @@
 - [ ] Verify `dotnet build` & tests
 
 ## Unit 5: FileStorage Module
-- [ ] Create 4 domain-driven projects
-- [ ] Setup `FileStorageDbContext` (`StoredFile`)
-- [ ] Migrate `LocalFileStorageService`
+- [ ] Create 4 domain-driven projects for FileStorage
+- [ ] Setup `FileStorage.Domain` (`StoredFile`, `IStoredFileRepository`)
+- [ ] Setup `FileStorage.Application` (File features, options, etc.)
+- [ ] Setup `FileStorage.Infrastructure` (`FileStorageDbContext`, `StoredFileRepository`, `StoredFileConfiguration`, `LocalFileStorageService`)
+- [ ] Setup `FileStorage.Api` (`FilesController`, `FileStorageModule.cs`)
+- [ ] Set up module references and wiring in `Program.cs`
 - [ ] Verify `dotnet build` & tests
 
 ## Unit 6: BackgroundJobs Module
-- [ ] Create 4 domain-driven projects
-- [ ] Setup `BackgroundJobsDbContext` (`JobExecution`)
-- [ ] Migrate TickerQ infrastructure & job queue
+- [ ] Create 4 domain-driven projects for BackgroundJobs
+- [ ] Setup `BackgroundJobs.Domain` (`JobExecution`, `JobStatus`, `IJobExecutionRepository`)
+- [ ] Setup `BackgroundJobs.Application` (Job features, options)
+- [ ] Setup `BackgroundJobs.Infrastructure` (`BackgroundJobsDbContext`, `JobExecutionRepository`, `JobExecutionConfiguration`)
+- [ ] Setup `TickerQ` and `Services` in `BackgroundJobs.Infrastructure`
+- [ ] Setup `BackgroundJobs.Api` (`JobsController`, `BackgroundJobsModule.cs`)
+- [ ] Set up module references and wiring in `Program.cs`
 - [ ] Verify `dotnet build` & tests
 
 ## Unit 7: Webhooks Module

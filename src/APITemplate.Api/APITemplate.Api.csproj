@@ -25,6 +25,8 @@
     <ProjectReference Include="..\Modules\Reviews\Reviews.Application\Reviews.Application.csproj" />
     <ProjectReference Include="..\SharedKernel\SharedKernel.csproj" />
     <ProjectReference Include="..\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\Notifications.Api\Notifications.Api.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\Notifications.Application\Notifications.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

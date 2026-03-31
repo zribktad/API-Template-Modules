@@ -1,13 +1,7 @@
-using Identity.Domain.Interfaces;
-using SharedKernel.Application.Context;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Application.Errors;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Extensions;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Wolverine;
+using TenantEntity = Identity.Domain.Entities.Tenant;
 
 namespace Identity.Application.Features.Tenant;
 
@@ -26,7 +20,7 @@ public sealed class DeleteTenantCommandHandler
         CancellationToken ct
     )
     {
-        var tenantResult = await repository.GetByIdOrError(
+        ErrorOr<TenantEntity> tenantResult = await repository.GetByIdOrError(
             command.Id,
             DomainErrors.Tenants.NotFound(command.Id),
             ct

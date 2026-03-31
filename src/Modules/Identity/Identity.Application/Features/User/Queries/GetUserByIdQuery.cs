@@ -17,7 +17,7 @@ public sealed class GetUserByIdQueryHandler
         CancellationToken ct
     )
     {
-        var result = await repository.FirstOrDefaultAsync(
+        UserResponse? result = await repository.FirstOrDefaultAsync(
             new UserByIdSpecification(request.Id),
             ct
         );

@@ -17,7 +17,7 @@ public sealed class GetTenantByIdQueryHandler
         CancellationToken ct
     )
     {
-        var result = await repository.FirstOrDefaultAsync(
+        TenantResponse? result = await repository.FirstOrDefaultAsync(
             new TenantByIdSpecification(request.Id),
             ct
         );

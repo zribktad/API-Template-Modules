@@ -1,4 +1,3 @@
-using Identity.Application.Common.Security;
 using Identity.Application.Options;
 using Keycloak.AuthServices.Sdk.Admin;
 using Keycloak.AuthServices.Sdk.Admin.Models;
@@ -50,7 +49,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         using HttpResponseMessage response = await _userClient.CreateUserWithResponseAsync(_realm, user, ct);
         response.EnsureSuccessStatusCode();
 
-        var keycloakUserId = ExtractUserIdFromLocation(response);
+        string keycloakUserId = ExtractUserIdFromLocation(response);
 
         _logger.LogInformation(
             "Created Keycloak user {Username} with id {KeycloakUserId}",
@@ -158,7 +157,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
             );
 
         // Location is: {base}/admin/realms/{realm}/users/{id}
-        var userId = location.Segments[^1].TrimEnd('/');
+        string userId = location.Segments[^1].TrimEnd('/');
 
         if (string.IsNullOrWhiteSpace(userId))
             throw new InvalidOperationException(

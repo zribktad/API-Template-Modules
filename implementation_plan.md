@@ -412,3 +412,42 @@ dotnet test APITemplate.slnx --no-build
 - DI resolution: all interfaces resolve — especially `IUnitOfWork<TContext>` per module
 - Wolverine: all handlers discoverable across module assemblies
 - GraphQL: schema export matches original
+
+---
+
+### Unit 5: FileStorage Module - Detailed Extraction Plan
+
+| Source File from `absolute/` | Destination in `src/Modules/FileStorage/` | Layer |
+| -------------------------- | --------------------------------------- | ----- |
+| `src/APITemplate.Domain/Entities/StoredFile.cs` | `FileStorage.Domain/StoredFile.cs` | Domain |
+| `src/APITemplate.Domain/Interfaces/IStoredFileRepository.cs` | `FileStorage.Domain/IStoredFileRepository.cs` | Domain |
+| `src/APITemplate.Application/Features/Examples/Commands/UploadFileCommand.cs` | `FileStorage.Application/Features/Upload/UploadFileCommand.cs` | Application |
+| `src/APITemplate.Application/Features/Examples/Queries/DownloadFileQuery.cs` | `FileStorage.Application/Features/Download/DownloadFileQuery.cs` | Application |
+| `src/APITemplate.Application/Features/Examples/DTOs/` (File DTOs) | `FileStorage.Application/Features/DTOs/` | Application |
+| `src/APITemplate.Infrastructure/FileStorage/LocalFileStorageService.cs` | `FileStorage.Infrastructure/LocalFileStorageService.cs` | Infrastructure |
+| **[NEW]** `FileStorageDbContext.cs` | `FileStorage.Infrastructure/FileStorageDbContext.cs` | Infrastructure |
+| **[NEW]** `StoredFileRepository.cs` | `FileStorage.Infrastructure/StoredFileRepository.cs` | Infrastructure |
+| **[NEW]** `StoredFileConfiguration.cs` | `FileStorage.Infrastructure/StoredFileConfiguration.cs` | Infrastructure |
+| `src/APITemplate.Api/Api/Controllers/V1/FilesController.cs` | `FileStorage.Api/FilesController.cs` | Api |
+| **[NEW]** `FileStorageModule.cs` | `FileStorage.Api/FileStorageModule.cs` | Api |
+
+### Unit 6: BackgroundJobs Module - Detailed Extraction Plan
+
+| Source File from `absolute/` | Destination in `src/Modules/BackgroundJobs/` | Layer |
+| -------------------------- | ------------------------------------------ | ----- |
+| `src/APITemplate.Domain/Entities/JobExecution.cs` | `BackgroundJobs.Domain/JobExecution.cs` | Domain |
+| `src/APITemplate.Domain/Interfaces/IJobExecutionRepository.cs` | `BackgroundJobs.Domain/IJobExecutionRepository.cs` | Domain |
+| `src/APITemplate.Application/Features/Examples/Commands/SubmitJob...` | `BackgroundJobs.Application/Features/Jobs/SubmitJobCommand.cs` | Application |
+| `src/APITemplate.Application/Features/Examples/Queries/GetJobStatus...` | `BackgroundJobs.Application/Features/Jobs/GetJobStatusQuery.cs` | Application |
+| `src/APITemplate.Application/Features/Examples/DTOs/` (Job DTOs) | `BackgroundJobs.Application/Features/Jobs/DTOs/` | Application |
+| `src/APITemplate.Infrastructure/BackgroundJobs/TickerQ/` (all files) | `BackgroundJobs.Infrastructure/TickerQ/` | Infrastructure |
+| `src/APITemplate.Infrastructure/BackgroundJobs/Services/` (all files) | `BackgroundJobs.Infrastructure/Services/` | Infrastructure |
+| `src/APITemplate.Infrastructure/BackgroundJobs/Validation/` (all files) | `BackgroundJobs.Infrastructure/Validation/` | Infrastructure |
+| **[NEW]** `BackgroundJobsDbContext.cs` | `BackgroundJobs.Infrastructure/BackgroundJobsDbContext.cs` | Infrastructure |
+| **[NEW]** `JobExecutionRepository.cs` | `BackgroundJobs.Infrastructure/JobExecutionRepository.cs` | Infrastructure |
+| **[NEW]** `JobExecutionConfiguration.cs` | `BackgroundJobs.Infrastructure/JobExecutionConfiguration.cs` | Infrastructure |
+| `src/APITemplate.Api/Api/Controllers/V1/JobsController.cs` | `BackgroundJobs.Api/JobsController.cs` | Api |
+| **[NEW]** `BackgroundJobsModule.cs` | `BackgroundJobs.Api/BackgroundJobsModule.cs` | Api |
+
+> [!IMPORTANT]
+> **User Review Required** I have updated the plan with a rigorous, file-by-file mapping table from the legacy `absolute` monolith into the new modular design for Units 5 and 6, showing exactly how `Examples` features will be reorganized. Please review and approve this file mapping so I can begin execution.

@@ -13,6 +13,7 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Wolverine;
+using TenantEntity = Identity.Domain.Entities.Tenant;
 using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
 
 namespace Identity.Application.Features.TenantInvitation;
@@ -35,25 +36,25 @@ public sealed class CreateTenantInvitationCommandHandler
         CancellationToken ct
     )
     {
-        var emailOpts = emailOptions.Value;
-        var normalizedEmail = AppUser.NormalizeEmail(command.Request.Email);
+        EmailOptions emailOpts = emailOptions.Value;
+        string normalizedEmail = AppUser.NormalizeEmail(command.Request.Email);
 
         if (await invitationRepository.HasPendingInvitationAsync(normalizedEmail, ct))
             return DomainErrors.Invitations.AlreadyPending(command.Request.Email);
 
-        var tenantResult = await tenantRepository.GetByIdOrError(
+        ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
             tenantProvider.TenantId,
             DomainErrors.Tenants.NotFound(tenantProvider.TenantId),
             ct
         );
         if (tenantResult.IsError)
             return tenantResult.Errors;
-        var tenant = tenantResult.Value;
+        TenantEntity tenant = tenantResult.Value;
 
-        var rawToken = tokenGenerator.GenerateToken();
-        var tokenHash = tokenGenerator.HashToken(rawToken);
+        string rawToken = tokenGenerator.GenerateToken();
+        string tokenHash = tokenGenerator.HashToken(rawToken);
 
-        var invitation = new TenantInvitationEntity
+        TenantInvitationEntity invitation = new()
         {
             Id = Guid.NewGuid(),
             Email = command.Request.Email.Trim(),

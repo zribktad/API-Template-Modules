@@ -25,14 +25,14 @@ public sealed class DeleteUserCommandHandler
         CancellationToken ct
     )
     {
-        var userResult = await repository.GetByIdOrError(
+        ErrorOr<AppUser> userResult = await repository.GetByIdOrError(
             command.Id,
             DomainErrors.Users.NotFound(command.Id),
             ct
         );
         if (userResult.IsError)
             return userResult.Errors;
-        var user = userResult.Value;
+        AppUser user = userResult.Value;
 
         if (user.KeycloakUserId is not null)
             await keycloakAdmin.DeleteUserAsync(user.KeycloakUserId, ct);

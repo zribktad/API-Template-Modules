@@ -25,16 +25,16 @@ public sealed class ChangeUserRoleCommandHandler
         CancellationToken ct
     )
     {
-        var userResult = await repository.GetByIdOrError(
+        ErrorOr<AppUser> userResult = await repository.GetByIdOrError(
             command.Id,
             DomainErrors.Users.NotFound(command.Id),
             ct
         );
         if (userResult.IsError)
             return userResult.Errors;
-        var user = userResult.Value;
+        AppUser user = userResult.Value;
 
-        var oldRole = user.Role.ToString();
+        string oldRole = user.Role.ToString();
 
         user.Role = command.Request.Role;
         await repository.UpdateAsync(user, ct);
