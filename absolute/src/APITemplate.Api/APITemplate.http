@@ -1,0 +1,117 @@
+@HostAddress = http://localhost:5174
+@ApiBase = {{HostAddress}}/api/v1
+@ContentType = application/json
+
+# Set this after login
+@Token = YOUR_TOKEN_HERE
+
+### =====================
+### AUTH
+### =====================
+
+### Login
+# @name login
+POST {{ApiBase}}/auth/login
+Content-Type: {{ContentType}}
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+###
+
+### =====================
+### PRODUCTS
+### =====================
+
+### Get all products
+GET {{ApiBase}}/products
+Authorization: Bearer {{Token}}
+Accept: {{ContentType}}
+
+###
+
+### Get product by ID
+GET {{ApiBase}}/products/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{Token}}
+Accept: {{ContentType}}
+
+###
+
+### Create product
+POST {{ApiBase}}/products
+Authorization: Bearer {{Token}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Sample Product",
+  "description": "Product description",
+  "price": 19.99
+}
+
+###
+
+### Update product
+PUT {{ApiBase}}/products/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{Token}}
+Content-Type: {{ContentType}}
+
+{
+  "name": "Updated Product",
+  "description": "Updated description",
+  "price": 29.99
+}
+
+###
+
+### Delete product
+DELETE {{ApiBase}}/products/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{Token}}
+
+###
+
+### =====================
+### PRODUCT REVIEWS
+### =====================
+
+### Get all reviews
+GET {{ApiBase}}/productreviews
+Authorization: Bearer {{Token}}
+Accept: {{ContentType}}
+
+###
+
+### Get review by ID
+GET {{ApiBase}}/productreviews/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{Token}}
+Accept: {{ContentType}}
+
+###
+
+### Get reviews by product
+GET {{ApiBase}}/productreviews/by-product/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{Token}}
+Accept: {{ContentType}}
+
+###
+
+### Create review
+POST {{ApiBase}}/productreviews
+Authorization: Bearer {{Token}}
+Content-Type: {{ContentType}}
+
+{
+  "productId": "00000000-0000-0000-0000-000000000001",
+  "userId": "00000000-0000-0000-0000-000000000002",
+  "comment": "Great product!",
+  "rating": 5
+}
+
+###
+
+### Delete review
+DELETE {{ApiBase}}/productreviews/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{Token}}
+
+###
