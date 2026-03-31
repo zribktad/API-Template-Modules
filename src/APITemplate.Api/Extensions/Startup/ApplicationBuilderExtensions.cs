@@ -1,4 +1,5 @@
 using ProductCatalog.Api;
+using FileStorage.Api;
 using APITemplate.Api.Middleware;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
@@ -34,6 +35,7 @@ public static class ApplicationBuilderExtensions
 
         app.MapHealthChecks("/health").WithTags("Health").AllowAnonymous();
         app.MapProductCatalogEndpoints();
+        app.MapFileStorageEndpoints();
 
         return app;
     }

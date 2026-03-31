@@ -1,7 +1,7 @@
 using Notifications.Domain;
-using Notifications.Domain;
 using Notifications.Infrastructure.Persistence;
 using Notifications.Infrastructure.StoredProcedures;
+using SharedKernel.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Notifications.Infrastructure.Repositories;

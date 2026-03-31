@@ -90,7 +90,7 @@ public static class ErrorOrExtensions
             Title = title,
             Detail = detail,
             Instance = controller.HttpContext.Request.Path,
-            Type = $"https://api-template.local/errors/{firstError.Code}",
+            Type = $"{controller.HttpContext.Request.Scheme}://{controller.HttpContext.Request.Host}/errors/{firstError.Code}",
         };
 
         problemDetails.Extensions["errorCode"] = firstError.Code;

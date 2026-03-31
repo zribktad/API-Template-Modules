@@ -29,6 +29,12 @@
     <Project Path="src/Modules/Reviews/Reviews.Infrastructure/Reviews.Infrastructure.csproj" />
     <Project Path="src/Modules/Reviews/Reviews.Api/Reviews.Api.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/FileStorage/">
+    <Project Path="src/Modules/FileStorage/FileStorage.Domain/FileStorage.Domain.csproj" />
+    <Project Path="src/Modules/FileStorage/FileStorage.Application/FileStorage.Application.csproj" />
+    <Project Path="src/Modules/FileStorage/FileStorage.Infrastructure/FileStorage.Infrastructure.csproj" />
+    <Project Path="src/Modules/FileStorage/FileStorage.Api/FileStorage.Api.csproj" />
+  </Folder>
   <Folder Name="/src/SharedKernel/">
     <Project Path="src/SharedKernel/SharedKernel.csproj" />
   </Folder>

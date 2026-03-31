@@ -36,7 +36,6 @@ public sealed class TenantRepository : RepositoryBase<Tenant>, ITenantRepository
     }
 
     public override async Task<Tenant?> GetByIdAsync<TId>(TId id, CancellationToken cancellationToken = default)
-        where TId : default
     {
         if (id is not Guid guid)
             throw new ArgumentException($"Expected Guid but received {typeof(TId).Name}.", nameof(id));

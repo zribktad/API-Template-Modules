@@ -19,22 +19,27 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
             return ValueTask.CompletedTask;
         }
 
+        string tenantId =
+            context.HttpContext.User.FindFirstValue(AuthConstants.Claims.TenantId) ?? string.Empty;
+
+        if (string.IsNullOrEmpty(tenantId))
+        {
+            context.EnableOutputCaching = false;
+            context.AllowCacheLookup = false;
+            context.AllowCacheStorage = false;
+            return ValueTask.CompletedTask;
+        }
+
         context.EnableOutputCaching = true;
         context.AllowCacheLookup = true;
         context.AllowCacheStorage = true;
-
-        string tenantId =
-            context.HttpContext.User.FindFirstValue(AuthConstants.Claims.TenantId) ?? string.Empty;
         context.CacheVaryByRules.VaryByValues[AuthConstants.Claims.TenantId] = tenantId;
 
-        if (!string.IsNullOrEmpty(tenantId))
+        List<string> originalTags = context.Tags.ToList();
+        context.Tags.Clear();
+        foreach (string tag in originalTags)
         {
-            var originalTags = context.Tags.ToList();
-            context.Tags.Clear();
-            foreach (var tag in originalTags)
-            {
-                context.Tags.Add($"{tag}-{tenantId}");
-            }
+            context.Tags.Add($"{tag}-{tenantId}");
         }
 
         return ValueTask.CompletedTask;

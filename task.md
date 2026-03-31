@@ -49,16 +49,16 @@
 - [ ] Verify `dotnet build` & tests
 
 ## Unit 5: FileStorage Module
-- [ ] Create 4 domain-driven projects for FileStorage
-- [ ] Setup `FileStorage.Domain` (`StoredFile`, `IStoredFileRepository`)
-- [ ] Setup `FileStorage.Application` (File features, options, etc.)
-- [ ] Setup `FileStorage.Infrastructure` (`FileStorageDbContext`, `StoredFileRepository`, `StoredFileConfiguration`, `LocalFileStorageService`)
-- [ ] Setup `FileStorage.Api` (`FilesController`, `FileStorageModule.cs`)
-- [ ] Set up module references and wiring in `Program.cs`
-- [ ] Verify `dotnet build` & tests
+- [x] Create 4 domain-driven projects for FileStorage
+- [x] Setup `FileStorage.Domain` (`StoredFile`, `IStoredFileRepository`)
+- [x] Setup `FileStorage.Application` (File features, options, etc.)
+- [x] Setup `FileStorage.Infrastructure` (`FileStorageDbContext`, `StoredFileRepository`, `StoredFileConfiguration`, `LocalFileStorageService`)
+- [x] Setup `FileStorage.Api` (`FilesController`, `FileStorageModule.cs`)
+- [x] Set up module references and wiring in `Program.cs`
+- [x] Verify `dotnet build` & tests
 
 ## Unit 6: BackgroundJobs Module
-- [ ] Create 4 domain-driven projects for BackgroundJobs
+- [x] Create 4 domain-driven projects for BackgroundJobs
 - [ ] Setup `BackgroundJobs.Domain` (`JobExecution`, `JobStatus`, `IJobExecutionRepository`)
 - [ ] Setup `BackgroundJobs.Application` (Job features, options)
 - [ ] Setup `BackgroundJobs.Infrastructure` (`BackgroundJobsDbContext`, `JobExecutionRepository`, `JobExecutionConfiguration`)

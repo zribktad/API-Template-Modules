@@ -1,6 +1,6 @@
 using Notifications.Application.Common.BackgroundJobs;
-
-using SharedKernel.Infrastructure.BackgroundJobs.TickerQ;.Coordination;
+using SharedKernel.Application.BackgroundJobs;
+using SharedKernel.Application.Options.BackgroundJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TickerQ.Utilities.Base;
@@ -16,7 +16,7 @@ public sealed class EmailRetryRecurringJob
 {
     private readonly IEmailRetryService _emailRetryService;
     private readonly IDistributedJobCoordinator _coordinator;
-    private readonly EmailOptions _options;
+    private readonly EmailRetryJobOptions _options;
     private readonly ILogger<EmailRetryRecurringJob> _logger;
 
     public EmailRetryRecurringJob(

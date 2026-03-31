@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Notifications.Application.Common.BackgroundJobs;
 using Notifications.Application.Common.Email;
 using Notifications.Domain;
+using Notifications.Infrastructure.BackgroundJobs.Services;
 using Notifications.Infrastructure.Email;
 using Notifications.Infrastructure.Persistence;
 using Notifications.Infrastructure.Repositories;

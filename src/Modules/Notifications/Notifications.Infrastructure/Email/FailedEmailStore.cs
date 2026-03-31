@@ -1,7 +1,7 @@
 using Notifications.Application.Common.Email;
-
 using Notifications.Domain;
-using Notifications.Domain;
+using SharedKernel.Application.Options.BackgroundJobs;
+using SharedKernel.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

@@ -1,5 +1,7 @@
-using Notifications.Application.Common.BackgroundJobs;
-
+using Notifications.Application.Common.Email;
+using SharedKernel.Application.BackgroundJobs;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Notifications.Infrastructure.Email;
 

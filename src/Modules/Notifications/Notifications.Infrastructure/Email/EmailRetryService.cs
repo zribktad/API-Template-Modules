@@ -1,9 +1,10 @@
 using Notifications.Application.Common.BackgroundJobs;
 using Notifications.Application.Common.Email;
-
-using SharedKernel.Application.Resilience;
 using Notifications.Domain;
 using Notifications.Infrastructure.Email;
+using SharedKernel.Application.Options.BackgroundJobs;
+using SharedKernel.Application.Resilience;
+using SharedKernel.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly.Registry;
@@ -22,7 +23,7 @@ public sealed class EmailRetryService : IEmailRetryService
     private readonly IEmailSender _sender;
     private readonly IUnitOfWork _unitOfWork;
     private readonly TimeProvider _timeProvider;
-    private readonly EmailOptions _options;
+    private readonly EmailRetryJobOptions _options;
     private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
     private readonly ILogger<EmailRetryService> _logger;
 
