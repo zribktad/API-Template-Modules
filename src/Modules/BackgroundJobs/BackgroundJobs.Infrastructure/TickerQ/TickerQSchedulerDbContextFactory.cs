@@ -1,7 +1,7 @@
-using SharedKernel.Application.Options.BackgroundJobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using SharedKernel.Application.Options.BackgroundJobs;
 
 namespace BackgroundJobs.Infrastructure.TickerQ;
 
@@ -17,18 +17,24 @@ public sealed class TickerQSchedulerDbContextFactory
             .AddEnvironmentVariables()
             .Build();
 
-        string connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? "Host=localhost;Database=apitemplate;Username=postgres;Password=postgres";
+        string connectionString =
+            configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' is required. "
+                    + "Set it in appsettings.json or via the ConnectionStrings__DefaultConnection environment variable."
+            );
 
-        DbContextOptions<TickerQSchedulerDbContext> options = new DbContextOptionsBuilder<TickerQSchedulerDbContext>()
-            .UseNpgsql(
-                connectionString,
-                npgsql => npgsql.MigrationsHistoryTable(
-                    "__EFMigrationsHistory",
-                    TickerQSchedulerOptions.DefaultSchemaName
+        DbContextOptions<TickerQSchedulerDbContext> options =
+            new DbContextOptionsBuilder<TickerQSchedulerDbContext>()
+                .UseNpgsql(
+                    connectionString,
+                    npgsql =>
+                        npgsql.MigrationsHistoryTable(
+                            "__EFMigrationsHistory",
+                            TickerQSchedulerOptions.DefaultSchemaName
+                        )
                 )
-            )
-            .Options;
+                .Options;
 
         return new TickerQSchedulerDbContext(options);
     }

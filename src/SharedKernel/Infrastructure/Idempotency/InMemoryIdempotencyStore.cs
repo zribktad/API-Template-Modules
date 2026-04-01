@@ -15,7 +15,6 @@ public sealed class InMemoryIdempotencyStore : IIdempotencyStore
 
     private readonly ConcurrentDictionary<string, (string Value, DateTimeOffset Expiry)> _store =
         new();
-    private readonly ConcurrentDictionary<string, string> _lockOwners = new();
     private readonly TimeProvider _timeProvider;
     private DateTimeOffset _lastEviction = DateTimeOffset.MinValue;
 
@@ -42,8 +41,8 @@ public sealed class InMemoryIdempotencyStore : IIdempotencyStore
         return Task.FromResult<IdempotencyCacheEntry?>(null);
     }
 
-    /// <summary>Attempts to insert a lock entry using <c>TryAdd</c>; returns <see langword="true"/> if the lock was acquired by this call.</summary>
-    public Task<bool> TryAcquireAsync(string key, TimeSpan ttl, CancellationToken ct = default)
+    /// <summary>Attempts to insert a lock entry using <c>TryAdd</c>; returns the lock token if acquired, or <c>null</c> otherwise.</summary>
+    public Task<string?> TryAcquireAsync(string key, TimeSpan ttl, CancellationToken ct = default)
     {
         EvictExpired();
 
@@ -52,10 +51,7 @@ public sealed class InMemoryIdempotencyStore : IIdempotencyStore
         DateTimeOffset expiry = _timeProvider.GetUtcNow().Add(ttl);
         bool acquired = _store.TryAdd(lockKey, (lockValue, expiry));
 
-        if (acquired)
-            _lockOwners[key] = lockValue;
-
-        return Task.FromResult(acquired);
+        return Task.FromResult(acquired ? lockValue : null);
     }
 
     /// <summary>Serialises <paramref name="entry"/> and inserts or replaces it in the store with the specified <paramref name="ttl"/>.</summary>
@@ -72,19 +68,21 @@ public sealed class InMemoryIdempotencyStore : IIdempotencyStore
         return Task.CompletedTask;
     }
 
-    /// <summary>Removes the lock entry for <paramref name="key"/> only if it is still owned by this store instance, preventing accidental release of expired locks.</summary>
-    public Task ReleaseAsync(string key, CancellationToken ct = default)
+    /// <summary>Removes the lock entry for <paramref name="key"/> only if the supplied <paramref name="lockToken"/> still matches, preventing accidental release of expired locks.</summary>
+    public Task ReleaseAsync(string key, string lockToken, CancellationToken ct = default)
     {
-        if (!_lockOwners.TryRemove(key, out string? lockValue))
-            return Task.CompletedTask;
-
         string lockKey = key + IdempotencyStoreConstants.LockSuffix;
-        _store.TryRemove(
-            new KeyValuePair<string, (string Value, DateTimeOffset Expiry)>(
-                lockKey,
-                _store.GetValueOrDefault(lockKey)
-            )
-        );
+
+        if (
+            _store.TryGetValue(lockKey, out (string Value, DateTimeOffset Expiry) existing)
+            && existing.Value == lockToken
+        )
+        {
+            _store.TryRemove(
+                new KeyValuePair<string, (string Value, DateTimeOffset Expiry)>(lockKey, existing)
+            );
+        }
+
         return Task.CompletedTask;
     }
 

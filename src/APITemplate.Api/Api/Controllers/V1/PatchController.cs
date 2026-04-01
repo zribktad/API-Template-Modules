@@ -27,7 +27,7 @@ public sealed class PatchController(IMessageBus bus) : ApiControllerBase
     )
     {
         ErrorOr<ProductResponse> result = await bus.InvokeAsync<ErrorOr<ProductResponse>>(
-            new PatchProductCommand(id, dto => patchDocument.ApplyTo(dto)),
+            new PatchProductCommand(id, patchDocument),
             ct
         );
         return result.ToActionResult(this);

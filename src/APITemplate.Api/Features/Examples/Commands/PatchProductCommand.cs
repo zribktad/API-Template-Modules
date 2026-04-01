@@ -7,12 +7,16 @@ using ProductCatalog.Application.Features.Product.Mappings;
 using ProductCatalog.Domain.Interfaces;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Domain.Interfaces;
+using SystemTextJsonPatch;
 using Wolverine;
 using ProductCatalogErrors = ProductCatalog.Application.Errors.DomainErrors;
 
 namespace APITemplate.Api.Features.Examples.Commands;
 
-public sealed record PatchProductCommand(Guid Id, Action<PatchableProductDto> ApplyPatch) : IHasId;
+public sealed record PatchProductCommand(
+    Guid Id,
+    JsonPatchDocument<PatchableProductDto> PatchDocument
+) : IHasId;
 
 public sealed class PatchProductCommandHandler
 {
@@ -40,7 +44,7 @@ public sealed class PatchProductCommandHandler
             CategoryId = product.CategoryId,
         };
 
-        command.ApplyPatch(dto);
+        command.PatchDocument.ApplyTo(dto);
 
         FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(
             dto,

@@ -1,4 +1,4 @@
-using SharedKernel.Application.Options.BackgroundJobs;
+using System.Reflection;
 using BackgroundJobs.Application.Services;
 using BackgroundJobs.Domain;
 using BackgroundJobs.Infrastructure.Persistence;
@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.BackgroundJobs;
+using SharedKernel.Application.Options.BackgroundJobs;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Infrastructure.Configuration;
@@ -31,7 +32,9 @@ public static class BackgroundJobsRuntimeBridge
         IConfiguration configuration
     )
     {
-        string connectionString = configuration.GetConnectionString(ConfigurationSections.DefaultConnection)!;
+        string connectionString = configuration.GetConnectionString(
+            ConfigurationSections.DefaultConnection
+        )!;
 
         services
             .AddModule<BackgroundJobsDbContext>(configuration)
@@ -39,8 +42,14 @@ public static class BackgroundJobsRuntimeBridge
             .AddDefaultInfrastructure()
             .AddRepository<IJobExecutionRepository, JobExecutionRepository>();
 
-        services.AddSingleton<IValidateOptions<BackgroundJobsOptions>, BackgroundJobsOptionsValidator>();
-        services.AddValidatedOptions<BackgroundJobsOptions>(configuration, validateDataAnnotations: false);
+        services.AddSingleton<
+            IValidateOptions<BackgroundJobsOptions>,
+            BackgroundJobsOptionsValidator
+        >();
+        services.AddValidatedOptions<BackgroundJobsOptions>(
+            configuration,
+            validateDataAnnotations: false
+        );
         BackgroundJobsOptions options =
             configuration.SectionFor<BackgroundJobsOptions>().Get<BackgroundJobsOptions>()
             ?? new BackgroundJobsOptions();
@@ -54,7 +63,10 @@ public static class BackgroundJobsRuntimeBridge
 
         services.AddScoped<ICleanupService, CleanupService>();
         services.AddScoped<IReindexService, ReindexService>();
-        services.AddScoped<IExternalIntegrationSyncService, ExternalIntegrationSyncServicePreview>();
+        services.AddScoped<
+            IExternalIntegrationSyncService,
+            ExternalIntegrationSyncServicePreview
+        >();
 
         RegisterSoftDeleteCleanupStrategies(services);
         RegisterTickerQRuntime(services, configuration, options);
@@ -78,19 +90,28 @@ public static class BackgroundJobsRuntimeBridge
         if (string.IsNullOrWhiteSpace(dragonflyConnectionString))
         {
             throw new InvalidOperationException(
-                "Background jobs require Dragonfly:ConnectionString when BackgroundJobs:TickerQ:Enabled is true.");
+                "Background jobs require Dragonfly:ConnectionString when BackgroundJobs:TickerQ:Enabled is true."
+            );
         }
 
-        string connectionString = configuration.GetConnectionString(ConfigurationSections.DefaultConnection)!;
+        string connectionString = configuration.GetConnectionString(
+            ConfigurationSections.DefaultConnection
+        )!;
         string schemaName = TickerQSchedulerOptions.DefaultSchemaName;
 
         services.AddDbContext<TickerQSchedulerDbContext>(dbOptions =>
-            dbOptions.UseNpgsql(connectionString,
-                npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", schemaName)));
+            dbOptions.UseNpgsql(
+                connectionString,
+                npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", schemaName)
+            )
+        );
 
         services.AddScoped<TickerQRecurringJobRegistrar>();
         services.AddSingleton<IDistributedJobCoordinator, DragonflyDistributedJobCoordinator>();
-        services.AddScoped<IRecurringBackgroundJobRegistration, ExternalSyncRecurringJobRegistration>();
+        services.AddScoped<
+            IRecurringBackgroundJobRegistration,
+            ExternalSyncRecurringJobRegistration
+        >();
         services.AddScoped<IRecurringBackgroundJobRegistration, CleanupRecurringJobRegistration>();
         services.AddScoped<IRecurringBackgroundJobRegistration, ReindexRecurringJobRegistration>();
 
@@ -99,8 +120,11 @@ public static class BackgroundJobsRuntimeBridge
             tickerOptions
                 .AddOperationalStore(store =>
                     store
-                        .UseApplicationDbContext<TickerQSchedulerDbContext>(ConfigurationType.IgnoreModelCustomizer)
-                        .SetSchema(schemaName))
+                        .UseApplicationDbContext<TickerQSchedulerDbContext>(
+                            ConfigurationType.IgnoreModelCustomizer
+                        )
+                        .SetSchema(schemaName)
+                )
                 .ConfigureScheduler(scheduler =>
                 {
                     scheduler.NodeIdentifier =
@@ -113,11 +137,24 @@ public static class BackgroundJobsRuntimeBridge
 
     private static void RegisterSoftDeleteCleanupStrategies(IServiceCollection services)
     {
-        IEnumerable<Type> softDeletableTypes = typeof(ISoftDeletable)
-            .Assembly.GetTypes()
+        IEnumerable<Type> softDeletableTypes = AppDomain
+            .CurrentDomain.GetAssemblies()
+            .Where(a => !a.IsDynamic)
+            .SelectMany(a =>
+            {
+                try
+                {
+                    return a.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    return ex.Types.OfType<Type>();
+                }
+            })
             .Where(t =>
                 t is { IsClass: true, IsAbstract: false }
-                && typeof(ISoftDeletable).IsAssignableFrom(t))
+                && typeof(ISoftDeletable).IsAssignableFrom(t)
+            )
             .OrderBy(t => t.Name);
 
         foreach (Type entityType in softDeletableTypes)

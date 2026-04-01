@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Text.Json;
 using SharedKernel.Application.Contracts;
 using StackExchange.Redis;
@@ -19,7 +18,6 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
     );
 
     private readonly IDatabase _database;
-    private readonly ConcurrentDictionary<string, string> _lockOwners = new();
 
     public DistributedCacheIdempotencyStore(IConnectionMultiplexer connectionMultiplexer)
     {
@@ -42,7 +40,7 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
     /// Attempts to set a lock key in Redis using SET NX with the given <paramref name="ttl"/>.
     /// Returns <see langword="true"/> if the lock was acquired; the lock value is stored locally for later release.
     /// </summary>
-    public async Task<bool> TryAcquireAsync(
+    public async Task<string?> TryAcquireAsync(
         string key,
         TimeSpan ttl,
         CancellationToken ct = default
@@ -58,10 +56,7 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
             when: When.NotExists
         );
 
-        if (acquired)
-            _lockOwners[key] = lockValue;
-
-        return acquired;
+        return acquired ? lockValue : null;
     }
 
     /// <summary>Serialises <paramref name="entry"/> and stores it under <paramref name="key"/> in Redis with the specified <paramref name="ttl"/>.</summary>
@@ -77,15 +72,12 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
     }
 
     /// <summary>Releases the lock for <paramref name="key"/> using an atomic Lua compare-and-delete script to prevent releasing a lock owned by another instance.</summary>
-    public async Task ReleaseAsync(string key, CancellationToken ct = default)
+    public async Task ReleaseAsync(string key, string lockToken, CancellationToken ct = default)
     {
-        if (!_lockOwners.TryRemove(key, out string? lockValue))
-            return;
-
         string lockKey = KeyPrefix + key + IdempotencyStoreConstants.LockSuffix;
         await _database.ScriptEvaluateAsync(
             ReleaseLockScript,
-            new { key = (RedisKey)lockKey, value = (RedisValue)lockValue }
+            new { key = (RedisKey)lockKey, value = (RedisValue)lockToken }
         );
     }
 }

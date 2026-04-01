@@ -1,23 +1,32 @@
-using System.Net.Mime;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Options;
 using SharedKernel.Application.Contracts;
 
 namespace APITemplate.Api.Filters.Idempotency;
 
 /// <summary>
-/// Action filter that enforces idempotency for endpoints decorated with <see cref="IdempotentAttribute"/>.
+/// Filter that enforces idempotency for endpoints decorated with <see cref="IdempotentAttribute"/>.
 /// On the first call the response is stored in <see cref="IIdempotencyStore"/>; subsequent calls with
 /// the same <c>Idempotency-Key</c> header replay the cached response without re-executing the action.
+/// Implements both <see cref="IAsyncActionFilter"/> (key validation, lock acquisition) and
+/// <see cref="IAsyncResultFilter"/> (post-execution caching with accurate headers).
 /// </summary>
-public sealed class IdempotencyActionFilter : IAsyncActionFilter
+public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFilter
 {
-    private readonly IIdempotencyStore _store;
+    private const string ContextKey = "__IdempotencyContext";
 
-    public IdempotencyActionFilter(IIdempotencyStore store)
+    private readonly IIdempotencyStore _store;
+    private readonly JsonSerializerOptions _jsonOptions;
+
+    public IdempotencyActionFilter(
+        IIdempotencyStore store,
+        IOptions<Microsoft.AspNetCore.Mvc.JsonOptions> jsonOptions
+    )
     {
         _store = store;
+        _jsonOptions = jsonOptions.Value.JsonSerializerOptions;
     }
 
     public async Task OnActionExecutionAsync(
@@ -76,7 +85,8 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter
             return;
         }
 
-        if (!await _store.TryAcquireAsync(key, lockTimeout, ct))
+        string? lockToken = await _store.TryAcquireAsync(key, lockTimeout, ct);
+        if (lockToken is null)
         {
             context.Result = new ConflictObjectResult(
                 "A request with this idempotency key is already being processed."
@@ -91,35 +101,85 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter
         }
         catch
         {
-            await _store.ReleaseAsync(key, ct);
+            await _store.ReleaseAsync(key, lockToken, ct);
             throw;
         }
 
-        if (
-            executedContext.Result is ObjectResult objectResult
-            && objectResult.StatusCode is >= 200 and < 300
-        )
+        if (executedContext.Exception is not null && !executedContext.ExceptionHandled)
         {
-            string? responseBody = objectResult.Value is not null
-                ? JsonSerializer.Serialize(objectResult.Value, JsonSerializerOptions.Web)
-                : null;
-
-            string? locationHeader = executedContext.Result switch
-            {
-                CreatedResult cr => cr.Location,
-                _ => null,
-            };
-
-            IdempotencyCacheEntry entry = new(
-                objectResult.StatusCode ?? 200,
-                responseBody,
-                MediaTypeNames.Application.Json,
-                locationHeader
-            );
-
-            await _store.SetAsync(key, entry, resultTtl, ct);
+            await _store.ReleaseAsync(key, lockToken, ct);
+            return;
         }
 
-        await _store.ReleaseAsync(key, ct);
+        int? statusCode = executedContext.Result switch
+        {
+            ObjectResult objectResult => objectResult.StatusCode,
+            StatusCodeResult statusCodeResult => statusCodeResult.StatusCode,
+            _ => null,
+        };
+
+        if (statusCode is >= 200 and < 300)
+        {
+            context.HttpContext.Items[ContextKey] = new IdempotencyResultContext(
+                key,
+                lockToken,
+                resultTtl,
+                executedContext.Result!
+            );
+        }
+        else
+        {
+            await _store.ReleaseAsync(key, lockToken, ct);
+        }
     }
+
+    public async Task OnResultExecutionAsync(
+        ResultExecutingContext context,
+        ResultExecutionDelegate next
+    )
+    {
+        if (
+            !context.HttpContext.Items.Remove(ContextKey, out object? raw)
+            || raw is not IdempotencyResultContext ctx
+        )
+        {
+            await next();
+            return;
+        }
+
+        CancellationToken ct = context.HttpContext.RequestAborted;
+        try
+        {
+            await next();
+
+            string? responseBody = null;
+            if (ctx.Result is ObjectResult objectResult && objectResult.Value is not null)
+            {
+                responseBody = JsonSerializer.Serialize(objectResult.Value, _jsonOptions);
+            }
+
+            string? contentType = context.HttpContext.Response.ContentType;
+            string? locationHeader = context.HttpContext.Response.Headers.Location;
+            int statusCode = context.HttpContext.Response.StatusCode;
+
+            IdempotencyCacheEntry entry = new(
+                statusCode,
+                responseBody,
+                contentType,
+                locationHeader
+            );
+            await _store.SetAsync(ctx.Key, entry, ctx.Ttl, ct);
+        }
+        finally
+        {
+            await _store.ReleaseAsync(ctx.Key, ctx.LockToken, ct);
+        }
+    }
+
+    private sealed record IdempotencyResultContext(
+        string Key,
+        string LockToken,
+        TimeSpan Ttl,
+        IActionResult Result
+    );
 }

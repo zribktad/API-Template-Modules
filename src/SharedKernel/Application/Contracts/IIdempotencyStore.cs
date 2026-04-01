@@ -14,9 +14,10 @@ public interface IIdempotencyStore
 
     /// <summary>
     /// Atomically checks if the key exists and acquires a lock if not.
-    /// Returns true if the lock was acquired (key was not present), false otherwise.
+    /// Returns a non-null lock token if the lock was acquired, or <c>null</c> if the key was already present.
+    /// The token must be passed to <see cref="ReleaseAsync"/> to release ownership.
     /// </summary>
-    Task<bool> TryAcquireAsync(string key, TimeSpan ttl, CancellationToken ct = default);
+    Task<string?> TryAcquireAsync(string key, TimeSpan ttl, CancellationToken ct = default);
 
     /// <summary>
     /// Stores <paramref name="entry"/> under <paramref name="key"/> with the given <paramref name="ttl"/>,
@@ -31,9 +32,9 @@ public interface IIdempotencyStore
 
     /// <summary>
     /// Releases the lock for the given key so a retry with the same key can proceed.
-    /// Only releases if the lock is still owned (not yet replaced by a cached result).
+    /// Only releases if the supplied <paramref name="lockToken"/> still matches the stored value.
     /// </summary>
-    Task ReleaseAsync(string key, CancellationToken ct = default);
+    Task ReleaseAsync(string key, string lockToken, CancellationToken ct = default);
 }
 
 /// <summary>
