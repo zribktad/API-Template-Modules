@@ -1,9 +1,10 @@
+using ErrorOr;
 using Identity.Application.Features.Tenant.DTOs;
 using Identity.Application.Features.Tenant.Mappings;
+using Identity.Domain;
 using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
 using SharedKernel.Application.Events;
-using ErrorOr;
+using SharedKernel.Domain.Interfaces;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
 
@@ -16,7 +17,7 @@ public sealed class CreateTenantCommandHandler
     public static async Task<ErrorOr<TenantResponse>> HandleAsync(
         CreateTenantCommand command,
         ITenantRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         IMessageBus bus,
         CancellationToken ct
     )

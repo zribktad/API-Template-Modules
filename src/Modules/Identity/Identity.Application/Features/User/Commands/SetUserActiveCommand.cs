@@ -1,10 +1,11 @@
+using ErrorOr;
 using Identity.Application.Common.Security;
-using SharedKernel.Domain.Entities.Contracts;
+using Identity.Domain;
 using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
-using ErrorOr;
+using SharedKernel.Domain.Entities.Contracts;
+using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
@@ -16,7 +17,7 @@ public sealed class SetUserActiveCommandHandler
     public static async Task<ErrorOr<Success>> HandleAsync(
         SetUserActiveCommand command,
         IUserRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         IMessageBus bus,
         IKeycloakAdminService keycloakAdmin,
         CancellationToken ct

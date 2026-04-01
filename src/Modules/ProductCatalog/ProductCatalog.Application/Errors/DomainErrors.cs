@@ -13,6 +13,15 @@ public static class DomainErrors
             );
     }
 
+    public static class Patch
+    {
+        public static Error InvalidPatchDocument(string message) =>
+            Error.Validation(
+                code: ErrorCatalog.Patch.InvalidDocument,
+                description: string.Format(ErrorCatalog.Patch.InvalidDocumentMessage, message)
+            );
+    }
+
     public static class ProductData
     {
         public static Error NotFound(Guid id) =>

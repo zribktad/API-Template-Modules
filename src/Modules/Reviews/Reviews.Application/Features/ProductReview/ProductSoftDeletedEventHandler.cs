@@ -1,4 +1,5 @@
 using Reviews.Application.Features.ProductReview.Specifications;
+using Reviews.Domain;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.Entities.ProductReview;
 
@@ -9,7 +10,7 @@ public static class ProductSoftDeletedEventHandler
     public static async Task Handle(
         ProductSoftDeletedNotification notification,
         IProductReviewRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ReviewsDbMarker> unitOfWork,
         IMessageBus bus,
         CancellationToken ct
     )

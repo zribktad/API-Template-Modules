@@ -1,9 +1,10 @@
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
 using Contracts.Events;
-using ProductCatalog.Application.Features.Category.Specifications;
 using ErrorOr;
 using FluentValidation;
+using ProductCatalog.Application.Features.Category.Specifications;
+using ProductCatalog.Domain;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
 using Wolverine;
 
 namespace ProductCatalog.Application.Features.Category;
@@ -73,7 +74,7 @@ public sealed class UpdateCategoriesCommandHandler
         UpdateCategoriesCommand command,
         UpdateCategoriesState state,
         ICategoryRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
@@ -101,5 +102,3 @@ public sealed class UpdateCategoriesCommandHandler
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }
-
-

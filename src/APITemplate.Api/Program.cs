@@ -1,5 +1,9 @@
 using BackgroundJobs.Api;
 using BackgroundJobs.Application.Features.Jobs;
+using Chatting.Api;
+using Chatting.Application.Features.Streaming.Queries;
+using FileStorage.Api;
+using FileStorage.Application.Features.Upload;
 using Identity.Api;
 using Identity.Application.Features.User;
 using Identity.Infrastructure.Handlers;
@@ -7,8 +11,6 @@ using ProductCatalog.Api;
 using ProductCatalog.Application.Features.Product;
 using ProductCatalog.Infrastructure.Handlers;
 using Reviews.Api;
-using FileStorage.Api;
-using FileStorage.Application.Features.Upload;
 using Reviews.Application.Features.ProductReview;
 using Serilog;
 using SharedKernel.Application.Middleware;
@@ -40,6 +42,7 @@ builder.Services.AddReviewsModule(builder.Configuration);
 builder.Services.AddFileStorageModule(builder.Configuration);
 builder.Services.AddBackgroundJobsModule(builder.Configuration);
 builder.Services.AddWebhooksModule(builder.Configuration);
+builder.Services.AddChattingModule(builder.Configuration);
 
 builder.Host.UseWolverine(options =>
 {
@@ -51,7 +54,7 @@ builder.Host.UseWolverine(options =>
     options.Discovery.IncludeAssembly(typeof(CleanupExpiredInvitationsHandler).Assembly);
     options.Discovery.IncludeAssembly(typeof(CleanupOrphanedProductDataHandler).Assembly);
     options.Discovery.IncludeAssembly(typeof(SendWebhookCallbackHandler).Assembly);
-    options.Discovery.IncludeAssembly(typeof(Program).Assembly);
+    options.Discovery.IncludeAssembly(typeof(GetNotificationStreamQuery).Assembly);
     options.Policies.AddMiddleware(
         typeof(ErrorOrValidationMiddleware),
         chain =>
@@ -66,6 +69,9 @@ builder.Host.UseWolverine(options =>
 });
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+    await app.UseDatabaseAsync();
 
 app.UseApiPipeline();
 app.MapApplicationEndpoints();

@@ -1,10 +1,11 @@
-using SharedKernel.Application.Context;
 using Contracts.Events;
-using SharedKernel.Application.Resilience;
-using ProductCatalog.Domain.Interfaces;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Polly.Registry;
+using ProductCatalog.Domain;
+using ProductCatalog.Domain.Interfaces;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Resilience;
 using Wolverine;
 
 namespace ProductCatalog.Application.Features.ProductData;
@@ -35,10 +36,8 @@ public sealed class DeleteProductDataCommandHandler
     {
         Guid tenantId = tenantProvider.TenantId;
 
-        ProductCatalog.Domain.Entities.ProductData.ProductData? data = await repository.GetByIdAsync(
-            command.Id,
-            ct
-        );
+        ProductCatalog.Domain.Entities.ProductData.ProductData? data =
+            await repository.GetByIdAsync(command.Id, ct);
 
         if (data is null || data.TenantId != tenantId)
         {
@@ -64,7 +63,7 @@ public sealed class DeleteProductDataCommandHandler
         DeleteProductDataState state,
         IProductDataRepository repository,
         IProductDataLinkRepository productDataLinkRepository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         ResiliencePipelineProvider<string> resiliencePipelineProvider,
         ILogger<DeleteProductDataCommandHandler> logger,
         CancellationToken ct
@@ -115,5 +114,3 @@ public sealed class DeleteProductDataCommandHandler
         return (Result.Success, messages);
     }
 }
-
-

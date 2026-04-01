@@ -1,5 +1,6 @@
-using Identity.Application.Common.Email;
 using ErrorOr;
+using Identity.Application.Common.Email;
+using Identity.Domain;
 using Microsoft.Extensions.Logging;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
@@ -15,7 +16,7 @@ public sealed class ResendTenantInvitationCommandHandler
         ResendTenantInvitationCommand command,
         ITenantInvitationRepository invitationRepository,
         ITenantRepository tenantRepository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         ISecureTokenGenerator tokenGenerator,
         IMessageBus bus,
         ITenantProvider tenantProvider,
@@ -24,11 +25,12 @@ public sealed class ResendTenantInvitationCommandHandler
         CancellationToken ct
     )
     {
-        ErrorOr<TenantInvitationEntity> invitationResult = await invitationRepository.GetByIdOrError(
-            command.InvitationId,
-            DomainErrors.Invitations.NotFound(command.InvitationId),
-            ct
-        );
+        ErrorOr<TenantInvitationEntity> invitationResult =
+            await invitationRepository.GetByIdOrError(
+                command.InvitationId,
+                DomainErrors.Invitations.NotFound(command.InvitationId),
+                ct
+            );
         if (invitationResult.IsError)
             return invitationResult.Errors;
         TenantInvitationEntity invitation = invitationResult.Value;

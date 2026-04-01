@@ -13,7 +13,7 @@ public sealed class SubmitJobCommandHandlerTests
 {
     private readonly Mock<IJobExecutionRepository> _repository = new();
     private readonly Mock<IJobQueue> _jobQueue = new();
-    private readonly Mock<IUnitOfWork> _unitOfWork = new();
+    private readonly Mock<IUnitOfWork<BackgroundJobsDbMarker>> _unitOfWork = new();
     private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly DateTime _now = new(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
 
@@ -21,8 +21,18 @@ public sealed class SubmitJobCommandHandlerTests
     {
         _timeProvider.Setup(t => t.GetUtcNow()).Returns(new DateTimeOffset(_now));
         _unitOfWork
-            .Setup(u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task>>(), It.IsAny<CancellationToken>(), It.IsAny<SharedKernel.Domain.Options.TransactionOptions?>()))
-            .Returns<Func<Task>, CancellationToken, SharedKernel.Domain.Options.TransactionOptions?>(async (action, _, _) => await action());
+            .Setup(u =>
+                u.ExecuteInTransactionAsync(
+                    It.IsAny<Func<Task>>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<SharedKernel.Domain.Options.TransactionOptions?>()
+                )
+            )
+            .Returns<
+                Func<Task>,
+                CancellationToken,
+                SharedKernel.Domain.Options.TransactionOptions?
+            >(async (action, _, _) => await action());
     }
 
     [Fact]
@@ -120,7 +130,9 @@ public sealed class SubmitJobCommandHandlerTests
         );
 
         result.IsError.ShouldBeTrue();
-        result.FirstError.Code.ShouldBe(SharedKernel.Application.Errors.ErrorCatalog.General.Unknown);
+        result.FirstError.Code.ShouldBe(
+            SharedKernel.Application.Errors.ErrorCatalog.General.Unknown
+        );
         persisted.ShouldNotBeNull();
         persisted!.Status.ShouldBe(JobStatus.Failed);
         persisted.ErrorMessage.ShouldNotBeNull();

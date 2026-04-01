@@ -1,13 +1,13 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Notifications.Application.Common.BackgroundJobs;
 using Notifications.Application.Common.Email;
 using Notifications.Domain;
 using Notifications.Infrastructure.Email;
+using Polly.Registry;
 using SharedKernel.Application.Options.BackgroundJobs;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Domain.Interfaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Polly.Registry;
 
 namespace Notifications.Infrastructure.BackgroundJobs.Services;
 
@@ -30,7 +30,7 @@ public sealed class EmailRetryService : IEmailRetryService
     public EmailRetryService(
         IFailedEmailRepository repository,
         IEmailSender sender,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<NotificationsDbMarker> unitOfWork,
         TimeProvider timeProvider,
         IOptions<BackgroundJobsOptions> options,
         ResiliencePipelineProvider<string> resiliencePipelineProvider,

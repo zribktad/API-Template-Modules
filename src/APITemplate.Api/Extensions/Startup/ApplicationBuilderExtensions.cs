@@ -1,7 +1,8 @@
-using ProductCatalog.Api;
-using FileStorage.Api;
 using APITemplate.Api.Middleware;
+using Chatting.Api;
+using FileStorage.Api;
 using Microsoft.Extensions.Options;
+using ProductCatalog.Api;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -36,6 +37,7 @@ public static class ApplicationBuilderExtensions
         app.MapHealthChecks("/health").WithTags("Health").AllowAnonymous();
         app.MapProductCatalogEndpoints();
         app.MapFileStorageEndpoints();
+        app.MapChattingEndpoints();
 
         return app;
     }

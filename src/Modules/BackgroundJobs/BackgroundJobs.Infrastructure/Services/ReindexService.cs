@@ -34,21 +34,16 @@ public sealed partial class ReindexService : IReindexService
         List<string> validIndexes = ftsIndexes
             .Where(index =>
             {
-                if (ValidIndexNameRegex().IsMatch(index)) return true;
+                if (ValidIndexNameRegex().IsMatch(index))
+                    return true;
                 _logger.LogWarning("Skipping invalid FTS index name: {IndexName}.", index);
                 return false;
             })
             .ToList();
 
-        Task<double>[] bloatTasks = validIndexes
-            .Select(index => GetIndexBloatPercentAsync(index, ct))
-            .ToArray();
-        double[] bloatResults = await Task.WhenAll(bloatTasks);
-
-        for (int i = 0; i < validIndexes.Count; i++)
+        foreach (string index in validIndexes)
         {
-            string index = validIndexes[i];
-            double bloatPercent = bloatResults[i];
+            double bloatPercent = await GetIndexBloatPercentAsync(index, ct);
 
             if (bloatPercent < BloatThresholdPercent)
             {

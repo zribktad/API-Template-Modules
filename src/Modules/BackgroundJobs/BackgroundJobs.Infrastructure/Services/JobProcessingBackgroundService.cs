@@ -22,21 +22,18 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
     private const string CompletedResultSummary = "Job completed successfully";
 
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IMessageBus _messageBus;
     private readonly ILogger<JobProcessingBackgroundService> _logger;
     private readonly TimeProvider _timeProvider;
 
     public JobProcessingBackgroundService(
         IJobQueueReader queue,
         IServiceScopeFactory scopeFactory,
-        IMessageBus messageBus,
         ILogger<JobProcessingBackgroundService> logger,
         TimeProvider timeProvider
     )
         : base(queue)
     {
         _scopeFactory = scopeFactory;
-        _messageBus = messageBus;
         _logger = logger;
         _timeProvider = timeProvider;
     }
@@ -44,7 +41,8 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
     protected override async Task ProcessItemAsync(Guid jobId, CancellationToken ct)
     {
         await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        IJobExecutionRepository repo = scope.ServiceProvider.GetRequiredService<IJobExecutionRepository>();
+        IJobExecutionRepository repo =
+            scope.ServiceProvider.GetRequiredService<IJobExecutionRepository>();
         IUnitOfWork uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         JobExecution? job = await repo.GetByIdAsync(jobId, ct);
@@ -81,11 +79,13 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
         try
         {
             using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(30));
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
+            using CancellationTokenSource linkedCts =
+                CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
             CancellationToken token = linkedCts.Token;
 
             await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-            IJobExecutionRepository repo = scope.ServiceProvider.GetRequiredService<IJobExecutionRepository>();
+            IJobExecutionRepository repo =
+                scope.ServiceProvider.GetRequiredService<IJobExecutionRepository>();
             IUnitOfWork uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
             JobExecution? job = await repo.GetByIdAsync(jobId, token);
@@ -120,6 +120,10 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
             JsonSerializerOptions.Web
         );
 
-        await _messageBus.SendAsync(new SendWebhookCallbackCommand(job.CallbackUrl, serializedPayload));
+        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
+        IMessageBus messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await messageBus.SendAsync(
+            new SendWebhookCallbackCommand(job.CallbackUrl, serializedPayload)
+        );
     }
 }

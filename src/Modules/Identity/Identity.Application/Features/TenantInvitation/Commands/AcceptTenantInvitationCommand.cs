@@ -1,5 +1,6 @@
-using Identity.Application.Common.Email;
 using ErrorOr;
+using Identity.Application.Common.Email;
+using Identity.Domain;
 using Wolverine;
 using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
 
@@ -12,7 +13,7 @@ public sealed class AcceptTenantInvitationCommandHandler
     public static async Task<ErrorOr<Success>> HandleAsync(
         AcceptTenantInvitationCommand command,
         ITenantInvitationRepository invitationRepository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         ISecureTokenGenerator tokenGenerator,
         IMessageBus bus,
         TimeProvider timeProvider,
@@ -20,7 +21,10 @@ public sealed class AcceptTenantInvitationCommandHandler
     )
     {
         string tokenHash = tokenGenerator.HashToken(command.Token);
-        TenantInvitationEntity? invitation = await invitationRepository.GetValidByTokenHashAsync(tokenHash, ct);
+        TenantInvitationEntity? invitation = await invitationRepository.GetValidByTokenHashAsync(
+            tokenHash,
+            ct
+        );
 
         if (invitation is null)
             return DomainErrors.Invitations.NotFoundOrExpired();

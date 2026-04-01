@@ -1,4 +1,5 @@
 using ErrorOr;
+using Reviews.Domain;
 using Wolverine;
 
 namespace Reviews.Application.Features.ProductReview;
@@ -21,11 +22,12 @@ public sealed class DeleteProductReviewCommandHandler
     )
     {
         Guid userId = actorProvider.ActorId;
-        ErrorOr<Reviews.Domain.Entities.ProductReview> reviewResult = await reviewRepository.GetByIdOrError(
-            command.Id,
-            DomainErrors.Reviews.NotFound(command.Id),
-            ct
-        );
+        ErrorOr<Reviews.Domain.Entities.ProductReview> reviewResult =
+            await reviewRepository.GetByIdOrError(
+                command.Id,
+                DomainErrors.Reviews.NotFound(command.Id),
+                ct
+            );
         if (reviewResult.IsError)
         {
             OutgoingMessages failureMessages = new();
@@ -49,7 +51,7 @@ public sealed class DeleteProductReviewCommandHandler
         DeleteProductReviewCommand command,
         Reviews.Domain.Entities.ProductReview review,
         IProductReviewRepository reviewRepository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ReviewsDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
@@ -67,6 +69,3 @@ public sealed class DeleteProductReviewCommandHandler
         return (Result.Success, messages);
     }
 }
-
-
-

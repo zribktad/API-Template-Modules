@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Domain.Interfaces;
 using SharedKernel.Infrastructure.Auditing;
@@ -7,10 +11,6 @@ using SharedKernel.Infrastructure.Persistence;
 using SharedKernel.Infrastructure.SoftDelete;
 using SharedKernel.Infrastructure.StoredProcedures;
 using SharedKernel.Infrastructure.UnitOfWork;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace SharedKernel.Infrastructure.Registration;
 
@@ -88,9 +88,9 @@ public sealed class ModuleRegistrationBuilder<TContext>
 
     public ModuleRegistrationBuilder<TContext> AddStoredProcedureSupport()
     {
-        _services.AddScoped<IStoredProcedureExecutor>(sp => 
-            new StoredProcedureExecutor(sp.GetRequiredService<TContext>())
-        );
+        _services.AddScoped<IStoredProcedureExecutor>(sp => new StoredProcedureExecutor(
+            sp.GetRequiredService<TContext>()
+        ));
         return this;
     }
 
@@ -101,13 +101,33 @@ public sealed class ModuleRegistrationBuilder<TContext>
         );
 
         _services.TryAddSingleton(TimeProvider.System);
-        _services.TryAddSingleton<IEntityNormalizationService, PassthroughEntityNormalizationService>();
+        _services.TryAddSingleton<
+            IEntityNormalizationService,
+            PassthroughEntityNormalizationService
+        >();
         _services.TryAddSingleton<IAuditableEntityStateManager, AuditableEntityStateManager>();
         _services.TryAddSingleton<ISoftDeleteProcessor, SoftDeleteProcessor>();
-        
-        _services.AddScoped<IDbTransactionProvider<TContext>, EfCoreTransactionProvider<TContext>>();
+
+        _services.AddScoped<
+            IDbTransactionProvider<TContext>,
+            EfCoreTransactionProvider<TContext>
+        >();
         _services.AddScoped<IUnitOfWork<TContext>, UnitOfWork<TContext>>();
 
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a domain-layer marker type as an <see cref="IUnitOfWork{TMarker}"/> discriminator
+    /// that forwards to the real <see cref="UnitOfWork{TContext}"/> for this module.
+    /// Handlers use <c>IUnitOfWork&lt;TMarker&gt;</c> to resolve the correct unit of work
+    /// without referencing the Infrastructure layer directly.
+    /// </summary>
+    public ModuleRegistrationBuilder<TContext> ForwardUnitOfWork<TMarker>()
+    {
+        _services.AddScoped<IUnitOfWork<TMarker>>(sp => new UnitOfWorkForwarder<TMarker>(
+            sp.GetRequiredService<IUnitOfWork<TContext>>()
+        ));
         return this;
     }
 
