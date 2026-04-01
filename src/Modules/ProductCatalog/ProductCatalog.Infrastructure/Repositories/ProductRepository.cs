@@ -101,21 +101,9 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
             ))
             .SingleOrDefaultAsync(ct);
 
+        int[] countArray = counts?.ToArray() ?? new int[DefaultPriceBuckets.Count];
         return DefaultPriceBuckets
-            .Select(bucket =>
-                bucket with
-                {
-                    Count = counts != null ? bucket switch
-                    {
-                        { MinPrice: 0m, MaxPrice: 50m } => counts.ZeroToFifty,
-                        { MinPrice: 50m, MaxPrice: 100m } => counts.FiftyToOneHundred,
-                        { MinPrice: 100m, MaxPrice: 250m } => counts.OneHundredToTwoHundredFifty,
-                        { MinPrice: 250m, MaxPrice: 500m } => counts.TwoHundredFiftyToFiveHundred,
-                        { MinPrice: 500m, MaxPrice: null } => counts.FiveHundredAndAbove,
-                        _ => 0,
-                    } : 0,
-                }
-            )
+            .Select((bucket, i) => bucket with { Count = i < countArray.Length ? countArray[i] : 0 })
             .ToArray();
     }
 
@@ -125,5 +113,9 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
         int OneHundredToTwoHundredFifty,
         int TwoHundredFiftyToFiveHundred,
         int FiveHundredAndAbove
-    );
+    )
+    {
+        public int[] ToArray() =>
+            [ZeroToFifty, FiftyToOneHundred, OneHundredToTwoHundredFifty, TwoHundredFiftyToFiveHundred, FiveHundredAndAbove];
+    }
 }

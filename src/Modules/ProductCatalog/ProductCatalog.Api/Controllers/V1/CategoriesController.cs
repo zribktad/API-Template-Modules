@@ -1,8 +1,5 @@
-using ProductCatalog.Api.Authorization;
-using ProductCatalog.Api.Controllers;
-using ProductCatalog.Api.ErrorOrMapping;
-using SharedKernel.Application.Events;
-using Identity.Application.Common.Security;
+using Contracts.Api;
+using Contracts.Security;
 using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;

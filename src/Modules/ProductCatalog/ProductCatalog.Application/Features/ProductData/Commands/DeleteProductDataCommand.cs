@@ -1,5 +1,4 @@
 using SharedKernel.Application.Context;
-using SharedKernel.Application.Errors;
 using Contracts.Events;
 using SharedKernel.Application.Resilience;
 using ProductCatalog.Domain.Interfaces;

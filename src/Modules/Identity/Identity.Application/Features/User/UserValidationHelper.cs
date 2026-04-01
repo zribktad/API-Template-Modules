@@ -1,6 +1,5 @@
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
-using SharedKernel.Application.Errors;
 using ErrorOr;
 
 namespace Identity.Application.Features.User;

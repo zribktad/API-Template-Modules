@@ -26,8 +26,17 @@ internal static class WolverineTypeExtensions
     {
         Type validatorType = typeof(IValidator<>).MakeGenericType(messageType);
 
-        return assembly
-            .GetTypes()
+        Type[] types;
+        try
+        {
+            types = assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            types = ex.Types.Where(t => t is not null).ToArray()!;
+        }
+
+        return types
             .Where(type => !type.IsAbstract && !type.IsGenericTypeDefinition)
             .Any(type => validatorType.IsAssignableFrom(type));
     }

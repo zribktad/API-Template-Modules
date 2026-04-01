@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using APITemplate.Api.Authorization;
+using Contracts.Security;
 using Identity.Application.Common.Security;
 using Identity.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;

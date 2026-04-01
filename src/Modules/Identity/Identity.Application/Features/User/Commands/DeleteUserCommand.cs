@@ -2,7 +2,6 @@ using Identity.Application.Common.Security;
 using SharedKernel.Domain.Entities.Contracts;
 using Identity.Domain.Interfaces;
 using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
 using ErrorOr;
@@ -25,14 +24,14 @@ public sealed class DeleteUserCommandHandler
         CancellationToken ct
     )
     {
-        var userResult = await repository.GetByIdOrError(
+        ErrorOr<AppUser> userResult = await repository.GetByIdOrError(
             command.Id,
             DomainErrors.Users.NotFound(command.Id),
             ct
         );
         if (userResult.IsError)
             return userResult.Errors;
-        var user = userResult.Value;
+        AppUser user = userResult.Value;
 
         if (user.KeycloakUserId is not null)
             await keycloakAdmin.DeleteUserAsync(user.KeycloakUserId, ct);

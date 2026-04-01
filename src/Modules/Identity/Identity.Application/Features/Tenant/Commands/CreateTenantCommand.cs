@@ -2,7 +2,6 @@ using Identity.Application.Features.Tenant.DTOs;
 using Identity.Application.Features.Tenant.Mappings;
 using Identity.Domain.Interfaces;
 using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Events;
 using ErrorOr;
 using Wolverine;

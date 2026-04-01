@@ -1,5 +1,4 @@
 using SharedKernel.Application.Context;
-using SharedKernel.Application.Errors;
 using ProductCatalog.Application.Features.ProductData.Mappings;
 using ProductCatalog.Domain.Interfaces;
 using ErrorOr;

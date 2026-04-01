@@ -1,6 +1,9 @@
 global using System.Reflection;
 global using Contracts.Events;
+global using Contracts.Security;
 global using Identity.Application.Common.Security;
+global using Identity.Application.Errors;
+global using Identity.Application.Events;
 global using Identity.Application.Features.Tenant;
 global using Identity.Application.Features.Tenant.DTOs;
 global using Identity.Application.Features.TenantInvitation;
@@ -15,7 +18,6 @@ global using SharedKernel.Application.Batch.Rules;
 global using SharedKernel.Application.Context;
 global using SharedKernel.Application.Contracts;
 global using SharedKernel.Application.DTOs;
-global using SharedKernel.Application.Errors;
 global using SharedKernel.Application.Events;
 global using SharedKernel.Application.Extensions;
 global using SharedKernel.Application.Search;

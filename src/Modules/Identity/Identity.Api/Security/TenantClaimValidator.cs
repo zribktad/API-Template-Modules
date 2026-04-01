@@ -1,8 +1,5 @@
 using System.Security.Claims;
-using Identity.Application.Common.Security;
 using Identity.Infrastructure.Security.Keycloak;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,42 +18,51 @@ public static class TenantClaimValidator
     /// JWT Bearer token callback. Maps Keycloak claims, enforces tenant claim presence for user
     /// tokens, and provisions the local user record on first login.
     /// </summary>
-    public static async Task OnTokenValidated(JwtTokenValidatedContext context)
-    {
-        if (context.Principal?.Identity is ClaimsIdentity identity)
-            KeycloakClaimMapper.MapKeycloakClaims(identity);
-
-        if (!IsServiceAccount(context.Principal))
-            await TryProvisionUserAsync(context.HttpContext, context.Principal);
-
-        if (!HasValidTenantClaim(context.Principal) && !IsServiceAccount(context.Principal))
-        {
-            GetLogger(context.HttpContext).LogWarning(
-                "Missing required {ClaimType} claim on JWT token.",
-                AuthConstants.Claims.TenantId
-            );
-            context.Fail($"Missing required {AuthConstants.Claims.TenantId} claim.");
-        }
-    }
+    public static Task OnTokenValidated(JwtTokenValidatedContext context) =>
+        ValidateTokenAsync(
+            context.Principal,
+            context.HttpContext,
+            msg => context.Fail(msg),
+            "JWT Bearer",
+            context.HttpContext.RequestAborted
+        );
 
     /// <summary>
     /// OpenID Connect token callback. Applies the same tenant and claim-mapping rules as JWT Bearer validation.
     /// </summary>
-    public static async Task OnTokenValidated(OidcTokenValidatedContext context)
+    public static Task OnTokenValidated(OidcTokenValidatedContext context) =>
+        ValidateTokenAsync(
+            context.Principal,
+            context.HttpContext,
+            msg => context.Fail(msg),
+            "OIDC",
+            context.HttpContext.RequestAborted
+        );
+
+    private static async Task ValidateTokenAsync(
+        ClaimsPrincipal? principal,
+        HttpContext httpContext,
+        Action<string> fail,
+        string scheme,
+        CancellationToken ct
+    )
     {
-        if (context.Principal?.Identity is ClaimsIdentity identity)
+        if (principal?.Identity is ClaimsIdentity identity)
             KeycloakClaimMapper.MapKeycloakClaims(identity);
 
-        if (!IsServiceAccount(context.Principal))
-            await TryProvisionUserAsync(context.HttpContext, context.Principal);
+        bool isServiceAccount = IsServiceAccount(principal);
 
-        if (!HasValidTenantClaim(context.Principal) && !IsServiceAccount(context.Principal))
+        if (!isServiceAccount)
+            await TryProvisionUserAsync(httpContext, principal, ct);
+
+        if (!HasValidTenantClaim(principal) && !isServiceAccount)
         {
-            GetLogger(context.HttpContext).LogWarning(
-                "Missing required {ClaimType} claim on OIDC token.",
-                AuthConstants.Claims.TenantId
+            GetLogger(httpContext).LogWarning(
+                "Missing required {ClaimType} claim on {Scheme} token.",
+                AuthConstants.Claims.TenantId,
+                scheme
             );
-            context.Fail($"Missing required {AuthConstants.Claims.TenantId} claim.");
+            fail($"Missing required {AuthConstants.Claims.TenantId} claim.");
         }
     }
 
@@ -72,7 +78,8 @@ public static class TenantClaimValidator
 
     private static async Task TryProvisionUserAsync(
         HttpContext httpContext,
-        ClaimsPrincipal? principal
+        ClaimsPrincipal? principal,
+        CancellationToken ct
     )
     {
         try
@@ -93,7 +100,7 @@ public static class TenantClaimValidator
             IUserProvisioningService provisioningService =
                 httpContext.RequestServices.GetRequiredService<IUserProvisioningService>();
 
-            await provisioningService.ProvisionIfNeededAsync(sub, email, username);
+            await provisioningService.ProvisionIfNeededAsync(sub, email, username, ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

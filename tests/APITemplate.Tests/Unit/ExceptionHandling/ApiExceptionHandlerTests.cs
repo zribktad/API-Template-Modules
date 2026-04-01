@@ -44,11 +44,11 @@ public class ApiExceptionHandlerTests
     {
         yield return
         [
-            new NotFoundException("Product", Guid.Empty, ErrorCatalog.Reviews.ProductNotFoundForReview),
+            new NotFoundException("Product", Guid.Empty, "REV-2101"),
             HttpStatusCode.NotFound,
             "Not Found",
             $"Product with id '{Guid.Empty}' not found.",
-            ErrorCatalog.Reviews.ProductNotFoundForReview
+            "REV-2101"
         ];
         yield return
         [

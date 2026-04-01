@@ -1,5 +1,6 @@
+global using Contracts.Api;
 global using Contracts.Events;
-global using Identity.Application.Common.Security;
+global using Contracts.Security;
 global using ProductCatalog.Api.GraphQL.Models;
 global using ProductCatalog.Application.Features.Category;
 global using ProductCatalog.Application.Features.Category.DTOs;
@@ -9,7 +10,7 @@ global using ProductCatalog.Application.Features.ProductData;
 global using ProductCatalog.Application.Features.ProductData.DTOs;
 global using Reviews.Application.Features.ProductReview;
 global using Reviews.Application.Features.ProductReview.DTOs;
+global using ProductCatalog.Application.Events;
 global using SharedKernel.Application.DTOs;
 global using SharedKernel.Application.Events;
 global using SharedKernel.Domain.Common;
-

@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using Identity.Application.Common.Security;
 using Identity.Application.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -70,7 +69,7 @@ public sealed class KeycloakAdminTokenProvider : IDisposable
     private async Task<KeycloakTokenResponse> FetchTokenAsync(CancellationToken cancellationToken)
     {
         KeycloakOptions keycloak = _keycloakOptions.Value;
-        var tokenEndpoint = KeycloakUrlHelper.BuildTokenEndpoint(
+        string tokenEndpoint = KeycloakUrlHelper.BuildTokenEndpoint(
             keycloak.AuthServerUrl,
             keycloak.Realm
         );
@@ -91,7 +90,7 @@ public sealed class KeycloakAdminTokenProvider : IDisposable
 
         if (!response.IsSuccessStatusCode)
         {
-            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogError(
                 "Failed to acquire Keycloak admin token. Status: {Status}. Body: {Body}",
                 (int)response.StatusCode,

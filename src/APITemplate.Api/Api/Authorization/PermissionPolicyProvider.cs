@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Identity.Application.Common.Security;
+using Contracts.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 

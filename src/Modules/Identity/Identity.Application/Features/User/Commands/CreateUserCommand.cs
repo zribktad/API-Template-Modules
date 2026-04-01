@@ -4,7 +4,6 @@ using Identity.Application.Features.User.Mappings;
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
 using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Events;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -26,7 +25,7 @@ public sealed class CreateUserCommandHandler
         CancellationToken ct
     )
     {
-        var emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
+        ErrorOr<Success> emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
             repository,
             command.Request.Email,
             ct
@@ -34,7 +33,7 @@ public sealed class CreateUserCommandHandler
         if (emailResult.IsError)
             return emailResult.Errors;
 
-        var usernameResult = await UserValidationHelper.ValidateUsernameUniqueAsync(
+        ErrorOr<Success> usernameResult = await UserValidationHelper.ValidateUsernameUniqueAsync(
             repository,
             command.Request.Username,
             ct
@@ -42,7 +41,7 @@ public sealed class CreateUserCommandHandler
         if (usernameResult.IsError)
             return usernameResult.Errors;
 
-        var keycloakUserId = await keycloakAdmin.CreateUserAsync(
+        string keycloakUserId = await keycloakAdmin.CreateUserAsync(
             command.Request.Username,
             command.Request.Email,
             ct
@@ -50,7 +49,7 @@ public sealed class CreateUserCommandHandler
 
         try
         {
-            var user = new AppUser
+            AppUser user = new()
             {
                 Id = Guid.NewGuid(),
                 Username = command.Request.Username,

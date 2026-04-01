@@ -1,14 +1,9 @@
 using Identity.Application.Common.Email;
-using Identity.Domain.Enums;
-using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Errors;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Extensions;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Wolverine;
+using TenantEntity = Identity.Domain.Entities.Tenant;
+using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
 
 namespace Identity.Application.Features.TenantInvitation;
 
@@ -29,32 +24,32 @@ public sealed class ResendTenantInvitationCommandHandler
         CancellationToken ct
     )
     {
-        var invitationResult = await invitationRepository.GetByIdOrError(
+        ErrorOr<TenantInvitationEntity> invitationResult = await invitationRepository.GetByIdOrError(
             command.InvitationId,
             DomainErrors.Invitations.NotFound(command.InvitationId),
             ct
         );
         if (invitationResult.IsError)
             return invitationResult.Errors;
-        var invitation = invitationResult.Value;
+        TenantInvitationEntity invitation = invitationResult.Value;
 
         if (invitation.Status != InvitationStatus.Pending)
             return DomainErrors.Invitations.NotPending();
 
-        var now = timeProvider.GetUtcNow().UtcDateTime;
+        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         if (invitation.ExpiresAtUtc < now)
             return DomainErrors.Invitations.ExpiredCreateNew();
 
-        var tenantResult = await tenantRepository.GetByIdOrError(
+        ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
             tenantProvider.TenantId,
             DomainErrors.Tenants.NotFound(tenantProvider.TenantId),
             ct
         );
         if (tenantResult.IsError)
             return tenantResult.Errors;
-        var tenant = tenantResult.Value;
+        TenantEntity tenant = tenantResult.Value;
 
-        var rawToken = tokenGenerator.GenerateToken();
+        string rawToken = tokenGenerator.GenerateToken();
         invitation.TokenHash = tokenGenerator.HashToken(rawToken);
 
         await invitationRepository.UpdateAsync(invitation, ct);

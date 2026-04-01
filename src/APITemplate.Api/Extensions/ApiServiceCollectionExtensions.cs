@@ -3,7 +3,8 @@ using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Events;
+using ProductCatalogCacheTags = ProductCatalog.Application.Events.CacheTags;
+using ReviewsCacheTags = Reviews.Application.Events.CacheTags;
 using SharedKernel.Infrastructure.Configuration;
 
 namespace APITemplate.Api.Extensions;
@@ -46,10 +47,10 @@ public static class ApiServiceCollectionExtensions
 
             ReadOnlySpan<(string Name, int ExpirationSeconds)> policies =
             [
-                (CacheTags.Products, cachingOptions.ProductsExpirationSeconds),
-                (CacheTags.Categories, cachingOptions.CategoriesExpirationSeconds),
-                (CacheTags.Reviews, cachingOptions.ReviewsExpirationSeconds),
-                (CacheTags.ProductData, cachingOptions.ProductDataExpirationSeconds),
+                (ProductCatalogCacheTags.Products, cachingOptions.ProductsExpirationSeconds),
+                (ProductCatalogCacheTags.Categories, cachingOptions.CategoriesExpirationSeconds),
+                (ReviewsCacheTags.Reviews, cachingOptions.ReviewsExpirationSeconds),
+                (ProductCatalogCacheTags.ProductData, cachingOptions.ProductDataExpirationSeconds),
             ];
 
             foreach ((string name, int expirationSeconds) in policies)

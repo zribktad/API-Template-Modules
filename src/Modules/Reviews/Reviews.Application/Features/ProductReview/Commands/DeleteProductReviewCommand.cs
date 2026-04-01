@@ -1,8 +1,3 @@
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Errors;
-using Contracts.Events;
-using SharedKernel.Application.Extensions;
-using Reviews.Domain.Interfaces;
 using ErrorOr;
 using Wolverine;
 
@@ -43,7 +38,7 @@ public sealed class DeleteProductReviewCommandHandler
         if (review.UserId != userId)
         {
             OutgoingMessages failureMessages = new();
-            failureMessages.RespondToSender(DomainErrors.Auth.ForbiddenOwnReviewsOnly());
+            failureMessages.RespondToSender(DomainErrors.Reviews.ForbiddenOwnReviewsOnly());
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 

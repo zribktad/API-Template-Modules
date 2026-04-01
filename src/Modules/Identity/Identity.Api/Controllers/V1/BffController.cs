@@ -55,7 +55,7 @@ public sealed class BffController : ApiControllerBase
     {
         System.Security.Claims.ClaimsPrincipal user = HttpContext.User;
         BffUserResponse result = new(
-            UserId: user.FindFirstValue(ClaimTypes.NameIdentifier),
+            UserId: user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue(AuthConstants.Claims.Subject),
             Username: user.FindFirstValue(ClaimTypes.Name),
             Email: user.FindFirstValue(ClaimTypes.Email),
             TenantId: user.FindFirstValue(AuthConstants.Claims.TenantId),

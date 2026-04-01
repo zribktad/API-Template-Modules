@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace SharedKernel.Infrastructure.Registration;
 
@@ -114,6 +113,6 @@ public sealed class ModuleRegistrationBuilder<TContext>
 
     private sealed class PassthroughEntityNormalizationService : IEntityNormalizationService
     {
-        public void Normalize(SharedKernel.Domain.Entities.Contracts.IAuditableTenantEntity entity) { }
+        public void Normalize(Domain.Entities.Contracts.IAuditableTenantEntity entity) { }
     }
 }

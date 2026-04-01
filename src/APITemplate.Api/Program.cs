@@ -3,6 +3,8 @@ using Identity.Application.Features.User;
 using ProductCatalog.Api;
 using ProductCatalog.Application.Features.Product;
 using Reviews.Api;
+using FileStorage.Api;
+using FileStorage.Application.Features.Upload;
 using Reviews.Application.Features.ProductReview;
 using Serilog;
 using SharedKernel.Application.Middleware;
@@ -29,12 +31,14 @@ builder.Services.AddObservability(builder.Configuration, builder.Environment);
 builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddProductCatalogModule(builder.Configuration);
 builder.Services.AddReviewsModule(builder.Configuration);
+builder.Services.AddFileStorageModule(builder.Configuration);
 
 builder.Host.UseWolverine(options =>
 {
     options.Discovery.IncludeAssembly(typeof(CreateUserCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(CreateProductReviewCommand).Assembly);
+    options.Discovery.IncludeAssembly(typeof(UploadFileCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(Program).Assembly);
     options.Policies.AddMiddleware(
         typeof(ErrorOrValidationMiddleware),
@@ -42,7 +46,8 @@ builder.Host.UseWolverine(options =>
             chain.ShouldApplyErrorOrValidation(
                 typeof(CreateUserCommand).Assembly,
                 typeof(CreateProductsCommand).Assembly,
-                typeof(CreateProductReviewCommand).Assembly
+                typeof(CreateProductReviewCommand).Assembly,
+                typeof(UploadFileCommand).Assembly
             )
     );
 });

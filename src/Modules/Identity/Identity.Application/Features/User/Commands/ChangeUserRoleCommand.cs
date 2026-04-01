@@ -2,7 +2,6 @@ using Identity.Application.Common.Security;
 using SharedKernel.Domain.Entities.Contracts;
 using Identity.Domain.Interfaces;
 using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
 using Identity.Application.Features.User.DTOs;
@@ -25,16 +24,16 @@ public sealed class ChangeUserRoleCommandHandler
         CancellationToken ct
     )
     {
-        var userResult = await repository.GetByIdOrError(
+        ErrorOr<AppUser> userResult = await repository.GetByIdOrError(
             command.Id,
             DomainErrors.Users.NotFound(command.Id),
             ct
         );
         if (userResult.IsError)
             return userResult.Errors;
-        var user = userResult.Value;
+        AppUser user = userResult.Value;
 
-        var oldRole = user.Role.ToString();
+        string oldRole = user.Role.ToString();
 
         user.Role = command.Request.Role;
         await repository.UpdateAsync(user, ct);

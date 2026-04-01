@@ -1,8 +1,5 @@
-using ProductCatalog.Api.Authorization;
-using ProductCatalog.Api.Controllers;
-using ProductCatalog.Api.ErrorOrMapping;
-using SharedKernel.Application.Events;
-using Identity.Application.Common.Security;
+using Contracts.Api;
+using Contracts.Security;
 using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +8,11 @@ using Wolverine;
 
 namespace ProductCatalog.Api.Controllers.V1;
 
-[ApiVersion(1.0)]
 /// <summary>
 /// Presentation-layer controller that exposes full CRUD endpoints for the product catalog,
 /// with permission-based authorization and tenant-aware output caching.
 /// </summary>
+[ApiVersion(1.0)]
 public sealed class ProductsController(IMessageBus bus) : ApiControllerBase
 {
     /// <summary>Returns a filtered, paginated product list including search facets.</summary>

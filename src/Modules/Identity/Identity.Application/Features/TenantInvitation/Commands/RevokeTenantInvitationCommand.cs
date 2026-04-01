@@ -1,11 +1,6 @@
-using Identity.Domain.Enums;
-using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Errors;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Extensions;
 using ErrorOr;
 using Wolverine;
+using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
 
 namespace Identity.Application.Features.TenantInvitation;
 
@@ -21,14 +16,14 @@ public sealed class RevokeTenantInvitationCommandHandler
         CancellationToken ct
     )
     {
-        var invitationResult = await invitationRepository.GetByIdOrError(
+        ErrorOr<TenantInvitationEntity> invitationResult = await invitationRepository.GetByIdOrError(
             command.InvitationId,
             DomainErrors.Invitations.NotFound(command.InvitationId),
             ct
         );
         if (invitationResult.IsError)
             return invitationResult.Errors;
-        var invitation = invitationResult.Value;
+        TenantInvitationEntity invitation = invitationResult.Value;
 
         invitation.Status = InvitationStatus.Revoked;
         await invitationRepository.UpdateAsync(invitation, ct);

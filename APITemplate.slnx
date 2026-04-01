@@ -5,6 +5,12 @@
   <Folder Name="/src/Contracts/">
     <Project Path="src/Contracts/Contracts.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/Notifications/Notifications.Api/Notifications.Api.csproj" />
+    <Project Path="src/Modules/Notifications/Notifications.Application/Notifications.Application.csproj" />
+    <Project Path="src/Modules/Notifications/Notifications.Domain/Notifications.Domain.csproj" />
+    <Project Path="src/Modules/Notifications/Notifications.Infrastructure/Notifications.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Identity/">
     <Project Path="src/Modules/Identity/Identity.Domain/Identity.Domain.csproj" />
     <Project Path="src/Modules/Identity/Identity.Application/Identity.Application.csproj" />
@@ -22,6 +28,12 @@
     <Project Path="src/Modules/Reviews/Reviews.Application/Reviews.Application.csproj" />
     <Project Path="src/Modules/Reviews/Reviews.Infrastructure/Reviews.Infrastructure.csproj" />
     <Project Path="src/Modules/Reviews/Reviews.Api/Reviews.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/FileStorage/">
+    <Project Path="src/Modules/FileStorage/FileStorage.Domain/FileStorage.Domain.csproj" />
+    <Project Path="src/Modules/FileStorage/FileStorage.Application/FileStorage.Application.csproj" />
+    <Project Path="src/Modules/FileStorage/FileStorage.Infrastructure/FileStorage.Infrastructure.csproj" />
+    <Project Path="src/Modules/FileStorage/FileStorage.Api/FileStorage.Api.csproj" />
   </Folder>
   <Folder Name="/src/SharedKernel/">
     <Project Path="src/SharedKernel/SharedKernel.csproj" />

@@ -3,7 +3,6 @@ using SharedKernel.Domain.Entities.Contracts;
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
 using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
 using ErrorOr;
@@ -23,18 +22,18 @@ public sealed class UpdateUserCommandHandler
         CancellationToken ct
     )
     {
-        var userResult = await repository.GetByIdOrError(
+        ErrorOr<AppUser> userResult = await repository.GetByIdOrError(
             command.Id,
             DomainErrors.Users.NotFound(command.Id),
             ct
         );
         if (userResult.IsError)
             return userResult.Errors;
-        var user = userResult.Value;
+        AppUser user = userResult.Value;
 
         if (!string.Equals(user.Email, command.Request.Email, StringComparison.OrdinalIgnoreCase))
         {
-            var emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
+            ErrorOr<Success> emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
                 repository,
                 command.Request.Email,
                 ct
@@ -43,10 +42,10 @@ public sealed class UpdateUserCommandHandler
                 return emailResult.Errors;
         }
 
-        var normalizedNew = AppUser.NormalizeUsername(command.Request.Username);
+        string normalizedNew = AppUser.NormalizeUsername(command.Request.Username);
         if (!string.Equals(user.NormalizedUsername, normalizedNew, StringComparison.Ordinal))
         {
-            var usernameResult = await UserValidationHelper.ValidateUsernameUniqueAsync(
+            ErrorOr<Success> usernameResult = await UserValidationHelper.ValidateUsernameUniqueAsync(
                 repository,
                 command.Request.Username,
                 ct

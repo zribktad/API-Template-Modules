@@ -1,4 +1,4 @@
-using Identity.Application.Common.Security;
+using Contracts.Security;
 using ErrorOr;
 using HotChocolate.Authorization;
 using Wolverine;

@@ -132,9 +132,8 @@ internal static class ProductValidationHelper
             if (pdIds is not { Count: > 0 })
                 continue;
 
-            // Lazy evaluation: Any() short-circuits instead of allocating a List for empty cases
-            var missing = pdIds.Where(id => missingIds.Contains(id)).Distinct();
-            if (missing.Any())
+            List<Guid> missing = pdIds.Where(id => missingIds.Contains(id)).Distinct().ToList();
+            if (missing.Count > 0)
             {
                 Guid? failureId = items[i] is IHasId hasId ? hasId.Id : null;
                 failures.Add(
