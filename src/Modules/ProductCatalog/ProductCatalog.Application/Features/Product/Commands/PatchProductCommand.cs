@@ -41,7 +41,14 @@ public sealed class PatchProductCommandHandler
             CategoryId = product.CategoryId,
         };
 
-        command.PatchDocument.ApplyTo(dto);
+        try
+        {
+            command.PatchDocument.ApplyTo(dto);
+        }
+        catch (Exception ex)
+        {
+            return DomainErrors.Patch.InvalidPatchDocument(ex.Message);
+        }
 
         FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(
             dto,

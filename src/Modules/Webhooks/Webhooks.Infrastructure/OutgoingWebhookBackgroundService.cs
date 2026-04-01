@@ -101,7 +101,10 @@ public sealed class OutgoingWebhookBackgroundService
         if (IPAddress.IsLoopback(address))
             return true;
 
-        if (address.AddressFamily == AddressFamily.InterNetworkV6 && address.IsIPv6LinkLocal)
+        if (
+            address.AddressFamily == AddressFamily.InterNetworkV6
+            && (address.IsIPv6LinkLocal || address.IsIPv6UniqueLocal || address.IsIPv6SiteLocal)
+        )
             return true;
 
         byte[] bytes = address.GetAddressBytes();

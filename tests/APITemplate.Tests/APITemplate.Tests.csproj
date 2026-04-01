@@ -32,6 +32,8 @@
     <Compile Include="Unit\BackgroundJobs\Jobs\JobExecutionTests.cs" />
     <Compile Include="Unit\BackgroundJobs\Jobs\GetJobStatusQueryHandlerTests.cs" />
     <Compile Include="Unit\BackgroundJobs\Jobs\SubmitJobCommandHandlerTests.cs" />
+    <Compile Include="Unit\Idempotency\InMemoryIdempotencyStoreTests.cs" />
+    <Compile Include="Unit\Webhooks\OutgoingWebhookSsrfTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,5 +43,6 @@
     <ProjectReference Include="..\..\src\Modules\Identity\Identity.Application\Identity.Application.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.Infrastructure\Webhooks.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

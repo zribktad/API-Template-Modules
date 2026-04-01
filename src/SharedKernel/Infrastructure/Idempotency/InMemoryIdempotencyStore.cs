@@ -41,14 +41,24 @@ public sealed class InMemoryIdempotencyStore : IIdempotencyStore
         return Task.FromResult<IdempotencyCacheEntry?>(null);
     }
 
-    /// <summary>Attempts to insert a lock entry using <c>TryAdd</c>; returns the lock token if acquired, or <c>null</c> otherwise.</summary>
+    /// <summary>Attempts to insert a lock entry using <c>TryAdd</c>; returns the lock token if acquired, or <c>null</c> otherwise. Atomically checks that no cached result already exists for the key.</summary>
     public Task<string?> TryAcquireAsync(string key, TimeSpan ttl, CancellationToken ct = default)
     {
         EvictExpired();
 
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+
+        if (
+            _store.TryGetValue(key, out (string Value, DateTimeOffset Expiry) existing)
+            && existing.Expiry > now
+        )
+        {
+            return Task.FromResult<string?>(null);
+        }
+
         string lockKey = key + IdempotencyStoreConstants.LockSuffix;
         string lockValue = Guid.NewGuid().ToString("N");
-        DateTimeOffset expiry = _timeProvider.GetUtcNow().Add(ttl);
+        DateTimeOffset expiry = now.Add(ttl);
         bool acquired = _store.TryAdd(lockKey, (lockValue, expiry));
 
         return Task.FromResult(acquired ? lockValue : null);

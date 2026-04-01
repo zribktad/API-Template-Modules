@@ -17,6 +17,11 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
         "if redis.call('get', @key) == @value then return redis.call('del', @key) else return 0 end"
     );
 
+    private static readonly LuaScript AcquireLockScript = LuaScript.Prepare(
+        "if redis.call('exists', @resultKey) == 1 then return nil end "
+            + "if redis.call('set', @lockKey, @lockValue, 'NX', 'PX', @ttlMs) then return @lockValue else return nil end"
+    );
+
     private readonly IDatabase _database;
 
     public DistributedCacheIdempotencyStore(IConnectionMultiplexer connectionMultiplexer)
@@ -46,17 +51,23 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
         CancellationToken ct = default
     )
     {
-        string lockKey = KeyPrefix + key + IdempotencyStoreConstants.LockSuffix;
+        string resultKey = KeyPrefix + key;
+        string lockKey = resultKey + IdempotencyStoreConstants.LockSuffix;
         string lockValue = Guid.NewGuid().ToString("N");
+        long ttlMs = (long)ttl.TotalMilliseconds;
 
-        bool acquired = await _database.StringSetAsync(
-            lockKey,
-            lockValue,
-            ttl,
-            when: When.NotExists
+        RedisResult result = await _database.ScriptEvaluateAsync(
+            AcquireLockScript,
+            new
+            {
+                resultKey = (RedisKey)resultKey,
+                lockKey = (RedisKey)lockKey,
+                lockValue,
+                ttlMs,
+            }
         );
 
-        return acquired ? lockValue : null;
+        return result.IsNull ? null : lockValue;
     }
 
     /// <summary>Serialises <paramref name="entry"/> and stores it under <paramref name="key"/> in Redis with the specified <paramref name="ttl"/>.</summary>

@@ -31,6 +31,6 @@ public sealed class IdempotentController(IMessageBus bus) : ApiControllerBase
         if (result.IsError)
             return result.ToActionResult(this);
 
-        return Created(string.Empty, result.Value);
+        return Ok(result.Value);
     }
 }
