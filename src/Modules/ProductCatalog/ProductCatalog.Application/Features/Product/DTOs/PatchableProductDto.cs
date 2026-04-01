@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using SharedKernel.Application.Validation;
 
-namespace APITemplate.Api.Features.Examples.DTOs;
+namespace ProductCatalog.Application.Features.Product.DTOs;
 
 /// <summary>
 /// Mutable DTO used as the patch target for JSON Patch operations on a product; declared as a class

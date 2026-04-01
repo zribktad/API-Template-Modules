@@ -1,17 +1,16 @@
-using APITemplate.Api.Features.Examples.DTOs;
 using Contracts.Events;
 using ErrorOr;
 using FluentValidation;
+using ProductCatalog.Application.Errors;
 using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Application.Features.Product.Mappings;
-using ProductCatalog.Domain.Interfaces;
+using IProductRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Domain.Interfaces;
 using SystemTextJsonPatch;
 using Wolverine;
-using ProductCatalogErrors = ProductCatalog.Application.Errors.DomainErrors;
 
-namespace APITemplate.Api.Features.Examples.Commands;
+namespace ProductCatalog.Application.Features.Product.Commands;
 
 public sealed record PatchProductCommand(
     Guid Id,
@@ -29,12 +28,12 @@ public sealed class PatchProductCommandHandler
         CancellationToken ct
     )
     {
-        ProductCatalog.Domain.Entities.Product? product = await repository.GetByIdAsync(
+        Domain.Entities.Product? product = await repository.GetByIdAsync(
             command.Id,
             ct
         );
         if (product is null)
-            return ProductCatalogErrors.Products.NotFound(command.Id);
+            return DomainErrors.Products.NotFound(command.Id);
 
         PatchableProductDto dto = new()
         {
@@ -51,7 +50,7 @@ public sealed class PatchProductCommandHandler
             ct
         );
         if (!validationResult.IsValid)
-            return ExampleErrors.InvalidPatchDocument(
+            return DomainErrors.Patch.InvalidPatchDocument(
                 string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage))
             );
 
@@ -66,7 +65,7 @@ public sealed class PatchProductCommandHandler
         );
 
         await bus.PublishAsync(
-            new CacheInvalidationNotification(ProductCatalog.Application.Events.CacheTags.Products)
+            new CacheInvalidationNotification(Events.CacheTags.Products)
         );
 
         return product.ToResponse();

@@ -1,10 +1,10 @@
-using APITemplate.Api.Features.Examples.DTOs;
 using ErrorOr;
-using ProductCatalog.Domain.Interfaces;
+using ProductCatalog.Application.Features.Product.DTOs;
+using IProductRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
 using SharedKernel.Domain.Interfaces;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
 
-namespace APITemplate.Api.Features.Examples.Commands;
+namespace ProductCatalog.Application.Features.Product.Commands;
 
 public sealed record IdempotentCreateCommand(IdempotentCreateRequest Request);
 

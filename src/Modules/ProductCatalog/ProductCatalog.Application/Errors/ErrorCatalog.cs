@@ -20,6 +20,12 @@ public static class ErrorCatalog
         public const string InUse = "PDT-0409";
     }
 
+    public static class Patch
+    {
+        public const string InvalidDocument = "PRD-0400-PATCH";
+        public const string InvalidDocumentMessage = "Invalid patch document: {0}";
+    }
+
     public static class Categories
     {
         public const string EntityName = "Category";

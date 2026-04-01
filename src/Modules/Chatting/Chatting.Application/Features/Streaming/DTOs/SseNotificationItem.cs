@@ -1,4 +1,4 @@
-namespace APITemplate.Api.Features.Examples.DTOs;
+namespace Chatting.Application.Features.Streaming.DTOs;
 
 /// <summary>
 /// Represents a single Server-Sent Events (SSE) notification item emitted by the stream,

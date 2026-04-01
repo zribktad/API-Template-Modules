@@ -1,15 +1,14 @@
-using APITemplate.Api.Features.Examples.Commands;
-using APITemplate.Api.Features.Examples.DTOs;
 using Asp.Versioning;
 using Contracts.Api;
 using Contracts.Security;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using ProductCatalog.Application.Features.Product.Commands;
 using ProductCatalog.Application.Features.Product.DTOs;
 using SystemTextJsonPatch;
 using Wolverine;
 
-namespace APITemplate.Api.Controllers.V1;
+namespace ProductCatalog.Api.Controllers.V1;
 
 [ApiVersion(1.0)]
 /// <summary>

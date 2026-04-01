@@ -1,13 +1,13 @@
 using System.Text.Json;
-using APITemplate.Api.Features.Examples.DTOs;
-using APITemplate.Api.Features.Examples.Queries;
 using Asp.Versioning;
+using Chatting.Application.Features.Streaming.DTOs;
+using Chatting.Application.Features.Streaming.Queries;
 using Contracts.Api;
 using Contracts.Security;
 using Microsoft.AspNetCore.Mvc;
 using Wolverine;
 
-namespace APITemplate.Api.Controllers.V1;
+namespace Chatting.Api.Controllers.V1;
 
 [ApiVersion(1.0)]
 /// <summary>

@@ -1,4 +1,4 @@
-namespace APITemplate.Api.Filters.Idempotency;
+namespace Contracts.Api.Filters.Idempotency;
 
 /// <summary>
 /// Marks an action method as idempotent, enabling the <see cref="IdempotencyActionFilter"/>

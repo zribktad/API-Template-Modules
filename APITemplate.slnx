@@ -47,6 +47,10 @@
     <Project Path="src/Modules/Webhooks/Webhooks.Infrastructure/Webhooks.Infrastructure.csproj" />
     <Project Path="src/Modules/Webhooks/Webhooks.Api/Webhooks.Api.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Chatting/">
+    <Project Path="src/Modules/Chatting/Chatting.Application/Chatting.Application.csproj" />
+    <Project Path="src/Modules/Chatting/Chatting.Api/Chatting.Api.csproj" />
+  </Folder>
   <Folder Name="/src/SharedKernel/">
     <Project Path="src/SharedKernel/SharedKernel.csproj" />
   </Folder>

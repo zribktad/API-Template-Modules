@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using SharedKernel.Application.Validation;
 
-namespace APITemplate.Api.Features.Examples.DTOs;
+namespace ProductCatalog.Application.Features.Product.DTOs;
 
 /// <summary>
 /// Carries the data for an idempotent resource creation request; demonstrates safe-retry semantics at the API layer.

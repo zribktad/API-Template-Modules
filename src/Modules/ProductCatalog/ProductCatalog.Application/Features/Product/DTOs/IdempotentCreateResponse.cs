@@ -1,6 +1,6 @@
 using SharedKernel.Domain.Entities.Contracts;
 
-namespace APITemplate.Api.Features.Examples.DTOs;
+namespace ProductCatalog.Application.Features.Product.DTOs;
 
 /// <summary>
 /// Represents the persisted resource returned after a successful idempotent create operation.

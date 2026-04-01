@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
-using APITemplate.Api.Features.Examples.DTOs;
+using Chatting.Application.Features.Streaming.DTOs;
 
-namespace APITemplate.Api.Features.Examples.Queries;
+namespace Chatting.Application.Features.Streaming.Queries;
 
 public sealed record GetNotificationStreamQuery(SseStreamRequest Request);
 

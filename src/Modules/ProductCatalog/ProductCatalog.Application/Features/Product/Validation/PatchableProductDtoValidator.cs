@@ -1,9 +1,9 @@
-using APITemplate.Api.Features.Examples.DTOs;
 using FluentValidation;
+using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Application.Features.Product.Validation;
 using SharedKernel.Application.Validation;
 
-namespace APITemplate.Api.Features.Examples.Validation;
+namespace ProductCatalog.Application.Features.Product.Validation;
 
 /// <summary>
 /// FluentValidation validator for the post-patch <see cref="PatchableProductDto"/> state;
