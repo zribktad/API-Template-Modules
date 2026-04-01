@@ -32,7 +32,7 @@ public sealed class WebhookProcessingBackgroundService
         bool handled = false;
         foreach (IWebhookEventHandler handler in handlers)
         {
-            if (handler.EventType == "*" || handler.EventType == payload.EventType)
+            if (handler.EventType == WebhookConstants.WildcardEventType || handler.EventType == payload.EventType)
             {
                 await handler.HandleAsync(payload, ct);
                 handled = true;

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Application.BackgroundJobs;
@@ -58,21 +59,32 @@ public sealed class TickerQRecurringJobRegistrar
                     RetryIntervals = definition.RetryIntervals ?? [],
                 };
                 _dbContext.Set<CronTickerEntity>().Add(entity);
-                Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<CronTickerEntity> entry = _dbContext.Entry(entity);
+                EntityEntry<CronTickerEntity> entry = _dbContext.Entry(entity);
                 entry.Property(InitIdentifierProperty).CurrentValue = SeedIdentifier;
                 entry.Property(CreatedAtProperty).CurrentValue = now;
                 entry.Property(UpdatedAtProperty).CurrentValue = now;
                 continue;
             }
 
+            int[] retryIntervals = definition.RetryIntervals ?? [];
+            bool changed = existing.Function != definition.FunctionName
+                || existing.Description != definition.Description
+                || existing.Expression != definition.CronExpression
+                || existing.IsEnabled != definition.Enabled
+                || existing.Retries != definition.Retries
+                || !existing.RetryIntervals.SequenceEqual(retryIntervals);
+
+            if (!changed)
+                continue;
+
             existing.Function = definition.FunctionName;
             existing.Description = definition.Description;
             existing.Expression = definition.CronExpression;
             existing.IsEnabled = definition.Enabled;
             existing.Retries = definition.Retries;
-            existing.RetryIntervals = definition.RetryIntervals ?? [];
+            existing.RetryIntervals = retryIntervals;
 
-            Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<CronTickerEntity> existingEntry = _dbContext.Entry(existing);
+            EntityEntry<CronTickerEntity> existingEntry = _dbContext.Entry(existing);
             existingEntry.Property(InitIdentifierProperty).CurrentValue ??= SeedIdentifier;
             existingEntry.Property(UpdatedAtProperty).CurrentValue = now;
         }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Primitives;
 using SharedKernel.Domain.Exceptions;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
@@ -29,10 +30,10 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
             return;
         }
 
-        Microsoft.AspNetCore.Http.HttpRequest request = context.HttpContext.Request;
+        HttpRequest request = context.HttpContext.Request;
 
-        if (!request.Headers.TryGetValue(WebhookConstants.SignatureHeader, out Microsoft.Extensions.Primitives.StringValues signature)
-            || !request.Headers.TryGetValue(WebhookConstants.TimestampHeader, out Microsoft.Extensions.Primitives.StringValues timestamp))
+        if (!request.Headers.TryGetValue(WebhookConstants.SignatureHeader, out StringValues signature)
+            || !request.Headers.TryGetValue(WebhookConstants.TimestampHeader, out StringValues timestamp))
         {
             throw new UnauthorizedException("Missing required webhook signature headers.");
         }

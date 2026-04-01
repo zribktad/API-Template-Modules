@@ -13,7 +13,7 @@ public sealed class LoggingWebhookEventHandler : IWebhookEventHandler
         _logger = logger;
     }
 
-    public string EventType => "*";
+    public string EventType => WebhookConstants.WildcardEventType;
 
     public Task HandleAsync(WebhookPayload payload, CancellationToken ct = default)
     {

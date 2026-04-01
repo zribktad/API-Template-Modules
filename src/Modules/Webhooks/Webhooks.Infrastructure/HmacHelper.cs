@@ -8,6 +8,8 @@ namespace Webhooks.Infrastructure;
 /// </summary>
 internal static class HmacHelper
 {
+    public static byte[] GetKeyBytes(string secret) => Encoding.UTF8.GetBytes(secret);
+
     public static byte[] ComputeHash(byte[] keyBytes, string timestamp, string payload)
     {
         string signedContent = $"{timestamp}.{payload}";

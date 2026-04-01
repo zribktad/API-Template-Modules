@@ -1,4 +1,3 @@
-using System.Text;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Options.Infrastructure;
 using Webhooks.Application.Contracts;
@@ -12,7 +11,7 @@ public sealed class HmacWebhookPayloadSigner : IWebhookPayloadSigner
 
     public HmacWebhookPayloadSigner(IOptions<WebhookOptions> options, TimeProvider timeProvider)
     {
-        _keyBytes = Encoding.UTF8.GetBytes(options.Value.Secret);
+        _keyBytes = HmacHelper.GetKeyBytes(options.Value.Secret);
         _timeProvider = timeProvider;
     }
 
