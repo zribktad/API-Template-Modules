@@ -2,6 +2,7 @@ using Asp.Versioning;
 using BackgroundJobs.Application.Features.Jobs;
 using BackgroundJobs.Application.Features.Jobs.DTOs;
 using Contracts.Api;
+using Contracts.Security;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Wolverine;
@@ -12,6 +13,7 @@ namespace BackgroundJobs.Api.Controllers.V1;
 public sealed class JobsController(IMessageBus bus) : ApiControllerBase
 {
     [HttpPost]
+    [RequirePermission(Permission.Examples.Execute)]
     public async Task<IActionResult> Submit(SubmitJobRequest request, CancellationToken ct)
     {
         ErrorOr<JobStatusResponse> result = await bus.InvokeAsync<ErrorOr<JobStatusResponse>>(
@@ -28,6 +30,7 @@ public sealed class JobsController(IMessageBus bus) : ApiControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [RequirePermission(Permission.Examples.Read)]
     public async Task<ActionResult<JobStatusResponse>> GetStatus(
         [FromRoute] GetJobStatusRequest request,
         CancellationToken ct
