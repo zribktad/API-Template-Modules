@@ -43,10 +43,21 @@
 - [x] Verify `dotnet build` & tests
 
 ## Unit 4: Notifications Module
-- [ ] Create 4 domain-driven projects
-- [ ] Setup `NotificationsDbContext` (`FailedEmail`)
-- [ ] Migrate Email infrastructure (Queue, Sender, Templates, Retry Service)
-- [ ] Verify `dotnet build` & tests
+- [x] Create 4 domain-driven projects (`Notifications.Domain`, `Notifications.Application`, `Notifications.Infrastructure`, `Notifications.Api`)
+- [x] Setup `NotificationsDbContext` (`FailedEmail`) with `FailedEmailConfiguration`
+- [x] Setup `Notifications.Domain` (`FailedEmail` entity, `IFailedEmailRepository`)
+- [x] Setup `Notifications.Application` (Email contracts: `IEmailSender`, `IEmailQueue`, `IEmailTemplateRenderer`, `IEmailRetryService`, `IFailedEmailStore`, `EmailMessage`, `EmailOptions`, `EmailTemplateNames`)
+- [x] Setup `Notifications.Application` Handlers (`UserRegisteredEmailHandler`, `TenantInvitationEmailHandler`, `UserRoleChangedEmailHandler`)
+- [x] Migrate Email infrastructure (`MailKitEmailSender`, `ChannelEmailQueue`, `FluidEmailTemplateRenderer`, `EmailSendingBackgroundService`, `FailedEmailStore`, `FailedEmailErrorNormalizer`)
+- [x] Migrate Email retry infrastructure (`EmailRetryService`, `EmailRetryRecurringJob`, `EmailRetryRecurringJobRegistration`)
+- [x] Setup stored procedures (`ClaimRetryableFailedEmailsProcedure`, `ClaimExpiredFailedEmailsProcedure`) + SQL migrations
+- [x] Setup Liquid email templates (`user-registration`, `tenant-invitation`, `user-role-changed`)
+- [x] Setup `FailedEmailRepository` with stored procedure integration
+- [x] Setup `NotificationsRuntimeBridge` (DI registration: DbContext, UoW, repos, email queue, SMTP resilience pipeline)
+- [x] Setup `NotificationsModule.cs` (event-driven, no REST controllers)
+- [x] Add all 4 projects to `APITemplate.slnx`
+- [x] Verify `dotnet build` — 0 errors, 0 warnings
+- [x] Verify `dotnet test` — 49/49 passed
 
 ## Unit 5: FileStorage Module
 - [x] Create 4 domain-driven projects for FileStorage

@@ -1,0 +1,40 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options.Infrastructure;
+using Webhooks.Application.Contracts;
+
+namespace Webhooks.Infrastructure;
+
+public sealed class HmacWebhookPayloadValidator : IWebhookPayloadValidator
+{
+    private readonly byte[] _keyBytes;
+    private readonly int _toleranceSeconds;
+    private readonly TimeProvider _timeProvider;
+
+    public HmacWebhookPayloadValidator(IOptions<WebhookOptions> options, TimeProvider timeProvider)
+    {
+        _keyBytes = Encoding.UTF8.GetBytes(options.Value.Secret);
+        _toleranceSeconds = options.Value.TimestampToleranceSeconds;
+        _timeProvider = timeProvider;
+    }
+
+    public bool IsValid(string payload, string signature, string timestamp)
+    {
+        if (!long.TryParse(timestamp, out long unixSeconds))
+            return false;
+
+        long now = _timeProvider.GetUtcNow().ToUnixTimeSeconds();
+        long delta = now > unixSeconds ? now - unixSeconds : unixSeconds - now;
+        if (delta > _toleranceSeconds)
+            return false;
+
+        byte[] hashBytes = HmacHelper.ComputeHash(_keyBytes, timestamp, payload);
+
+        byte[] signatureBytes;
+        try { signatureBytes = Convert.FromHexString(signature); }
+        catch (FormatException) { return false; }
+
+        return CryptographicOperations.FixedTimeEquals(hashBytes, signatureBytes);
+    }
+}

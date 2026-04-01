@@ -1,0 +1,26 @@
+using System.Text;
+using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options.Infrastructure;
+using Webhooks.Application.Contracts;
+
+namespace Webhooks.Infrastructure;
+
+public sealed class HmacWebhookPayloadSigner : IWebhookPayloadSigner
+{
+    private readonly byte[] _keyBytes;
+    private readonly TimeProvider _timeProvider;
+
+    public HmacWebhookPayloadSigner(IOptions<WebhookOptions> options, TimeProvider timeProvider)
+    {
+        _keyBytes = Encoding.UTF8.GetBytes(options.Value.Secret);
+        _timeProvider = timeProvider;
+    }
+
+    public WebhookSignatureResult Sign(string payload)
+    {
+        string timestamp = _timeProvider.GetUtcNow().ToUnixTimeSeconds().ToString();
+        byte[] hashBytes = HmacHelper.ComputeHash(_keyBytes, timestamp, payload);
+        string signature = Convert.ToHexStringLower(hashBytes);
+        return new WebhookSignatureResult(signature, timestamp);
+    }
+}

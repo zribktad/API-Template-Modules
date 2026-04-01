@@ -1,4 +1,6 @@
-namespace FileStorage.Application.Contracts;
+using Webhooks.Application.DTOs;
+
+namespace Webhooks.Application.Contracts;
 
 /// <summary>
 /// Strategy contract for processing a specific inbound webhook event type.
