@@ -14,7 +14,8 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
 {
     private static readonly FluidParser Parser = new();
     private static readonly Assembly ResourceAssembly = typeof(FluidEmailTemplateRenderer).Assembly;
-    private static readonly ConcurrentDictionary<string, IFluidTemplate> TemplateCache = new();
+    private static readonly ConcurrentDictionary<string, Lazy<Task<IFluidTemplate>>> TemplateCache =
+        new(StringComparer.Ordinal);
 
     /// <summary>Retrieves (or parses and caches) the named template and renders it against <paramref name="model"/>.</summary>
     public async Task<string> RenderAsync(
@@ -28,19 +29,47 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
         return await template.RenderAsync(context);
     }
 
-    private static async Task<IFluidTemplate> GetOrParseTemplateAsync(string templateName)
+    private static Task<IFluidTemplate> GetOrParseTemplateAsync(string templateName)
     {
-        if (TemplateCache.TryGetValue(templateName, out var cached))
-            return cached;
+        Lazy<Task<IFluidTemplate>> lazyTemplate = TemplateCache.GetOrAdd(
+            templateName,
+            static name =>
+                new Lazy<Task<IFluidTemplate>>(
+                    () => ParseTemplateAsync(name),
+                    LazyThreadSafetyMode.ExecutionAndPublication
+                )
+        );
 
-        var templateContent = await LoadTemplateAsync(templateName);
+        return AwaitTemplateAsync(templateName, lazyTemplate);
+    }
 
-        if (!Parser.TryParse(templateContent, out var template, out var error))
+    private static async Task<IFluidTemplate> AwaitTemplateAsync(
+        string templateName,
+        Lazy<Task<IFluidTemplate>> lazyTemplate
+    )
+    {
+        try
+        {
+            return await lazyTemplate.Value;
+        }
+        catch
+        {
+            TemplateCache.TryRemove(
+                new KeyValuePair<string, Lazy<Task<IFluidTemplate>>>(templateName, lazyTemplate)
+            );
+            throw;
+        }
+    }
+
+    private static async Task<IFluidTemplate> ParseTemplateAsync(string templateName)
+    {
+        string templateContent = await LoadTemplateAsync(templateName);
+
+        if (!Parser.TryParse(templateContent, out IFluidTemplate? template, out string? error))
             throw new InvalidOperationException(
                 $"Failed to parse email template '{templateName}': {error}"
             );
 
-        TemplateCache.TryAdd(templateName, template);
         return template;
     }
 

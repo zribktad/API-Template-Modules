@@ -710,18 +710,19 @@ public class ProductRequestHandlersTests
     public async Task BatchUpdateAsync_RestoresSoftDeletedProductDataLink()
     {
         var restoredId = Guid.NewGuid();
+        var deletedLink = ProductDataLink.Create(Guid.NewGuid(), restoredId);
+        deletedLink.IsDeleted = true;
+        deletedLink.DeletedAtUtc = DateTime.UtcNow;
+        deletedLink.DeletedBy = Guid.NewGuid();
         var product = new Product
         {
             Id = Guid.NewGuid(),
             TenantId = Guid.NewGuid(),
             Name = "Old Name",
             Price = 10m,
-            ProductDataLinks = [],
+            ProductDataLinks = [deletedLink],
         };
-        var deletedLink = ProductDataLink.Create(product.Id, restoredId);
-        deletedLink.IsDeleted = true;
-        deletedLink.DeletedAtUtc = DateTime.UtcNow;
-        deletedLink.DeletedBy = Guid.NewGuid();
+        deletedLink.ProductId = product.Id;
 
         var item = new UpdateProductItem(product.Id, "New Name", null, 20m, null, [restoredId]);
         var batchRequest = new UpdateProductsRequest([item]);

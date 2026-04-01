@@ -17,6 +17,4 @@ public sealed class EmailOptions
     public string BaseUrl { get; set; } = string.Empty;
     public int MaxRetryAttempts { get; set; } = 3;
     public int RetryBaseDelaySeconds { get; set; } = 2;
-    public string RetryCron { get; set; } = "*/5 * * * *";
-    public bool RetryEnabled { get; set; } = true;
 }

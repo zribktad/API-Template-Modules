@@ -43,7 +43,7 @@ public static class NotificationsRuntimeBridge
         >();
         
         services.AddSingleton<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
-        services.AddTransient<IEmailSender, MailKitEmailSender>();
+        services.AddSingleton<IEmailSender, MailKitEmailSender>();
         services.AddSingleton<IFailedEmailStore, FailedEmailStore>();
         
         services.AddTransient<IEmailRetryService, EmailRetryService>();
@@ -56,7 +56,7 @@ public static class NotificationsRuntimeBridge
                     new()
                     {
                         MaxRetryAttempts = emailOptions.MaxRetryAttempts,
-                        BackoffType = DelayBackoffType.Exponential, // fixed below
+                        BackoffType = DelayBackoffType.Exponential,
                         Delay = TimeSpan.FromSeconds(emailOptions.RetryBaseDelaySeconds),
                         UseJitter = true,
                     }

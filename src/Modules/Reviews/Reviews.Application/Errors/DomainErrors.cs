@@ -20,8 +20,8 @@ public static class DomainErrors
 
         public static Error ForbiddenOwnReviewsOnly() =>
             Error.Forbidden(
-                code: "AUTH-0403",
-                description: ErrorCatalog.Reviews.ForbiddenOwnReviewsOnly
+                code: SharedKernel.Application.Errors.ErrorCatalog.Auth.Forbidden,
+                description: ErrorCatalog.Reviews.ForbiddenOwnReviewsOnlyMessage
             );
     }
 }

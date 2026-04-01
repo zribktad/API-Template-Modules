@@ -79,9 +79,19 @@ public sealed class Product : IAuditableTenantEntity, IHasId
 
         foreach (Guid productDataId in targetIds)
         {
-            if (!existingById.ContainsKey(productDataId))
+            if (!existingById.TryGetValue(productDataId, out ProductDataLink? existingLink))
             {
                 ProductDataLinks.Add(ProductDataLink.Create(Id, productDataId));
+                continue;
+            }
+
+            if (existingLink.IsDeleted)
+            {
+                existingLink.Restore();
+                if (!ProductDataLinks.Contains(existingLink))
+                {
+                    ProductDataLinks.Add(existingLink);
+                }
             }
         }
     }

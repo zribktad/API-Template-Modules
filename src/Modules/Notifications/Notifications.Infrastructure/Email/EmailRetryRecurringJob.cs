@@ -34,7 +34,7 @@ public sealed class EmailRetryRecurringJob
 
     /// <summary>
     /// TickerQ entry-point that acquires the distributed leader lease and runs retry and
-    /// dead-letter operations using settings from <see cref="EmailOptions"/>.
+    /// dead-letter operations using settings from <see cref="EmailRetryJobOptions"/>.
     /// </summary>
     [TickerFunction("email-retry-recurring-job")]
     public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct) =>

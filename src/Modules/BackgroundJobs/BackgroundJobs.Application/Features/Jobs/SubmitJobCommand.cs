@@ -30,7 +30,27 @@ public sealed class SubmitJobCommandHandler
             ct
         );
 
-        await jobQueue.EnqueueAsync(entity.Id, ct);
+        try
+        {
+            await jobQueue.EnqueueAsync(entity.Id, ct);
+        }
+        catch (Exception ex)
+        {
+            entity.MarkFailed($"Failed to enqueue job for processing: {ex.Message}", timeProvider);
+
+            await unitOfWork.ExecuteInTransactionAsync(
+                async () =>
+                {
+                    await repository.UpdateAsync(entity, ct);
+                },
+                ct
+            );
+
+            return Error.Failure(
+                code: SharedKernel.Application.Errors.ErrorCatalog.General.Unknown,
+                description: "Failed to enqueue job for processing."
+            );
+        }
 
         return entity.ToResponse();
     }

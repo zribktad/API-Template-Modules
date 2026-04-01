@@ -96,4 +96,35 @@ public sealed class SubmitJobCommandHandlerTests
 
         callOrder.ShouldBe(["add", "enqueue"]);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenEnqueueFails_MarksJobAsFailedAndReturnsError()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        JobExecution? persisted = null;
+        _repository
+            .Setup(r => r.AddAsync(It.IsAny<JobExecution>(), ct))
+            .Callback<JobExecution, CancellationToken>((entity, _) => persisted = entity)
+            .ReturnsAsync((JobExecution entity, CancellationToken _) => entity);
+        _jobQueue
+            .Setup(q => q.EnqueueAsync(It.IsAny<Guid>(), ct))
+            .ThrowsAsync(new InvalidOperationException("queue unavailable"));
+
+        ErrorOr.ErrorOr<JobStatusResponse> result = await SubmitJobCommandHandler.HandleAsync(
+            new SubmitJobCommand(new SubmitJobRequest("report-gen")),
+            _repository.Object,
+            _jobQueue.Object,
+            _unitOfWork.Object,
+            _timeProvider.Object,
+            ct
+        );
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Code.ShouldBe(SharedKernel.Application.Errors.ErrorCatalog.General.Unknown);
+        persisted.ShouldNotBeNull();
+        persisted!.Status.ShouldBe(JobStatus.Failed);
+        persisted.ErrorMessage.ShouldNotBeNull();
+        persisted.ErrorMessage.ShouldContain("queue unavailable");
+        _repository.Verify(r => r.UpdateAsync(persisted, ct), Times.Once);
+    }
 }

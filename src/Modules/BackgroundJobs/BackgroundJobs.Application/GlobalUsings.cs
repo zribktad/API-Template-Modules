@@ -1,6 +1,5 @@
 global using BackgroundJobs.Application.Features.Jobs.DTOs;
 global using BackgroundJobs.Application.Features.Jobs.Mappings;
-global using BackgroundJobs.Application.Options;
 global using BackgroundJobs.Application.Services;
 global using BackgroundJobs.Domain;
 global using ErrorOr;
