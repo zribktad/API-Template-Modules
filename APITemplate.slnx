@@ -35,6 +35,18 @@
     <Project Path="src/Modules/FileStorage/FileStorage.Infrastructure/FileStorage.Infrastructure.csproj" />
     <Project Path="src/Modules/FileStorage/FileStorage.Api/FileStorage.Api.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/BackgroundJobs/">
+    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.Domain/BackgroundJobs.Domain.csproj" />
+    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.Application/BackgroundJobs.Application.csproj" />
+    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.Infrastructure/BackgroundJobs.Infrastructure.csproj" />
+    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.Api/BackgroundJobs.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Webhooks/">
+    <Project Path="src/Modules/Webhooks/Webhooks.Domain/Webhooks.Domain.csproj" />
+    <Project Path="src/Modules/Webhooks/Webhooks.Application/Webhooks.Application.csproj" />
+    <Project Path="src/Modules/Webhooks/Webhooks.Infrastructure/Webhooks.Infrastructure.csproj" />
+    <Project Path="src/Modules/Webhooks/Webhooks.Api/Webhooks.Api.csproj" />
+  </Folder>
   <Folder Name="/src/SharedKernel/">
     <Project Path="src/SharedKernel/SharedKernel.csproj" />
   </Folder>

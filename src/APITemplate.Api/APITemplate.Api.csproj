@@ -29,6 +29,11 @@
     <ProjectReference Include="..\Modules\Notifications\Notifications.Application\Notifications.Application.csproj" />
     <ProjectReference Include="..\Modules\FileStorage\FileStorage.Api\FileStorage.Api.csproj" />
     <ProjectReference Include="..\Modules\FileStorage\FileStorage.Application\FileStorage.Application.csproj" />
+    <ProjectReference Include="..\Modules\BackgroundJobs\BackgroundJobs.Api\BackgroundJobs.Api.csproj" />
+    <ProjectReference Include="..\Modules\BackgroundJobs\BackgroundJobs.Application\BackgroundJobs.Application.csproj" />
+    <ProjectReference Include="..\Modules\BackgroundJobs\BackgroundJobs.Infrastructure\BackgroundJobs.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Webhooks\Webhooks.Api\Webhooks.Api.csproj" />
+    <ProjectReference Include="..\Modules\Webhooks\Webhooks.Application\Webhooks.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

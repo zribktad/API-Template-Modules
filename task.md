@@ -43,10 +43,21 @@
 - [x] Verify `dotnet build` & tests
 
 ## Unit 4: Notifications Module
-- [ ] Create 4 domain-driven projects
-- [ ] Setup `NotificationsDbContext` (`FailedEmail`)
-- [ ] Migrate Email infrastructure (Queue, Sender, Templates, Retry Service)
-- [ ] Verify `dotnet build` & tests
+- [x] Create 4 domain-driven projects (`Notifications.Domain`, `Notifications.Application`, `Notifications.Infrastructure`, `Notifications.Api`)
+- [x] Setup `NotificationsDbContext` (`FailedEmail`) with `FailedEmailConfiguration`
+- [x] Setup `Notifications.Domain` (`FailedEmail` entity, `IFailedEmailRepository`)
+- [x] Setup `Notifications.Application` (Email contracts: `IEmailSender`, `IEmailQueue`, `IEmailTemplateRenderer`, `IEmailRetryService`, `IFailedEmailStore`, `EmailMessage`, `EmailOptions`, `EmailTemplateNames`)
+- [x] Setup `Notifications.Application` Handlers (`UserRegisteredEmailHandler`, `TenantInvitationEmailHandler`, `UserRoleChangedEmailHandler`)
+- [x] Migrate Email infrastructure (`MailKitEmailSender`, `ChannelEmailQueue`, `FluidEmailTemplateRenderer`, `EmailSendingBackgroundService`, `FailedEmailStore`, `FailedEmailErrorNormalizer`)
+- [x] Migrate Email retry infrastructure (`EmailRetryService`, `EmailRetryRecurringJob`, `EmailRetryRecurringJobRegistration`)
+- [x] Setup stored procedures (`ClaimRetryableFailedEmailsProcedure`, `ClaimExpiredFailedEmailsProcedure`) + SQL migrations
+- [x] Setup Liquid email templates (`user-registration`, `tenant-invitation`, `user-role-changed`)
+- [x] Setup `FailedEmailRepository` with stored procedure integration
+- [x] Setup `NotificationsRuntimeBridge` (DI registration: DbContext, UoW, repos, email queue, SMTP resilience pipeline)
+- [x] Setup `NotificationsModule.cs` (event-driven, no REST controllers)
+- [x] Add all 4 projects to `APITemplate.slnx`
+- [x] Verify `dotnet build` — 0 errors, 0 warnings
+- [x] Verify `dotnet test` — 49/49 passed
 
 ## Unit 5: FileStorage Module
 - [x] Create 4 domain-driven projects for FileStorage
@@ -60,12 +71,45 @@
 ## Unit 6: BackgroundJobs Module
 - [x] Create 4 domain-driven projects for BackgroundJobs
 - [x] Setup `BackgroundJobs.Domain` (`JobExecution`, `JobStatus`, `IJobExecutionRepository`)
-- [ ] Setup `BackgroundJobs.Application` (Job features, options)
-- [ ] Setup `BackgroundJobs.Infrastructure` (`BackgroundJobsDbContext`, `JobExecutionRepository`, `JobExecutionConfiguration`)
-- [ ] Setup `TickerQ` and `Services` in `BackgroundJobs.Infrastructure`
-- [ ] Setup `BackgroundJobs.Api` (`JobsController`, `BackgroundJobsModule.cs`)
-- [ ] Set up module references and wiring in `Program.cs`
-- [ ] Verify `dotnet build` & tests
+- [x] Setup `BackgroundJobs.Application`
+  - [x] DTOs: `SubmitJobRequest`, `GetJobStatusRequest`, `JobStatusResponse`
+  - [x] Commands: `SubmitJobCommand` + handler (create entity, enqueue, mark Failed on enqueue error)
+  - [x] Queries: `GetJobStatusQuery` + handler (find by Id, return NotFound error if null)
+  - [x] Mappings: `JobMappings.ToResponse()`
+  - [x] Services interfaces: `IJobQueue`, `IJobQueueReader`, `ICleanupService`, `IReindexService`, `IExternalIntegrationSyncService`
+  - [x] Options: `BackgroundJobsOptions` (TickerQ, Cleanup, Reindex, ExternalSync crons, retention, batch sizes)
+- [x] Setup `BackgroundJobs.Infrastructure` persistence
+  - [x] `BackgroundJobsDbContext` (inherits `ModuleDbContext`, `DbSet<JobExecution>`)
+  - [x] `JobExecutionConfiguration` (key, `ConfigureTenantAuditable`, Status/JobType/ProgressPercent constraints, indexes)
+  - [x] `JobExecutionRepository` (inherits `RepositoryBase<JobExecution>`)
+- [x] Setup Services in `BackgroundJobs.Infrastructure`
+  - [x] `ChannelJobQueue` (bounded channel capacity 100, implements `IJobQueue` + `IJobQueueReader`)
+  - [x] `JobProcessingBackgroundService` (dequeue → MarkProcessing → simulate work → MarkCompleted/MarkFailed → webhook callback)
+  - [x] `CleanupService` (Wolverine cross-module commands + `ISoftDeleteCleanupStrategy` collection)
+  - [x] `ReindexService` (FTS index bloat check via stored procs, REINDEX CONCURRENTLY if >30% bloat)
+  - [x] `ExternalIntegrationSyncServicePreview` (placeholder, logs info)
+  - [x] `SoftDeleteCleanupStrategy<TEntity>` (generic batch hard-delete via `ExecuteDeleteAsync`)
+  - [x] `GetFtsIndexNamesProcedure` + `GetIndexBloatPercentProcedure` (stored procedure wrappers)
+- [x] Setup TickerQ in `BackgroundJobs.Infrastructure`
+  - [x] `TickerQSchedulerDbContext` (inherits `TickerQDbContext`, schema "tq_scheduler")
+  - [x] `TickerQRecurringJobRegistrar` (syncs cron job definitions to DB via `IRecurringBackgroundJobRegistration`)
+  - [x] `CleanupRecurringJob` (`[TickerFunction("cleanup-recurring-job")]`)
+  - [x] `ReindexRecurringJob` (`[TickerFunction("reindex-recurring-job")]`)
+  - [x] `ExternalSyncRecurringJob` (`[TickerFunction("external-sync-recurring-job")]`)
+  - [x] `CleanupRecurringJobRegistration`, `ReindexRecurringJobRegistration`, `ExternalSyncRecurringJobRegistration`
+  - [x] `DragonflyDistributedJobCoordinator` (Redis Lua lease management, 5-min lease, renewal ~100s)
+- [x] Setup Validation in `BackgroundJobs.Infrastructure`
+  - [x] `BackgroundJobsOptionsValidator` (CRON syntax, InstanceNamePrefix, CoordinationConnection, batch sizes)
+- [x] Setup `BackgroundJobsRuntimeBridge` (DI: DbContext, UoW, repo, queue consumer, services, TickerQ conditional)
+- [x] Setup `BackgroundJobs.Api`
+  - [x] `JobsController`: `POST /jobs` → `SubmitJobCommand` (202 Accepted + Location), `GET /jobs/{id}` → `GetJobStatusQuery`
+  - [x] `[RequirePermission(Permission.Examples.Execute)]` on Submit
+  - [x] `[RequirePermission(Permission.Examples.Read)]` on GetStatus
+  - [x] `BackgroundJobsModule.cs`: `AddBackgroundJobsModule()` + `MapBackgroundJobsEndpoints()`
+- [x] Add all 4 projects to `APITemplate.slnx`
+- [x] Set up module references and wiring in `Program.cs`
+- [x] Verify `dotnet build` — 0 errors, 0 warnings
+- [x] Verify `dotnet test` — 49/49 passed
 
 ## Unit 7: Webhooks Module
 - [ ] Create 4 domain-driven projects (in-memory queues, no EF)

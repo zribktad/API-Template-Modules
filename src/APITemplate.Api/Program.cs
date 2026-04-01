@@ -1,13 +1,19 @@
+using BackgroundJobs.Api;
+using BackgroundJobs.Application.Features.Jobs;
 using Identity.Api;
 using Identity.Application.Features.User;
+using Identity.Infrastructure.Handlers;
 using ProductCatalog.Api;
 using ProductCatalog.Application.Features.Product;
+using ProductCatalog.Infrastructure.Handlers;
 using Reviews.Api;
 using FileStorage.Api;
 using FileStorage.Application.Features.Upload;
 using Reviews.Application.Features.ProductReview;
 using Serilog;
 using SharedKernel.Application.Middleware;
+using Webhooks.Api;
+using Webhooks.Application.Handlers;
 using Wolverine;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +38,8 @@ builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddProductCatalogModule(builder.Configuration);
 builder.Services.AddReviewsModule(builder.Configuration);
 builder.Services.AddFileStorageModule(builder.Configuration);
+builder.Services.AddBackgroundJobsModule(builder.Configuration);
+builder.Services.AddWebhooksModule(builder.Configuration);
 
 builder.Host.UseWolverine(options =>
 {
@@ -39,6 +47,10 @@ builder.Host.UseWolverine(options =>
     options.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(CreateProductReviewCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(UploadFileCommand).Assembly);
+    options.Discovery.IncludeAssembly(typeof(SubmitJobCommand).Assembly);
+    options.Discovery.IncludeAssembly(typeof(CleanupExpiredInvitationsHandler).Assembly);
+    options.Discovery.IncludeAssembly(typeof(CleanupOrphanedProductDataHandler).Assembly);
+    options.Discovery.IncludeAssembly(typeof(SendWebhookCallbackHandler).Assembly);
     options.Discovery.IncludeAssembly(typeof(Program).Assembly);
     options.Policies.AddMiddleware(
         typeof(ErrorOrValidationMiddleware),
@@ -47,7 +59,8 @@ builder.Host.UseWolverine(options =>
                 typeof(CreateUserCommand).Assembly,
                 typeof(CreateProductsCommand).Assembly,
                 typeof(CreateProductReviewCommand).Assembly,
-                typeof(UploadFileCommand).Assembly
+                typeof(UploadFileCommand).Assembly,
+                typeof(SubmitJobCommand).Assembly
             )
     );
 });
