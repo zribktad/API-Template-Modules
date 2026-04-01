@@ -3,9 +3,11 @@ using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Infrastructure.Configuration;
+using StackExchange.Redis;
 using ProductCatalogCacheTags = ProductCatalog.Application.Events.CacheTags;
 using ReviewsCacheTags = Reviews.Application.Events.CacheTags;
-using SharedKernel.Infrastructure.Configuration;
 
 namespace APITemplate.Api.Extensions;
 
@@ -19,12 +21,47 @@ public static class ApiServiceCollectionExtensions
         services.AddProblemDetails(ApiProblemDetailsOptions.Configure);
         services.AddExceptionHandler<ApiExceptionHandler>();
         services.AddHealthChecks();
+        services.AddDragonflyInfrastructure(configuration);
         services.AddCaching(configuration);
         services.AddOpenApi(options =>
         {
             options.AddDocumentTransformer<HealthCheckOpenApiDocumentTransformer>();
             options.AddDocumentTransformer<ProblemDetailsOpenApiTransformer>();
         });
+
+        return services;
+    }
+
+    private static IServiceCollection AddDragonflyInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        DragonflyOptions dragonflyOptions =
+            configuration.SectionFor<DragonflyOptions>().Get<DragonflyOptions>() ?? new();
+
+        if (!string.IsNullOrWhiteSpace(dragonflyOptions.ConnectionString))
+        {
+            ConfigurationOptions redisConfig = ConfigurationOptions.Parse(
+                dragonflyOptions.ConnectionString
+            );
+            redisConfig.ConnectTimeout = dragonflyOptions.ConnectTimeoutMs;
+            redisConfig.SyncTimeout = dragonflyOptions.SyncTimeoutMs;
+            redisConfig.AbortOnConnectFail = false;
+
+            services.AddSingleton<IConnectionMultiplexer>(_ =>
+                ConnectionMultiplexer.Connect(redisConfig)
+            );
+
+            services.AddStackExchangeRedisCache(opts =>
+            {
+                opts.ConfigurationOptions = redisConfig;
+            });
+        }
+        else
+        {
+            services.AddDistributedMemoryCache();
+        }
 
         return services;
     }

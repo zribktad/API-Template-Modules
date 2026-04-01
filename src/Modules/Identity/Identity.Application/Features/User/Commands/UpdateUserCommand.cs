@@ -1,11 +1,12 @@
+using ErrorOr;
 using Identity.Application.Features.User.DTOs;
-using SharedKernel.Domain.Entities.Contracts;
+using Identity.Domain;
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
-using ErrorOr;
+using SharedKernel.Domain.Entities.Contracts;
+using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
@@ -17,7 +18,7 @@ public sealed class UpdateUserCommandHandler
     public static async Task<ErrorOr<Success>> HandleAsync(
         UpdateUserCommand command,
         IUserRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         IMessageBus bus,
         CancellationToken ct
     )
@@ -45,11 +46,12 @@ public sealed class UpdateUserCommandHandler
         string normalizedNew = AppUser.NormalizeUsername(command.Request.Username);
         if (!string.Equals(user.NormalizedUsername, normalizedNew, StringComparison.Ordinal))
         {
-            ErrorOr<Success> usernameResult = await UserValidationHelper.ValidateUsernameUniqueAsync(
-                repository,
-                command.Request.Username,
-                ct
-            );
+            ErrorOr<Success> usernameResult =
+                await UserValidationHelper.ValidateUsernameUniqueAsync(
+                    repository,
+                    command.Request.Username,
+                    ct
+                );
             if (usernameResult.IsError)
                 return usernameResult.Errors;
         }

@@ -1,7 +1,8 @@
 using ErrorOr;
 using ProductCatalog.Application.Features.Product.DTOs;
-using IProductRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
+using ProductCatalog.Domain;
 using SharedKernel.Domain.Interfaces;
+using IProductRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
 
 namespace ProductCatalog.Application.Features.Product.Commands;
@@ -13,7 +14,7 @@ public sealed class IdempotentCreateCommandHandler
     public static async Task<ErrorOr<IdempotentCreateResponse>> HandleAsync(
         IdempotentCreateCommand command,
         IProductRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {

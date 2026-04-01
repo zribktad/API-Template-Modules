@@ -1,9 +1,10 @@
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
 using Contracts.Events;
-using ProductCatalog.Domain.Entities;
 using ErrorOr;
 using FluentValidation;
+using ProductCatalog.Domain;
+using ProductCatalog.Domain.Entities;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
 using Wolverine;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
 using ProductRepositoryContract = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
@@ -81,7 +82,7 @@ public sealed class CreateProductsCommandHandler
         CreateProductsCommand command,
         IReadOnlyList<ProductEntity> entities,
         ProductRepositoryContract repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
@@ -99,5 +100,3 @@ public sealed class CreateProductsCommandHandler
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }
-
-

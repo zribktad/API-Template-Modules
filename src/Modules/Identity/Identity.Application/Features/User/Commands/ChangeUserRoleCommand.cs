@@ -1,12 +1,13 @@
+using ErrorOr;
 using Identity.Application.Common.Security;
-using SharedKernel.Domain.Entities.Contracts;
+using Identity.Application.Features.User.DTOs;
+using Identity.Domain;
 using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
-using Identity.Application.Features.User.DTOs;
-using ErrorOr;
-using Microsoft.Extensions.Logging;
+using SharedKernel.Domain.Entities.Contracts;
+using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
@@ -18,7 +19,7 @@ public sealed class ChangeUserRoleCommandHandler
     public static async Task<ErrorOr<Success>> HandleAsync(
         ChangeUserRoleCommand command,
         IUserRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         IMessageBus bus,
         ILogger<ChangeUserRoleCommandHandler> logger,
         CancellationToken ct

@@ -1,11 +1,12 @@
+using ErrorOr;
 using Identity.Application.Common.Security;
-using SharedKernel.Domain.Entities.Contracts;
+using Identity.Domain;
 using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
-using ErrorOr;
-using Microsoft.Extensions.Logging;
+using SharedKernel.Domain.Entities.Contracts;
+using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
@@ -17,7 +18,7 @@ public sealed class DeleteUserCommandHandler
     public static async Task<ErrorOr<Success>> HandleAsync(
         DeleteUserCommand command,
         IUserRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         IMessageBus bus,
         IKeycloakAdminService keycloakAdmin,
         ILogger<DeleteUserCommandHandler> logger,

@@ -1,18 +1,3 @@
-using ProductCatalog.Api.Controllers.V1;
-using ProductCatalog.Api.GraphQL.DataLoaders;
-using ProductCatalog.Api.GraphQL.Mutations;
-using ProductCatalog.Api.GraphQL.Queries;
-using ProductCatalog.Api.GraphQL.Types;
-using ProductCatalog.Application.Features.Product.Repositories;
-using ProductCatalog.Application.Features.Product.Validation;
-using ProductCatalog.Domain.Interfaces;
-using ProductCatalog.Infrastructure.Persistence;
-using ProductCatalog.Infrastructure.Repositories;
-using ProductCatalog.Infrastructure.StoredProcedures;
-using ProductCatalog.Infrastructure.SoftDelete;
-using SharedKernel.Application.Resilience;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.Registration;
 using FluentValidation;
 using Kot.MongoDB.Migrations;
 using Kot.MongoDB.Migrations.DI;
@@ -23,6 +8,21 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Resilience;
 using Polly;
+using ProductCatalog.Api.Controllers.V1;
+using ProductCatalog.Api.GraphQL.DataLoaders;
+using ProductCatalog.Api.GraphQL.Mutations;
+using ProductCatalog.Api.GraphQL.Queries;
+using ProductCatalog.Api.GraphQL.Types;
+using ProductCatalog.Application.Features.Product.Repositories;
+using ProductCatalog.Application.Features.Product.Validation;
+using ProductCatalog.Domain.Interfaces;
+using ProductCatalog.Infrastructure.Persistence;
+using ProductCatalog.Infrastructure.Repositories;
+using ProductCatalog.Infrastructure.SoftDelete;
+using ProductCatalog.Infrastructure.StoredProcedures;
+using SharedKernel.Application.Resilience;
+using SharedKernel.Infrastructure.Configuration;
+using SharedKernel.Infrastructure.Registration;
 using ProductApplicationRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
 using ProductDomainRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
 
@@ -35,12 +35,15 @@ public static class ProductCatalogModule
         IConfiguration configuration
     )
     {
-        string connectionString = configuration.GetConnectionString(ConfigurationSections.DefaultConnection)!;
+        string connectionString = configuration.GetConnectionString(
+            ConfigurationSections.DefaultConnection
+        )!;
 
         services
             .AddModule<ProductCatalogDbContext>(configuration)
             .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
+            .ForwardUnitOfWork<ProductCatalog.Domain.ProductCatalogDbMarker>()
             .AddStoredProcedureSupport()
             .AddRepository<ProductApplicationRepository, ProductRepository>()
             .AddRepository<ProductDomainRepository, ProductRepository>()
@@ -53,7 +56,9 @@ public static class ProductCatalogModule
             filter: registration => !registration.ValidatorType.IsGenericTypeDefinition
         );
 
-        services.Configure<MongoDbSettings>(configuration.GetSection(ConfigurationSections.MongoDB));
+        services.Configure<MongoDbSettings>(
+            configuration.GetSection(ConfigurationSections.MongoDB)
+        );
         services.AddSingleton<MongoDbContext>();
 
         MongoDbSettings mongoSettings =
@@ -99,14 +104,12 @@ public static class ProductCatalogModule
             .AddType<ProductReviewType>()
             .AddDataLoader<ProductReviewsByProductDataLoader>()
             .AddAuthorization()
-            .ModifyPagingOptions(
-                options =>
-                {
-                    options.MaxPageSize = PaginationFilter.MaxPageSize;
-                    options.DefaultPageSize = PaginationFilter.DefaultPageSize;
-                    options.IncludeTotalCount = true;
-                }
-            )
+            .ModifyPagingOptions(options =>
+            {
+                options.MaxPageSize = PaginationFilter.MaxPageSize;
+                options.DefaultPageSize = PaginationFilter.DefaultPageSize;
+                options.IncludeTotalCount = true;
+            })
             .AddMaxExecutionDepthRule(5);
 
         return services;
@@ -121,4 +124,3 @@ public static class ProductCatalogModule
         return endpoints;
     }
 }
-

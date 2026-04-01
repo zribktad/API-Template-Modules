@@ -1,8 +1,9 @@
+using Contracts.Events;
+using ErrorOr;
+using ProductCatalog.Application.Features.Category.Specifications;
+using ProductCatalog.Domain;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
-using Contracts.Events;
-using ProductCatalog.Application.Features.Category.Specifications;
-using ErrorOr;
 using Wolverine;
 
 namespace ProductCatalog.Application.Features.Category;
@@ -27,10 +28,8 @@ public sealed class DeleteCategoriesCommandHandler
         BatchFailureContext<Guid> context = new(ids);
 
         // Load all target categories and mark missing ones as failed
-        IReadOnlyList<ProductCatalog.Domain.Entities.Category> categories = await repository.ListAsync(
-            new CategoriesByIdsSpecification(ids.ToHashSet()),
-            ct
-        );
+        IReadOnlyList<ProductCatalog.Domain.Entities.Category> categories =
+            await repository.ListAsync(new CategoriesByIdsSpecification(ids.ToHashSet()), ct);
 
         await context.ApplyRulesAsync(
             ct,
@@ -55,7 +54,7 @@ public sealed class DeleteCategoriesCommandHandler
         DeleteCategoriesCommand command,
         IReadOnlyList<ProductCatalog.Domain.Entities.Category> categories,
         ICategoryRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
@@ -74,5 +73,3 @@ public sealed class DeleteCategoriesCommandHandler
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
 }
-
-

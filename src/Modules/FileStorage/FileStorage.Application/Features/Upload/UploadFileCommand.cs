@@ -1,3 +1,5 @@
+using FileStorage.Domain;
+using FileStorage.Domain;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Options.Infrastructure;
 
@@ -11,7 +13,7 @@ public sealed class UploadFileCommandHandler
         UploadFileCommand command,
         IStoredFileRepository repository,
         IFileStorageService storage,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<FileStorageDbMarker> unitOfWork,
         IOptions<FileStorageOptions> options,
         CancellationToken ct
     )

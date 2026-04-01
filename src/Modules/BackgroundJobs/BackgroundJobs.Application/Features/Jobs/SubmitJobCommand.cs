@@ -1,3 +1,5 @@
+using BackgroundJobs.Domain;
+
 namespace BackgroundJobs.Application.Features.Jobs;
 
 public sealed record SubmitJobCommand(SubmitJobRequest Request);
@@ -8,7 +10,7 @@ public sealed class SubmitJobCommandHandler
         SubmitJobCommand command,
         IJobExecutionRepository repository,
         IJobQueue jobQueue,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<BackgroundJobsDbMarker> unitOfWork,
         TimeProvider timeProvider,
         CancellationToken ct
     )

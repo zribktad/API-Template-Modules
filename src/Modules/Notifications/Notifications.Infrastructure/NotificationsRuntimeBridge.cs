@@ -22,13 +22,16 @@ public static class NotificationsRuntimeBridge
         IConfiguration configuration
     )
     {
-        string connectionString = configuration.GetConnectionString(ConfigurationSections.DefaultConnection)!;
+        string connectionString = configuration.GetConnectionString(
+            ConfigurationSections.DefaultConnection
+        )!;
 
         // Common resilient configuration for email and database
         services
             .AddModule<NotificationsDbContext>(configuration)
             .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
+            .ForwardUnitOfWork<Notifications.Domain.NotificationsDbMarker>()
             .AddRepository<IFailedEmailRepository, FailedEmailRepository>();
 
         var emailSection = configuration.SectionFor<EmailOptions>();
@@ -41,11 +44,11 @@ public static class NotificationsRuntimeBridge
             IEmailQueueReader,
             EmailSendingBackgroundService
         >();
-        
+
         services.AddSingleton<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
         services.AddSingleton<IEmailSender, MailKitEmailSender>();
         services.AddSingleton<IFailedEmailStore, FailedEmailStore>();
-        
+
         services.AddTransient<IEmailRetryService, EmailRetryService>();
 
         services.AddResiliencePipeline(

@@ -70,6 +70,7 @@ builder.Host.UseWolverine(options =>
 
 var app = builder.Build();
 
+await app.UseDatabaseAsync();
 app.UseApiPipeline();
 app.MapApplicationEndpoints();
 

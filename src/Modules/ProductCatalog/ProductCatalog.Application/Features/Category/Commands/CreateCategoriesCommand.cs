@@ -1,8 +1,9 @@
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
 using Contracts.Events;
 using ErrorOr;
 using FluentValidation;
+using ProductCatalog.Domain;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
 using Wolverine;
 using CategoryEntity = ProductCatalog.Domain.Entities.Category;
 
@@ -55,7 +56,7 @@ public sealed class CreateCategoriesCommandHandler
         CreateCategoriesCommand command,
         IReadOnlyList<CategoryEntity> entities,
         ICategoryRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
@@ -72,5 +73,3 @@ public sealed class CreateCategoriesCommandHandler
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }
-
-

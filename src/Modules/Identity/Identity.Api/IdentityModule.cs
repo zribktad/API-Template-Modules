@@ -60,9 +60,7 @@ public static class IdentityModule
         return services;
     }
 
-    public static IEndpointRouteBuilder MapIdentityEndpoints(
-        this IEndpointRouteBuilder endpoints
-    )
+    public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapControllers();
         return endpoints;
@@ -70,10 +68,7 @@ public static class IdentityModule
 
     // ── Options ──────────────────────────────────────────────────────────────
 
-    private static void RegisterOptions(
-        IServiceCollection services,
-        IConfiguration configuration
-    )
+    private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)
     {
         services.AddValidatedOptions<KeycloakOptions>(configuration);
         services.AddValidatedOptions<BffOptions>(configuration, validateDataAnnotations: false);
@@ -81,9 +76,7 @@ public static class IdentityModule
         services
             .AddValidatedOptions<BootstrapTenantOptions>(configuration)
             .Validate(
-                o =>
-                    !string.IsNullOrWhiteSpace(o.Code)
-                    && !string.IsNullOrWhiteSpace(o.Name),
+                o => !string.IsNullOrWhiteSpace(o.Code) && !string.IsNullOrWhiteSpace(o.Name),
                 "Bootstrap tenant code/name is required"
             );
     }
@@ -132,10 +125,7 @@ public static class IdentityModule
         // Augment existing authentication with BFF schemes.
         services
             .AddAuthentication()
-            .AddCookie(
-                AuthConstants.BffSchemes.Cookie,
-                options => ConfigureCookie(options, bff)
-            )
+            .AddCookie(AuthConstants.BffSchemes.Cookie, options => ConfigureCookie(options, bff))
             .AddOpenIdConnect(
                 AuthConstants.BffSchemes.Oidc,
                 options => ConfigureOidc(options, keycloak, bff, authority)
@@ -155,9 +145,7 @@ public static class IdentityModule
         services.AddSingleton<DragonflyTicketStore>();
         services
             .AddOptions<CookieAuthenticationOptions>(AuthConstants.BffSchemes.Cookie)
-            .Configure<DragonflyTicketStore>(
-                (opts, store) => opts.SessionStore = store
-            );
+            .Configure<DragonflyTicketStore>((opts, store) => opts.SessionStore = store);
 
         // Fallback policy: require authenticated user via JWT or BFF cookie.
         services
@@ -259,10 +247,9 @@ public static class IdentityModule
 
         services
             .AddModule<IdentityDbContext>(configuration)
-            .ConfigureDbContext(
-                (_, opts) => opts.UseNpgsql(connectionString)
-            )
+            .ConfigureDbContext((_, opts) => opts.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
+            .ForwardUnitOfWork<Identity.Domain.IdentityDbMarker>()
             .AddRepository<IUserRepository, UserRepository>()
             .AddRepository<ITenantRepository, TenantRepository>()
             .AddRepository<ITenantInvitationRepository, TenantInvitationRepository>()
@@ -283,13 +270,15 @@ public static class IdentityModule
 
     private static void RegisterKeycloakAdmin(IServiceCollection services)
     {
-        services.AddOptions<KeycloakAdminClientOptions>().Configure<IOptions<KeycloakOptions>>(
-            (adminOpts, keycloakOpts) =>
-            {
-                adminOpts.AuthServerUrl = keycloakOpts.Value.AuthServerUrl;
-                adminOpts.Realm = keycloakOpts.Value.Realm;
-            }
-        );
+        services
+            .AddOptions<KeycloakAdminClientOptions>()
+            .Configure<IOptions<KeycloakOptions>>(
+                (adminOpts, keycloakOpts) =>
+                {
+                    adminOpts.AuthServerUrl = keycloakOpts.Value.AuthServerUrl;
+                    adminOpts.Realm = keycloakOpts.Value.Realm;
+                }
+            );
 
         services.AddSingleton<KeycloakAdminTokenProvider>();
         services.AddTransient<KeycloakAdminTokenHandler>();
@@ -320,8 +309,8 @@ public static class IdentityModule
 
     private static void RegisterValidators(IServiceCollection services)
     {
-        services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>(
-            filter: r => !r.ValidatorType.IsGenericTypeDefinition
+        services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>(filter: r =>
+            !r.ValidatorType.IsGenericTypeDefinition
         );
     }
 

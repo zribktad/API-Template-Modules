@@ -1,12 +1,13 @@
+using ErrorOr;
 using Identity.Application.Common.Security;
 using Identity.Application.Features.User.DTOs;
 using Identity.Application.Features.User.Mappings;
+using Identity.Domain;
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Application.Events;
-using ErrorOr;
 using Microsoft.Extensions.Logging;
+using SharedKernel.Application.Events;
+using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
@@ -18,7 +19,7 @@ public sealed class CreateUserCommandHandler
     public static async Task<ErrorOr<UserResponse>> HandleAsync(
         CreateUserCommand command,
         IUserRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         IMessageBus bus,
         ILogger<CreateUserCommandHandler> logger,
         IKeycloakAdminService keycloakAdmin,

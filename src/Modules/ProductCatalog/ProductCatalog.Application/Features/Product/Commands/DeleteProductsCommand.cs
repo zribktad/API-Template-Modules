@@ -1,8 +1,9 @@
+using Contracts.Events;
+using ErrorOr;
+using ProductCatalog.Application.Features.Product.Specifications;
+using ProductCatalog.Domain;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
-using Contracts.Events;
-using ProductCatalog.Application.Features.Product.Specifications;
-using ErrorOr;
 using Wolverine;
 using ProductRepositoryContract = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
 
@@ -70,7 +71,7 @@ public sealed class DeleteProductsCommandHandler
         DeleteProductsCommand command,
         DeleteProductsState state,
         ProductRepositoryContract repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
@@ -100,5 +101,3 @@ public sealed class DeleteProductsCommandHandler
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
 }
-
-

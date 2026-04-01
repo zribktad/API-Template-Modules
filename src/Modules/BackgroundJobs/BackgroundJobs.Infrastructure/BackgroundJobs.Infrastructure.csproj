@@ -17,7 +17,6 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="TickerQ" />
     <PackageReference Include="TickerQ.EntityFrameworkCore" />
-    <PackageReference Include="NCrontab.Signed" />
     <PackageReference Include="StackExchange.Redis" />
   </ItemGroup>
 

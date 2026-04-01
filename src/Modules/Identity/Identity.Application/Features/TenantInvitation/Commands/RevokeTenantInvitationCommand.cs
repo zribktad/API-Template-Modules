@@ -1,4 +1,5 @@
 using ErrorOr;
+using Identity.Domain;
 using Wolverine;
 using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
 
@@ -11,16 +12,17 @@ public sealed class RevokeTenantInvitationCommandHandler
     public static async Task<ErrorOr<Success>> HandleAsync(
         RevokeTenantInvitationCommand command,
         ITenantInvitationRepository invitationRepository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         IMessageBus bus,
         CancellationToken ct
     )
     {
-        ErrorOr<TenantInvitationEntity> invitationResult = await invitationRepository.GetByIdOrError(
-            command.InvitationId,
-            DomainErrors.Invitations.NotFound(command.InvitationId),
-            ct
-        );
+        ErrorOr<TenantInvitationEntity> invitationResult =
+            await invitationRepository.GetByIdOrError(
+                command.InvitationId,
+                DomainErrors.Invitations.NotFound(command.InvitationId),
+                ct
+            );
         if (invitationResult.IsError)
             return invitationResult.Errors;
         TenantInvitationEntity invitation = invitationResult.Value;

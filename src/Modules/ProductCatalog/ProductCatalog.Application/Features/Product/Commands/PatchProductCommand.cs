@@ -4,11 +4,12 @@ using FluentValidation;
 using ProductCatalog.Application.Errors;
 using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Application.Features.Product.Mappings;
-using IProductRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
+using ProductCatalog.Domain;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Domain.Interfaces;
 using SystemTextJsonPatch;
 using Wolverine;
+using IProductRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
 
 namespace ProductCatalog.Application.Features.Product.Commands;
 
@@ -22,16 +23,13 @@ public sealed class PatchProductCommandHandler
     public static async Task<ErrorOr<ProductResponse>> HandleAsync(
         PatchProductCommand command,
         IProductRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         IValidator<PatchableProductDto> validator,
         IMessageBus bus,
         CancellationToken ct
     )
     {
-        Domain.Entities.Product? product = await repository.GetByIdAsync(
-            command.Id,
-            ct
-        );
+        Domain.Entities.Product? product = await repository.GetByIdAsync(command.Id, ct);
         if (product is null)
             return DomainErrors.Products.NotFound(command.Id);
 
@@ -64,9 +62,7 @@ public sealed class PatchProductCommandHandler
             ct
         );
 
-        await bus.PublishAsync(
-            new CacheInvalidationNotification(Events.CacheTags.Products)
-        );
+        await bus.PublishAsync(new CacheInvalidationNotification(Events.CacheTags.Products));
 
         return product.ToResponse();
     }

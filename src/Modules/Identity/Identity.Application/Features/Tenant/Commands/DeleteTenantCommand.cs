@@ -1,4 +1,5 @@
 using ErrorOr;
+using Identity.Domain;
 using Microsoft.Extensions.Logging;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
@@ -12,7 +13,7 @@ public sealed class DeleteTenantCommandHandler
     public static async Task<ErrorOr<Success>> HandleAsync(
         DeleteTenantCommand command,
         ITenantRepository repository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         IMessageBus bus,
         IActorProvider actorProvider,
         TimeProvider timeProvider,

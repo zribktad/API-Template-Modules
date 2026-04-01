@@ -1,16 +1,17 @@
+using ErrorOr;
 using Identity.Application.Common.Email;
 using Identity.Application.Features.TenantInvitation.DTOs;
 using Identity.Application.Features.TenantInvitation.Mappings;
+using Identity.Domain;
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
-using SharedKernel.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
 using SharedKernel.Application.Options.Infrastructure;
-using ErrorOr;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using SharedKernel.Domain.Interfaces;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
 using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
@@ -25,7 +26,7 @@ public sealed class CreateTenantInvitationCommandHandler
         CreateTenantInvitationCommand command,
         ITenantInvitationRepository invitationRepository,
         ITenantRepository tenantRepository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         ISecureTokenGenerator tokenGenerator,
         IMessageBus bus,
         ITenantProvider tenantProvider,

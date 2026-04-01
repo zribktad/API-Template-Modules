@@ -18,12 +18,15 @@ public static class ReviewsRuntimeBridge
         IConfiguration configuration
     )
     {
-        string connectionString = configuration.GetConnectionString(ConfigurationSections.DefaultConnection)!;
+        string connectionString = configuration.GetConnectionString(
+            ConfigurationSections.DefaultConnection
+        )!;
 
         services
             .AddModule<ReviewsDbContext>(configuration)
             .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
+            .ForwardUnitOfWork<Reviews.Domain.ReviewsDbMarker>()
             .AddRepository<IProductReviewRepository, ProductReviewRepository>();
 
         services.AddValidatorsFromAssemblyContaining<CreateProductReviewRequestValidator>(

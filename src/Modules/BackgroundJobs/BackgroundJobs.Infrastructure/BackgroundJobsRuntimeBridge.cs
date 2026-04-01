@@ -40,6 +40,7 @@ public static class BackgroundJobsRuntimeBridge
             .AddModule<BackgroundJobsDbContext>(configuration)
             .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
+            .ForwardUnitOfWork<BackgroundJobs.Domain.BackgroundJobsDbMarker>()
             .AddRepository<IJobExecutionRepository, JobExecutionRepository>();
 
         services.AddSingleton<
@@ -157,10 +158,37 @@ public static class BackgroundJobsRuntimeBridge
             )
             .OrderBy(t => t.Name);
 
+        List<Type> dbContextTypes = services
+            .Where(sd =>
+                sd.ServiceType != typeof(DbContext)
+                && typeof(DbContext).IsAssignableFrom(sd.ServiceType)
+                && !sd.ServiceType.IsAbstract
+            )
+            .Select(sd => sd.ServiceType)
+            .Distinct()
+            .ToList();
+
         foreach (Type entityType in softDeletableTypes)
         {
             Type strategyType = typeof(SoftDeleteCleanupStrategy<>).MakeGenericType(entityType);
-            services.AddScoped(typeof(ISoftDeleteCleanupStrategy), strategyType);
+            Type capturedEntityType = entityType;
+
+            services.AddScoped(
+                typeof(ISoftDeleteCleanupStrategy),
+                sp =>
+                {
+                    foreach (Type ctxType in dbContextTypes)
+                    {
+                        DbContext ctx = (DbContext)sp.GetRequiredService(ctxType);
+                        if (ctx.Model.FindEntityType(capturedEntityType) is not null)
+                            return Activator.CreateInstance(strategyType, ctx)!;
+                    }
+
+                    throw new InvalidOperationException(
+                        $"No DbContext found for soft-deletable entity {capturedEntityType.Name}."
+                    );
+                }
+            );
         }
     }
 }

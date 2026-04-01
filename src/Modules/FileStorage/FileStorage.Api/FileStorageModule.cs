@@ -1,4 +1,5 @@
 using FileStorage.Api.Controllers.V1;
+using FileStorage.Application.Contracts;
 using FileStorage.Application.Features.Download;
 using FileStorage.Domain;
 using FileStorage.Infrastructure;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using FileStorage.Application.Contracts;
 using SharedKernel.Application.Options;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Infrastructure.Configuration;
@@ -43,7 +43,10 @@ public static class FileStorageModule
         services.AddValidatedOptions<FileStorageOptions>(configuration);
     }
 
-    private static void RegisterDbInfrastructure(IServiceCollection services, IConfiguration configuration)
+    private static void RegisterDbInfrastructure(
+        IServiceCollection services,
+        IConfiguration configuration
+    )
     {
         string connectionString = configuration.GetConnectionString(
             ConfigurationSections.DefaultConnection
@@ -51,9 +54,9 @@ public static class FileStorageModule
 
         services
             .AddModule<FileStorageDbContext>(configuration)
-            .ConfigureDbContext(
-                (_, opts) => opts.UseNpgsql(connectionString)
-            )
+            .ConfigureDbContext((_, opts) => opts.UseNpgsql(connectionString))
+            .AddDefaultInfrastructure()
+            .ForwardUnitOfWork<FileStorage.Domain.FileStorageDbMarker>()
             .AddRepository<IStoredFileRepository, StoredFileRepository>();
     }
 

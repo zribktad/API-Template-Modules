@@ -2,6 +2,7 @@ using Contracts.Events;
 using Contracts.Queries.ProductCatalog;
 using ErrorOr;
 using Reviews.Application.Features.ProductReview.Mappings;
+using Reviews.Domain;
 using Reviews.Domain.Interfaces;
 using SharedKernel.Application.Context;
 using Wolverine;
@@ -61,7 +62,7 @@ public sealed class CreateProductReviewCommandHandler
         CreateProductReviewCommand command,
         CreateProductReviewState state,
         IProductReviewRepository reviewRepository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<ReviewsDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
