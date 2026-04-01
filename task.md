@@ -112,12 +112,12 @@
 - [x] Verify `dotnet test` — 49/49 passed
 
 ## Unit 7: Webhooks Module
-- [ ] Create 4 domain-driven projects (in-memory queues, no EF)
-- [ ] Migrate HMSC validator, signer, and webhook jobs
-- [ ] Verify `dotnet build` & tests
+- [x] Create 4 domain-driven projects (in-memory queues, no EF)
+- [x] Migrate HMAC validator, signer, and webhook jobs
+- [x] Verify `dotnet build` & tests — 0 errors, 49/49 passed
 
 ## Unit 8: Host Rewiring + Cleanup
 - [x] Wire up `Program.cs` extension methods
 - [x] Update `APITemplate.Api.csproj` references
-- [ ] Delete legacy `APITemplate.Domain`, `APITemplate.Application`, `APITemplate.Infrastructure` (except Migrations)
+- [x] Delete legacy `APITemplate.Domain`, `APITemplate.Application`, `APITemplate.Infrastructure` (already removed)
 - [x] Final verification (`dotnet build`, `dotnet test`)

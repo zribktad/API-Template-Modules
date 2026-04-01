@@ -1,10 +1,9 @@
-using SharedKernel.Application.Context;
 using Contracts.Events;
-using SharedKernel.Application.Extensions;
-using ProductCatalog.Domain.Interfaces;
+using Contracts.Queries.ProductCatalog;
+using ErrorOr;
 using Reviews.Application.Features.ProductReview.Mappings;
 using Reviews.Domain.Interfaces;
-using ErrorOr;
+using SharedKernel.Application.Context;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.Entities.ProductReview;
 
@@ -16,7 +15,12 @@ public sealed record CreateProductReviewCommand(CreateProductReviewRequest Reque
 /// <summary>Handles <see cref="CreateProductReviewCommand"/>.</summary>
 public sealed class CreateProductReviewCommandHandler
 {
-    public sealed record CreateProductReviewState(Guid ProductId, Guid UserId, string? Comment, int Rating);
+    public sealed record CreateProductReviewState(
+        Guid ProductId,
+        Guid UserId,
+        string? Comment,
+        int Rating
+    );
 
     public static async Task<(
         HandlerContinuation,
@@ -24,21 +28,20 @@ public sealed class CreateProductReviewCommandHandler
         OutgoingMessages
     )> LoadAsync(
         CreateProductReviewCommand command,
-        IProductRepository productRepository,
+        IMessageBus bus,
         IActorProvider actorProvider,
         CancellationToken ct
     )
     {
         Guid userId = actorProvider.ActorId;
-        ErrorOr<ProductCatalog.Domain.Entities.Product> productResult = await productRepository.GetByIdOrError(
-            command.Request.ProductId,
-            DomainErrors.Reviews.ProductNotFoundForReview(command.Request.ProductId),
+        ErrorOr<Success> productExists = await bus.InvokeAsync<ErrorOr<Success>>(
+            new ValidateProductExistsQuery(command.Request.ProductId),
             ct
         );
-        if (productResult.IsError)
+        if (productExists.IsError)
         {
             OutgoingMessages failureMessages = new();
-            failureMessages.RespondToSender(productResult.Errors);
+            failureMessages.RespondToSender(productExists.Errors);
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 
@@ -86,6 +89,3 @@ public sealed class CreateProductReviewCommandHandler
         return (review.ToResponse(), messages);
     }
 }
-
-
-

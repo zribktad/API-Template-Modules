@@ -1,5 +1,4 @@
 global using Contracts.Events;
-global using ProductCatalog.Domain.Interfaces;
 global using Reviews.Application.Errors;
 global using Reviews.Application.Events;
 global using Reviews.Application.Features.ProductReview.DTOs;
@@ -15,4 +14,3 @@ global using SharedKernel.Application.Validation;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities.Contracts;
 global using SharedKernel.Domain.Interfaces;
-
