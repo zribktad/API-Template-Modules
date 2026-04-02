@@ -17,7 +17,7 @@ public sealed class ProductReviewConfiguration : IEntityTypeConfiguration<Produc
         builder
             .Property(r => r.Rating)
             .IsRequired()
-            .HasConversion(rating => rating.Value, value => Rating.Create(value).Value);
+            .HasConversion(rating => rating.Value, value => Rating.FromPersistence(value));
 
         builder.HasIndex(r => new { r.TenantId, r.ProductId });
     }

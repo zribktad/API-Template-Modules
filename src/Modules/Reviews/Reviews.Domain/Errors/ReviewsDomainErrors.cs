@@ -7,6 +7,6 @@ internal static class ReviewsDomainErrors
     internal static class Rating
     {
         internal static Error OutOfRange() =>
-            Error.Validation("RATING-0001", "Rating must be between 1 and 5.");
+            Error.Validation("REV-0401", "Rating must be between 1 and 5.");
     }
 }

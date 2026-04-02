@@ -21,5 +21,8 @@ public readonly record struct Rating
         return new Rating(value);
     }
 
+    /// <summary>Factory method for EF Core use only. Bypasses validation as values come from persistence.</summary>
+    public static Rating FromPersistence(int value) => new(value);
+
     public static implicit operator int(Rating rating) => rating.Value;
 }
