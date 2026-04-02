@@ -54,7 +54,7 @@ public sealed class DeleteProductDataCommandHandler
                 actorProvider.ActorId,
                 timeProvider.GetUtcNow().UtcDateTime
             ),
-            new OutgoingMessages()
+            OutgoingMessagesHelper.Empty
         );
     }
 

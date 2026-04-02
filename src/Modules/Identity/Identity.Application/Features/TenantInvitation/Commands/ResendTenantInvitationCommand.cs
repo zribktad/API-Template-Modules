@@ -30,15 +30,15 @@ public sealed class ResendTenantInvitationCommandHandler
                 ct
             );
         if (invitationResult.IsError)
-            return (invitationResult.Errors, new OutgoingMessages());
+            return (invitationResult.Errors, OutgoingMessagesHelper.Empty);
         TenantInvitationEntity invitation = invitationResult.Value;
 
         if (invitation.Status != InvitationStatus.Pending)
-            return (DomainErrors.Invitations.NotPending(), new OutgoingMessages());
+            return (DomainErrors.Invitations.NotPending(), OutgoingMessagesHelper.Empty);
 
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         if (invitation.ExpiresAtUtc < now)
-            return (DomainErrors.Invitations.ExpiredCreateNew(), new OutgoingMessages());
+            return (DomainErrors.Invitations.ExpiredCreateNew(), OutgoingMessagesHelper.Empty);
 
         ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
             tenantProvider.TenantId,
@@ -46,7 +46,7 @@ public sealed class ResendTenantInvitationCommandHandler
             ct
         );
         if (tenantResult.IsError)
-            return (tenantResult.Errors, new OutgoingMessages());
+            return (tenantResult.Errors, OutgoingMessagesHelper.Empty);
         TenantEntity tenant = tenantResult.Value;
 
         string rawToken = tokenGenerator.GenerateToken();

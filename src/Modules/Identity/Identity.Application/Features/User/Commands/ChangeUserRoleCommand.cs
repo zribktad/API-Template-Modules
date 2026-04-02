@@ -29,7 +29,7 @@ public sealed class ChangeUserRoleCommandHandler
             ct
         );
         if (userResult.IsError)
-            return (userResult.Errors, new OutgoingMessages());
+            return (userResult.Errors, OutgoingMessagesHelper.Empty);
         AppUser user = userResult.Value;
 
         string oldRole = user.Role.ToString();

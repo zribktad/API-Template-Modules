@@ -26,15 +26,15 @@ public sealed class AcceptTenantInvitationCommandHandler
         );
 
         if (invitation is null)
-            return (DomainErrors.Invitations.NotFoundOrExpired(), new OutgoingMessages());
+            return (DomainErrors.Invitations.NotFoundOrExpired(), OutgoingMessagesHelper.Empty);
 
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
 
         if (invitation.ExpiresAtUtc < now)
-            return (DomainErrors.Invitations.Expired(), new OutgoingMessages());
+            return (DomainErrors.Invitations.Expired(), OutgoingMessagesHelper.Empty);
 
         if (invitation.Status == InvitationStatus.Accepted)
-            return (DomainErrors.Invitations.AlreadyAccepted(), new OutgoingMessages());
+            return (DomainErrors.Invitations.AlreadyAccepted(), OutgoingMessagesHelper.Empty);
 
         invitation.Status = InvitationStatus.Accepted;
         await invitationRepository.UpdateAsync(invitation, ct);

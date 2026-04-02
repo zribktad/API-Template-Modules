@@ -54,7 +54,7 @@ public static class FileStorageModule
 
         services
             .AddModule<FileStorageDbContext>(configuration)
-            .ConfigureDbContext((_, opts) => opts.UseNpgsql(connectionString))
+            .ConfigureDbContext(opts => opts.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<FileStorage.Domain.FileStorageDbMarker>()
             .AddRepository<IStoredFileRepository, StoredFileRepository>();

@@ -11,6 +11,7 @@ using SharedKernel.Infrastructure.Persistence;
 using SharedKernel.Infrastructure.SoftDelete;
 using SharedKernel.Infrastructure.StoredProcedures;
 using SharedKernel.Infrastructure.UnitOfWork;
+using Wolverine.EntityFrameworkCore;
 
 namespace SharedKernel.Infrastructure.Registration;
 
@@ -34,10 +35,10 @@ public sealed class ModuleRegistrationBuilder<TContext>
     public IConfiguration Configuration => _configuration;
 
     public ModuleRegistrationBuilder<TContext> ConfigureDbContext(
-        Action<IServiceProvider, DbContextOptionsBuilder> configure
+        Action<DbContextOptionsBuilder> configure
     )
     {
-        _services.AddDbContext<TContext>(configure);
+        _services.AddDbContextWithWolverineIntegration<TContext>(configure);
         return this;
     }
 

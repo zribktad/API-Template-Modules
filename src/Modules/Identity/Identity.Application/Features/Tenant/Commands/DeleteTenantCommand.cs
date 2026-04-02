@@ -24,7 +24,7 @@ public sealed class DeleteTenantCommandHandler
             ct
         );
         if (tenantResult.IsError)
-            return (tenantResult.Errors, new OutgoingMessages());
+            return (tenantResult.Errors, OutgoingMessagesHelper.Empty);
 
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>

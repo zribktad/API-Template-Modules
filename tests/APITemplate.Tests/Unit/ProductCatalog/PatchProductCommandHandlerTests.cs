@@ -67,7 +67,7 @@ public sealed class PatchProductCommandHandlerTests
             )
             .ReturnsAsync(new ValidationResult());
 
-        (ErrorOr.ErrorOr<ProductResponse> result, OutgoingMessages messages) =
+        (ErrorOr<ProductResponse> result, OutgoingMessages messages) =
             await PatchProductCommandHandler.HandleAsync(
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
@@ -104,7 +104,7 @@ public sealed class PatchProductCommandHandlerTests
             .Setup(repository => repository.GetByIdAsync(productId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Product?)null);
 
-        (ErrorOr.ErrorOr<ProductResponse> result, OutgoingMessages messages) =
+        (ErrorOr<ProductResponse> result, OutgoingMessages messages) =
             await PatchProductCommandHandler.HandleAsync(
                 new PatchProductCommand(productId, new JsonPatchDocument<PatchableProductDto>()),
                 repositoryMock.Object,

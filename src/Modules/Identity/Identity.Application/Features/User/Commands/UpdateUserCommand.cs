@@ -28,7 +28,7 @@ public sealed class UpdateUserCommandHandler
             ct
         );
         if (userResult.IsError)
-            return (userResult.Errors, new OutgoingMessages());
+            return (userResult.Errors, OutgoingMessagesHelper.Empty);
         AppUser user = userResult.Value;
 
         if (!string.Equals(user.Email, command.Request.Email, StringComparison.OrdinalIgnoreCase))
@@ -39,7 +39,7 @@ public sealed class UpdateUserCommandHandler
                 ct
             );
             if (emailResult.IsError)
-                return (emailResult.Errors, new OutgoingMessages());
+                return (emailResult.Errors, OutgoingMessagesHelper.Empty);
         }
 
         string normalizedNew = AppUser.NormalizeUsername(command.Request.Username);
@@ -52,7 +52,7 @@ public sealed class UpdateUserCommandHandler
                     ct
                 );
             if (usernameResult.IsError)
-                return (usernameResult.Errors, new OutgoingMessages());
+                return (usernameResult.Errors, OutgoingMessagesHelper.Empty);
         }
 
         user.Username = command.Request.Username;

@@ -247,7 +247,7 @@ public static class IdentityModule
 
         services
             .AddModule<IdentityDbContext>(configuration)
-            .ConfigureDbContext((_, opts) => opts.UseNpgsql(connectionString))
+            .ConfigureDbContext(opts => opts.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<Identity.Domain.IdentityDbMarker>()
             .AddRepository<IUserRepository, UserRepository>()

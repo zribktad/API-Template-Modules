@@ -23,7 +23,7 @@ public sealed class RevokeTenantInvitationCommandHandler
                 ct
             );
         if (invitationResult.IsError)
-            return (invitationResult.Errors, new OutgoingMessages());
+            return (invitationResult.Errors, OutgoingMessagesHelper.Empty);
         TenantInvitationEntity invitation = invitationResult.Value;
 
         invitation.Status = InvitationStatus.Revoked;

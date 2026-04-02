@@ -47,7 +47,7 @@ public sealed class CreateTenantCommandHandler
         {
             return (
                 DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code),
-                new OutgoingMessages()
+                OutgoingMessagesHelper.Empty
             );
         }
 

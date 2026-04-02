@@ -44,7 +44,7 @@ public sealed class DeleteProductReviewCommandHandler
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 
-        return (HandlerContinuation.Continue, review, new OutgoingMessages());
+        return (HandlerContinuation.Continue, review, OutgoingMessagesHelper.Empty);
     }
 
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(

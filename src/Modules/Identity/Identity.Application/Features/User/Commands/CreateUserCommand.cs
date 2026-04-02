@@ -31,7 +31,7 @@ public sealed class CreateUserCommandHandler
             ct
         );
         if (emailResult.IsError)
-            return (emailResult.Errors, new OutgoingMessages());
+            return (emailResult.Errors, OutgoingMessagesHelper.Empty);
 
         ErrorOr<Success> usernameResult = await UserValidationHelper.ValidateUsernameUniqueAsync(
             repository,
@@ -39,7 +39,7 @@ public sealed class CreateUserCommandHandler
             ct
         );
         if (usernameResult.IsError)
-            return (usernameResult.Errors, new OutgoingMessages());
+            return (usernameResult.Errors, OutgoingMessagesHelper.Empty);
 
         string keycloakUserId = await keycloakAdmin.CreateUserAsync(
             command.Request.Username,

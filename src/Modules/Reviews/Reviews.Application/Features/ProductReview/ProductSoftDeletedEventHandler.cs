@@ -7,11 +7,10 @@ namespace Reviews.Application.Features.ProductReview;
 
 public static class ProductSoftDeletedEventHandler
 {
-    public static async Task Handle(
+    public static async Task<OutgoingMessages> Handle(
         ProductSoftDeletedNotification notification,
         IProductReviewRepository repository,
         IUnitOfWork<ReviewsDbMarker> unitOfWork,
-        IMessageBus bus,
         CancellationToken ct
     )
     {
@@ -21,7 +20,7 @@ public static class ProductSoftDeletedEventHandler
         );
 
         if (reviews.Count == 0)
-            return;
+            return OutgoingMessagesHelper.Empty;
 
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
@@ -31,6 +30,8 @@ public static class ProductSoftDeletedEventHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Reviews));
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
+        return messages;
     }
 }

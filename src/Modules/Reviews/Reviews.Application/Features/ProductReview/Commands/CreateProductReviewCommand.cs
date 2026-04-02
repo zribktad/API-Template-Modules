@@ -54,7 +54,7 @@ public sealed class CreateProductReviewCommandHandler
                 command.Request.Comment,
                 command.Request.Rating
             ),
-            new OutgoingMessages()
+            OutgoingMessagesHelper.Empty
         );
     }
 

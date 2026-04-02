@@ -40,7 +40,7 @@ public sealed class CreateTenantInvitationCommandHandler
         if (await invitationRepository.HasPendingInvitationAsync(normalizedEmail, ct))
             return (
                 DomainErrors.Invitations.AlreadyPending(command.Request.Email),
-                new OutgoingMessages()
+                OutgoingMessagesHelper.Empty
             );
 
         ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
@@ -49,7 +49,7 @@ public sealed class CreateTenantInvitationCommandHandler
             ct
         );
         if (tenantResult.IsError)
-            return (tenantResult.Errors, new OutgoingMessages());
+            return (tenantResult.Errors, OutgoingMessagesHelper.Empty);
         TenantEntity tenant = tenantResult.Value;
 
         string rawToken = tokenGenerator.GenerateToken();

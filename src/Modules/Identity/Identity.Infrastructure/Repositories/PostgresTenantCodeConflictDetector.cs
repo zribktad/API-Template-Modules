@@ -1,3 +1,5 @@
+using Identity.Application.Features.Tenant;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
 namespace Identity.Infrastructure.Repositories;

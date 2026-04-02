@@ -44,7 +44,7 @@ public sealed class CreateCategoriesCommandHandler
             })
             .ToList();
 
-        return (HandlerContinuation.Continue, entities, new OutgoingMessages());
+        return (HandlerContinuation.Continue, entities, OutgoingMessagesHelper.Empty);
     }
 
     public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(

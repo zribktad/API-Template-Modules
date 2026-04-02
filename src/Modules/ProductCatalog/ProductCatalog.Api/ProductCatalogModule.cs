@@ -43,7 +43,7 @@ public static class ProductCatalogModule
 
         services
             .AddModule<ProductCatalogDbContext>(configuration)
-            .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
+            .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<ProductCatalog.Domain.ProductCatalogDbMarker>()
             .AddStoredProcedureSupport()

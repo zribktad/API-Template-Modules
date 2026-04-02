@@ -28,3 +28,19 @@ public static class MessageBusExtensions
         }
     }
 }
+
+/// <summary>
+/// Shared <see cref="OutgoingMessages"/> instances for use in handler error-path returns.
+/// </summary>
+/// <remarks>
+/// <see cref="Empty"/> is a cached empty instance. Do not call <c>Add</c> on it —
+/// it is only safe to use when returned immediately without mutation.
+/// </remarks>
+public static class OutgoingMessagesHelper
+{
+    /// <summary>
+    /// A shared empty <see cref="OutgoingMessages"/> for error-path returns.
+    /// Return this instead of <c>new OutgoingMessages()</c> when no messages need to be dispatched.
+    /// </summary>
+    public static readonly OutgoingMessages Empty = new();
+}

@@ -30,7 +30,7 @@ public sealed class DeleteUserCommandHandler
             ct
         );
         if (userResult.IsError)
-            return (userResult.Errors, new OutgoingMessages());
+            return (userResult.Errors, OutgoingMessagesHelper.Empty);
         AppUser user = userResult.Value;
 
         if (user.KeycloakUserId is not null)

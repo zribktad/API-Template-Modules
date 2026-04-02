@@ -511,27 +511,26 @@ public sealed record CreateProductsCommand(CreateProductsRequest Request);
 
 public sealed class CreateProductsCommandHandler
 {
-    public static async Task<BatchResponse> HandleAsync(
+    public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(
         CreateProductsCommand command,
         IProductRepository repository,
         ICategoryRepository categoryRepository,
         IUnitOfWork unitOfWork,
-        IMessageBus bus,
         IBatchRule<CreateProductRequest> itemValidationRule,
         CancellationToken ct
     )
     {
-        var items = command.Request.Items;
-        var context = new BatchFailureContext<CreateProductRequest>(items);
+        IReadOnlyList<CreateProductRequest> items = command.Request.Items;
+        BatchFailureContext<CreateProductRequest> context = new(items);
 
         // Step 1: Validate each item
         await context.ApplyRulesAsync(ct, itemValidationRule);
 
         if (context.HasFailures)
-            return context.ToFailureResponse();
+            return (context.ToFailureResponse(), new OutgoingMessages());
 
         // Step 2: Build entities and persist
-        var entities = items
+        List<ProductEntity> entities = items
             .Select(item => new ProductEntity
             {
                 Id = Guid.NewGuid(),
@@ -547,7 +546,9 @@ public sealed class CreateProductsCommandHandler
             ct
         );
 
-        return new BatchResponse([], items.Count, 0);
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
+        return (new BatchResponse([], items.Count, 0), messages);
     }
 }
 ```
@@ -555,7 +556,7 @@ public sealed class CreateProductsCommandHandler
 > **Key patterns**:
 > - Repository tracks changes, `IUnitOfWork` persists them. Never call `SaveChangesAsync` in repositories.
 > - `IValidator<T>` is method-injected for per-item validation inside batch commands.
-> - `IMessageBus` can be injected to publish domain events (e.g., cache invalidation).
+> - Return `(TResult, OutgoingMessages)` from the handler to dispatch transactional notifications (e.g., cache invalidation) through Wolverine's durable outbox.
 
 ---
 

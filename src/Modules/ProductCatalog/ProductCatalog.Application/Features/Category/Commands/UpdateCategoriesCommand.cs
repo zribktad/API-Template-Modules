@@ -62,7 +62,7 @@ public sealed class UpdateCategoriesCommandHandler
         return (
             HandlerContinuation.Continue,
             new UpdateCategoriesState(items, categoryMap),
-            new OutgoingMessages()
+            OutgoingMessagesHelper.Empty
         );
     }
 

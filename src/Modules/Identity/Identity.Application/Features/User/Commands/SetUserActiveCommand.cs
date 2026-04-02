@@ -28,7 +28,7 @@ public sealed class SetUserActiveCommandHandler
             ct
         );
         if (userResult.IsError)
-            return (userResult.Errors, new OutgoingMessages());
+            return (userResult.Errors, OutgoingMessagesHelper.Empty);
         var user = userResult.Value;
 
         if (user.KeycloakUserId is not null)
