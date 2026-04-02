@@ -1,7 +1,6 @@
 using APITemplate.Api.Cache;
 using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
-using Microsoft.AspNetCore.OutputCaching;
 using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;
 using IdentityCacheTags = Identity.Application.Events.CacheTags;
@@ -23,7 +22,10 @@ public static class ApiServiceCollectionExtensions
         services
             .AddHealthChecks()
             .AddNpgSql(
-                configuration.GetConnectionString(ConfigurationSections.DefaultConnection)!,
+                configuration.GetConnectionString(ConfigurationSections.DefaultConnection)
+                    ?? throw new InvalidOperationException(
+                        $"Connection string '{ConfigurationSections.DefaultConnection}' is not configured."
+                    ),
                 name: HealthCheckNames.PostgreSql
             )
             .AddCheck<KeycloakHealthCheck>(HealthCheckNames.Keycloak);

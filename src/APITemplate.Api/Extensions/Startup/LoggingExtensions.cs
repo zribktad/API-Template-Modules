@@ -21,7 +21,9 @@ public static class LoggingExtensions
                 {
                     RedactionOptions redactionOptions =
                         builder.Configuration.SectionFor<RedactionOptions>().Get<RedactionOptions>()
-                        ?? new RedactionOptions();
+                        ?? throw new InvalidOperationException(
+                            $"Configuration section '{nameof(RedactionOptions)}' is missing."
+                        );
 
                     string hmacKey = RedactionConfiguration.ResolveHmacKey(
                         redactionOptions,
