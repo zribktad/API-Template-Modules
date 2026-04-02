@@ -79,9 +79,6 @@ public sealed class DeleteProductsCommandHandler
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                foreach (ProductCatalog.Domain.Entities.Product product in state.Products)
-                    product.SoftDeleteProductDataLinks();
-
                 await repository.DeleteRangeAsync(state.Products, ct);
             },
             ct
