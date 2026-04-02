@@ -1,3 +1,5 @@
+using Identity.Domain.ValueObjects;
+
 namespace Identity.Domain.Entities;
 
 /// <summary>
@@ -34,15 +36,13 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     /// Original email exactly as entered by the user. Required for correct email delivery (RFC compliance).
     /// Setting this property also updates <see cref="NormalizedEmail"/>.
     /// </summary>
-    public required string Email
+    public required Email Email
     {
         get => field;
         set
         {
-            field = string.IsNullOrWhiteSpace(value)
-                ? throw new ArgumentException("Email cannot be empty.", nameof(Email))
-                : value.Trim();
-            NormalizedEmail = NormalizeEmail(field);
+            field = value;
+            NormalizedEmail = value.Normalize();
         }
     }
 

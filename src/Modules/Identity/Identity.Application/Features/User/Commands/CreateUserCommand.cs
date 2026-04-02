@@ -5,6 +5,7 @@ using Identity.Application.Features.User.Mappings;
 using Identity.Domain;
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
+using Identity.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Application.Events;
 using SharedKernel.Domain.Interfaces;
@@ -25,6 +26,11 @@ public sealed class CreateUserCommandHandler
         CancellationToken ct
     )
     {
+        ErrorOr<Email> emailValueResult = Email.Create(command.Request.Email);
+        if (emailValueResult.IsError)
+            return (emailValueResult.Errors, OutgoingMessagesHelper.Empty);
+        Email email = emailValueResult.Value;
+
         ErrorOr<Success> emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
             repository,
             command.Request.Email,
@@ -53,7 +59,7 @@ public sealed class CreateUserCommandHandler
             {
                 Id = Guid.NewGuid(),
                 Username = command.Request.Username,
-                Email = command.Request.Email,
+                Email = email,
                 KeycloakUserId = keycloakUserId,
             };
 

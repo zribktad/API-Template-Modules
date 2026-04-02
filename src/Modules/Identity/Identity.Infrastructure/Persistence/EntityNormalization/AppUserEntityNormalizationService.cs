@@ -14,6 +14,6 @@ public sealed class AppUserEntityNormalizationService : IEntityNormalizationServ
             return;
 
         user.NormalizedUsername = AppUser.NormalizeUsername(user.Username);
-        user.NormalizedEmail = AppUser.NormalizeEmail(user.Email);
+        user.NormalizedEmail = user.Email.Normalize();
     }
 }

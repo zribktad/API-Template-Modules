@@ -13,6 +13,18 @@ internal static class IdentityDomainErrors
             Error.Validation("TC-0400-LENGTH", "Tenant code cannot exceed 100 characters.");
     }
 
+    internal static class Emails
+    {
+        internal static Error Empty() =>
+            Error.Validation("EMAIL-0400-EMPTY", "Email cannot be empty.");
+
+        internal static Error InvalidFormat() =>
+            Error.Validation("EMAIL-0400-FORMAT", "Email must contain '@'.");
+
+        internal static Error TooLong() =>
+            Error.Validation("EMAIL-0400-LENGTH", "Email cannot exceed 320 characters.");
+    }
+
     internal static class Invitations
     {
         internal static Error Expired() => Error.Conflict("INV-0410", "Invitation has expired.");

@@ -1,7 +1,8 @@
+using Ardalis.Specification;
 using Identity.Application.Features.TenantInvitation.DTOs;
 using Identity.Application.Features.TenantInvitation.Mappings;
 using Identity.Domain.Entities;
-using Ardalis.Specification;
+using Identity.Domain.ValueObjects;
 using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
 
 namespace Identity.Application.Features.TenantInvitation.Specifications;
@@ -39,7 +40,7 @@ internal static class TenantInvitationFilterCriteria
     {
         if (!string.IsNullOrWhiteSpace(filter.Email))
         {
-            var normalized = AppUser.NormalizeEmail(filter.Email);
+            string normalized = Email.FromPersistence(filter.Email).Normalize();
             query.Where(i => i.NormalizedEmail.Contains(normalized));
         }
 

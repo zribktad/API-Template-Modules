@@ -1,3 +1,4 @@
+using Identity.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -13,7 +14,11 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
 
         builder.Property(u => u.Username).IsRequired().HasMaxLength(100);
         builder.Property(u => u.NormalizedUsername).IsRequired().HasMaxLength(100);
-        builder.Property(u => u.Email).IsRequired().HasMaxLength(320);
+        builder
+            .Property(u => u.Email)
+            .HasConversion(e => e.Value, v => Email.FromPersistence(v))
+            .IsRequired()
+            .HasMaxLength(320);
         builder.Property(u => u.NormalizedEmail).IsRequired().HasMaxLength(320);
         builder.Property(u => u.KeycloakUserId).HasMaxLength(256);
 

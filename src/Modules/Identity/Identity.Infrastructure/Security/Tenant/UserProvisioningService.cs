@@ -1,3 +1,4 @@
+using Identity.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -40,8 +41,8 @@ public sealed class UserProvisioningService : IUserProvisioningService
     {
         // 1. Check if the user is already provisioned — bypass tenant filter because
         //    we only have the Keycloak subject ID, not a tenant context yet.
-        AppUser? existing = await _db.Users
-            .IgnoreQueryFilters()
+        AppUser? existing = await _db
+            .Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.KeycloakUserId == keycloakUserId, ct);
 
         if (existing is not null)
@@ -55,14 +56,12 @@ public sealed class UserProvisioningService : IUserProvisioningService
 
         // 2. Look for an accepted invitation matching the normalised email.
         //    Bypass tenant filter — at this point no tenant context is active.
-        string normalizedEmail = AppUser.NormalizeEmail(email);
+        string normalizedEmail = Email.FromPersistence(email).Normalize();
 
-        TenantInvitation? invitation = await _db.TenantInvitations
-            .IgnoreQueryFilters()
+        TenantInvitation? invitation = await _db
+            .TenantInvitations.IgnoreQueryFilters()
             .FirstOrDefaultAsync(
-                i =>
-                    i.NormalizedEmail == normalizedEmail
-                    && i.Status == InvitationStatus.Accepted,
+                i => i.NormalizedEmail == normalizedEmail && i.Status == InvitationStatus.Accepted,
                 ct
             );
 
@@ -76,10 +75,11 @@ public sealed class UserProvisioningService : IUserProvisioningService
         }
 
         // 3. Provision a new user from the invitation data.
+        // The email comes from Keycloak (trusted identity provider), so no re-validation is needed.
         AppUser user = new()
         {
             Username = username,
-            Email = email,
+            Email = Email.FromPersistence(email),
             KeycloakUserId = keycloakUserId,
             // TenantId must be set explicitly here. During OnTokenValidated, no tenant context
             // is active (ITenantProvider.HasTenant == false), so AuditableEntityStateManager
@@ -111,8 +111,8 @@ public sealed class UserProvisioningService : IUserProvisioningService
                 keycloakUserId
             );
 
-            return await _db.Users
-                    .IgnoreQueryFilters()
+            return await _db
+                    .Users.IgnoreQueryFilters()
                     .FirstOrDefaultAsync(u => u.KeycloakUserId == keycloakUserId, ct)
                 ?? throw new InvalidOperationException(
                     $"Provisioning failed for KeycloakUserId={keycloakUserId} and no existing user was found.",

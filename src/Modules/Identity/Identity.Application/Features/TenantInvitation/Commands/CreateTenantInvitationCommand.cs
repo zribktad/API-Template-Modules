@@ -6,6 +6,7 @@ using Identity.Application.Options;
 using Identity.Domain;
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
+using Identity.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
@@ -34,10 +35,14 @@ public sealed class CreateTenantInvitationCommandHandler
         CancellationToken ct
     )
     {
-        TenantInvitationOptions opts = invitationOptions.Value;
-        string normalizedEmail = AppUser.NormalizeEmail(command.Request.Email);
+        ErrorOr<Email> emailResult = Email.Create(command.Request.Email);
+        if (emailResult.IsError)
+            return (emailResult.Errors, OutgoingMessagesHelper.Empty);
+        Email email = emailResult.Value;
 
-        if (await invitationRepository.HasPendingInvitationAsync(normalizedEmail, ct))
+        TenantInvitationOptions opts = invitationOptions.Value;
+
+        if (await invitationRepository.HasPendingInvitationAsync(email.Normalize(), ct))
             return (
                 DomainErrors.Invitations.AlreadyPending(command.Request.Email),
                 OutgoingMessagesHelper.Empty
@@ -56,7 +61,7 @@ public sealed class CreateTenantInvitationCommandHandler
         string tokenHash = tokenGenerator.HashToken(rawToken);
 
         TenantInvitationEntity invitation = TenantInvitationEntity.Create(
-            command.Request.Email,
+            email,
             tokenHash,
             opts.InvitationTokenExpiryHours,
             timeProvider
