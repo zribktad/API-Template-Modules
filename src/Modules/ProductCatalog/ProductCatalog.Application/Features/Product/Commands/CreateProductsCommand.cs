@@ -2,6 +2,7 @@ using Contracts.Events;
 using ErrorOr;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.Entities;
+using ProductCatalog.Domain.ValueObjects;
 using SharedKernel.Application.Batch;
 using Wolverine;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
@@ -53,14 +54,16 @@ public sealed class CreateProductsCommandHandler
 
         List<ProductEntity> entities = items
             .Select(item =>
-                ProductEntity.Create(
+            {
+                ErrorOr<Price> priceResult = Price.Create(item.Price);
+                return ProductEntity.Create(
                     item.Name,
                     item.Description,
-                    item.Price,
+                    priceResult.Value,
                     item.CategoryId,
                     item.ProductDataIds
-                )
-            )
+                );
+            })
             .ToList();
 
         return (HandlerContinuation.Continue, entities, OutgoingMessagesHelper.Empty);

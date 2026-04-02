@@ -9,6 +9,7 @@ using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Application.Features.Product.Repositories;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.Entities;
+using ProductCatalog.Domain.ValueObjects;
 using SharedKernel.Domain.Interfaces;
 using SharedKernel.Domain.Options;
 using Shouldly;
@@ -32,7 +33,7 @@ public sealed class PatchProductCommandHandlerTests
             Id = Guid.NewGuid(),
             Name = "Old Name",
             Description = "Old Description",
-            Price = 10m,
+            Price = Price.FromPersistence(10m),
             CategoryId = Guid.NewGuid(),
         };
 
@@ -81,7 +82,7 @@ public sealed class PatchProductCommandHandlerTests
         result.Value.Name.ShouldBe("New Name");
         result.Value.Price.ShouldBe(25m);
         product.Name.ShouldBe("New Name");
-        product.Price.ShouldBe(25m);
+        ((decimal)product.Price).ShouldBe(25m);
 
         messages.Count.ShouldBe(1);
         messages[0].ShouldBeOfType<CacheInvalidationNotification>();

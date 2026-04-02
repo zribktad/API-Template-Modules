@@ -3,6 +3,7 @@ using ErrorOr;
 using ProductCatalog.Application.Features.Product.Specifications;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.Entities;
+using ProductCatalog.Domain.ValueObjects;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
 using Wolverine;
@@ -101,7 +102,13 @@ public sealed class UpdateProductsCommandHandler
                     UpdateProductItem item = items[i];
                     ProductEntity product = productMap[item.Id];
 
-                    product.UpdateDetails(item.Name, item.Description, item.Price, item.CategoryId);
+                    ErrorOr<Price> priceResult = Price.Create(item.Price);
+                    product.UpdateDetails(
+                        item.Name,
+                        item.Description,
+                        priceResult.Value,
+                        item.CategoryId
+                    );
 
                     if (item.ProductDataIds is not null)
                         product.SyncProductDataLinks(item.ProductDataIds);

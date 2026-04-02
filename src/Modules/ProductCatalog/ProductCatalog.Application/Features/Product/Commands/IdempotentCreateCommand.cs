@@ -1,6 +1,7 @@
 using ErrorOr;
 using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Domain;
+using ProductCatalog.Domain.ValueObjects;
 using SharedKernel.Domain.Interfaces;
 using IProductRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
@@ -23,7 +24,7 @@ public sealed class IdempotentCreateCommandHandler
             Id = Guid.NewGuid(),
             Name = command.Request.Name,
             Description = command.Request.Description,
-            Price = 0,
+            Price = Price.FromPersistence(0),
         };
 
         await unitOfWork.ExecuteInTransactionAsync(

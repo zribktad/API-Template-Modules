@@ -5,6 +5,7 @@ using ProductCatalog.Application.Errors;
 using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Application.Features.Product.Mappings;
 using ProductCatalog.Domain;
+using ProductCatalog.Domain.ValueObjects;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Domain.Interfaces;
 using SystemTextJsonPatch;
@@ -64,7 +65,11 @@ public sealed class PatchProductCommandHandler
                 OutgoingMessagesHelper.Empty
             );
 
-        product.UpdateDetails(dto.Name, dto.Description, dto.Price, dto.CategoryId);
+        ErrorOr<Price> priceResult = Price.Create(dto.Price);
+        if (priceResult.IsError)
+            return (priceResult.FirstError, OutgoingMessagesHelper.Empty);
+
+        product.UpdateDetails(dto.Name, dto.Description, priceResult.Value, dto.CategoryId);
 
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
