@@ -54,21 +54,26 @@ public sealed class DeleteCategoriesCommandHandler
         DeleteCategoriesCommand command,
         IReadOnlyList<ProductCatalog.Domain.Entities.Category> categories,
         ICategoryRepository repository,
+        IProductRepository productRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
-        // Remove categories in a single transaction
+        IReadOnlyList<Guid> categoryIds = categories.Select(category => category.Id).ToArray();
+
+        // Remove categories and null out CategoryId on affected products in a single transaction
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
                 await repository.DeleteRangeAsync(categories, ct);
+                await productRepository.NullCategoryAsync(categoryIds, ct);
             },
             ct
         );
 
         OutgoingMessages messages = new();
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
 
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }

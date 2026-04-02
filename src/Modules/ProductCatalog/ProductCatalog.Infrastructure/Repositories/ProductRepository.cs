@@ -108,6 +108,22 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
             .ToArray();
     }
 
+    /// <summary>Bulk-sets <c>CategoryId</c> to <c>null</c> for all products whose <c>CategoryId</c> is in <paramref name="categoryIds"/>.</summary>
+    public async Task NullCategoryAsync(
+        IReadOnlyCollection<Guid> categoryIds,
+        CancellationToken ct = default
+    )
+    {
+        await _dbContext
+            .Products.Where(product =>
+                product.CategoryId != null && categoryIds.Contains(product.CategoryId.Value)
+            )
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(product => product.CategoryId, (Guid?)null),
+                ct
+            );
+    }
+
     private sealed record PriceFacetCounts(
         int ZeroToFifty,
         int FiftyToOneHundred,
