@@ -1,3 +1,5 @@
+using Reviews.Domain.ValueObjects;
+
 namespace Reviews.Domain.Entities;
 
 /// <summary>
@@ -10,18 +12,8 @@ public sealed class ProductReview : IAuditableTenantEntity, IHasId
     public Guid UserId { get; set; }
     public string? Comment { get; set; }
 
-    /// <summary>Integer score from 1 (worst) to 5 (best); throws <see cref="ArgumentOutOfRangeException"/> on assignment outside that range.</summary>
-    public int Rating
-    {
-        get => field;
-        set =>
-            field = value is >= 1 and <= 5
-                ? value
-                : throw new ArgumentOutOfRangeException(
-                    nameof(Rating),
-                    "Rating must be between 1 and 5."
-                );
-    }
+    /// <summary>Rating value object enforcing a 1–5 range via <see cref="Rating.Create"/>.</summary>
+    public Rating Rating { get; set; }
 
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();
@@ -29,5 +21,3 @@ public sealed class ProductReview : IAuditableTenantEntity, IHasId
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
 }
-
-

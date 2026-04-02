@@ -19,7 +19,7 @@ public static class ProductReviewMappings
             r.ProductId,
             r.UserId,
             r.Comment,
-            r.Rating,
+            r.Rating.Value,
             r.Audit.CreatedAtUtc
         );
 
@@ -30,6 +30,3 @@ public static class ProductReviewMappings
     public static ProductReviewResponse ToResponse(this ProductReviewEntity review) =>
         CompiledProjection(review);
 }
-
-
-
