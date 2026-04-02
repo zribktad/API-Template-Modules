@@ -1,7 +1,7 @@
+using Ardalis.Specification;
 using Identity.Application.Features.User.DTOs;
 using Identity.Application.Features.User.Mappings;
 using Identity.Domain.Entities;
-using Ardalis.Specification;
 
 namespace Identity.Application.Features.User.Specifications;
 
@@ -15,6 +15,6 @@ public sealed class UserByIdSpecification : Specification<AppUser, UserResponse>
     /// </summary>
     public UserByIdSpecification(Guid id)
     {
-        Query.Where(u => u.Id == id).Select(UserMappings.Projection);
+        Query.Where(u => u.Id == id).AsNoTracking().Select(UserMappings.Projection);
     }
 }

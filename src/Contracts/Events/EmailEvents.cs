@@ -12,7 +12,9 @@ public sealed record TenantInvitationCreatedNotification(
     Guid InvitationId,
     string Email,
     string TenantName,
-    string Token
+    string Token,
+    string InvitationUrl,
+    int ExpiryHours
 );
 
 /// <summary>

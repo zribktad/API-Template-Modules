@@ -37,10 +37,6 @@ public sealed class EmailOptions
     [Description("Optional SMTP password used for authenticated delivery.")]
     public string? Password { get; set; }
 
-    [Description("Lifetime of invitation tokens, in hours, for email-driven onboarding flows.")]
-    [Range(1, int.MaxValue)]
-    public int InvitationTokenExpiryHours { get; set; } = 72;
-
     [Description("Public application base URL used when generating links in email templates.")]
     [Required]
     [MinLength(1)]

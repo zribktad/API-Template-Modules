@@ -10,8 +10,19 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
 
     /// <summary>
     /// Original username exactly as entered by the user (preserves casing and formatting).
+    /// Setting this property also updates <see cref="NormalizedUsername"/>.
     /// </summary>
-    public required string Username { get; set; }
+    public required string Username
+    {
+        get => field;
+        set
+        {
+            field = string.IsNullOrWhiteSpace(value)
+                ? throw new ArgumentException("Username cannot be empty.", nameof(Username))
+                : value.Trim();
+            NormalizedUsername = NormalizeUsername(field);
+        }
+    }
 
     /// <summary>
     /// Uppercase, trimmed version of the username.
@@ -21,8 +32,19 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
 
     /// <summary>
     /// Original email exactly as entered by the user. Required for correct email delivery (RFC compliance).
+    /// Setting this property also updates <see cref="NormalizedEmail"/>.
     /// </summary>
-    public required string Email { get; set; }
+    public required string Email
+    {
+        get => field;
+        set
+        {
+            field = string.IsNullOrWhiteSpace(value)
+                ? throw new ArgumentException("Email cannot be empty.", nameof(Email))
+                : value.Trim();
+            NormalizedEmail = NormalizeEmail(field);
+        }
+    }
 
     /// <summary>
     /// Uppercase, trimmed version of the email.

@@ -1,6 +1,8 @@
 using APITemplate.Api.Middleware;
 using Chatting.Api;
 using FileStorage.Api;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using ProductCatalog.Api;
 using Scalar.AspNetCore;
@@ -66,7 +68,15 @@ public static class ApplicationBuilderExtensions
             .WithName("HostStatus")
             .WithTags("Host");
 
-        app.MapHealthChecks("/health").WithTags("Health").AllowAnonymous();
+        app.MapHealthChecks(
+                "/health",
+                new HealthCheckOptions
+                {
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+                }
+            )
+            .WithTags("Health")
+            .AllowAnonymous();
         app.MapProductCatalogEndpoints();
         app.MapFileStorageEndpoints();
         app.MapChattingEndpoints();

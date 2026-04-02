@@ -2,6 +2,7 @@ using ErrorOr;
 using Identity.Application.Common.Email;
 using Identity.Application.Features.TenantInvitation.DTOs;
 using Identity.Application.Features.TenantInvitation.Mappings;
+using Identity.Application.Options;
 using Identity.Domain;
 using Identity.Domain.Entities;
 using Identity.Domain.Interfaces;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Events;
 using SharedKernel.Application.Extensions;
-using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Domain.Interfaces;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
@@ -30,11 +30,11 @@ public sealed class CreateTenantInvitationCommandHandler
         ISecureTokenGenerator tokenGenerator,
         ITenantProvider tenantProvider,
         TimeProvider timeProvider,
-        IOptions<EmailOptions> emailOptions,
+        IOptions<TenantInvitationOptions> invitationOptions,
         CancellationToken ct
     )
     {
-        EmailOptions emailOpts = emailOptions.Value;
+        TenantInvitationOptions opts = invitationOptions.Value;
         string normalizedEmail = AppUser.NormalizeEmail(command.Request.Email);
 
         if (await invitationRepository.HasPendingInvitationAsync(normalizedEmail, ct))
@@ -55,19 +55,17 @@ public sealed class CreateTenantInvitationCommandHandler
         string rawToken = tokenGenerator.GenerateToken();
         string tokenHash = tokenGenerator.HashToken(rawToken);
 
-        TenantInvitationEntity invitation = new()
-        {
-            Id = Guid.NewGuid(),
-            Email = command.Request.Email.Trim(),
-            NormalizedEmail = normalizedEmail,
-            TokenHash = tokenHash,
-            ExpiresAtUtc = timeProvider
-                .GetUtcNow()
-                .UtcDateTime.AddHours(emailOpts.InvitationTokenExpiryHours),
-        };
+        TenantInvitationEntity invitation = TenantInvitationEntity.Create(
+            command.Request.Email,
+            tokenHash,
+            opts.InvitationTokenExpiryHours,
+            timeProvider
+        );
 
         await invitationRepository.AddAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);
+
+        string invitationUrl = $"{opts.BaseUrl}/invitations/accept?token={rawToken}";
 
         OutgoingMessages messages = new();
         messages.Add(
@@ -75,7 +73,9 @@ public sealed class CreateTenantInvitationCommandHandler
                 invitation.Id,
                 invitation.Email,
                 tenant.Name,
-                rawToken
+                rawToken,
+                invitationUrl,
+                opts.InvitationTokenExpiryHours
             )
         );
         messages.Add(new CacheInvalidationNotification(CacheTags.TenantInvitations));

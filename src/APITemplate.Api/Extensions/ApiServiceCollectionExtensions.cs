@@ -47,6 +47,7 @@ public static class ApiServiceCollectionExtensions
         IConfiguration configuration
     )
     {
+        services.AddValidatedOptions<DragonflyOptions>(configuration);
         DragonflyOptions dragonflyOptions =
             configuration.SectionFor<DragonflyOptions>().Get<DragonflyOptions>() ?? new();
 
@@ -67,6 +68,10 @@ public static class ApiServiceCollectionExtensions
             {
                 opts.ConfigurationOptions = redisConfig;
             });
+
+            services
+                .AddHealthChecks()
+                .AddRedis(dragonflyOptions.ConnectionString, name: HealthCheckNames.Dragonfly);
         }
         else
         {
