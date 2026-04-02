@@ -18,14 +18,19 @@ public sealed class TenantRepository : RepositoryBase<Tenant>, ITenantRepository
         _db = dbContext;
     }
 
-    private IQueryable<Tenant> UnfilteredTenants => _db.Tenants.IgnoreQueryFilters(["Tenant"]);
+    private IQueryable<Tenant> UnfilteredTenants =>
+        _db.Tenants.IgnoreQueryFilters([GlobalQueryFilterNames.Tenant]);
 
     protected override IQueryable<Tenant> ApplySpecification(
         ISpecification<Tenant> specification,
         bool evaluateCriteriaOnly = false
     )
     {
-        return SpecificationEvaluator.GetQuery(UnfilteredTenants, specification, evaluateCriteriaOnly);
+        return SpecificationEvaluator.GetQuery(
+            UnfilteredTenants,
+            specification,
+            evaluateCriteriaOnly
+        );
     }
 
     protected override IQueryable<TResult> ApplySpecification<TResult>(
@@ -35,18 +40,17 @@ public sealed class TenantRepository : RepositoryBase<Tenant>, ITenantRepository
         return SpecificationEvaluator.GetQuery(UnfilteredTenants, specification);
     }
 
-    public override async Task<Tenant?> GetByIdAsync<TId>(TId id, CancellationToken cancellationToken = default)
+    public override async Task<Tenant?> GetByIdAsync<TId>(
+        TId id,
+        CancellationToken cancellationToken = default
+    )
     {
         if (id is not Guid guid)
-            throw new ArgumentException($"Expected Guid but received {typeof(TId).Name}.", nameof(id));
+            throw new ArgumentException(
+                $"Expected Guid but received {typeof(TId).Name}.",
+                nameof(id)
+            );
 
         return await UnfilteredTenants.FirstOrDefaultAsync(t => t.Id == guid, cancellationToken);
-    }
-
-    public Task<bool> CodeExistsAsync(string code, CancellationToken ct = default)
-    {
-        return _db
-            .Tenants.IgnoreQueryFilters(["Tenant", "SoftDelete"])
-            .AnyAsync(t => t.Code == code, ct);
     }
 }

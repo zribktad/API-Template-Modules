@@ -11,12 +11,17 @@ namespace Identity.Infrastructure.Persistence;
 /// </summary>
 public sealed class AuthBootstrapSeeder
 {
-    private static readonly Guid DefaultTenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    private static readonly Guid DefaultTenantId = Guid.Parse(
+        "00000000-0000-0000-0000-000000000001"
+    );
 
     private readonly IdentityDbContext _dbContext;
     private readonly BootstrapTenantOptions _tenantOptions;
 
-    public AuthBootstrapSeeder(IdentityDbContext dbContext, IOptions<BootstrapTenantOptions> tenantOptions)
+    public AuthBootstrapSeeder(
+        IdentityDbContext dbContext,
+        IOptions<BootstrapTenantOptions> tenantOptions
+    )
     {
         _dbContext = dbContext;
         _tenantOptions = tenantOptions.Value;
@@ -35,7 +40,10 @@ public sealed class AuthBootstrapSeeder
 
     private Task<Tenant?> FindTenantAsync(string tenantCode, CancellationToken ct) =>
         _dbContext
-            .Tenants.IgnoreQueryFilters(["SoftDelete", "Tenant"])
+            .Tenants.IgnoreQueryFilters([
+                GlobalQueryFilterNames.SoftDelete,
+                GlobalQueryFilterNames.Tenant,
+            ])
             .FirstOrDefaultAsync(t => t.Code == tenantCode, ct);
 
     private bool CreateTenant(TenantIdentity tenantIdentity)
@@ -60,14 +68,16 @@ public sealed class AuthBootstrapSeeder
 
     private static bool EnsureTenantIsActive(Tenant tenant)
     {
-        if (tenant.IsActive) return false;
+        if (tenant.IsActive)
+            return false;
         tenant.IsActive = true;
         return true;
     }
 
     private static bool EnsureTenantIsNotDeleted(Tenant tenant)
     {
-        if (!tenant.IsDeleted) return false;
+        if (!tenant.IsDeleted)
+            return false;
         tenant.IsDeleted = false;
         tenant.DeletedAtUtc = null;
         tenant.DeletedBy = null;

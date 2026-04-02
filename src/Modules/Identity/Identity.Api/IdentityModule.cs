@@ -264,6 +264,7 @@ public static class IdentityModule
     {
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
+        services.AddSingleton<ITenantCodeConflictDetector, PostgresTenantCodeConflictDetector>();
     }
 
     // ── Keycloak Admin ────────────────────────────────────────────────────────

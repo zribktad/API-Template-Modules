@@ -18,32 +18,38 @@ public sealed class CreateTenantCommandHandler
         CreateTenantCommand command,
         ITenantRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
+        ITenantCodeConflictDetector tenantCodeConflictDetector,
         CancellationToken ct
     )
     {
-        if (await repository.CodeExistsAsync(command.Request.Code, ct))
+        TenantEntity tenant;
+        try
+        {
+            tenant = await unitOfWork.ExecuteInTransactionAsync(
+                async () =>
+                {
+                    Guid id = Guid.NewGuid();
+                    TenantEntity entity = new()
+                    {
+                        Id = id,
+                        TenantId = id,
+                        Code = command.Request.Code,
+                        Name = command.Request.Name,
+                    };
+
+                    await repository.AddAsync(entity, ct);
+                    return entity;
+                },
+                ct
+            );
+        }
+        catch (Exception ex) when (tenantCodeConflictDetector.IsCodeConflict(ex))
+        {
             return (
                 DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code),
                 new OutgoingMessages()
             );
-
-        var tenant = await unitOfWork.ExecuteInTransactionAsync(
-            async () =>
-            {
-                var id = Guid.NewGuid();
-                var entity = new TenantEntity
-                {
-                    Id = id,
-                    TenantId = id,
-                    Code = command.Request.Code,
-                    Name = command.Request.Name,
-                };
-
-                await repository.AddAsync(entity, ct);
-                return entity;
-            },
-            ct
-        );
+        }
 
         OutgoingMessages messages = new();
         messages.Add(new CacheInvalidationNotification(CacheTags.Tenants));

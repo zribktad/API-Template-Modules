@@ -1,6 +1,5 @@
 using ErrorOr;
 using Identity.Domain;
-using Microsoft.Extensions.Logging;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
 
