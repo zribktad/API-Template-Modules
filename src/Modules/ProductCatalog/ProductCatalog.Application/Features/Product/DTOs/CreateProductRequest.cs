@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Application.Features.Product.DTOs;
 

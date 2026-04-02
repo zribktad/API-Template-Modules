@@ -1,4 +1,4 @@
-using APITemplate.Application.Features.Product.Validation;
+using ProductCatalog.Application.Features.Product.Validation;
 using Shouldly;
 using Xunit;
 
