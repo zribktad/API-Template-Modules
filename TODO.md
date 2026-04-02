@@ -20,17 +20,17 @@
 
 ## Request Context & Observability Enhancements
 
-- [ ] Enhance `RequestContextMiddleware` with tenant ID extraction from claims and Activity tag enrichment for distributed tracing.
-- [ ] Add `IHttpMetricsTagsFeature` enrichment (api_surface, authenticated) for custom telemetry dimensions.
+- [x] Enhance `RequestContextMiddleware` with tenant ID extraction from claims and Activity tag enrichment for distributed tracing.
+- [x] Add `IHttpMetricsTagsFeature` enrichment (api_surface, authenticated) for custom telemetry dimensions.
 - [x] Return `X-Trace-Id` response header alongside existing `X-Correlation-Id` and `X-Elapsed-Ms`.
-- [ ] Enhance Serilog request logging with intelligent log levels (499 client abort vs 5xx server error vs 4xx validation).
-- [ ] Enrich Serilog diagnostic context with `RequestHost` and `RequestScheme`.
+- [x] Enhance Serilog request logging with intelligent log levels (499 client abort vs 5xx server error vs 4xx validation).
+- [x] Enrich Serilog diagnostic context with `RequestHost` and `RequestScheme`.
 
 ## Logging Redaction
 
-- [ ] Implement data classification for logging (Personal, Sensitive categories).
-- [ ] Configure HMAC redaction for sensitive data and erasing redaction for personal data.
-- [ ] Add environment-based HMAC key resolution from configuration.
+- [x] Implement data classification for logging (Personal, Sensitive categories).
+- [x] Configure HMAC redaction for sensitive data and erasing redaction for personal data.
+- [x] Add environment-based HMAC key resolution from configuration.
 
 ## Authentication & Authorization Enhancements
 
@@ -42,13 +42,13 @@
 ## Exception Handling Enhancements
 
 - [x] Enhance `ApiExceptionHandler` with structured error metadata preservation in `ProblemDetails.Extensions["metadata"]`.
-- [ ] Add error code fallback logic (check `exception.ErrorCode` then `metadata["errorCode"]` then `ErrorCatalog.General.Unknown`).
+- [x] Add error code fallback logic (check `exception.ErrorCode` then `metadata["errorCode"]` then `ErrorCatalog.General.Unknown`).
 - [x] Differentiate logging by status code (LogError for 5xx, LogWarning for handled exceptions).
 
 ## Output Caching Enhancements
 
 - [x] Add `TenantAwareOutputCachePolicy` — cache key isolation per tenant to prevent cross-tenant data leaks.
-- [ ] Expand cache policies to cover all cacheable resources (Tenants, TenantInvitations, Users, Files alongside existing Products, Categories, Reviews, ProductData).
+- [x] Expand cache policies to cover all cacheable resources (Tenants, TenantInvitations, Users, Files alongside existing Products, Categories, Reviews, ProductData).
 
 ## Controller Base Enhancements
 
@@ -65,13 +65,13 @@
 
 ## Health Check Helpers
 
-- [ ] Extract health check helper extensions: `AddPostgreSqlHealthCheck()`, `AddDragonflyHealthCheck()` with standardized tags and naming.
+- [x] Extract health check helper extensions: `AddPostgreSqlHealthCheck()`, `AddDragonflyHealthCheck()` with standardized tags and naming.
 
 ## Infrastructure Generics
 
 - [x] Make `UnitOfWork` generic over `DbContext` instead of hardcoded to `AppDbContext` — enables reuse across per-module contexts.
 - [x] Make `RepositoryBase<T>` accept generic `DbContext` parameter instead of casting to `AppDbContext`.
-- [ ] Extract `TenantAuditableDbContext` as abstract reusable base class with `TenantAuditableDbContextDependencies` record for dependency encapsulation.
+- [x] Extract `TenantAuditableDbContext` as abstract reusable base class with `TenantAuditableDbContextDependencies` record for dependency encapsulation. (ModuleDbContext already serves this role)
 - [ ] Make `IEntityNormalizationService` optional (nullable) in DbContext — not all modules need normalization.
 - [ ] Improve `DesignTimeConnectionStringResolver` with dynamic path resolution (walk up directory tree) and environment-specific appsettings loading.
 

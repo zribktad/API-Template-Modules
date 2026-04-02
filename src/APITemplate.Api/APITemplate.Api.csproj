@@ -60,5 +60,6 @@
     <PackageReference Include="WolverineFx" />
     <PackageReference Include="WolverineFx.EntityFrameworkCore" />
     <PackageReference Include="WolverineFx.Postgresql" />
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
   </ItemGroup>
 </Project>
