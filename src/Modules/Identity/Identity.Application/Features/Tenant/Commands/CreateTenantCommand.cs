@@ -3,6 +3,7 @@ using Identity.Application.Features.Tenant.DTOs;
 using Identity.Application.Features.Tenant.Mappings;
 using Identity.Domain;
 using Identity.Domain.Interfaces;
+using Identity.Domain.ValueObjects;
 using SharedKernel.Application.Events;
 using SharedKernel.Domain.Interfaces;
 using Wolverine;
@@ -22,6 +23,10 @@ public sealed class CreateTenantCommandHandler
         CancellationToken ct
     )
     {
+        ErrorOr<TenantCode> codeResult = TenantCode.Create(command.Request.Code);
+        if (codeResult.IsError)
+            return (codeResult.FirstError, OutgoingMessagesHelper.Empty);
+
         TenantEntity tenant;
         try
         {
@@ -31,7 +36,7 @@ public sealed class CreateTenantCommandHandler
                     Guid id = Guid.NewGuid();
                     TenantEntity entity = TenantEntity.Create(
                         id,
-                        command.Request.Code,
+                        codeResult.Value,
                         command.Request.Name
                     );
 

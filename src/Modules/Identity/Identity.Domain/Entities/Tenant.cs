@@ -29,12 +29,12 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
 
-    public static Tenant Create(Guid id, string code, string name) =>
+    public static Tenant Create(Guid id, TenantCode code, string name) =>
         new()
         {
             Id = id,
             TenantId = id,
-            Code = TenantCode.FromPersistence(code.Trim()),
+            Code = code,
             Name = name,
         };
 
