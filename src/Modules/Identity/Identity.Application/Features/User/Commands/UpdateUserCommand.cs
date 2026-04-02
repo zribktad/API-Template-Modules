@@ -1,8 +1,6 @@
 using ErrorOr;
 using Identity.Domain;
 using Identity.Domain.ValueObjects;
-using SharedKernel.Application.Extensions;
-using SharedKernel.Domain.Entities.Contracts;
 using Wolverine;
 
 namespace Identity.Application.Features.User;

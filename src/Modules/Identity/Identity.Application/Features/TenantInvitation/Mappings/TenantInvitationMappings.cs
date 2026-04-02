@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Identity.Application.Features.TenantInvitation.DTOs;
 using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
 
 namespace Identity.Application.Features.TenantInvitation.Mappings;

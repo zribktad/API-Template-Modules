@@ -1,5 +1,4 @@
 using Ardalis.Specification;
-using Identity.Application.Features.TenantInvitation.DTOs;
 using Identity.Application.Features.TenantInvitation.Mappings;
 using Identity.Domain.Entities;
 using Identity.Domain.ValueObjects;
