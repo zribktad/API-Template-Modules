@@ -11,9 +11,7 @@ public sealed record UpdateProductRequest(
     [MaxLength(200, ErrorMessage = "Product name must not exceed 200 characters.")]
         string Name,
     string? Description,
-    [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than zero.")] decimal Price,
+    [Range(0.0, double.MaxValue, ErrorMessage = "Price must be non-negative.")] decimal Price,
     Guid? CategoryId = null,
     IReadOnlyCollection<Guid>? ProductDataIds = null
 ) : IProductRequest;
-
-

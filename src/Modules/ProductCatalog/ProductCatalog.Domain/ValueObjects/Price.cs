@@ -24,5 +24,8 @@ public readonly record struct Price
     /// <summary>Factory method for EF Core use only. Bypasses validation as values come from persistence.</summary>
     public static Price FromPersistence(decimal value) => new(value);
 
+    /// <summary>Represents a zero price (e.g. free products).</summary>
+    public static Price Zero => new(0);
+
     public static implicit operator decimal(Price price) => price.Value;
 }

@@ -112,7 +112,7 @@ public sealed class UpdateProductsCommandHandler
                     UpdateProductItem item = items[i];
                     ProductEntity product = productMap[item.Id];
 
-                    Price price = Price.Create(item.Price).Value;
+                    Price price = Price.FromPersistence(item.Price);
                     product.UpdateDetails(item.Name, item.Description, price, item.CategoryId);
 
                     if (item.ProductDataIds is not null)

@@ -36,10 +36,9 @@ public class CreateProductRequestValidatorTests
     }
 
     [Theory]
-    [InlineData(0)]
     [InlineData(-1)]
     [InlineData(-100.50)]
-    public void Annotation_PriceZeroOrNegative_IsInvalid(decimal price)
+    public void Annotation_PriceNegative_IsInvalid(decimal price)
     {
         var request = new CreateProductRequest("Valid Name", null, price);
 
@@ -47,6 +46,16 @@ public class CreateProductRequestValidatorTests
 
         result.IsValid.ShouldBeFalse();
         result.Errors.ShouldContain(e => e.PropertyName == "Price");
+    }
+
+    [Fact]
+    public void Annotation_PriceZero_IsValid()
+    {
+        var request = new CreateProductRequest("Valid Name", null, 0m);
+
+        var result = _sut.Validate(request);
+
+        result.Errors.ShouldNotContain(e => e.PropertyName == "Price");
     }
 
     // --- FluentValidation tests (cross-field rules) ---
@@ -59,7 +68,8 @@ public class CreateProductRequestValidatorTests
         decimal price,
         string? description,
         bool expectedIsValid,
-        string? expectedErrorProperty)
+        string? expectedErrorProperty
+    )
     {
         var result = _sut.Validate(new CreateProductRequest("Any name", description, price));
 

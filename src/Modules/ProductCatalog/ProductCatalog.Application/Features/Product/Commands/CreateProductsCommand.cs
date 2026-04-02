@@ -65,7 +65,7 @@ public sealed class CreateProductsCommandHandler
         List<ProductEntity> entities = items
             .Select(item =>
             {
-                Price price = Price.Create(item.Price).Value;
+                Price price = Price.FromPersistence(item.Price);
                 return ProductEntity.Create(
                     item.Name,
                     item.Description,

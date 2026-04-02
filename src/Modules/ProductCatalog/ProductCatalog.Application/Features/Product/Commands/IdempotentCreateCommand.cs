@@ -22,7 +22,7 @@ public sealed class IdempotentCreateCommandHandler
             Id = Guid.NewGuid(),
             Name = command.Request.Name,
             Description = command.Request.Description,
-            Price = Price.FromPersistence(0),
+            Price = Price.Zero,
         };
 
         await unitOfWork.ExecuteInTransactionAsync(
