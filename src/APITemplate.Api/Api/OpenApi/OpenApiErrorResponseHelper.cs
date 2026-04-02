@@ -22,20 +22,40 @@ internal static class OpenApiErrorResponseHelper
     {
         var statusCodeKey = statusCode.ToString();
         operation.Responses ??= new OpenApiResponses();
-        if (operation.Responses.ContainsKey(statusCodeKey))
-            return;
 
         var resolvedDescription = string.IsNullOrWhiteSpace(description)
             ? ReasonPhrases.GetReasonPhrase(statusCode)
             : description;
 
-        operation.Responses[statusCodeKey] = new OpenApiResponse
+        if (operation.Responses.TryGetValue(statusCodeKey, out IOpenApiResponse? existingBase))
         {
-            Description = resolvedDescription,
-            Content = new Dictionary<string, OpenApiMediaType>
+            if (schema is not null && existingBase is OpenApiResponse existing)
+            {
+                existing.Content ??= new Dictionary<string, OpenApiMediaType>();
+                if (
+                    existing.Content.TryGetValue(
+                        "application/problem+json",
+                        out OpenApiMediaType? mediaType
+                    )
+                )
+                    mediaType.Schema ??= schema;
+                else
+                    existing.Content["application/problem+json"] = new OpenApiMediaType
+                    {
+                        Schema = schema,
+                    };
+            }
+            return;
+        }
+
+        OpenApiResponse response = new() { Description = resolvedDescription };
+        if (schema is not null)
+        {
+            response.Content = new Dictionary<string, OpenApiMediaType>
             {
                 ["application/problem+json"] = new OpenApiMediaType { Schema = schema },
-            },
-        };
+            };
+        }
+        operation.Responses[statusCodeKey] = response;
     }
 }

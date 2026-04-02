@@ -64,7 +64,9 @@ public sealed class CsrfValidationMiddleware(
                 AuthConstants.Csrf.HeaderName,
                 out Microsoft.Extensions.Primitives.StringValues value
             )
-            && value == AuthConstants.Csrf.HeaderValue
+            && value.Any(v =>
+                string.Equals(v, AuthConstants.Csrf.HeaderValue, StringComparison.Ordinal)
+            )
         )
         {
             await next(context);

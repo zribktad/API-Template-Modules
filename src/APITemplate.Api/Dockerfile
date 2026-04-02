@@ -1,3 +1,4 @@
+# Build context: repository root (docker-compose.yml sets context: .)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
@@ -5,12 +6,8 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY ["Directory.Packages.props", "./"]
-COPY ["src/APITemplate.Api/APITemplate.Api.csproj", "APITemplate.Api/"]
-COPY ["src/APITemplate.Application/APITemplate.Application.csproj", "APITemplate.Application/"]
-COPY ["src/APITemplate.Domain/APITemplate.Domain.csproj", "APITemplate.Domain/"]
-COPY ["src/APITemplate.Infrastructure/APITemplate.Infrastructure.csproj", "APITemplate.Infrastructure/"]
+COPY ["src/", "./"]
 RUN dotnet restore "APITemplate.Api/APITemplate.Api.csproj"
-COPY src/ ./
 WORKDIR "/src/APITemplate.Api"
 RUN dotnet build -c Release -o /app/build
 

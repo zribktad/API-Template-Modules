@@ -38,8 +38,6 @@ public sealed class ProblemDetailsOpenApiTransformer : IOpenApiDocumentTransform
                 int[] errorStatusCodes =
                 [
                     StatusCodes.Status400BadRequest,
-                    StatusCodes.Status401Unauthorized,
-                    StatusCodes.Status403Forbidden,
                     StatusCodes.Status404NotFound,
                     StatusCodes.Status409Conflict,
                     StatusCodes.Status500InternalServerError,
