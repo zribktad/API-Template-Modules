@@ -1,7 +1,6 @@
-using ProductCatalog.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using ProductCatalog.Infrastructure.Persistence;
 using ProductApplicationRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
-using ProductDomainRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
 
 namespace ProductCatalog.Infrastructure.Repositories;
 
@@ -9,7 +8,7 @@ namespace ProductCatalog.Infrastructure.Repositories;
 /// EF Core repository for <see cref="Product"/> with specification-based listing,
 /// count, category facet, and price bucket facet queries.
 /// </summary>
-public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepository, ProductDomainRepository
+public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepository
 {
     private readonly ProductCatalogDbContext _dbContext;
 
@@ -103,7 +102,9 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
 
         int[] countArray = counts?.ToArray() ?? new int[DefaultPriceBuckets.Count];
         return DefaultPriceBuckets
-            .Select((bucket, i) => bucket with { Count = i < countArray.Length ? countArray[i] : 0 })
+            .Select(
+                (bucket, i) => bucket with { Count = i < countArray.Length ? countArray[i] : 0 }
+            )
             .ToArray();
     }
 
@@ -116,6 +117,12 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
     )
     {
         public int[] ToArray() =>
-            [ZeroToFifty, FiftyToOneHundred, OneHundredToTwoHundredFifty, TwoHundredFiftyToFiveHundred, FiveHundredAndAbove];
+            [
+                ZeroToFifty,
+                FiftyToOneHundred,
+                OneHundredToTwoHundredFifty,
+                TwoHundredFiftyToFiveHundred,
+                FiveHundredAndAbove,
+            ];
     }
 }

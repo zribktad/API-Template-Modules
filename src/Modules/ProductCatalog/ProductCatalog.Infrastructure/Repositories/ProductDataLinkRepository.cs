@@ -1,8 +1,8 @@
-using SharedKernel.Application.Context;
+using Microsoft.EntityFrameworkCore;
 using ProductCatalog.Domain.Entities;
 using ProductCatalog.Domain.Interfaces;
 using ProductCatalog.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using SharedKernel.Application.Context;
 
 namespace ProductCatalog.Infrastructure.Repositories;
 
@@ -15,7 +15,10 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     private readonly ProductCatalogDbContext _dbContext;
     private readonly ITenantProvider _tenantProvider;
 
-    public ProductDataLinkRepository(ProductCatalogDbContext dbContext, ITenantProvider tenantProvider)
+    public ProductDataLinkRepository(
+        ProductCatalogDbContext dbContext,
+        ITenantProvider tenantProvider
+    )
     {
         _dbContext = dbContext;
         _tenantProvider = tenantProvider;
@@ -38,7 +41,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
                 )
             : _dbContext.ProductDataLinks.Where(link => link.ProductId == productId);
 
-        return await query.ToListAsync(ct);
+        return await query.AsNoTracking().ToListAsync(ct);
     }
 
     public async Task<
@@ -60,7 +63,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
                 )
             : _dbContext.ProductDataLinks.Where(link => productIds.Contains(link.ProductId));
 
-        var links = await query.ToListAsync(ct);
+        var links = await query.AsNoTracking().ToListAsync(ct);
         return links
             .GroupBy(link => link.ProductId)
             .ToDictionary(
@@ -73,7 +76,10 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     public Task<bool> HasActiveLinksForProductDataAsync(
         Guid productDataId,
         CancellationToken ct = default
-    ) => _dbContext.ProductDataLinks.AnyAsync(link => link.ProductDataId == productDataId, ct);
+    ) =>
+        _dbContext
+            .ProductDataLinks.AsNoTracking()
+            .AnyAsync(link => link.ProductDataId == productDataId, ct);
 
     /// <summary>
     /// Stages removal of all active links for the given product data document so they
@@ -94,5 +100,3 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         _dbContext.ProductDataLinks.RemoveRange(links);
     }
 }
-
-

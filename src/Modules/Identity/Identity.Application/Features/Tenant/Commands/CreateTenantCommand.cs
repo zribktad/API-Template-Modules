@@ -29,13 +29,11 @@ public sealed class CreateTenantCommandHandler
                 async () =>
                 {
                     Guid id = Guid.NewGuid();
-                    TenantEntity entity = new()
-                    {
-                        Id = id,
-                        TenantId = id,
-                        Code = command.Request.Code,
-                        Name = command.Request.Name,
-                    };
+                    TenantEntity entity = TenantEntity.Create(
+                        id,
+                        command.Request.Code,
+                        command.Request.Name
+                    );
 
                     await repository.AddAsync(entity, ct);
                     return entity;

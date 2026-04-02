@@ -55,16 +55,12 @@ public sealed class CreateTenantInvitationCommandHandler
         string rawToken = tokenGenerator.GenerateToken();
         string tokenHash = tokenGenerator.HashToken(rawToken);
 
-        TenantInvitationEntity invitation = new()
-        {
-            Id = Guid.NewGuid(),
-            Email = command.Request.Email.Trim(),
-            NormalizedEmail = normalizedEmail,
-            TokenHash = tokenHash,
-            ExpiresAtUtc = timeProvider
-                .GetUtcNow()
-                .UtcDateTime.AddHours(opts.InvitationTokenExpiryHours),
-        };
+        TenantInvitationEntity invitation = TenantInvitationEntity.Create(
+            command.Request.Email,
+            tokenHash,
+            opts.InvitationTokenExpiryHours,
+            timeProvider
+        );
 
         await invitationRepository.AddAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);

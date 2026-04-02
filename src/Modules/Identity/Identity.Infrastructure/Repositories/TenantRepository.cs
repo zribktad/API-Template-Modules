@@ -51,6 +51,8 @@ public sealed class TenantRepository : RepositoryBase<Tenant>, ITenantRepository
                 nameof(id)
             );
 
-        return await UnfilteredTenants.FirstOrDefaultAsync(t => t.Id == guid, cancellationToken);
+        return await UnfilteredTenants
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == guid, cancellationToken);
     }
 }

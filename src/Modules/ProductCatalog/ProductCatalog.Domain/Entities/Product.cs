@@ -38,6 +38,7 @@ public sealed class Product : IAuditableTenantEntity, IHasId
 
     public Guid? CategoryId { get; set; }
 
+    /// <summary>Infrastructure-only navigation for query projections. Domain logic must use <see cref="CategoryId"/> instead.</summary>
     public Category? Category { get; set; }
 
     public ICollection<ProductDataLink> ProductDataLinks { get; set; } = [];
@@ -47,6 +48,34 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
+
+    /// <summary>
+    /// Creates a new <see cref="Product"/> with the given fields and optional product-data links.
+    /// </summary>
+    public static Product Create(
+        string name,
+        string? description,
+        decimal price,
+        Guid? categoryId,
+        IEnumerable<Guid>? productDataIds
+    )
+    {
+        Guid id = Guid.NewGuid();
+        Product product = new()
+        {
+            Id = id,
+            Name = name,
+            Description = description,
+            Price = price,
+            CategoryId = categoryId,
+        };
+        if (productDataIds is not null)
+        {
+            foreach (Guid pdId in productDataIds.Distinct())
+                product.ProductDataLinks.Add(ProductDataLink.Create(id, pdId));
+        }
+        return product;
+    }
 
     /// <summary>
     /// Atomically replaces all mutable product fields in a single call, enforcing property-level invariants.
@@ -63,21 +92,21 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     /// Reconciles the product's <see cref="ProductDataLinks"/> collection against the desired set of <paramref name="targetIds"/>.
     /// Removes links not in the target set and creates new links as needed.
     /// </summary>
-    public void SyncProductDataLinks(
-        HashSet<Guid> targetIds,
-        Dictionary<Guid, ProductDataLink> existingById
-    )
+    public void SyncProductDataLinks(IEnumerable<Guid> targetIds)
     {
-        var linksToRemove = ProductDataLinks
-            .Where(link => !targetIds.Contains(link.ProductDataId))
+        HashSet<Guid> targetSet = targetIds.ToHashSet();
+        Dictionary<Guid, ProductDataLink> existingById = ProductDataLinks.ToDictionary(link =>
+            link.ProductDataId
+        );
+
+        ProductDataLink[] linksToRemove = ProductDataLinks
+            .Where(link => !targetSet.Contains(link.ProductDataId))
             .ToArray();
 
-        foreach (var link in linksToRemove)
-        {
+        foreach (ProductDataLink link in linksToRemove)
             ProductDataLinks.Remove(link);
-        }
 
-        foreach (Guid productDataId in targetIds)
+        foreach (Guid productDataId in targetSet)
         {
             if (!existingById.TryGetValue(productDataId, out ProductDataLink? existingLink))
             {
@@ -86,13 +115,7 @@ public sealed class Product : IAuditableTenantEntity, IHasId
             }
 
             if (existingLink.IsDeleted)
-            {
                 existingLink.Restore();
-                if (!ProductDataLinks.Contains(existingLink))
-                {
-                    ProductDataLinks.Add(existingLink);
-                }
-            }
         }
     }
 

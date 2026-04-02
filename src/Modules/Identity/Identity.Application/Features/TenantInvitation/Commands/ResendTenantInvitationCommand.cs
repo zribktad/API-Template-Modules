@@ -50,7 +50,7 @@ public sealed class ResendTenantInvitationCommandHandler
         TenantEntity tenant = tenantResult.Value;
 
         string rawToken = tokenGenerator.GenerateToken();
-        invitation.TokenHash = tokenGenerator.HashToken(rawToken);
+        invitation.RefreshToken(tokenGenerator.HashToken(rawToken));
 
         await invitationRepository.UpdateAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);

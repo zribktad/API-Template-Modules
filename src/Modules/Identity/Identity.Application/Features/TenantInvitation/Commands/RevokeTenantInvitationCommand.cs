@@ -26,7 +26,7 @@ public sealed class RevokeTenantInvitationCommandHandler
             return (invitationResult.Errors, OutgoingMessagesHelper.Empty);
         TenantInvitationEntity invitation = invitationResult.Value;
 
-        invitation.Status = InvitationStatus.Revoked;
+        invitation.Revoke();
         await invitationRepository.UpdateAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);
 

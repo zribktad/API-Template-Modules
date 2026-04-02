@@ -27,7 +27,6 @@ using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Health;
 using SharedKernel.Infrastructure.Registration;
 using ProductApplicationRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
-using ProductDomainRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
 
 namespace ProductCatalog.Api;
 
@@ -49,7 +48,6 @@ public static class ProductCatalogModule
             .ForwardUnitOfWork<ProductCatalog.Domain.ProductCatalogDbMarker>()
             .AddStoredProcedureSupport()
             .AddRepository<ProductApplicationRepository, ProductRepository>()
-            .AddRepository<ProductDomainRepository, ProductRepository>()
             .AddRepository<ICategoryRepository, CategoryRepository>()
             .AddRepository<IProductDataLinkRepository, ProductDataLinkRepository>()
             .AddRepository<IProductDataRepository, ProductDataRepository>()
