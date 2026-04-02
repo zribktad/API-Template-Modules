@@ -49,7 +49,12 @@ public sealed class RequestContextMiddleware
                 )
             )
             using (
-                LogContext.PushProperty(RequestContextConstants.LogProperties.TenantId, tenantId)
+                string.IsNullOrWhiteSpace(tenantId)
+                    ? null
+                    : LogContext.PushProperty(
+                        RequestContextConstants.LogProperties.TenantId,
+                        tenantId
+                    )
             )
             {
                 await _next(context);

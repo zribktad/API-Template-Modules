@@ -16,6 +16,8 @@ public static class ApplicationBuilderExtensions
     {
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.UseMiddleware<RequestContextMiddleware>();
         app.UseSerilogRequestLogging(options =>
         {
@@ -48,8 +50,6 @@ public static class ApplicationBuilderExtensions
                 );
             };
         });
-        app.UseAuthentication();
-        app.UseAuthorization();
         app.UseOutputCache();
         app.UseApiDocumentation();
 
