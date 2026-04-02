@@ -1,8 +1,6 @@
 using ErrorOr;
-using Identity.Application.Common.Security;
 using Identity.Application.Features.User.DTOs;
 using Identity.Application.Logging;
-using Identity.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Identity.Application.Features.User;

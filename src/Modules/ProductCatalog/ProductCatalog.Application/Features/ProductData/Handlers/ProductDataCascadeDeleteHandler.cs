@@ -1,4 +1,3 @@
-using Contracts.Events;
 using Microsoft.Extensions.Logging;
 using Polly.Registry;
 using ProductCatalog.Application.Logging;

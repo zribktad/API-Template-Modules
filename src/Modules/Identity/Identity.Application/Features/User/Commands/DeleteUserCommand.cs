@@ -1,13 +1,8 @@
 using ErrorOr;
-using Identity.Application.Common.Security;
 using Identity.Application.Logging;
 using Identity.Domain;
-using Identity.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Extensions;
 using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;

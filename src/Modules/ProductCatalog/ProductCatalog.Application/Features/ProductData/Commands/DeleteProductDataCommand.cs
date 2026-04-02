@@ -1,10 +1,8 @@
-using Contracts.Events;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Polly.Registry;
 using ProductCatalog.Application.Logging;
 using ProductCatalog.Domain;
-using ProductCatalog.Domain.Interfaces;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Resilience;
 using Wolverine;
