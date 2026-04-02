@@ -22,12 +22,10 @@ public sealed class TenantInvitationRepository
         string tokenHash,
         CancellationToken ct = default
     ) =>
-        _db
-            .TenantInvitations.AsNoTracking()
-            .FirstOrDefaultAsync(
-                i => i.TokenHash == tokenHash && i.Status == InvitationStatus.Pending,
-                ct
-            );
+        _db.TenantInvitations.FirstOrDefaultAsync(
+            i => i.TokenHash == tokenHash && i.Status != InvitationStatus.Revoked,
+            ct
+        );
 
     public Task<bool> HasPendingInvitationAsync(
         string normalizedEmail,

@@ -65,13 +65,17 @@ public sealed class CreateTenantInvitationCommandHandler
         await invitationRepository.AddAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);
 
+        string invitationUrl = $"{opts.BaseUrl}/invitations/accept?token={rawToken}";
+
         OutgoingMessages messages = new();
         messages.Add(
             new TenantInvitationCreatedNotification(
                 invitation.Id,
                 invitation.Email,
                 tenant.Name,
-                rawToken
+                rawToken,
+                invitationUrl,
+                opts.InvitationTokenExpiryHours
             )
         );
         messages.Add(new CacheInvalidationNotification(CacheTags.TenantInvitations));

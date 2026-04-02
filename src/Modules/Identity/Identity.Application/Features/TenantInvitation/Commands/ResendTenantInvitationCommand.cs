@@ -1,7 +1,9 @@
 using ErrorOr;
 using Identity.Application.Common.Email;
+using Identity.Application.Options;
 using Identity.Domain;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
 using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
@@ -20,6 +22,7 @@ public sealed class ResendTenantInvitationCommandHandler
         ISecureTokenGenerator tokenGenerator,
         ITenantProvider tenantProvider,
         TimeProvider timeProvider,
+        IOptions<TenantInvitationOptions> invitationOptions,
         CancellationToken ct
     )
     {
@@ -49,11 +52,18 @@ public sealed class ResendTenantInvitationCommandHandler
             return (tenantResult.Errors, OutgoingMessagesHelper.Empty);
         TenantEntity tenant = tenantResult.Value;
 
+        TenantInvitationOptions opts = invitationOptions.Value;
         string rawToken = tokenGenerator.GenerateToken();
         invitation.RefreshToken(tokenGenerator.HashToken(rawToken));
 
         await invitationRepository.UpdateAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);
+
+        string invitationUrl = $"{opts.BaseUrl}/invitations/accept?token={rawToken}";
+        int remainingHours = (int)
+            Math.Ceiling(
+                (invitation.ExpiresAtUtc - timeProvider.GetUtcNow().UtcDateTime).TotalHours
+            );
 
         OutgoingMessages messages = new();
         messages.Add(
@@ -61,7 +71,9 @@ public sealed class ResendTenantInvitationCommandHandler
                 invitation.Id,
                 invitation.Email,
                 tenant.Name,
-                rawToken
+                rawToken,
+                invitationUrl,
+                remainingHours
             )
         );
         messages.Add(new CacheInvalidationNotification(CacheTags.TenantInvitations));
