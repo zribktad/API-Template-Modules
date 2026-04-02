@@ -1,4 +1,5 @@
 using Ardalis.Specification;
+using Identity.Domain.ValueObjects;
 
 namespace Identity.Application.Features.User.Specifications;
 
@@ -20,7 +21,7 @@ internal static class UserFilterCriteria
 
         if (!string.IsNullOrWhiteSpace(filter.Email))
         {
-            string normalizedEmail = filter.Email.Trim().ToUpperInvariant();
+            string normalizedEmail = Email.NormalizeRaw(filter.Email);
             query.Where(u => u.NormalizedEmail == normalizedEmail);
         }
 

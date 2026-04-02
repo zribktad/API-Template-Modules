@@ -42,7 +42,7 @@ public sealed class ChangeUserRoleCommandHandler
         messages.Add(
             new UserRoleChangedNotification(
                 user.Id,
-                user.Email,
+                user.Email.Value,
                 user.Username,
                 oldRole,
                 command.Request.Role.ToString()

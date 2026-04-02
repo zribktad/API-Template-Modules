@@ -56,7 +56,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
 
         // 2. Look for an accepted invitation matching the normalised email.
         //    Bypass tenant filter — at this point no tenant context is active.
-        string normalizedEmail = Email.FromPersistence(email).Normalize();
+        string normalizedEmail = Email.NormalizeRaw(email);
 
         TenantInvitation? invitation = await _db
             .TenantInvitations.IgnoreQueryFilters()

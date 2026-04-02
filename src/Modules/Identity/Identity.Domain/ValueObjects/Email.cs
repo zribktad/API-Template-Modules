@@ -32,8 +32,11 @@ public readonly record struct Email
     /// <summary>Factory method for EF Core use only. Bypasses validation as values come from persistence.</summary>
     public static Email FromPersistence(string value) => new(value);
 
+    /// <summary>Returns the canonical form of a raw email string without creating an Email instance.</summary>
+    public static string NormalizeRaw(string value) => value.Trim().ToUpperInvariant();
+
     /// <summary>Returns the canonical form of the email address: trimmed and converted to uppercase invariant.</summary>
-    public string Normalize() => Value.Trim().ToUpperInvariant();
+    public string Normalize() => Value.ToUpperInvariant();
 
     public static implicit operator string(Email email) => email.Value;
 }

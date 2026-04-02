@@ -14,7 +14,7 @@ public sealed class UserByEmailSpecification : Specification<AppUser>
     /// </summary>
     public UserByEmailSpecification(string email)
     {
-        string normalizedEmail = Email.FromPersistence(email).Normalize();
+        string normalizedEmail = Email.NormalizeRaw(email);
         Query.Where(u => u.NormalizedEmail == normalizedEmail).AsNoTracking();
     }
 }
