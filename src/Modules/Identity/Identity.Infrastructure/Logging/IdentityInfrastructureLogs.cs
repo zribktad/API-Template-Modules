@@ -78,7 +78,7 @@ internal static partial class IdentityInfrastructureLogs
     public static partial void KeycloakAdminTokenAcquisitionFailed(
         this ILogger logger,
         int status,
-        string body
+        [SensitiveData] string body
     );
 
     // UserProvisioningService (3020-3023)
