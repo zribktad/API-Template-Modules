@@ -27,6 +27,7 @@
     <Compile Include="Unit\Common\ConfigurationExtensionsTests.cs" />
     <Compile Include="Unit\ExceptionHandling\ApiExceptionHandlerTests.cs" />
     <Compile Include="Unit\Middleware\RequestContextMiddlewareTests.cs" />
+    <Compile Include="Unit\ProductCatalog\ProductCatalogModuleTests.cs" />
     <Compile Include="Unit\Security\PermissionAuthorizationHandlerTests.cs" />
     <Compile Include="Unit\Security\StaticRolePermissionMapTests.cs" />
     <Compile Include="Unit\BackgroundJobs\Jobs\JobExecutionTests.cs" />

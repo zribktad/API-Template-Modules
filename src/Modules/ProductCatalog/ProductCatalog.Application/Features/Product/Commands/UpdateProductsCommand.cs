@@ -1,6 +1,5 @@
 using Contracts.Events;
 using ErrorOr;
-using FluentValidation;
 using ProductCatalog.Application.Features.Product.Specifications;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.Entities;
@@ -31,17 +30,14 @@ public sealed class UpdateProductsCommandHandler
         ProductRepositoryContract repository,
         ICategoryRepository categoryRepository,
         IProductDataRepository productDataRepository,
-        IValidator<UpdateProductItem> itemValidator,
+        IBatchRule<UpdateProductItem> itemValidationRule,
         CancellationToken ct
     )
     {
         IReadOnlyList<UpdateProductItem> items = command.Request.Items;
         BatchFailureContext<UpdateProductItem> context = new(items);
 
-        await context.ApplyRulesAsync(
-            ct,
-            new FluentValidationBatchRule<UpdateProductItem>(itemValidator)
-        );
+        await context.ApplyRulesAsync(ct, itemValidationRule);
 
         HashSet<Guid> requestedIds = items
             .Where((_, i) => !context.IsFailed(i))

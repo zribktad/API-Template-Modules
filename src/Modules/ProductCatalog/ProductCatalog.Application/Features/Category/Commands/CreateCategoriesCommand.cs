@@ -1,9 +1,7 @@
 using Contracts.Events;
 using ErrorOr;
-using FluentValidation;
 using ProductCatalog.Domain;
 using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
 using Wolverine;
 using CategoryEntity = ProductCatalog.Domain.Entities.Category;
 
@@ -21,17 +19,14 @@ public sealed class CreateCategoriesCommandHandler
         OutgoingMessages
     )> LoadAsync(
         CreateCategoriesCommand command,
-        IValidator<CreateCategoryRequest> itemValidator,
+        IBatchRule<CreateCategoryRequest> itemValidationRule,
         CancellationToken ct
     )
     {
         IReadOnlyList<CreateCategoryRequest> items = command.Request.Items;
         BatchFailureContext<CreateCategoryRequest> context = new(items);
 
-        await context.ApplyRulesAsync(
-            ct,
-            new FluentValidationBatchRule<CreateCategoryRequest>(itemValidator)
-        );
+        await context.ApplyRulesAsync(ct, itemValidationRule);
 
         if (context.HasFailures)
         {

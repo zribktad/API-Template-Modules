@@ -1,6 +1,5 @@
 using Contracts.Events;
 using ErrorOr;
-using FluentValidation;
 using ProductCatalog.Application.Features.Category.Specifications;
 using ProductCatalog.Domain;
 using SharedKernel.Application.Batch;
@@ -27,16 +26,13 @@ public sealed class UpdateCategoriesCommandHandler
     )> LoadAsync(
         UpdateCategoriesCommand command,
         ICategoryRepository repository,
-        IValidator<UpdateCategoryItem> itemValidator,
+        IBatchRule<UpdateCategoryItem> itemValidationRule,
         CancellationToken ct
     )
     {
         IReadOnlyList<UpdateCategoryItem> items = command.Request.Items;
         BatchFailureContext<UpdateCategoryItem> context = new(items);
-        await context.ApplyRulesAsync(
-            ct,
-            new FluentValidationBatchRule<UpdateCategoryItem>(itemValidator)
-        );
+        await context.ApplyRulesAsync(ct, itemValidationRule);
 
         // Load all target categories and mark missing ones as failed
         var requestedIds = items
