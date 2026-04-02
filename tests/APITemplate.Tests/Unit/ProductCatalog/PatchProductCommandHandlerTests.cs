@@ -1,4 +1,5 @@
 using Contracts.Events;
+using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
