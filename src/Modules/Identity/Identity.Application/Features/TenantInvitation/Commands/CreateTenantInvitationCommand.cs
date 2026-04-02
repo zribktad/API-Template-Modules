@@ -68,7 +68,7 @@ public sealed class CreateTenantInvitationCommandHandler
         messages.Add(
             new TenantInvitationCreatedNotification(
                 invitation.Id,
-                invitation.Email,
+                invitation.Email.Value,
                 tenant.Name,
                 rawToken,
                 invitationUrl,

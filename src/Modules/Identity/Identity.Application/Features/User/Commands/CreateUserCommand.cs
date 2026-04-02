@@ -60,7 +60,7 @@ public sealed class CreateUserCommandHandler
             await repository.AddAsync(user, ct);
             await unitOfWork.CommitAsync(ct);
             OutgoingMessages messages = new();
-            messages.Add(new UserRegisteredNotification(user.Id, user.Email, user.Username));
+            messages.Add(new UserRegisteredNotification(user.Id, user.Email.Value, user.Username));
             messages.Add(new CacheInvalidationNotification(CacheTags.Users));
             return (user.ToResponse(), messages);
         }

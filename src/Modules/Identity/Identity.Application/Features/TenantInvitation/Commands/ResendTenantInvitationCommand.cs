@@ -2,7 +2,6 @@ using ErrorOr;
 using Identity.Application.Common.Email;
 using Identity.Application.Options;
 using Identity.Domain;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
@@ -69,7 +68,7 @@ public sealed class ResendTenantInvitationCommandHandler
         messages.Add(
             new TenantInvitationCreatedNotification(
                 invitation.Id,
-                invitation.Email,
+                invitation.Email.Value,
                 tenant.Name,
                 rawToken,
                 invitationUrl,

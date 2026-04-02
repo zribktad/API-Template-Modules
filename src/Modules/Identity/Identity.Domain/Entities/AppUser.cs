@@ -68,7 +68,4 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
 
     /// <summary>Returns the canonical form of a username: trimmed and converted to uppercase invariant.</summary>
     public static string NormalizeUsername(string username) => username.Trim().ToUpperInvariant();
-
-    /// <summary>Returns the canonical form of an email address: trimmed and converted to uppercase invariant.</summary>
-    public static string NormalizeEmail(string email) => email.Trim().ToUpperInvariant();
 }
