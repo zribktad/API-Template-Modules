@@ -1,7 +1,8 @@
+using ErrorOr;
 using Identity.Application.Common.Security;
 using Identity.Application.Features.User.DTOs;
+using Identity.Application.Logging;
 using Identity.Domain.Interfaces;
-using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace Identity.Application.Features.User;
@@ -29,11 +30,7 @@ public sealed class KeycloakPasswordResetCommandHandler
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogWarning(
-                ex,
-                "Failed to send password reset email for user {UserId}.",
-                user.Id
-            );
+            logger.PasswordResetEmailFailed(ex, user.Id);
         }
 
         return Result.Success;

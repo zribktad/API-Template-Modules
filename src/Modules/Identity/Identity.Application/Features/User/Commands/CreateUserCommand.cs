@@ -1,5 +1,6 @@
 using ErrorOr;
 using Identity.Application.Features.User.Mappings;
+using Identity.Application.Logging;
 using Identity.Domain;
 using Identity.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -66,22 +67,14 @@ public sealed class CreateUserCommandHandler
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(
-                ex,
-                "DB save failed after creating Keycloak user {KeycloakUserId}. Attempting compensating delete.",
-                keycloakUserId
-            );
+            logger.CreateUserDbSaveFailed(ex, keycloakUserId);
             try
             {
                 await keycloakAdmin.DeleteUserAsync(keycloakUserId, CancellationToken.None);
             }
             catch (Exception compensationEx)
             {
-                logger.LogError(
-                    compensationEx,
-                    "Compensating Keycloak delete failed for user {KeycloakUserId}. Manual cleanup required.",
-                    keycloakUserId
-                );
+                logger.CreateUserCompensatingDeleteFailed(compensationEx, keycloakUserId);
             }
             throw;
         }

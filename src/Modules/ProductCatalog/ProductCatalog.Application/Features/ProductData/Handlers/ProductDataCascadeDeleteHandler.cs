@@ -1,7 +1,8 @@
 using Contracts.Events;
-using SharedKernel.Application.Resilience;
 using Microsoft.Extensions.Logging;
 using Polly.Registry;
+using ProductCatalog.Application.Logging;
+using SharedKernel.Application.Resilience;
 
 namespace ProductCatalog.Application.Features.ProductData.Handlers;
 
@@ -32,21 +33,11 @@ public sealed class ProductDataCascadeDeleteHandler
                 ct
             );
 
-            logger.LogInformation(
-                "Cascade soft-deleted {Count} ProductData documents for tenant {TenantId}.",
-                count,
-                @event.TenantId
-            );
+            logger.ProductDataCascadeDeleteSucceeded(count, @event.TenantId);
         }
         catch (Exception ex)
         {
-            logger.LogError(
-                ex,
-                "Failed to cascade soft-delete ProductData documents for tenant {TenantId}. EF entities are already soft-deleted.",
-                @event.TenantId
-            );
+            logger.ProductDataCascadeDeleteFailed(ex, @event.TenantId);
         }
     }
 }
-
-
