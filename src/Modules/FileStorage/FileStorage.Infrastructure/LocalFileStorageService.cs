@@ -1,7 +1,7 @@
-using SharedKernel.Application.Context;
 using FileStorage.Application.Contracts;
-using SharedKernel.Application.Options.Infrastructure;
+using FileStorage.Application.Options;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Context;
 
 namespace FileStorage.Infrastructure;
 

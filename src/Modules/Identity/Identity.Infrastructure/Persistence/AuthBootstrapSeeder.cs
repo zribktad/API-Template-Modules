@@ -1,7 +1,7 @@
+using Identity.Application.Options;
 using Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options;
 
 namespace Identity.Infrastructure.Persistence;
 

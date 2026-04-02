@@ -24,6 +24,7 @@ using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
+using SharedKernel.Infrastructure.Health;
 using SharedKernel.Infrastructure.Registration;
 using ProductApplicationRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
 using ProductDomainRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
@@ -76,6 +77,7 @@ public static class ProductCatalogModule
                 new MigrationOptions(mongoSettings.DatabaseName),
                 config => config.LoadMigrationsFromAssembly(typeof(ProductCatalogModule).Assembly)
             );
+            services.AddHealthChecks().AddCheck<MongoDbHealthCheck>(HealthCheckNames.MongoDb);
         }
 
         services.AddResiliencePipeline(

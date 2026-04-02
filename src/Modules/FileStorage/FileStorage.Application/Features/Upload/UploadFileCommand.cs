@@ -1,6 +1,6 @@
+using FileStorage.Application.Options;
 using FileStorage.Domain;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options.Infrastructure;
 
 namespace FileStorage.Application.Features.Upload;
 

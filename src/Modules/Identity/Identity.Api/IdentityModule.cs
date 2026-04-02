@@ -1,5 +1,4 @@
 using FluentValidation;
-using Identity.Api.Authorization;
 using Identity.Api.Controllers.V1;
 using Identity.Api.Security;
 using Identity.Application.Common.Email;
@@ -31,7 +30,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
-using SharedKernel.Application.Options;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Domain.Entities;
 using SharedKernel.Infrastructure.Configuration;
@@ -79,6 +77,7 @@ public static class IdentityModule
                 o => !string.IsNullOrWhiteSpace(o.Code) && !string.IsNullOrWhiteSpace(o.Name),
                 "Bootstrap tenant code/name is required"
             );
+        services.AddValidatedOptions<TenantInvitationOptions>(configuration);
     }
 
     // ── CORS ─────────────────────────────────────────────────────────────────
