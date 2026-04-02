@@ -45,7 +45,7 @@ public sealed class CreateTenantCommandHandler
         catch (Exception ex) when (tenantCodeConflictDetector.IsCodeConflict(ex))
         {
             return (
-                DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code),
+                DomainErrors.Tenants.CodeAlreadyExists(codeResult.Value),
                 OutgoingMessagesHelper.Empty
             );
         }
