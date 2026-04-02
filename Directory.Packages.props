@@ -22,7 +22,7 @@
     <PackageVersion Include="HotChocolate.Diagnostics" Version="15.1.12" />
     <PackageVersion Include="Keycloak.AuthServices.Authentication" Version="2.8.0" />
     <PackageVersion Include="Keycloak.AuthServices.Authorization" Version="2.8.0" />
-    <PackageVersion Include="Keycloak.AuthServices.Sdk" Version="2.8.0" />
+    <PackageVersion Include="Keycloak.AuthServices.Sdk" Version="2.9.0" />
     <PackageVersion Include="Kot.MongoDB.Migrations" Version="3.1.0" />
     <PackageVersion Include="Kot.MongoDB.Migrations.DI" Version="3.1.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
