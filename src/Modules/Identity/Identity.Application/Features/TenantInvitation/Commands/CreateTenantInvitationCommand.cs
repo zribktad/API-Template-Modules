@@ -22,17 +22,15 @@ public sealed record CreateTenantInvitationCommand(CreateTenantInvitationRequest
 
 public sealed class CreateTenantInvitationCommandHandler
 {
-    public static async Task<ErrorOr<TenantInvitationResponse>> HandleAsync(
+    public static async Task<(ErrorOr<TenantInvitationResponse>, OutgoingMessages)> HandleAsync(
         CreateTenantInvitationCommand command,
         ITenantInvitationRepository invitationRepository,
         ITenantRepository tenantRepository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
         ISecureTokenGenerator tokenGenerator,
-        IMessageBus bus,
         ITenantProvider tenantProvider,
         TimeProvider timeProvider,
         IOptions<EmailOptions> emailOptions,
-        ILogger<CreateTenantInvitationCommandHandler> logger,
         CancellationToken ct
     )
     {
@@ -40,7 +38,10 @@ public sealed class CreateTenantInvitationCommandHandler
         string normalizedEmail = AppUser.NormalizeEmail(command.Request.Email);
 
         if (await invitationRepository.HasPendingInvitationAsync(normalizedEmail, ct))
-            return DomainErrors.Invitations.AlreadyPending(command.Request.Email);
+            return (
+                DomainErrors.Invitations.AlreadyPending(command.Request.Email),
+                new OutgoingMessages()
+            );
 
         ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
             tenantProvider.TenantId,
@@ -48,7 +49,7 @@ public sealed class CreateTenantInvitationCommandHandler
             ct
         );
         if (tenantResult.IsError)
-            return tenantResult.Errors;
+            return (tenantResult.Errors, new OutgoingMessages());
         TenantEntity tenant = tenantResult.Value;
 
         string rawToken = tokenGenerator.GenerateToken();
@@ -68,17 +69,16 @@ public sealed class CreateTenantInvitationCommandHandler
         await invitationRepository.AddAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);
 
-        await bus.PublishSafeAsync(
+        OutgoingMessages messages = new();
+        messages.Add(
             new TenantInvitationCreatedNotification(
                 invitation.Id,
                 invitation.Email,
                 tenant.Name,
                 rawToken
-            ),
-            logger
+            )
         );
-
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.TenantInvitations));
-        return invitation.ToResponse();
+        messages.Add(new CacheInvalidationNotification(CacheTags.TenantInvitations));
+        return (invitation.ToResponse(), messages);
     }
 }

@@ -16,12 +16,10 @@ public sealed record ChangeUserRoleCommand(Guid Id, ChangeUserRoleRequest Reques
 
 public sealed class ChangeUserRoleCommandHandler
 {
-    public static async Task<ErrorOr<Success>> HandleAsync(
+    public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         ChangeUserRoleCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        IMessageBus bus,
-        ILogger<ChangeUserRoleCommandHandler> logger,
         CancellationToken ct
     )
     {
@@ -31,7 +29,7 @@ public sealed class ChangeUserRoleCommandHandler
             ct
         );
         if (userResult.IsError)
-            return userResult.Errors;
+            return (userResult.Errors, new OutgoingMessages());
         AppUser user = userResult.Value;
 
         string oldRole = user.Role.ToString();
@@ -40,18 +38,17 @@ public sealed class ChangeUserRoleCommandHandler
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);
 
-        await bus.PublishSafeAsync(
+        OutgoingMessages messages = new();
+        messages.Add(
             new UserRoleChangedNotification(
                 user.Id,
                 user.Email,
                 user.Username,
                 oldRole,
                 command.Request.Role.ToString()
-            ),
-            logger
+            )
         );
-
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Users));
-        return Result.Success;
+        messages.Add(new CacheInvalidationNotification(CacheTags.Users));
+        return (Result.Success, messages);
     }
 }

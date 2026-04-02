@@ -14,16 +14,18 @@ public sealed record CreateTenantCommand(CreateTenantRequest Request);
 
 public sealed class CreateTenantCommandHandler
 {
-    public static async Task<ErrorOr<TenantResponse>> HandleAsync(
+    public static async Task<(ErrorOr<TenantResponse>, OutgoingMessages)> HandleAsync(
         CreateTenantCommand command,
         ITenantRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        IMessageBus bus,
         CancellationToken ct
     )
     {
         if (await repository.CodeExistsAsync(command.Request.Code, ct))
-            return DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code);
+            return (
+                DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code),
+                new OutgoingMessages()
+            );
 
         var tenant = await unitOfWork.ExecuteInTransactionAsync(
             async () =>
@@ -43,7 +45,8 @@ public sealed class CreateTenantCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Tenants));
-        return tenant.ToResponse();
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Tenants));
+        return (tenant.ToResponse(), messages);
     }
 }

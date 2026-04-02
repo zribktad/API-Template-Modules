@@ -9,11 +9,10 @@ public sealed record RevokeTenantInvitationCommand(Guid InvitationId);
 
 public sealed class RevokeTenantInvitationCommandHandler
 {
-    public static async Task<ErrorOr<Success>> HandleAsync(
+    public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         RevokeTenantInvitationCommand command,
         ITenantInvitationRepository invitationRepository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        IMessageBus bus,
         CancellationToken ct
     )
     {
@@ -24,14 +23,15 @@ public sealed class RevokeTenantInvitationCommandHandler
                 ct
             );
         if (invitationResult.IsError)
-            return invitationResult.Errors;
+            return (invitationResult.Errors, new OutgoingMessages());
         TenantInvitationEntity invitation = invitationResult.Value;
 
         invitation.Status = InvitationStatus.Revoked;
         await invitationRepository.UpdateAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.TenantInvitations));
-        return Result.Success;
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.TenantInvitations));
+        return (Result.Success, messages);
     }
 }
