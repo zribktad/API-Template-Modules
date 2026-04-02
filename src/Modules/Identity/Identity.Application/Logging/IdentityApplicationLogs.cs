@@ -17,7 +17,7 @@ internal static partial class IdentityApplicationLogs
     public static partial void CreateUserDbSaveFailed(
         this ILogger logger,
         Exception exception,
-        string keycloakUserId
+        [SensitiveData] string keycloakUserId
     );
 
     [LoggerMessage(
@@ -28,7 +28,7 @@ internal static partial class IdentityApplicationLogs
     public static partial void CreateUserCompensatingDeleteFailed(
         this ILogger logger,
         Exception exception,
-        string keycloakUserId
+        [SensitiveData] string keycloakUserId
     );
 
     // DeleteUserCommandHandler (2010)
@@ -40,7 +40,7 @@ internal static partial class IdentityApplicationLogs
     public static partial void DeleteUserDbDeleteFailed(
         this ILogger logger,
         Exception exception,
-        string? keycloakUserId
+        [SensitiveData] string? keycloakUserId
     );
 
     // KeycloakPasswordResetCommandHandler (2020)
