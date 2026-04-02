@@ -1,10 +1,5 @@
 using ErrorOr;
-using Identity.Application.Features.User.DTOs;
 using Identity.Domain;
-using Identity.Domain.Interfaces;
-using SharedKernel.Application.Events;
-using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
