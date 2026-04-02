@@ -517,7 +517,7 @@ public sealed class CreateProductsCommandHandler
         ICategoryRepository categoryRepository,
         IUnitOfWork unitOfWork,
         IMessageBus bus,
-        IValidator<CreateProductRequest> itemValidator,
+        IBatchRule<CreateProductRequest> itemValidationRule,
         CancellationToken ct
     )
     {
@@ -525,10 +525,7 @@ public sealed class CreateProductsCommandHandler
         var context = new BatchFailureContext<CreateProductRequest>(items);
 
         // Step 1: Validate each item
-        await context.ApplyRulesAsync(
-            ct,
-            new FluentValidationBatchRule<CreateProductRequest>(itemValidator)
-        );
+        await context.ApplyRulesAsync(ct, itemValidationRule);
 
         if (context.HasFailures)
             return context.ToFailureResponse();

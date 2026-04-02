@@ -1,4 +1,3 @@
-using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProductCatalog.Api;
@@ -34,28 +33,16 @@ public sealed class ProductCatalogModuleTests
         using ServiceProvider provider = services.BuildServiceProvider();
         using IServiceScope scope = provider.CreateScope();
 
-        scope
-            .ServiceProvider.GetRequiredService<IBatchRule<CreateProductRequest>>()
-            .ShouldBeOfType<FluentValidationBatchRule<CreateProductRequest>>();
-        scope
-            .ServiceProvider.GetRequiredService<IBatchRule<UpdateProductItem>>()
-            .ShouldBeOfType<FluentValidationBatchRule<UpdateProductItem>>();
-        scope
-            .ServiceProvider.GetRequiredService<IBatchRule<CreateCategoryRequest>>()
-            .ShouldBeOfType<FluentValidationBatchRule<CreateCategoryRequest>>();
-        scope
-            .ServiceProvider.GetRequiredService<IBatchRule<UpdateCategoryItem>>()
-            .ShouldBeOfType<FluentValidationBatchRule<UpdateCategoryItem>>();
+        AssertBatchRuleRegistered<CreateProductRequest>(scope);
+        AssertBatchRuleRegistered<UpdateProductItem>(scope);
+        AssertBatchRuleRegistered<CreateCategoryRequest>(scope);
+        AssertBatchRuleRegistered<UpdateCategoryItem>(scope);
+    }
 
+    private static void AssertBatchRuleRegistered<T>(IServiceScope scope)
+    {
         scope
-            .ServiceProvider.GetRequiredService<IValidator<CreateProductRequest>>()
-            .ShouldNotBeNull();
-        scope.ServiceProvider.GetRequiredService<IValidator<UpdateProductItem>>().ShouldNotBeNull();
-        scope
-            .ServiceProvider.GetRequiredService<IValidator<CreateCategoryRequest>>()
-            .ShouldNotBeNull();
-        scope
-            .ServiceProvider.GetRequiredService<IValidator<UpdateCategoryItem>>()
-            .ShouldNotBeNull();
+            .ServiceProvider.GetRequiredService<IBatchRule<T>>()
+            .ShouldBeOfType<FluentValidationBatchRule<T>>();
     }
 }

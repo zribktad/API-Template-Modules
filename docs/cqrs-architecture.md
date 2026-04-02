@@ -239,8 +239,7 @@ Batch operations use `BatchFailureContext<T>` + `IBatchRule<T>` to collect per-i
 ```csharp
 var context = new BatchFailureContext<CreateProductRequest>(items);
 
-await context.ApplyRulesAsync(ct,
-    new FluentValidationBatchRule<CreateProductRequest>(itemValidator));
+await context.ApplyRulesAsync(ct, itemValidationRule);
 
 // Additional reference checks...
 context.AddFailures(BatchFailureMerge.MergeByIndex(categoryFailures, productDataFailures));
@@ -249,7 +248,7 @@ if (context.HasFailures)
     return context.ToFailureResponse();
 ```
 
-Batch rules live in `Application/Common/Batch/Rules/` and include `FluentValidationBatchRule`, `MarkMissingByIdBatchRule`, and `MarkMissingIdsBatchRule`.
+`IBatchRule<T>` is registered as an open generic in each module's DI setup (e.g. `services.AddScoped(typeof(IBatchRule<>), typeof(FluentValidationBatchRule<>))`), so handlers receive it via constructor/method injection. Batch rules live in `Application/Common/Batch/Rules/` and include `FluentValidationBatchRule`, `MarkMissingByIdBatchRule`, and `MarkMissingIdsBatchRule`.
 
 ---
 
