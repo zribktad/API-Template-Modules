@@ -104,12 +104,7 @@ public sealed class UpdateProductsCommandHandler
                     product.UpdateDetails(item.Name, item.Description, item.Price, item.CategoryId);
 
                     if (item.ProductDataIds is not null)
-                    {
-                        HashSet<Guid> targetIds = item.ProductDataIds.ToHashSet();
-                        Dictionary<Guid, ProductDataLink> existingById =
-                            product.ProductDataLinks.ToDictionary(link => link.ProductDataId);
-                        product.SyncProductDataLinks(targetIds, existingById);
-                    }
+                        product.SyncProductDataLinks(item.ProductDataIds);
 
                     await repository.UpdateAsync(product, ct);
                 }

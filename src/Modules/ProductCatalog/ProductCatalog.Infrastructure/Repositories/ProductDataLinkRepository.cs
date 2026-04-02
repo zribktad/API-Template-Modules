@@ -1,8 +1,8 @@
-using SharedKernel.Application.Context;
+using Microsoft.EntityFrameworkCore;
 using ProductCatalog.Domain.Entities;
 using ProductCatalog.Domain.Interfaces;
 using ProductCatalog.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using SharedKernel.Application.Context;
 
 namespace ProductCatalog.Infrastructure.Repositories;
 
@@ -15,7 +15,10 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     private readonly ProductCatalogDbContext _dbContext;
     private readonly ITenantProvider _tenantProvider;
 
-    public ProductDataLinkRepository(ProductCatalogDbContext dbContext, ITenantProvider tenantProvider)
+    public ProductDataLinkRepository(
+        ProductCatalogDbContext dbContext,
+        ITenantProvider tenantProvider
+    )
     {
         _dbContext = dbContext;
         _tenantProvider = tenantProvider;
@@ -30,7 +33,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         CancellationToken ct = default
     )
     {
-        var query = includeDeleted
+        IQueryable<ProductDataLink> query = includeDeleted
             ? _dbContext
                 .ProductDataLinks.IgnoreQueryFilters()
                 .Where(link =>
@@ -38,7 +41,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
                 )
             : _dbContext.ProductDataLinks.Where(link => link.ProductId == productId);
 
-        return await query.ToListAsync(ct);
+        return await query.AsNoTracking().ToListAsync(ct);
     }
 
     public async Task<
@@ -52,7 +55,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         if (productIds.Count == 0)
             return new Dictionary<Guid, IReadOnlyList<ProductDataLink>>();
 
-        var query = includeDeleted
+        IQueryable<ProductDataLink> query = includeDeleted
             ? _dbContext
                 .ProductDataLinks.IgnoreQueryFilters()
                 .Where(link =>
@@ -60,7 +63,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
                 )
             : _dbContext.ProductDataLinks.Where(link => productIds.Contains(link.ProductId));
 
-        var links = await query.ToListAsync(ct);
+        List<ProductDataLink> links = await query.AsNoTracking().ToListAsync(ct);
         return links
             .GroupBy(link => link.ProductId)
             .ToDictionary(
@@ -73,7 +76,10 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     public Task<bool> HasActiveLinksForProductDataAsync(
         Guid productDataId,
         CancellationToken ct = default
-    ) => _dbContext.ProductDataLinks.AnyAsync(link => link.ProductDataId == productDataId, ct);
+    ) =>
+        _dbContext
+            .ProductDataLinks.AsNoTracking()
+            .AnyAsync(link => link.ProductDataId == productDataId, ct);
 
     /// <summary>
     /// Stages removal of all active links for the given product data document so they
@@ -84,7 +90,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         CancellationToken ct = default
     )
     {
-        var links = await _dbContext
+        List<ProductDataLink> links = await _dbContext
             .ProductDataLinks.Where(link => link.ProductDataId == productDataId)
             .ToListAsync(ct);
 
@@ -94,5 +100,3 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         _dbContext.ProductDataLinks.RemoveRange(links);
     }
 }
-
-

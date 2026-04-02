@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options.Infrastructure;
 using Webhooks.Application.Contracts;
+using Webhooks.Application.Options;
 
 namespace Webhooks.Infrastructure;
 

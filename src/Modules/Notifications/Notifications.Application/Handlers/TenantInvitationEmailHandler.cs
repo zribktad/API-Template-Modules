@@ -1,6 +1,5 @@
-using Notifications.Application.Common.Email;
 using Contracts.Events;
-using Microsoft.Extensions.Options;
+using Notifications.Application.Common.Email;
 
 namespace Notifications.Application.Common.Events;
 
@@ -10,7 +9,6 @@ public sealed class TenantInvitationEmailHandler
         TenantInvitationCreatedNotification @event,
         IEmailTemplateRenderer templateRenderer,
         IEmailQueue emailQueue,
-        IOptions<EmailOptions> options,
         CancellationToken ct
     )
     {
@@ -20,8 +18,8 @@ public sealed class TenantInvitationEmailHandler
             {
                 @event.Email,
                 @event.TenantName,
-                InvitationUrl = $"{options.Value.BaseUrl}/invitations/accept?token={@event.Token}",
-                ExpiryHours = options.Value.InvitationTokenExpiryHours,
+                InvitationUrl = @event.InvitationUrl,
+                ExpiryHours = @event.ExpiryHours,
             },
             ct
         );

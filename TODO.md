@@ -1,5 +1,32 @@
 # TODO
 
+## Architecture Review — Identified Issues
+
+### Critical
+
+- [x] **Authorization code duplication** — `PermissionAuthorizationHandler` and `PermissionPolicyProvider` exist in both `APITemplate.Api/Api/Authorization/` and `Identity.Api/Authorization/` with divergent implementations (different constructors, auth schemes, `[SensitiveData]` attributes). Move to SharedKernel or Contracts as the single source of truth.
+
+### High Priority
+
+- [ ] **Mixed error handling patterns** — some handlers throw exceptions (`NotFoundException`, `ConflictException`), others return `ErrorOr<T>`. Two parallel pipelines (`ApiExceptionHandler` + `ErrorOrValidationMiddleware`) create cognitive overhead. Decide on one pattern and migrate consistently.
+- [x] **Options classes split between SharedKernel and modules** — `BffOptions`, `KeycloakOptions`, `CorsOptions`, `EmailOptions`, `SystemIdentityOptions` exist in both places. Module-specific options (`BackgroundJobsOptions`, `FileStorageOptions`) are in SharedKernel where they don't belong. Each module should own its options; SharedKernel should contain only truly shared types.
+- [ ] **Anemic domain models** — `Tenant`, `StoredFile` and others are pure data containers. Business logic (activate/deactivate, status transitions) leaks into application handlers. Add domain methods and enforce invariants in entity constructors.
+
+### Medium Priority
+
+- [ ] **Business logic in handlers** — `CreateProductsCommand` creates entities and relationships directly in the handler. `CreateUserCommand` contains compensating transaction logic (Keycloak + DB rollback). Extract to factory methods on entities and domain services.
+- [ ] **Inconsistent logging** — only `ApiExceptionHandlerLogs.cs` and `UnitOfWorkLogs.cs` use source-generated `[LoggerMessage]` with event IDs. All other modules use inline `logger.LogXxx()`. Adopt source-generated logging with a per-module event ID range allocation strategy.
+- [x] **Incomplete health checks** — only PostgreSQL and Keycloak are covered. Missing: Redis/Dragonfly, MongoDB (used by ProductCatalog), Wolverine messaging. Add `AddDragonflyHealthCheck()`, `AddMongoDbHealthCheck()` using the existing helper extension pattern.
+- [ ] **Soft delete cascade via three mechanisms** — the same business rule (cascade deletes on soft-delete) is implemented via database cascade rules, infrastructure `SoftDeleteProcessor`, and Wolverine event handlers simultaneously. Consolidate to event-driven approach only.
+
+### Low Priority
+
+- [ ] **Aggregate boundary violation** — `Product` entity has `Category? Category` navigation property — a direct reference to another aggregate root. Replace with `CategoryId`-only reference; load via query when needed.
+- [ ] **Missing value objects** — `Email` (string with no RFC validation), `Rating` (int with no range enforcement), `Price` (no currency/precision semantics), `TenantCode` (string with implicit format rules) should be strong value objects enforcing their invariants.
+- [ ] **Duplicate repository interfaces** — `IProductRepository` is defined in both `ProductCatalog.Domain/Interfaces/` and `ProductCatalog.Application/Features/Product/Repositories/`. Keep one definition in the Domain layer.
+
+---
+
 ## Wolverine Outbox & Durable Messaging
 
 - [ ] Enable `UseDurableOutboxOnAllSendingEndpoints()` and `UseDurableInboxOnAllListeners()` for reliable eventual consistency across modules.
@@ -20,17 +47,17 @@
 
 ## Request Context & Observability Enhancements
 
-- [ ] Enhance `RequestContextMiddleware` with tenant ID extraction from claims and Activity tag enrichment for distributed tracing.
-- [ ] Add `IHttpMetricsTagsFeature` enrichment (api_surface, authenticated) for custom telemetry dimensions.
+- [x] Enhance `RequestContextMiddleware` with tenant ID extraction from claims and Activity tag enrichment for distributed tracing.
+- [x] Add `IHttpMetricsTagsFeature` enrichment (api_surface, authenticated) for custom telemetry dimensions.
 - [x] Return `X-Trace-Id` response header alongside existing `X-Correlation-Id` and `X-Elapsed-Ms`.
-- [ ] Enhance Serilog request logging with intelligent log levels (499 client abort vs 5xx server error vs 4xx validation).
-- [ ] Enrich Serilog diagnostic context with `RequestHost` and `RequestScheme`.
+- [x] Enhance Serilog request logging with intelligent log levels (499 client abort vs 5xx server error vs 4xx validation).
+- [x] Enrich Serilog diagnostic context with `RequestHost` and `RequestScheme`.
 
 ## Logging Redaction
 
-- [ ] Implement data classification for logging (Personal, Sensitive categories).
-- [ ] Configure HMAC redaction for sensitive data and erasing redaction for personal data.
-- [ ] Add environment-based HMAC key resolution from configuration.
+- [x] Implement data classification for logging (Personal, Sensitive categories).
+- [x] Configure HMAC redaction for sensitive data and erasing redaction for personal data.
+- [x] Add environment-based HMAC key resolution from configuration.
 
 ## Authentication & Authorization Enhancements
 
@@ -42,13 +69,13 @@
 ## Exception Handling Enhancements
 
 - [x] Enhance `ApiExceptionHandler` with structured error metadata preservation in `ProblemDetails.Extensions["metadata"]`.
-- [ ] Add error code fallback logic (check `exception.ErrorCode` then `metadata["errorCode"]` then `ErrorCatalog.General.Unknown`).
+- [x] Add error code fallback logic (check `exception.ErrorCode` then `metadata["errorCode"]` then `ErrorCatalog.General.Unknown`).
 - [x] Differentiate logging by status code (LogError for 5xx, LogWarning for handled exceptions).
 
 ## Output Caching Enhancements
 
 - [x] Add `TenantAwareOutputCachePolicy` — cache key isolation per tenant to prevent cross-tenant data leaks.
-- [ ] Expand cache policies to cover all cacheable resources (Tenants, TenantInvitations, Users, Files alongside existing Products, Categories, Reviews, ProductData).
+- [x] Expand cache policies to cover all cacheable resources (Tenants, TenantInvitations, Users, Files alongside existing Products, Categories, Reviews, ProductData).
 
 ## Controller Base Enhancements
 
@@ -65,13 +92,13 @@
 
 ## Health Check Helpers
 
-- [ ] Extract health check helper extensions: `AddPostgreSqlHealthCheck()`, `AddDragonflyHealthCheck()` with standardized tags and naming.
+- [x] Extract health check helper extensions: `AddPostgreSqlHealthCheck()`, `AddDragonflyHealthCheck()` with standardized tags and naming.
 
 ## Infrastructure Generics
 
 - [x] Make `UnitOfWork` generic over `DbContext` instead of hardcoded to `AppDbContext` — enables reuse across per-module contexts.
 - [x] Make `RepositoryBase<T>` accept generic `DbContext` parameter instead of casting to `AppDbContext`.
-- [ ] Extract `TenantAuditableDbContext` as abstract reusable base class with `TenantAuditableDbContextDependencies` record for dependency encapsulation.
+- [x] Extract `TenantAuditableDbContext` as abstract reusable base class with `TenantAuditableDbContextDependencies` record for dependency encapsulation. (ModuleDbContext already serves this role)
 - [ ] Make `IEntityNormalizationService` optional (nullable) in DbContext — not all modules need normalization.
 - [ ] Improve `DesignTimeConnectionStringResolver` with dynamic path resolution (walk up directory tree) and environment-specific appsettings loading.
 

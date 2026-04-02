@@ -1,5 +1,5 @@
-using Identity.Domain.Entities;
 using Ardalis.Specification;
+using Identity.Domain.Entities;
 
 namespace Identity.Application.Features.User.Specifications;
 
@@ -13,6 +13,6 @@ public sealed class UserByUsernameSpecification : Specification<AppUser>
     /// </summary>
     public UserByUsernameSpecification(string normalizedUsername)
     {
-        Query.Where(u => u.NormalizedUsername == normalizedUsername);
+        Query.Where(u => u.NormalizedUsername == normalizedUsername).AsNoTracking();
     }
 }

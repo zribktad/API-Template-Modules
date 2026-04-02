@@ -81,7 +81,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -107,7 +107,7 @@ services:
       POSTGRES_PASSWORD: keycloak
       POSTGRES_DB: keycloak
     volumes:
-      - keycloak-pgdata:/var/lib/postgresql
+      - keycloak-pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U keycloak"]
       interval: 10s
@@ -189,6 +189,7 @@ services:
       Email__SmtpHost: "mailpit"
       Email__SmtpPort: "1025"
       Email__UseSsl: "false"
+      KeycloakHealthCheck__DiscoveryUrl: "http://keycloak:8180/realms/api-template/.well-known/openid-configuration"
     depends_on:
       alloy:
         condition: service_started

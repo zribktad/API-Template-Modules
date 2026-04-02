@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options.Infrastructure;
 using Webhooks.Application.Contracts;
+using Webhooks.Application.Options;
 
 namespace Webhooks.Infrastructure;
 
@@ -31,8 +31,14 @@ public sealed class HmacWebhookPayloadValidator : IWebhookPayloadValidator
         byte[] hashBytes = HmacHelper.ComputeHash(_keyBytes, timestamp, payload);
 
         byte[] signatureBytes;
-        try { signatureBytes = Convert.FromHexString(signature); }
-        catch (FormatException) { return false; }
+        try
+        {
+            signatureBytes = Convert.FromHexString(signature);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
 
         return CryptographicOperations.FixedTimeEquals(hashBytes, signatureBytes);
     }

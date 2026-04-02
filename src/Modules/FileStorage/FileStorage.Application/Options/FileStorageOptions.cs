@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SharedKernel.Application.Options.Infrastructure;
+namespace FileStorage.Application.Options;
 
 /// <summary>
 /// Configuration for the local file-storage provider, including the base directory, upload size limit,

@@ -2,7 +2,7 @@ using ErrorOr;
 using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Domain;
 using SharedKernel.Domain.Interfaces;
-using IProductRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
+using IProductRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
 
 namespace ProductCatalog.Application.Features.Product.Commands;

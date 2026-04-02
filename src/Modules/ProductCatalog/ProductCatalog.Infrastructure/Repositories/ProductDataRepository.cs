@@ -1,8 +1,8 @@
-using SharedKernel.Application.Context;
+using MongoDB.Driver;
 using ProductCatalog.Domain.Entities;
 using ProductCatalog.Domain.Interfaces;
 using ProductCatalog.Infrastructure.Persistence;
-using MongoDB.Driver;
+using SharedKernel.Application.Context;
 
 namespace ProductCatalog.Infrastructure.Repositories;
 
@@ -33,7 +33,7 @@ public sealed class ProductDataRepository : IProductDataRepository
         CancellationToken ct = default
     )
     {
-        var idArray = ids.Distinct().ToArray();
+        Guid[] idArray = ids.Distinct().ToArray();
 
         if (idArray.Length == 0)
             return [];
@@ -55,7 +55,7 @@ public sealed class ProductDataRepository : IProductDataRepository
         CancellationToken ct = default
     )
     {
-        var filter = type is null
+        FilterDefinition<ProductData> filter = type is null
             ? Builders<ProductData>.Filter.And(
                 Builders<ProductData>.Filter.Eq(x => x.TenantId, _tenantProvider.TenantId),
                 Builders<ProductData>.Filter.Eq(x => x.IsDeleted, false)
@@ -87,7 +87,7 @@ public sealed class ProductDataRepository : IProductDataRepository
         CancellationToken ct = default
     )
     {
-        var update = Builders<ProductData>
+        UpdateDefinition<ProductData> update = Builders<ProductData>
             .Update.Set(x => x.IsDeleted, true)
             .Set(x => x.DeletedAtUtc, deletedAtUtc)
             .Set(x => x.DeletedBy, actorId);
@@ -110,19 +110,21 @@ public sealed class ProductDataRepository : IProductDataRepository
         CancellationToken ct = default
     )
     {
-        var filter = Builders<ProductData>.Filter.And(
+        FilterDefinition<ProductData> filter = Builders<ProductData>.Filter.And(
             Builders<ProductData>.Filter.Eq(x => x.TenantId, tenantId),
             Builders<ProductData>.Filter.Eq(x => x.IsDeleted, false)
         );
 
-        var update = Builders<ProductData>
+        UpdateDefinition<ProductData> update = Builders<ProductData>
             .Update.Set(x => x.IsDeleted, true)
             .Set(x => x.DeletedAtUtc, deletedAtUtc)
             .Set(x => x.DeletedBy, actorId);
 
-        var result = await _collection.UpdateManyAsync(filter, update, cancellationToken: ct);
+        UpdateResult result = await _collection.UpdateManyAsync(
+            filter,
+            update,
+            cancellationToken: ct
+        );
         return result.ModifiedCount;
     }
 }
-
-

@@ -1,6 +1,7 @@
 using FileStorage.Api.Controllers.V1;
 using FileStorage.Application.Contracts;
 using FileStorage.Application.Features.Download;
+using FileStorage.Application.Options;
 using FileStorage.Domain;
 using FileStorage.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -8,8 +9,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Application.Options;
-using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
 

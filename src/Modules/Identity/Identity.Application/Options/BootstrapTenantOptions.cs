@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SharedKernel.Application.Options;
+namespace Identity.Application.Options;
 
 /// <summary>
 /// Configuration for the default tenant that is seeded when the application bootstraps for the first time.

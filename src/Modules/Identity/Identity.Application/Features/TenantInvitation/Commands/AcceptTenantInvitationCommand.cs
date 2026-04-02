@@ -28,15 +28,9 @@ public sealed class AcceptTenantInvitationCommandHandler
         if (invitation is null)
             return (DomainErrors.Invitations.NotFoundOrExpired(), OutgoingMessagesHelper.Empty);
 
-        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
-
-        if (invitation.ExpiresAtUtc < now)
-            return (DomainErrors.Invitations.Expired(), OutgoingMessagesHelper.Empty);
-
-        if (invitation.Status == InvitationStatus.Accepted)
-            return (DomainErrors.Invitations.AlreadyAccepted(), OutgoingMessagesHelper.Empty);
-
-        invitation.Status = InvitationStatus.Accepted;
+        ErrorOr<Success> acceptResult = invitation.Accept(timeProvider);
+        if (acceptResult.IsError)
+            return (acceptResult.Errors, OutgoingMessagesHelper.Empty);
         await invitationRepository.UpdateAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);
 

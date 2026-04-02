@@ -9,7 +9,7 @@ using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Domain.Interfaces;
 using SystemTextJsonPatch;
 using Wolverine;
-using IProductRepository = ProductCatalog.Domain.Interfaces.IProductRepository;
+using IProductRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
 
 namespace ProductCatalog.Application.Features.Product.Commands;
 

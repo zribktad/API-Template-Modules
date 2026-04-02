@@ -1,10 +1,14 @@
 using APITemplate.Api.Middleware;
 using Chatting.Api;
 using FileStorage.Api;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using ProductCatalog.Api;
 using Scalar.AspNetCore;
 using Serilog;
+using Serilog.Events;
+using SharedKernel.Application.Http;
 
 namespace APITemplate.Api.Extensions.Startup;
 
@@ -14,10 +18,40 @@ public static class ApplicationBuilderExtensions
     {
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
-        app.UseMiddleware<RequestContextMiddleware>();
-        app.UseSerilogRequestLogging();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseMiddleware<RequestContextMiddleware>();
+        app.UseSerilogRequestLogging(options =>
+        {
+            options.MessageTemplate =
+                "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+
+            options.GetLevel = (httpContext, _, exception) =>
+            {
+                if (IsClientAbortedRequest(httpContext, exception))
+                    return LogEventLevel.Information;
+
+                if (exception is not null || httpContext.Response.StatusCode >= 500)
+                    return LogEventLevel.Error;
+
+                if (httpContext.Response.StatusCode >= 400)
+                    return LogEventLevel.Warning;
+
+                return LogEventLevel.Information;
+            };
+
+            options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+            {
+                diagnosticContext.Set(
+                    RequestContextConstants.LogProperties.RequestHost,
+                    httpContext.Request.Host.Value
+                );
+                diagnosticContext.Set(
+                    RequestContextConstants.LogProperties.RequestScheme,
+                    httpContext.Request.Scheme
+                );
+            };
+        });
         app.UseOutputCache();
         app.UseApiDocumentation();
 
@@ -34,7 +68,15 @@ public static class ApplicationBuilderExtensions
             .WithName("HostStatus")
             .WithTags("Host");
 
-        app.MapHealthChecks("/health").WithTags("Health").AllowAnonymous();
+        app.MapHealthChecks(
+                "/health",
+                new HealthCheckOptions
+                {
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+                }
+            )
+            .WithTags("Health")
+            .AllowAnonymous();
         app.MapProductCatalogEndpoints();
         app.MapFileStorageEndpoints();
         app.MapChattingEndpoints();
@@ -51,6 +93,10 @@ public static class ApplicationBuilderExtensions
         app.MapScalarApiReference("/scalar").AllowAnonymous();
         return app;
     }
+
+    private static bool IsClientAbortedRequest(HttpContext httpContext, Exception? exception) =>
+        exception is OperationCanceledException oce
+        && oce.CancellationToken == httpContext.RequestAborted;
 
     private sealed record HostStatusResponse(string Service, string Status);
 }

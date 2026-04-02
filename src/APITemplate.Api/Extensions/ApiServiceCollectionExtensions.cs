@@ -1,11 +1,9 @@
 using APITemplate.Api.Cache;
 using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
-using Microsoft.AspNetCore.OutputCaching;
-using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Infrastructure.Configuration;
+using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;
+using IdentityCacheTags = Identity.Application.Events.CacheTags;
 using ProductCatalogCacheTags = ProductCatalog.Application.Events.CacheTags;
 using ReviewsCacheTags = Reviews.Application.Events.CacheTags;
 
@@ -20,7 +18,17 @@ public static class ApiServiceCollectionExtensions
     {
         services.AddProblemDetails(ApiProblemDetailsOptions.Configure);
         services.AddExceptionHandler<ApiExceptionHandler>();
-        services.AddHealthChecks();
+        services.AddValidatedOptions<KeycloakHealthCheckOptions>(configuration);
+        services
+            .AddHealthChecks()
+            .AddNpgSql(
+                configuration.GetConnectionString(ConfigurationSections.DefaultConnection)
+                    ?? throw new InvalidOperationException(
+                        $"Connection string '{ConfigurationSections.DefaultConnection}' is not configured."
+                    ),
+                name: HealthCheckNames.PostgreSql
+            )
+            .AddCheck<KeycloakHealthCheck>(HealthCheckNames.Keycloak);
         services.AddDragonflyInfrastructure(configuration);
         services.AddCaching(configuration);
         services.AddOpenApi(options =>
@@ -39,6 +47,7 @@ public static class ApiServiceCollectionExtensions
         IConfiguration configuration
     )
     {
+        services.AddValidatedOptions<DragonflyOptions>(configuration);
         DragonflyOptions dragonflyOptions =
             configuration.SectionFor<DragonflyOptions>().Get<DragonflyOptions>() ?? new();
 
@@ -59,6 +68,10 @@ public static class ApiServiceCollectionExtensions
             {
                 opts.ConfigurationOptions = redisConfig;
             });
+
+            services
+                .AddHealthChecks()
+                .AddRedis(dragonflyOptions.ConnectionString, name: HealthCheckNames.Dragonfly);
         }
         else
         {
@@ -90,6 +103,12 @@ public static class ApiServiceCollectionExtensions
                 (ProductCatalogCacheTags.Categories, cachingOptions.CategoriesExpirationSeconds),
                 (ReviewsCacheTags.Reviews, cachingOptions.ReviewsExpirationSeconds),
                 (ProductCatalogCacheTags.ProductData, cachingOptions.ProductDataExpirationSeconds),
+                (IdentityCacheTags.Tenants, cachingOptions.TenantsExpirationSeconds),
+                (
+                    IdentityCacheTags.TenantInvitations,
+                    cachingOptions.TenantInvitationsExpirationSeconds
+                ),
+                (IdentityCacheTags.Users, cachingOptions.UsersExpirationSeconds),
             ];
 
             foreach ((string name, int expirationSeconds) in policies)

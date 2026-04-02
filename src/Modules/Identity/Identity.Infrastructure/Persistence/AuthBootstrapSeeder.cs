@@ -1,7 +1,7 @@
+using Identity.Application.Options;
 using Identity.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options;
 
 namespace Identity.Infrastructure.Persistence;
 
@@ -54,7 +54,6 @@ public sealed class AuthBootstrapSeeder
             TenantId = Guid.Empty,
             Code = tenantIdentity.Code,
             Name = tenantIdentity.Name,
-            IsActive = true,
         };
         _dbContext.Tenants.Add(tenant);
         return true;
@@ -70,7 +69,7 @@ public sealed class AuthBootstrapSeeder
     {
         if (tenant.IsActive)
             return false;
-        tenant.IsActive = true;
+        tenant.Activate();
         return true;
     }
 

@@ -26,11 +26,24 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
                 : value.Trim();
     }
 
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; private set; } = true;
 
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
+
+    public static Tenant Create(Guid id, string code, string name) =>
+        new()
+        {
+            Id = id,
+            TenantId = id,
+            Code = code,
+            Name = name,
+        };
+
+    public void Activate() => IsActive = true;
+
+    public void Deactivate() => IsActive = false;
 }

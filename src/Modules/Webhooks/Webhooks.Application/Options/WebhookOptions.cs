@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SharedKernel.Application.Options.Infrastructure;
+namespace Webhooks.Application.Options;
 
 /// <summary>
 /// Configuration for incoming webhook verification, including the shared HMAC secret

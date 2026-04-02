@@ -53,21 +53,14 @@ public sealed class CreateProductsCommandHandler
 
         List<ProductEntity> entities = items
             .Select(item =>
-            {
-                Guid productId = Guid.NewGuid();
-                return new ProductEntity
-                {
-                    Id = productId,
-                    Name = item.Name,
-                    Description = item.Description,
-                    Price = item.Price,
-                    CategoryId = item.CategoryId,
-                    ProductDataLinks = (item.ProductDataIds ?? [])
-                        .Distinct()
-                        .Select(pdId => ProductDataLink.Create(productId, pdId))
-                        .ToList(),
-                };
-            })
+                ProductEntity.Create(
+                    item.Name,
+                    item.Description,
+                    item.Price,
+                    item.CategoryId,
+                    item.ProductDataIds
+                )
+            )
             .ToList();
 
         return (HandlerContinuation.Continue, entities, OutgoingMessagesHelper.Empty);

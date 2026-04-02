@@ -2,13 +2,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
-using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
 using SharedKernel.Infrastructure.Resilience;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
+using Webhooks.Application.Options;
 using Webhooks.Infrastructure;
 
 namespace Webhooks;
