@@ -2,6 +2,7 @@ using Contracts.Commands.Cleanup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using ProductCatalog.Infrastructure.Logging;
 using ProductCatalog.Infrastructure.Persistence;
 
 namespace ProductCatalog.Infrastructure.Handlers;
@@ -19,7 +20,8 @@ public sealed class CleanupOrphanedProductDataHandler
         MongoDbContext mongoDbContext,
         TimeProvider timeProvider,
         ILogger<CleanupOrphanedProductDataHandler> logger,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         IMongoCollection<ProductData> mongoCollection = mongoDbContext.ProductData;
         DateTime cutoff = timeProvider.GetUtcNow().UtcDateTime.AddDays(-command.RetentionDays);
@@ -28,8 +30,10 @@ public sealed class CleanupOrphanedProductDataHandler
 
         while (true)
         {
-            FilterDefinition<ProductData> pageFilter =
-                Builders<ProductData>.Filter.Lt(d => d.CreatedAt, cutoff);
+            FilterDefinition<ProductData> pageFilter = Builders<ProductData>.Filter.Lt(
+                d => d.CreatedAt,
+                cutoff
+            );
 
             if (lastSeenId.HasValue)
             {
@@ -49,8 +53,7 @@ public sealed class CleanupOrphanedProductDataHandler
             }
 
             List<Guid> linkedIds = await dbContext
-                .ProductDataLinks
-                .IgnoreQueryFilters()
+                .ProductDataLinks.IgnoreQueryFilters()
                 .Where(l => page.Contains(l.ProductDataId))
                 .Select(l => l.ProductDataId)
                 .Distinct()
@@ -61,8 +64,10 @@ public sealed class CleanupOrphanedProductDataHandler
 
             if (orphanedIds.Length > 0)
             {
-                FilterDefinition<ProductData> deleteFilter =
-                    Builders<ProductData>.Filter.In(d => d.Id, orphanedIds);
+                FilterDefinition<ProductData> deleteFilter = Builders<ProductData>.Filter.In(
+                    d => d.Id,
+                    orphanedIds
+                );
                 await mongoCollection.DeleteManyAsync(deleteFilter, ct);
                 totalDeleted += orphanedIds.Length;
             }
@@ -72,8 +77,7 @@ public sealed class CleanupOrphanedProductDataHandler
 
         if (totalDeleted > 0)
         {
-            logger.LogInformation(
-                "Cleaned up {Count} orphaned product data documents.", totalDeleted);
+            logger.OrphanedProductDataCleanedUp(totalDeleted);
         }
     }
 }

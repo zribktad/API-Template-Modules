@@ -1,4 +1,5 @@
 using Identity.Domain.ValueObjects;
+using Identity.Infrastructure.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -47,10 +48,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
 
         if (existing is not null)
         {
-            _logger.LogDebug(
-                "User provisioning skipped — AppUser already exists for KeycloakUserId={KeycloakUserId}",
-                keycloakUserId
-            );
+            _logger.UserProvisioningSkippedAlreadyExists(keycloakUserId);
             return existing;
         }
 
@@ -67,10 +65,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
 
         if (invitation is null)
         {
-            _logger.LogInformation(
-                "User provisioning skipped — no accepted invitation found for email={NormalizedEmail}",
-                normalizedEmail
-            );
+            _logger.UserProvisioningSkippedNoInvitation(normalizedEmail);
             return null;
         }
 
@@ -94,22 +89,13 @@ public sealed class UserProvisioningService : IUserProvisioningService
         {
             await _db.Users.AddAsync(user, ct);
             await _unitOfWork.CommitAsync(ct);
-            _logger.LogInformation(
-                "Provisioned new AppUser={UserId} for KeycloakUserId={KeycloakUserId}, TenantId={TenantId}",
-                user.Id,
-                keycloakUserId,
-                invitation.TenantId
-            );
+            _logger.UserProvisioned(user.Id, keycloakUserId, invitation.TenantId);
             return user;
         }
         catch (DbUpdateException ex)
         {
             // Concurrent request may have provisioned this user — re-fetch the winner.
-            _logger.LogWarning(
-                ex,
-                "DbUpdateException during provisioning for {KeycloakUserId}. Re-fetching.",
-                keycloakUserId
-            );
+            _logger.UserProvisioningConcurrencyRetry(ex, keycloakUserId);
 
             return await _db
                     .Users.IgnoreQueryFilters()
