@@ -4,6 +4,7 @@ using Notifications.Application.Common.BackgroundJobs;
 using Notifications.Application.Common.Email;
 using Notifications.Domain;
 using Notifications.Infrastructure.Email;
+using Notifications.Infrastructure.Logging;
 using Polly.Registry;
 using SharedKernel.Application.Options.BackgroundJobs;
 using SharedKernel.Application.Resilience;
@@ -86,11 +87,7 @@ public sealed class EmailRetryService : IEmailRetryService
                 );
 
                 await _repository.DeleteAsync(email, ct);
-                _logger.LogInformation(
-                    "Successfully retried email to {Recipient} (attempt {Attempt}).",
-                    email.To,
-                    email.RetryCount + 1
-                );
+                _logger.EmailRetrySucceeded(email.To, email.RetryCount + 1);
             }
             catch (Exception ex)
             {
@@ -102,12 +99,7 @@ public sealed class EmailRetryService : IEmailRetryService
                 email.ClaimedUntilUtc = null;
                 await _repository.UpdateAsync(email, ct);
 
-                _logger.LogWarning(
-                    ex,
-                    "Retry attempt {Attempt} failed for email to {Recipient}.",
-                    email.RetryCount,
-                    email.To
-                );
+                _logger.EmailRetryAttemptFailed(ex, email.RetryCount, email.To);
             }
 
             // Commit after each email to ensure durable progress — avoids duplicate sends on crash
@@ -149,12 +141,7 @@ public sealed class EmailRetryService : IEmailRetryService
                 email.ClaimedUntilUtc = null;
                 await _repository.UpdateAsync(email, ct);
 
-                _logger.LogWarning(
-                    "Dead-lettered email to {Recipient} with subject '{Subject}' after {Hours}h.",
-                    email.To,
-                    email.Subject,
-                    deadLetterAfterHours
-                );
+                _logger.EmailDeadLettered(email.To, email.Subject, deadLetterAfterHours);
             }
 
             if (processed > 0)

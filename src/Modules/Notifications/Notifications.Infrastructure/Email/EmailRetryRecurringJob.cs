@@ -1,8 +1,9 @@
-using Notifications.Application.Common.BackgroundJobs;
-using SharedKernel.Application.BackgroundJobs;
-using SharedKernel.Application.Options.BackgroundJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Notifications.Application.Common.BackgroundJobs;
+using Notifications.Infrastructure.Logging;
+using SharedKernel.Application.BackgroundJobs;
+using SharedKernel.Application.Options.BackgroundJobs;
 using TickerQ.Utilities.Base;
 
 namespace Notifications.Infrastructure.BackgroundJobs.TickerQ.Jobs;
@@ -42,10 +43,7 @@ public sealed class EmailRetryRecurringJob
             "email-retry-recurring-job",
             async token =>
             {
-                _logger.LogInformation(
-                    "Executing email retry recurring job for ticker {TickerId}.",
-                    context.Id
-                );
+                _logger.ExecutingEmailRetryRecurringJob(context.Id);
 
                 await _emailRetryService.RetryFailedEmailsAsync(
                     _options.MaxRetryAttempts,

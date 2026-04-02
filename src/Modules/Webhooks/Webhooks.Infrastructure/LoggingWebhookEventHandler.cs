@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
+using Webhooks.Infrastructure.Logging;
 
 namespace Webhooks.Infrastructure;
 
@@ -17,11 +18,7 @@ public sealed class LoggingWebhookEventHandler : IWebhookEventHandler
 
     public Task HandleAsync(WebhookPayload payload, CancellationToken ct = default)
     {
-        _logger.LogInformation(
-            "Received webhook: Type={EventType}, Id={EventId}",
-            payload.EventType,
-            payload.EventId
-        );
+        _logger.WebhookReceived(payload.EventType, payload.EventId);
         return Task.CompletedTask;
     }
 }

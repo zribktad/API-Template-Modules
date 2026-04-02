@@ -1,8 +1,9 @@
-using Notifications.Application.Common.Email;
-using SharedKernel.Application.Resilience;
-using Notifications.Infrastructure.BackgroundJobs.Services;
 using Microsoft.Extensions.Logging;
+using Notifications.Application.Common.Email;
+using Notifications.Infrastructure.BackgroundJobs.Services;
+using Notifications.Infrastructure.Logging;
 using Polly.Registry;
+using SharedKernel.Application.Resilience;
 
 namespace Notifications.Infrastructure.Email;
 
@@ -11,7 +12,8 @@ namespace Notifications.Infrastructure.Email;
 /// <see cref="EmailMessage"/> through the SMTP resilience pipeline and storing failures
 /// via <see cref="IFailedEmailStore"/> for later retry.
 /// </summary>
-public sealed class EmailSendingBackgroundService : SharedKernel.Infrastructure.BackgroundJobs.Services.QueueConsumerBackgroundService<EmailMessage>
+public sealed class EmailSendingBackgroundService
+    : SharedKernel.Infrastructure.BackgroundJobs.Services.QueueConsumerBackgroundService<EmailMessage>
 {
     private readonly IEmailSender _sender;
     private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
@@ -54,12 +56,7 @@ public sealed class EmailSendingBackgroundService : SharedKernel.Infrastructure.
         CancellationToken ct
     )
     {
-        _logger.LogError(
-            ex,
-            "Failed to send email to {Recipient} with subject '{Subject}' after all retry attempts.",
-            message.To,
-            message.Subject
-        );
+        _logger.EmailSendFailed(ex, message.To, message.Subject);
 
         await _failedEmailStore.StoreFailedAsync(message, ex.Message, ct);
     }

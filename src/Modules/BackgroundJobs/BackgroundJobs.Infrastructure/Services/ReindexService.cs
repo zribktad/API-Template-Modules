@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using BackgroundJobs.Application.Services;
+using BackgroundJobs.Infrastructure.Logging;
 using BackgroundJobs.Infrastructure.Persistence;
 using BackgroundJobs.Infrastructure.StoredProcedures;
 using Microsoft.EntityFrameworkCore;
@@ -36,7 +37,7 @@ public sealed partial class ReindexService : IReindexService
             {
                 if (ValidIndexNameRegex().IsMatch(index))
                     return true;
-                _logger.LogWarning("Skipping invalid FTS index name: {IndexName}.", index);
+                _logger.SkippingInvalidFtsIndexName(index);
                 return false;
             })
             .ToList();
@@ -47,21 +48,11 @@ public sealed partial class ReindexService : IReindexService
 
             if (bloatPercent < BloatThresholdPercent)
             {
-                _logger.LogDebug(
-                    "FTS index {IndexName} bloat {BloatPercent:F1}% is below threshold {Threshold}%, skipping.",
-                    index,
-                    bloatPercent,
-                    BloatThresholdPercent
-                );
+                _logger.FtsIndexBloatBelowThreshold(index, bloatPercent, BloatThresholdPercent);
                 continue;
             }
 
-            _logger.LogInformation(
-                "FTS index {IndexName} bloat {BloatPercent:F1}% exceeds threshold {Threshold}%, reindexing.",
-                index,
-                bloatPercent,
-                BloatThresholdPercent
-            );
+            _logger.FtsIndexBloatExceedsThreshold(index, bloatPercent, BloatThresholdPercent);
 
 #pragma warning disable EF1002
             await _dbContext.Database.ExecuteSqlRawAsync(
@@ -70,7 +61,7 @@ public sealed partial class ReindexService : IReindexService
             );
 #pragma warning restore EF1002
 
-            _logger.LogInformation("Reindexed FTS index {IndexName}.", index);
+            _logger.FtsIndexReindexed(index);
         }
     }
 

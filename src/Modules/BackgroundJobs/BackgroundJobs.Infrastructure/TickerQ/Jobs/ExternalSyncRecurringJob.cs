@@ -1,4 +1,5 @@
 using BackgroundJobs.Application.Services;
+using BackgroundJobs.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Application.BackgroundJobs;
 using TickerQ.Utilities.Base;
@@ -28,7 +29,7 @@ public sealed class ExternalSyncRecurringJob
             TickerQFunctionNames.ExternalSync,
             async token =>
             {
-                _logger.LogInformation("Executing external integration sync recurring job for ticker {TickerId}.", context.Id);
+                _logger.ExecutingExternalSyncRecurringJob(context.Id);
                 await _syncService.SynchronizeAsync(token);
             },
             ct

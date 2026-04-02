@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SharedKernel.Infrastructure.BackgroundJobs.Services;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
+using Webhooks.Infrastructure.Logging;
 
 namespace Webhooks.Infrastructure;
 
@@ -59,7 +60,7 @@ public sealed class OutgoingWebhookBackgroundService
         using HttpResponseMessage response = await client.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
-        _logger.LogInformation("Outgoing webhook delivered to {Url}", item.CallbackUrl);
+        _logger.OutgoingWebhookDelivered(item.CallbackUrl);
     }
 
     protected override Task HandleErrorAsync(
@@ -68,7 +69,7 @@ public sealed class OutgoingWebhookBackgroundService
         CancellationToken ct
     )
     {
-        _logger.LogError(ex, "Failed to deliver outgoing webhook to {Url}", item.CallbackUrl);
+        _logger.OutgoingWebhookDeliveryFailed(ex, item.CallbackUrl);
         return Task.CompletedTask;
     }
 

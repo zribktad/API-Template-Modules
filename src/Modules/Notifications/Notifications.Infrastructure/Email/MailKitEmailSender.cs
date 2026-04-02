@@ -1,9 +1,9 @@
-using Notifications.Application.Common.Email;
-
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Notifications.Application.Common.Email;
+using Notifications.Infrastructure.Logging;
 
 namespace Notifications.Infrastructure.Email;
 
@@ -43,7 +43,12 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
 
             if (!client.IsConnected)
             {
-                await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, _options.UseSsl, ct);
+                await client.ConnectAsync(
+                    _options.SmtpHost,
+                    _options.SmtpPort,
+                    _options.UseSsl,
+                    ct
+                );
             }
 
             if (!string.IsNullOrEmpty(_options.Username) && !client.IsAuthenticated)
@@ -63,11 +68,7 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
             _lock.Release();
         }
 
-        _logger.LogInformation(
-            "Email sent to {Recipient} with subject '{Subject}'.",
-            message.To,
-            message.Subject
-        );
+        _logger.EmailSent(message.To, message.Subject);
     }
 
     private async Task ResetClientAsync()

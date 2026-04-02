@@ -1,4 +1,5 @@
 using BackgroundJobs.Application.Services;
+using BackgroundJobs.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace BackgroundJobs.Infrastructure.Services;
@@ -20,9 +21,7 @@ public sealed class ExternalIntegrationSyncServicePreview : IExternalIntegration
 
     public Task SynchronizeAsync(CancellationToken ct = default)
     {
-        _logger.LogInformation(
-            "External integration synchronization job executed, but no provider-specific synchronization workflow is registered yet."
-        );
+        _logger.ExternalIntegrationSyncNoProviderRegistered();
         return Task.CompletedTask;
     }
 }

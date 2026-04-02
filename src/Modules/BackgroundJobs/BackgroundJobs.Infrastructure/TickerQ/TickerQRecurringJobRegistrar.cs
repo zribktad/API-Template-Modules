@@ -1,3 +1,4 @@
+using BackgroundJobs.Infrastructure.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,8 +42,9 @@ public sealed class TickerQRecurringJobRegistrar
         List<RecurringBackgroundJobDefinition> definitions = _registrations
             .Select(x => x.Build(_serviceProvider))
             .ToList();
-        Dictionary<Guid, CronTickerEntity> tickersById = (await _dbContext.Set<CronTickerEntity>().ToListAsync(ct))
-            .ToDictionary(x => x.Id);
+        Dictionary<Guid, CronTickerEntity> tickersById = (
+            await _dbContext.Set<CronTickerEntity>().ToListAsync(ct)
+        ).ToDictionary(x => x.Id);
 
         foreach (RecurringBackgroundJobDefinition definition in definitions)
         {
@@ -67,7 +69,8 @@ public sealed class TickerQRecurringJobRegistrar
             }
 
             int[] retryIntervals = definition.RetryIntervals ?? [];
-            bool changed = existing.Function != definition.FunctionName
+            bool changed =
+                existing.Function != definition.FunctionName
                 || existing.Description != definition.Description
                 || existing.Expression != definition.CronExpression
                 || existing.IsEnabled != definition.Enabled
@@ -90,6 +93,6 @@ public sealed class TickerQRecurringJobRegistrar
         }
 
         await _dbContext.SaveChangesAsync(ct);
-        _logger.LogInformation("Synchronized {Count} recurring TickerQ job definitions.", definitions.Count);
+        _logger.TickerQJobDefinitionsSynchronized(definitions.Count);
     }
 }
