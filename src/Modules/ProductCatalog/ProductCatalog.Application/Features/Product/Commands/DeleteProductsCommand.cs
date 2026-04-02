@@ -1,9 +1,6 @@
-using Contracts.Events;
 using ErrorOr;
 using ProductCatalog.Application.Features.Product.Specifications;
 using ProductCatalog.Domain;
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
 using Wolverine;
 using ProductRepositoryContract = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
 
