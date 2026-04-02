@@ -1,7 +1,7 @@
-using SharedKernel.Domain.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Domain.Exceptions;
 
 namespace APITemplate.Api.ExceptionHandling;
 
@@ -52,9 +52,14 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             problemDetails.Extensions["metadata"] = metadata;
 
         if (statusCode >= StatusCodes.Status500InternalServerError)
-            _logger.LogError(exception, "Unhandled exception for trace {TraceId}.", context.TraceIdentifier);
+            _logger.UnhandledException(exception, statusCode, errorCode, context.TraceIdentifier);
         else
-            _logger.LogWarning(exception, "Handled exception for trace {TraceId}.", context.TraceIdentifier);
+            _logger.HandledApplicationException(
+                exception,
+                statusCode,
+                errorCode,
+                context.TraceIdentifier
+            );
 
         context.Response.StatusCode = statusCode;
 
@@ -74,7 +79,10 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         CancellationToken cancellationToken
     ) =>
         exception is OperationCanceledException
-        && (context.RequestAborted.IsCancellationRequested || cancellationToken.IsCancellationRequested);
+        && (
+            context.RequestAborted.IsCancellationRequested
+            || cancellationToken.IsCancellationRequested
+        );
 
     private static (
         int StatusCode,
@@ -114,7 +122,9 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         );
     }
 
-    private static (int StatusCode, string Title, string ErrorCode) MapToHttp(AppException exception) =>
+    private static (int StatusCode, string Title, string ErrorCode) MapToHttp(
+        AppException exception
+    ) =>
         exception switch
         {
             ValidationException => (
