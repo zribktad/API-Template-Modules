@@ -1,18 +1,10 @@
 using ErrorOr;
 using Identity.Application.Common.Email;
-using Identity.Application.Features.TenantInvitation.DTOs;
 using Identity.Application.Features.TenantInvitation.Mappings;
 using Identity.Application.Options;
 using Identity.Domain;
-using Identity.Domain.Entities;
-using Identity.Domain.Interfaces;
 using Identity.Domain.ValueObjects;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Extensions;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
 using TenantInvitationEntity = Identity.Domain.Entities.TenantInvitation;
