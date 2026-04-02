@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Identity.Domain.Entities;
 
 namespace Identity.Application.Features.User.Mappings;
 

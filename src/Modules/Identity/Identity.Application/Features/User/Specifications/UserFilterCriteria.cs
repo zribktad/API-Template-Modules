@@ -1,5 +1,4 @@
 using Ardalis.Specification;
-using Identity.Domain.Entities;
 
 namespace Identity.Application.Features.User.Specifications;
 
