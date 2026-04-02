@@ -45,6 +45,16 @@ public sealed class CreateProductsCommandHandler
             )
         );
 
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (context.IsFailed(i))
+                continue;
+
+            ErrorOr<Price> priceResult = Price.Create(items[i].Price);
+            if (priceResult.IsError)
+                context.AddFailure(i, null, priceResult.FirstError.Description);
+        }
+
         if (context.HasFailures)
         {
             OutgoingMessages failureMessages = new();
@@ -55,11 +65,11 @@ public sealed class CreateProductsCommandHandler
         List<ProductEntity> entities = items
             .Select(item =>
             {
-                ErrorOr<Price> priceResult = Price.Create(item.Price);
+                Price price = Price.Create(item.Price).Value;
                 return ProductEntity.Create(
                     item.Name,
                     item.Description,
-                    priceResult.Value,
+                    price,
                     item.CategoryId,
                     item.ProductDataIds
                 );
