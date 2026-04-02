@@ -33,7 +33,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         CancellationToken ct = default
     )
     {
-        var query = includeDeleted
+        IQueryable<ProductDataLink> query = includeDeleted
             ? _dbContext
                 .ProductDataLinks.IgnoreQueryFilters()
                 .Where(link =>
@@ -55,7 +55,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         if (productIds.Count == 0)
             return new Dictionary<Guid, IReadOnlyList<ProductDataLink>>();
 
-        var query = includeDeleted
+        IQueryable<ProductDataLink> query = includeDeleted
             ? _dbContext
                 .ProductDataLinks.IgnoreQueryFilters()
                 .Where(link =>
@@ -63,7 +63,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
                 )
             : _dbContext.ProductDataLinks.Where(link => productIds.Contains(link.ProductId));
 
-        var links = await query.AsNoTracking().ToListAsync(ct);
+        List<ProductDataLink> links = await query.AsNoTracking().ToListAsync(ct);
         return links
             .GroupBy(link => link.ProductId)
             .ToDictionary(
@@ -90,7 +90,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         CancellationToken ct = default
     )
     {
-        var links = await _dbContext
+        List<ProductDataLink> links = await _dbContext
             .ProductDataLinks.Where(link => link.ProductDataId == productDataId)
             .ToListAsync(ct);
 

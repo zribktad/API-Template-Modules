@@ -1,4 +1,5 @@
 using ErrorOr;
+using Identity.Domain.Errors;
 
 namespace Identity.Domain.Entities;
 
@@ -54,9 +55,9 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     public ErrorOr<Success> Accept(TimeProvider timeProvider)
     {
         if (IsExpired(timeProvider))
-            return Error.Conflict("INV-0410", "Invitation has expired.");
+            return IdentityDomainErrors.Invitations.Expired();
         if (Status == InvitationStatus.Accepted)
-            return Error.Conflict("INV-0409-ACCEPTED", "Invitation has already been accepted.");
+            return IdentityDomainErrors.Invitations.AlreadyAccepted();
         Status = InvitationStatus.Accepted;
         return Result.Success;
     }

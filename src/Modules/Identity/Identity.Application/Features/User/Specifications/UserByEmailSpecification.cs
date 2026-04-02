@@ -13,7 +13,7 @@ public sealed class UserByEmailSpecification : Specification<AppUser>
     /// </summary>
     public UserByEmailSpecification(string email)
     {
-        var normalizedEmail = email.Trim().ToUpperInvariant();
+        string normalizedEmail = AppUser.NormalizeEmail(email);
         Query.Where(u => u.NormalizedEmail == normalizedEmail).AsNoTracking();
     }
 }

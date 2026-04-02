@@ -48,7 +48,7 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
     )
     {
         var specification = new ProductCategoryFacetSpecification(filter);
-        var query =
+        IQueryable<Product> query =
             Ardalis.Specification.EntityFrameworkCore.SpecificationEvaluator.Default.GetQuery(
                 _dbContext.Products.AsQueryable(),
                 specification
@@ -83,13 +83,13 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
     )
     {
         var specification = new ProductPriceFacetSpecification(filter);
-        var query =
+        IQueryable<Product> query =
             Ardalis.Specification.EntityFrameworkCore.SpecificationEvaluator.Default.GetQuery(
                 _dbContext.Products.AsQueryable(),
                 specification
             );
 
-        var counts = await query
+        PriceFacetCounts? counts = await query
             .GroupBy(_ => 1)
             .Select(group => new PriceFacetCounts(
                 group.Count(product => product.Price >= 0m && product.Price < 50m),
