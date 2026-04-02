@@ -60,8 +60,7 @@ builder.Host.UseWolverine(options =>
 {
     options.PersistMessagesWithPostgresql(connectionString);
 
-    // Enlist every handler that depends on a DbContext (enrolled via AddDbContextWithWolverineIntegration)
-    // in Wolverine's EF Core transactional middleware. Handlers without a DbContext dependency are unaffected.
+    // Only activates for handlers with a DbContext enrolled via AddDbContextWithWolverineIntegration.
     options.UseEntityFrameworkCoreTransactions();
 
     // UseDurableLocalQueues persists cascading messages in PostgreSQL so they survive a crash

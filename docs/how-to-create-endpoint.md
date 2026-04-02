@@ -527,7 +527,7 @@ public sealed class CreateProductsCommandHandler
         await context.ApplyRulesAsync(ct, itemValidationRule);
 
         if (context.HasFailures)
-            return (context.ToFailureResponse(), new OutgoingMessages());
+            return (context.ToFailureResponse(), OutgoingMessagesHelper.Empty);
 
         // Step 2: Build entities and persist
         List<ProductEntity> entities = items
