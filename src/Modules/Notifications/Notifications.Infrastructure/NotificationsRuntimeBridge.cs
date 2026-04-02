@@ -29,7 +29,7 @@ public static class NotificationsRuntimeBridge
         // Common resilient configuration for email and database
         services
             .AddModule<NotificationsDbContext>(configuration)
-            .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
+            .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<Notifications.Domain.NotificationsDbMarker>()
             .AddRepository<IFailedEmailRepository, FailedEmailRepository>();

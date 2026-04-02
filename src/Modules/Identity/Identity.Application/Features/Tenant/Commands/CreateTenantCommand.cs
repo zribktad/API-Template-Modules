@@ -14,36 +14,45 @@ public sealed record CreateTenantCommand(CreateTenantRequest Request);
 
 public sealed class CreateTenantCommandHandler
 {
-    public static async Task<ErrorOr<TenantResponse>> HandleAsync(
+    public static async Task<(ErrorOr<TenantResponse>, OutgoingMessages)> HandleAsync(
         CreateTenantCommand command,
         ITenantRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        IMessageBus bus,
+        ITenantCodeConflictDetector tenantCodeConflictDetector,
         CancellationToken ct
     )
     {
-        if (await repository.CodeExistsAsync(command.Request.Code, ct))
-            return DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code);
-
-        var tenant = await unitOfWork.ExecuteInTransactionAsync(
-            async () =>
-            {
-                var id = Guid.NewGuid();
-                var entity = new TenantEntity
+        TenantEntity tenant;
+        try
+        {
+            tenant = await unitOfWork.ExecuteInTransactionAsync(
+                async () =>
                 {
-                    Id = id,
-                    TenantId = id,
-                    Code = command.Request.Code,
-                    Name = command.Request.Name,
-                };
+                    Guid id = Guid.NewGuid();
+                    TenantEntity entity = new()
+                    {
+                        Id = id,
+                        TenantId = id,
+                        Code = command.Request.Code,
+                        Name = command.Request.Name,
+                    };
 
-                await repository.AddAsync(entity, ct);
-                return entity;
-            },
-            ct
-        );
+                    await repository.AddAsync(entity, ct);
+                    return entity;
+                },
+                ct
+            );
+        }
+        catch (Exception ex) when (tenantCodeConflictDetector.IsCodeConflict(ex))
+        {
+            return (
+                DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code),
+                OutgoingMessagesHelper.Empty
+            );
+        }
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Tenants));
-        return tenant.ToResponse();
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Tenants));
+        return (tenant.ToResponse(), messages);
     }
 }

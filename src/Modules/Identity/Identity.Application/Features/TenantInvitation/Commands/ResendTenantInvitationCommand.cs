@@ -12,16 +12,14 @@ public sealed record ResendTenantInvitationCommand(Guid InvitationId);
 
 public sealed class ResendTenantInvitationCommandHandler
 {
-    public static async Task<ErrorOr<Success>> HandleAsync(
+    public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         ResendTenantInvitationCommand command,
         ITenantInvitationRepository invitationRepository,
         ITenantRepository tenantRepository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
         ISecureTokenGenerator tokenGenerator,
-        IMessageBus bus,
         ITenantProvider tenantProvider,
         TimeProvider timeProvider,
-        ILogger<ResendTenantInvitationCommandHandler> logger,
         CancellationToken ct
     )
     {
@@ -32,15 +30,15 @@ public sealed class ResendTenantInvitationCommandHandler
                 ct
             );
         if (invitationResult.IsError)
-            return invitationResult.Errors;
+            return (invitationResult.Errors, OutgoingMessagesHelper.Empty);
         TenantInvitationEntity invitation = invitationResult.Value;
 
         if (invitation.Status != InvitationStatus.Pending)
-            return DomainErrors.Invitations.NotPending();
+            return (DomainErrors.Invitations.NotPending(), OutgoingMessagesHelper.Empty);
 
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         if (invitation.ExpiresAtUtc < now)
-            return DomainErrors.Invitations.ExpiredCreateNew();
+            return (DomainErrors.Invitations.ExpiredCreateNew(), OutgoingMessagesHelper.Empty);
 
         ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
             tenantProvider.TenantId,
@@ -48,7 +46,7 @@ public sealed class ResendTenantInvitationCommandHandler
             ct
         );
         if (tenantResult.IsError)
-            return tenantResult.Errors;
+            return (tenantResult.Errors, OutgoingMessagesHelper.Empty);
         TenantEntity tenant = tenantResult.Value;
 
         string rawToken = tokenGenerator.GenerateToken();
@@ -57,17 +55,16 @@ public sealed class ResendTenantInvitationCommandHandler
         await invitationRepository.UpdateAsync(invitation, ct);
         await unitOfWork.CommitAsync(ct);
 
-        await bus.PublishSafeAsync(
+        OutgoingMessages messages = new();
+        messages.Add(
             new TenantInvitationCreatedNotification(
                 invitation.Id,
                 invitation.Email,
                 tenant.Name,
                 rawToken
-            ),
-            logger
+            )
         );
-
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.TenantInvitations));
-        return Result.Success;
+        messages.Add(new CacheInvalidationNotification(CacheTags.TenantInvitations));
+        return (Result.Success, messages);
     }
 }

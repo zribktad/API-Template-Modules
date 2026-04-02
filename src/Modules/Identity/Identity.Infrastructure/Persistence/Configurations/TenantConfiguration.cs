@@ -6,6 +6,8 @@ namespace Identity.Infrastructure.Persistence.Configurations;
 
 public sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 {
+    public const string TenantCodeIndexName = "IX_Tenants_Code";
+
     public void Configure(EntityTypeBuilder<Tenant> builder)
     {
         builder.HasKey(t => t.Id);
@@ -15,7 +17,7 @@ public sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.Property(t => t.Name).IsRequired().HasMaxLength(200);
         builder.Property(t => t.IsActive).IsRequired().HasDefaultValue(true);
 
-        builder.HasIndex(t => t.Code).IsUnique();
+        builder.HasIndex(t => t.Code).HasDatabaseName(TenantCodeIndexName).IsUnique();
         builder.HasIndex(t => t.IsActive);
     }
 }

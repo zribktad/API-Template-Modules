@@ -7,6 +7,8 @@ using FileStorage.Application.Features.Upload;
 using Identity.Api;
 using Identity.Application.Features.User;
 using Identity.Infrastructure.Handlers;
+using JasperFx;
+using JasperFx.Resources;
 using ProductCatalog.Api;
 using ProductCatalog.Application.Features.Product;
 using ProductCatalog.Infrastructure.Handlers;
@@ -17,8 +19,13 @@ using SharedKernel.Application.Middleware;
 using Webhooks.Api;
 using Webhooks.Application.Handlers;
 using Wolverine;
+using Wolverine.EntityFrameworkCore;
+using Wolverine.Postgresql;
 
 var builder = WebApplication.CreateBuilder(args);
+string connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required.");
 
 builder.AddApplicationRedaction();
 
@@ -44,8 +51,22 @@ builder.Services.AddBackgroundJobsModule(builder.Configuration);
 builder.Services.AddWebhooksModule(builder.Configuration);
 builder.Services.AddChattingModule(builder.Configuration);
 
+// Auto-create Wolverine schema tables (incoming/outgoing/dead-letter) on startup.
+// Scoped to Development only — in other environments run `db-apply` as a pre-deployment step.
+if (builder.Environment.IsDevelopment())
+    builder.Host.UseResourceSetupOnStartup();
+
 builder.Host.UseWolverine(options =>
 {
+    options.PersistMessagesWithPostgresql(connectionString);
+
+    // Only activates for handlers with a DbContext enrolled via AddDbContextWithWolverineIntegration.
+    options.UseEntityFrameworkCoreTransactions();
+
+    // UseDurableLocalQueues persists cascading messages in PostgreSQL so they survive a crash
+    // between handler commit and message dispatch. UseStrictLocalQueues would additionally
+    // guarantee in-order processing per queue — not needed here since handlers are idempotent.
+    options.Policies.UseDurableLocalQueues();
     options.Discovery.IncludeAssembly(typeof(CreateUserCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly);
     options.Discovery.IncludeAssembly(typeof(CreateProductReviewCommand).Assembly);
@@ -76,6 +97,6 @@ if (app.Environment.IsDevelopment())
 app.UseApiPipeline();
 app.MapApplicationEndpoints();
 
-app.Run();
+await app.RunJasperFxCommands(args);
 
 public partial class Program;

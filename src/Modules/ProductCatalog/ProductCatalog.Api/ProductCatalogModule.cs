@@ -20,6 +20,8 @@ using ProductCatalog.Infrastructure.Persistence;
 using ProductCatalog.Infrastructure.Repositories;
 using ProductCatalog.Infrastructure.SoftDelete;
 using ProductCatalog.Infrastructure.StoredProcedures;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
@@ -41,7 +43,7 @@ public static class ProductCatalogModule
 
         services
             .AddModule<ProductCatalogDbContext>(configuration)
-            .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
+            .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<ProductCatalog.Domain.ProductCatalogDbMarker>()
             .AddStoredProcedureSupport()
@@ -55,6 +57,7 @@ public static class ProductCatalogModule
         services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>(
             filter: registration => !registration.ValidatorType.IsGenericTypeDefinition
         );
+        services.AddScoped(typeof(IBatchRule<>), typeof(FluentValidationBatchRule<>));
 
         services.Configure<MongoDbSettings>(
             configuration.GetSection(ConfigurationSections.MongoDB)

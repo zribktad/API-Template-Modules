@@ -16,11 +16,10 @@ public sealed record CreateUserCommand(CreateUserRequest Request);
 
 public sealed class CreateUserCommandHandler
 {
-    public static async Task<ErrorOr<UserResponse>> HandleAsync(
+    public static async Task<(ErrorOr<UserResponse>, OutgoingMessages)> HandleAsync(
         CreateUserCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        IMessageBus bus,
         ILogger<CreateUserCommandHandler> logger,
         IKeycloakAdminService keycloakAdmin,
         CancellationToken ct
@@ -32,7 +31,7 @@ public sealed class CreateUserCommandHandler
             ct
         );
         if (emailResult.IsError)
-            return emailResult.Errors;
+            return (emailResult.Errors, OutgoingMessagesHelper.Empty);
 
         ErrorOr<Success> usernameResult = await UserValidationHelper.ValidateUsernameUniqueAsync(
             repository,
@@ -40,7 +39,7 @@ public sealed class CreateUserCommandHandler
             ct
         );
         if (usernameResult.IsError)
-            return usernameResult.Errors;
+            return (usernameResult.Errors, OutgoingMessagesHelper.Empty);
 
         string keycloakUserId = await keycloakAdmin.CreateUserAsync(
             command.Request.Username,
@@ -60,14 +59,10 @@ public sealed class CreateUserCommandHandler
 
             await repository.AddAsync(user, ct);
             await unitOfWork.CommitAsync(ct);
-
-            await bus.PublishSafeAsync(
-                new UserRegisteredNotification(user.Id, user.Email, user.Username),
-                logger
-            );
-
-            await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Users));
-            return user.ToResponse();
+            OutgoingMessages messages = new();
+            messages.Add(new UserRegisteredNotification(user.Id, user.Email, user.Username));
+            messages.Add(new CacheInvalidationNotification(CacheTags.Users));
+            return (user.ToResponse(), messages);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

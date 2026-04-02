@@ -20,18 +20,17 @@ public sealed record PatchProductCommand(
 
 public sealed class PatchProductCommandHandler
 {
-    public static async Task<ErrorOr<ProductResponse>> HandleAsync(
+    public static async Task<(ErrorOr<ProductResponse>, OutgoingMessages)> HandleAsync(
         PatchProductCommand command,
         IProductRepository repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         IValidator<PatchableProductDto> validator,
-        IMessageBus bus,
         CancellationToken ct
     )
     {
         Domain.Entities.Product? product = await repository.GetByIdAsync(command.Id, ct);
         if (product is null)
-            return DomainErrors.Products.NotFound(command.Id);
+            return (DomainErrors.Products.NotFound(command.Id), OutgoingMessagesHelper.Empty);
 
         PatchableProductDto dto = new()
         {
@@ -47,7 +46,10 @@ public sealed class PatchProductCommandHandler
         }
         catch (Exception ex)
         {
-            return DomainErrors.Patch.InvalidPatchDocument(ex.Message);
+            return (
+                DomainErrors.Patch.InvalidPatchDocument(ex.Message),
+                OutgoingMessagesHelper.Empty
+            );
         }
 
         FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(
@@ -55,8 +57,11 @@ public sealed class PatchProductCommandHandler
             ct
         );
         if (!validationResult.IsValid)
-            return DomainErrors.Patch.InvalidPatchDocument(
-                string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage))
+            return (
+                DomainErrors.Patch.InvalidPatchDocument(
+                    string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage))
+                ),
+                OutgoingMessagesHelper.Empty
             );
 
         product.UpdateDetails(dto.Name, dto.Description, dto.Price, dto.CategoryId);
@@ -69,8 +74,9 @@ public sealed class PatchProductCommandHandler
             ct
         );
 
-        await bus.PublishAsync(new CacheInvalidationNotification(Events.CacheTags.Products));
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
 
-        return product.ToResponse();
+        return (product.ToResponse(), messages);
     }
 }

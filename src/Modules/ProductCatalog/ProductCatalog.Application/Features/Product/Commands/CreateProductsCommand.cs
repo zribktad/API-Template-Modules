@@ -1,10 +1,8 @@
 using Contracts.Events;
 using ErrorOr;
-using FluentValidation;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.Entities;
 using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
 using Wolverine;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
 using ProductRepositoryContract = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
@@ -25,17 +23,14 @@ public sealed class CreateProductsCommandHandler
         CreateProductsCommand command,
         ICategoryRepository categoryRepository,
         IProductDataRepository productDataRepository,
-        IValidator<CreateProductRequest> itemValidator,
+        IBatchRule<CreateProductRequest> itemValidationRule,
         CancellationToken ct
     )
     {
         IReadOnlyList<CreateProductRequest> items = command.Request.Items;
         BatchFailureContext<CreateProductRequest> context = new(items);
 
-        await context.ApplyRulesAsync(
-            ct,
-            new FluentValidationBatchRule<CreateProductRequest>(itemValidator)
-        );
+        await context.ApplyRulesAsync(ct, itemValidationRule);
 
         // Reference checks skip only fluent-validation failures so both category and
         // product-data issues can be reported for the same index (merged into one failure row).
@@ -75,7 +70,7 @@ public sealed class CreateProductsCommandHandler
             })
             .ToList();
 
-        return (HandlerContinuation.Continue, entities, new OutgoingMessages());
+        return (HandlerContinuation.Continue, entities, OutgoingMessagesHelper.Empty);
     }
 
     public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(

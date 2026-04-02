@@ -15,11 +15,10 @@ public sealed record DeleteUserCommand(Guid Id) : IHasId;
 
 public sealed class DeleteUserCommandHandler
 {
-    public static async Task<ErrorOr<Success>> HandleAsync(
+    public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         DeleteUserCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        IMessageBus bus,
         IKeycloakAdminService keycloakAdmin,
         ILogger<DeleteUserCommandHandler> logger,
         CancellationToken ct
@@ -31,7 +30,7 @@ public sealed class DeleteUserCommandHandler
             ct
         );
         if (userResult.IsError)
-            return userResult.Errors;
+            return (userResult.Errors, OutgoingMessagesHelper.Empty);
         AppUser user = userResult.Value;
 
         if (user.KeycloakUserId is not null)
@@ -52,7 +51,8 @@ public sealed class DeleteUserCommandHandler
             throw;
         }
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Users));
-        return Result.Success;
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Users));
+        return (Result.Success, messages);
     }
 }

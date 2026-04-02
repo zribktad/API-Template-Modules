@@ -25,16 +25,22 @@ public sealed class TenantSoftDeleteCascadeRule : ISoftDeleteCascadeRule
         List<IAuditableTenantEntity> dependents = [];
 
         dependents.AddRange(
-            await db.Users
-                .IgnoreQueryFilters(["SoftDelete", "Tenant"])
+            await db
+                .Users.IgnoreQueryFilters([
+                    GlobalQueryFilterNames.SoftDelete,
+                    GlobalQueryFilterNames.Tenant,
+                ])
                 .Where(u => u.TenantId == tenant.Id && !u.IsDeleted)
                 .Cast<IAuditableTenantEntity>()
                 .ToListAsync(cancellationToken)
         );
 
         dependents.AddRange(
-            await db.TenantInvitations
-                .IgnoreQueryFilters(["SoftDelete", "Tenant"])
+            await db
+                .TenantInvitations.IgnoreQueryFilters([
+                    GlobalQueryFilterNames.SoftDelete,
+                    GlobalQueryFilterNames.Tenant,
+                ])
                 .Where(i => i.TenantId == tenant.Id && !i.IsDeleted)
                 .Cast<IAuditableTenantEntity>()
                 .ToListAsync(cancellationToken)

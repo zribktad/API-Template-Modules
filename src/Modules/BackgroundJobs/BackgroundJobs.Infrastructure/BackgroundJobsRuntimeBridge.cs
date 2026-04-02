@@ -38,7 +38,7 @@ public static class BackgroundJobsRuntimeBridge
 
         services
             .AddModule<BackgroundJobsDbContext>(configuration)
-            .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
+            .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<BackgroundJobs.Domain.BackgroundJobsDbMarker>()
             .AddRepository<IJobExecutionRepository, JobExecutionRepository>();

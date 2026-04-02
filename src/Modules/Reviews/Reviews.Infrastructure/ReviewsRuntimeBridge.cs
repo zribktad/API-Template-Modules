@@ -24,7 +24,7 @@ public static class ReviewsRuntimeBridge
 
         services
             .AddModule<ReviewsDbContext>(configuration)
-            .ConfigureDbContext((_, options) => options.UseNpgsql(connectionString))
+            .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<Reviews.Domain.ReviewsDbMarker>()
             .AddRepository<IProductReviewRepository, ProductReviewRepository>();

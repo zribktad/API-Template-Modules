@@ -1,30 +1,14 @@
-using Microsoft.Extensions.Logging;
 using Wolverine;
 
 namespace SharedKernel.Application.Events;
 
 /// <summary>
-/// Extension methods for <see cref="IMessageBus"/> providing safe (fire-and-forget) publishing.
+/// Factory for <see cref="OutgoingMessages"/> instances when no cascading messages need to be dispatched.
 /// </summary>
-public static class MessageBusExtensions
+public static class OutgoingMessagesHelper
 {
     /// <summary>
-    /// Publishes a message, swallowing any non-cancellation exception and logging it as a warning.
-    /// Use for notification events whose failure must not break the main command flow.
+    /// Returns a new empty <see cref="OutgoingMessages"/> for handler paths that do not emit any cascading messages.
     /// </summary>
-    public static async Task PublishSafeAsync<TEvent>(
-        this IMessageBus bus,
-        TEvent @event,
-        ILogger logger
-    )
-    {
-        try
-        {
-            await bus.PublishAsync(@event);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.LogWarning(ex, "Failed to publish {EventType}.", typeof(TEvent).Name);
-        }
-    }
+    public static OutgoingMessages Empty => new();
 }

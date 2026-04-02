@@ -63,7 +63,7 @@ public sealed class DeleteProductsCommandHandler
         return (
             HandlerContinuation.Continue,
             new DeleteProductsState(products, actorId, deletedAtUtc),
-            new OutgoingMessages()
+            OutgoingMessagesHelper.Empty
         );
     }
 

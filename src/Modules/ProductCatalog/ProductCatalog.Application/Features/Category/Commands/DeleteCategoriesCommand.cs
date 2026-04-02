@@ -47,7 +47,7 @@ public sealed class DeleteCategoriesCommandHandler
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 
-        return (HandlerContinuation.Continue, categories, new OutgoingMessages());
+        return (HandlerContinuation.Continue, categories, OutgoingMessagesHelper.Empty);
     }
 
     public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(

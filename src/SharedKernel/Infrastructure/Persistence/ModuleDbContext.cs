@@ -1,9 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using SharedKernel.Application.Context;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.EntityNormalization;
 using SharedKernel.Infrastructure.SoftDelete;
-using Microsoft.EntityFrameworkCore;
 
 namespace SharedKernel.Infrastructure.Persistence;
 
@@ -90,8 +90,11 @@ public abstract class ModuleDbContext : DbContext
     {
         modelBuilder
             .Entity<TEntity>()
-            .HasQueryFilter("SoftDelete", entity => !entity.IsDeleted)
-            .HasQueryFilter("Tenant", entity => HasTenant && entity.TenantId == CurrentTenantId);
+            .HasQueryFilter(GlobalQueryFilterNames.SoftDelete, entity => !entity.IsDeleted)
+            .HasQueryFilter(
+                GlobalQueryFilterNames.Tenant,
+                entity => HasTenant && entity.TenantId == CurrentTenantId
+            );
     }
 
     private async Task ApplyEntityAuditingAsync(CancellationToken cancellationToken)
