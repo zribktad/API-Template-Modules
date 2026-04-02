@@ -43,9 +43,9 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageVersion Include="MailKit" Version="4.15.1" />
     <PackageVersion Include="WolverineFx" Version="5.27.0" />
-    <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="5.22.0" />
+    <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="5.27.0" />
     <PackageVersion Include="WolverineFx.FluentValidation" Version="5.22.0" />
-    <PackageVersion Include="WolverineFx.Postgresql" Version="5.22.0" />
+    <PackageVersion Include="WolverineFx.Postgresql" Version="5.27.0" />
     <PackageVersion Include="MimeKit" Version="4.15.1" />
     <PackageVersion Include="MockQueryable.Moq" Version="10.0.5" />
     <PackageVersion Include="MongoDB.Bson" Version="3.7.1" />
@@ -54,9 +54,9 @@
     <PackageVersion Include="NCrontab.Signed" Version="3.3.3" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.2" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.15.0" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.15.1" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.1" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
     <!-- These instrumentations are still beta upstream; keep them pinned deliberately until stable releases exist. -->
@@ -72,9 +72,9 @@
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
-    <PackageVersion Include="StackExchange.Redis" Version="2.8.41" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.12.14" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="SystemTextJsonPatch" Version="4.2.0" />
+    <PackageVersion Include="SystemTextJsonPatch" Version="5.0.0" />
     <PackageVersion Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" Version="3.0.0" />
     <PackageVersion Include="Respawn" Version="7.0.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.11.0" />
