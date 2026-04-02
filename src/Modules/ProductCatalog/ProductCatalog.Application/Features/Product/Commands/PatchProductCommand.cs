@@ -1,13 +1,8 @@
-using Contracts.Events;
 using ErrorOr;
 using FluentValidation;
-using ProductCatalog.Application.Errors;
-using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Application.Features.Product.Mappings;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.ValueObjects;
-using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Domain.Interfaces;
 using SystemTextJsonPatch;
 using Wolverine;
 using IProductRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
