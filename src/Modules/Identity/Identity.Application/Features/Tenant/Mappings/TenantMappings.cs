@@ -15,7 +15,7 @@ public static class TenantMappings
     public static readonly Expression<Func<TenantEntity, TenantResponse>> Projection =
         tenant => new TenantResponse(
             tenant.Id,
-            tenant.Code,
+            tenant.Code.Value,
             tenant.Name,
             tenant.IsActive,
             tenant.Audit.CreatedAtUtc

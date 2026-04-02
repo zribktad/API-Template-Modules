@@ -1,7 +1,7 @@
-using Identity.Application.Features.Tenant.DTOs;
-using SharedKernel.Application.Search;
 using Ardalis.Specification;
+using Identity.Application.Features.Tenant.DTOs;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Application.Search;
 using TenantEntity = Identity.Domain.Entities.Tenant;
 
 namespace Identity.Application.Features.Tenant.Specifications;
@@ -25,7 +25,7 @@ internal static class TenantFilterCriteria
         query.Where(tenant =>
             EF.Functions.ToTsVector(
                     SearchDefaults.TextSearchConfiguration,
-                    tenant.Code + " " + tenant.Name
+                    tenant.Code.Value + " " + tenant.Name
                 )
                 .Matches(
                     EF.Functions.WebSearchToTsQuery(
