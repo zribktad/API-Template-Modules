@@ -2,7 +2,6 @@ using ErrorOr;
 using Identity.Application.Logging;
 using Identity.Domain;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Domain.Entities.Contracts;
 using Wolverine;
 
 namespace Identity.Application.Features.User;

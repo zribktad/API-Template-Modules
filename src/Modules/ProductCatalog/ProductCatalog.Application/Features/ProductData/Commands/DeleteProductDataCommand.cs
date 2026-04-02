@@ -3,8 +3,6 @@ using Microsoft.Extensions.Logging;
 using Polly.Registry;
 using ProductCatalog.Application.Logging;
 using ProductCatalog.Domain;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Resilience;
 using Wolverine;
 
 namespace ProductCatalog.Application.Features.ProductData;

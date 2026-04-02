@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Polly.Registry;
 using ProductCatalog.Application.Logging;
-using SharedKernel.Application.Resilience;
 
 namespace ProductCatalog.Application.Features.ProductData.Handlers;
 
