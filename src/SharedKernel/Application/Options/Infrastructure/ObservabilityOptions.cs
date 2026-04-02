@@ -1,3 +1,7 @@
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Options;
+
 namespace SharedKernel.Application.Options.Infrastructure;
 
 /// <summary>
@@ -5,10 +9,19 @@ namespace SharedKernel.Application.Options.Infrastructure;
 /// </summary>
 public sealed class ObservabilityOptions
 {
+    [Description("Endpoint configuration for OpenTelemetry OTLP export.")]
+    [Required]
+    [ValidateObjectMembers]
     public OtlpEndpointOptions Otlp { get; init; } = new();
 
+    [Description("Endpoint configuration for .NET Aspire dashboard export.")]
+    [Required]
+    [ValidateObjectMembers]
     public AspireEndpointOptions Aspire { get; init; } = new();
 
+    [Description("Enabled-state toggles for supported observability exporters.")]
+    [Required]
+    [ValidateObjectMembers]
     public ObservabilityExportersOptions Exporters { get; init; } = new();
 }
 
@@ -17,6 +30,7 @@ public sealed class ObservabilityOptions
 /// </summary>
 public sealed class OtlpEndpointOptions
 {
+    [Description("Absolute OTLP endpoint URI used when OTLP export is enabled.")]
     public string Endpoint { get; init; } = string.Empty;
 }
 
@@ -25,6 +39,7 @@ public sealed class OtlpEndpointOptions
 /// </summary>
 public sealed class AspireEndpointOptions
 {
+    [Description("Absolute Aspire dashboard endpoint URI used when Aspire export is enabled.")]
     public string Endpoint { get; init; } = string.Empty;
 }
 
@@ -33,10 +48,19 @@ public sealed class AspireEndpointOptions
 /// </summary>
 public sealed class ObservabilityExportersOptions
 {
+    [Description("Toggle controlling Aspire exporter activation.")]
+    [Required]
+    [ValidateObjectMembers]
     public ObservabilityExporterToggleOptions Aspire { get; init; } = new();
 
+    [Description("Toggle controlling OTLP exporter activation.")]
+    [Required]
+    [ValidateObjectMembers]
     public ObservabilityExporterToggleOptions Otlp { get; init; } = new();
 
+    [Description("Toggle controlling console exporter activation.")]
+    [Required]
+    [ValidateObjectMembers]
     public ObservabilityExporterToggleOptions Console { get; init; } = new();
 }
 
@@ -46,5 +70,8 @@ public sealed class ObservabilityExportersOptions
 /// </summary>
 public sealed class ObservabilityExporterToggleOptions
 {
+    [Description(
+        "Explicit enabled-state override for a single exporter; null means runtime default."
+    )]
     public bool? Enabled { get; init; }
 }

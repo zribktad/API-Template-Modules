@@ -97,9 +97,7 @@ public sealed class ModuleRegistrationBuilder<TContext>
 
     public ModuleRegistrationBuilder<TContext> AddDefaultInfrastructure()
     {
-        _services.Configure<TransactionDefaultsOptions>(
-            _configuration.SectionFor<TransactionDefaultsOptions>()
-        );
+        _services.AddValidatedOptions<TransactionDefaultsOptions>(_configuration);
 
         _services.TryAddSingleton(TimeProvider.System);
         _services.TryAddSingleton<

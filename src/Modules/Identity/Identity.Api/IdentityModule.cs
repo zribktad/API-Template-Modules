@@ -71,8 +71,8 @@ public static class IdentityModule
     private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)
     {
         services.AddValidatedOptions<KeycloakOptions>(configuration);
-        services.AddValidatedOptions<BffOptions>(configuration, validateDataAnnotations: false);
-        services.AddValidatedOptions<CorsOptions>(configuration, validateDataAnnotations: false);
+        services.AddValidatedOptions<BffOptions>(configuration);
+        services.AddValidatedOptions<CorsOptions>(configuration);
         services
             .AddValidatedOptions<BootstrapTenantOptions>(configuration)
             .Validate(

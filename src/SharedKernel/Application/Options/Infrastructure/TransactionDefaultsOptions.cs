@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using SharedKernel.Domain.Options;
 
@@ -9,10 +11,22 @@ namespace SharedKernel.Application.Options.Infrastructure;
 /// </summary>
 public sealed class TransactionDefaultsOptions
 {
+    [Description("Default database isolation level applied when a transaction starts.")]
     public IsolationLevel IsolationLevel { get; set; } = IsolationLevel.ReadCommitted;
+
+    [Description("Default transaction timeout, in seconds.")]
+    [Range(0, int.MaxValue)]
     public int TimeoutSeconds { get; set; } = 30;
+
+    [Description("Enables automatic retry behavior for transient transaction failures.")]
     public bool RetryEnabled { get; set; } = true;
+
+    [Description("Default number of retry attempts for transient transaction failures.")]
+    [Range(0, int.MaxValue)]
     public int RetryCount { get; set; } = 3;
+
+    [Description("Delay, in seconds, between transaction retry attempts.")]
+    [Range(0, int.MaxValue)]
     public int RetryDelaySeconds { get; set; } = 5;
 
     /// <summary>

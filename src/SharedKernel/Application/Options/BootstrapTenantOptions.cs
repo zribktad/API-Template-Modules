@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace SharedKernel.Application.Options;
@@ -7,9 +8,15 @@ namespace SharedKernel.Application.Options;
 /// </summary>
 public sealed class BootstrapTenantOptions
 {
+    [Description("Code of the tenant that is seeded automatically during first-time bootstrap.")]
     [Required]
+    [MinLength(1)]
     public string Code { get; init; } = "default";
 
+    [Description(
+        "Human-readable name of the tenant that is seeded automatically during first-time bootstrap."
+    )]
     [Required]
+    [MinLength(1)]
     public string Name { get; init; } = "Default Tenant";
 }

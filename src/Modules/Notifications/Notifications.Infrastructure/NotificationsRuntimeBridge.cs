@@ -36,7 +36,7 @@ public static class NotificationsRuntimeBridge
 
         var emailSection = configuration.SectionFor<EmailOptions>();
         var emailOptions = emailSection.Get<EmailOptions>() ?? new EmailOptions();
-        services.Configure<EmailOptions>(emailSection);
+        services.AddValidatedOptions<EmailOptions>(configuration);
 
         services.AddQueueWithConsumer<
             ChannelEmailQueue,

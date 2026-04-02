@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+
 namespace SharedKernel.Infrastructure.Health;
 
 /// <summary>
@@ -6,5 +9,8 @@ namespace SharedKernel.Infrastructure.Health;
 /// </summary>
 public sealed class KeycloakHealthCheckOptions
 {
+    [Description("OpenID Connect discovery endpoint used by the Keycloak health probe.")]
+    [Required]
+    [Url]
     public string DiscoveryUrl { get; init; } = string.Empty;
 }

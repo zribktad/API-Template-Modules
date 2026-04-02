@@ -12,11 +12,8 @@ public static class ObservabilityServiceCollectionExtensions
         IHostEnvironment environment
     )
     {
-        services.AddValidatedOptions<AppOptions>(configuration, validateDataAnnotations: false);
-        services.AddValidatedOptions<ObservabilityOptions>(
-            configuration,
-            validateDataAnnotations: false
-        );
+        services.AddValidatedOptions<AppOptions>(configuration);
+        services.AddValidatedOptions<ObservabilityOptions>(configuration);
 
         AppOptions appOptions = configuration.SectionFor<AppOptions>().Get<AppOptions>() ?? new();
         ObservabilityOptions observabilityOptions =
