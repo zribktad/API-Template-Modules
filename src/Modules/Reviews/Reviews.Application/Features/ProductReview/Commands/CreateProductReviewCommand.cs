@@ -1,11 +1,8 @@
-using Contracts.Events;
 using Contracts.Queries.ProductCatalog;
 using ErrorOr;
 using Reviews.Application.Features.ProductReview.Mappings;
 using Reviews.Domain;
-using Reviews.Domain.Interfaces;
 using Reviews.Domain.ValueObjects;
-using SharedKernel.Application.Context;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.Entities.ProductReview;
 

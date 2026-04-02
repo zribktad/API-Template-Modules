@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Reviews.Domain.Entities;
 using Reviews.Domain.ValueObjects;
 
 namespace Reviews.Infrastructure.Configurations;
