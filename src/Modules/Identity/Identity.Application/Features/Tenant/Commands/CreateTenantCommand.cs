@@ -1,11 +1,7 @@
 using ErrorOr;
-using Identity.Application.Features.Tenant.DTOs;
 using Identity.Application.Features.Tenant.Mappings;
 using Identity.Domain;
-using Identity.Domain.Interfaces;
 using Identity.Domain.ValueObjects;
-using SharedKernel.Application.Events;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
 
