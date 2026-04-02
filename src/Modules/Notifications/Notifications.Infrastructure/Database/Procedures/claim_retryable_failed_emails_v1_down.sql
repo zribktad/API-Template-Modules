@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS claim_retryable_failed_emails(INT, INT, TEXT, TIMESTAMPTZ, TIMESTAMPTZ);

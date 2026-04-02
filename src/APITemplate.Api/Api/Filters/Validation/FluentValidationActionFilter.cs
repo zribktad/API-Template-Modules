@@ -1,4 +1,4 @@
-using APITemplate.Infrastructure.Observability;
+using System.Collections.Concurrent;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -6,14 +6,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace APITemplate.Api.Filters.Validation;
 
 /// <summary>
-/// Global action filter that automatically validates all action arguments using FluentValidation.
-/// Runs before every controller action. If a registered <see cref="IValidator{T}"/> exists for an
-/// argument type, it is resolved from DI and executed. On failure, returns HTTP 400 with a
-/// <see cref="ValidationProblemDetails"/> body — the controller method is never invoked.
-/// Arguments without a registered validator are silently skipped.
+/// Global action filter that resolves FluentValidation validators from DI for each action argument
+/// and short-circuits with HTTP 400 if validation fails.
 /// </summary>
 public sealed class FluentValidationActionFilter : IAsyncActionFilter
 {
+    private static readonly ConcurrentDictionary<Type, Type> ValidatorTypeCache = new();
+
     private readonly IServiceProvider _serviceProvider;
 
     public FluentValidationActionFilter(IServiceProvider serviceProvider)
@@ -21,29 +20,28 @@ public sealed class FluentValidationActionFilter : IAsyncActionFilter
         _serviceProvider = serviceProvider;
     }
 
-    /// <summary>
-    /// Iterates over all action arguments, resolves a matching <see cref="IValidator{T}"/> from DI
-    /// for each, and short-circuits with HTTP 400 if any validation fails.
-    /// </summary>
     public async Task OnActionExecutionAsync(
         ActionExecutingContext context,
         ActionExecutionDelegate next
     )
     {
-        foreach (var argument in context.ActionArguments.Values)
+        foreach (object? argument in context.ActionArguments.Values)
         {
             if (argument is null)
                 continue;
 
-            var argumentType = argument.GetType();
-            var validatorType = typeof(IValidator<>).MakeGenericType(argumentType);
-            var validator = _serviceProvider.GetService(validatorType) as IValidator;
+            Type argumentType = argument.GetType();
+            Type validatorType = ValidatorTypeCache.GetOrAdd(
+                argumentType,
+                static t => typeof(IValidator<>).MakeGenericType(t)
+            );
+            IValidator? validator = _serviceProvider.GetService(validatorType) as IValidator;
 
             if (validator is null)
                 continue;
 
-            var validationContext = new ValidationContext<object>(argument);
-            var result = await validator.ValidateAsync(
+            ValidationContext<object> validationContext = new(argument);
+            FluentValidation.Results.ValidationResult result = await validator.ValidateAsync(
                 validationContext,
                 context.HttpContext.RequestAborted
             );
@@ -51,8 +49,7 @@ public sealed class FluentValidationActionFilter : IAsyncActionFilter
             if (result.IsValid)
                 continue;
 
-            ValidationTelemetry.RecordValidationFailure(context, argumentType, result.Errors);
-            foreach (var error in result.Errors)
+            foreach (FluentValidation.Results.ValidationFailure error in result.Errors)
                 context.ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
         }
 

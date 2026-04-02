@@ -1,11 +1,12 @@
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Context;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.ProductReview;
 using APITemplate.Application.Features.ProductReview.Specifications;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using ErrorOr;
 using Moq;
 using Shouldly;
@@ -191,6 +192,20 @@ public class ProductReviewRequestHandlersTests
                 ),
             Times.Once
         );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Reviews)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Categories)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -251,6 +266,20 @@ public class ProductReviewRequestHandlersTests
                     It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>(),
                     It.IsAny<TransactionOptions?>()
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Reviews)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Categories)
                 ),
             Times.Once
         );

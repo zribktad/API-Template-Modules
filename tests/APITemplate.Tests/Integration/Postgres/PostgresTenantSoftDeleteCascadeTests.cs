@@ -1,12 +1,13 @@
 using APITemplate.Api.Extensions;
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Options;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using APITemplate.Infrastructure.Persistence.SoftDelete;
+using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -1,6 +1,6 @@
-using APITemplate.Application.Common.Options;
-using APITemplate.Application.Common.Security;
-using APITemplate.Infrastructure.Security;
+using Identity.Application.Common.Security;
+using Identity.Application.Options;
+using Identity.Infrastructure.Security.Keycloak;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OpenApi;
@@ -27,23 +27,22 @@ public sealed class BearerSecuritySchemeDocumentTransformer : IOpenApiDocumentTr
         _keycloak = keycloakOptions.Value;
     }
 
-    /// <summary>
-    /// Adds the Keycloak OAuth2 security scheme and a global security requirement to the OpenAPI document,
-    /// skipping transformation if the JWT Bearer authentication scheme is not registered.
-    /// </summary>
     public async Task TransformAsync(
         OpenApiDocument document,
         OpenApiDocumentTransformerContext context,
         CancellationToken cancellationToken
     )
     {
-        var schemes = await _schemeProvider.GetAllSchemesAsync();
+        IEnumerable<AuthenticationScheme> schemes = await _schemeProvider.GetAllSchemesAsync();
         if (!schemes.Any(s => s.Name == JwtBearerDefaults.AuthenticationScheme))
             return;
 
-        var authority = KeycloakUrlHelper.BuildAuthority(_keycloak.AuthServerUrl, _keycloak.Realm);
+        string authority = KeycloakUrlHelper.BuildAuthority(
+            _keycloak.AuthServerUrl,
+            _keycloak.Realm
+        );
 
-        var securityScheme = new OpenApiSecurityScheme
+        OpenApiSecurityScheme securityScheme = new()
         {
             Type = SecuritySchemeType.OAuth2,
             Description = "Keycloak OAuth2 Authorization Code flow",
@@ -67,11 +66,11 @@ public sealed class BearerSecuritySchemeDocumentTransformer : IOpenApiDocumentTr
             },
         };
 
-        var components = document.Components ??= new OpenApiComponents();
+        OpenApiComponents components = document.Components ??= new OpenApiComponents();
         components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
         components.SecuritySchemes[AuthConstants.OpenApi.OAuth2Scheme] = securityScheme;
 
-        var requirement = new OpenApiSecurityRequirement();
+        OpenApiSecurityRequirement requirement = new();
         requirement[
             new OpenApiSecuritySchemeReference(AuthConstants.OpenApi.OAuth2Scheme, document, null)
         ] = [AuthConstants.Scopes.OpenId];

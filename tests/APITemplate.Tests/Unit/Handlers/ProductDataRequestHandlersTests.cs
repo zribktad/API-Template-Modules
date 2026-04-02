@@ -1,10 +1,11 @@
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Events;
-using APITemplate.Application.Common.Resilience;
+using SharedKernel.Application.Context;
+using Contracts.Events;
+using SharedKernel.Application.Events;
+using SharedKernel.Application.Resilience;
 using APITemplate.Application.Features.ProductData;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -232,7 +233,13 @@ public class ProductDataRequestHandlersTests
                 ),
             Times.Once
         );
-        _busMock.Verify(p => p.PublishAsync(It.IsAny<CacheInvalidationNotification>()), Times.Once);
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.ProductData)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -279,7 +286,13 @@ public class ProductDataRequestHandlersTests
                 ),
             Times.Once
         );
-        _busMock.Verify(p => p.PublishAsync(It.IsAny<CacheInvalidationNotification>()), Times.Once);
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.ProductData)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -359,7 +372,20 @@ public class ProductDataRequestHandlersTests
                 ),
             Times.Once
         );
-        _busMock.Verify(p => p.PublishAsync(It.IsAny<CacheInvalidationNotification>()), Times.Once);
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.ProductData)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Products)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]

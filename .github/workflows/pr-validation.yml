@@ -9,6 +9,10 @@ on:
     branches:
       - main
       - master
+      - dev
+  push:
+    branches:
+      - main
 
 jobs:
   build-and-test:

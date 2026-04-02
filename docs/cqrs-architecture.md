@@ -1,6 +1,6 @@
 # WolverineFx Message Bus Architecture
 
-The project uses [WolverineFx](https://wolverine.netlify.app/) as an in-process message bus/mediator. Wolverine is configured with **balanced durability mode** (`DurabilityMode.Balanced`) and convention-based handler discovery. This repository currently uses Wolverine for in-process dispatch only; no external transport is configured here.
+The project uses [WolverineFx](https://wolverine.netlify.app/) as an in-process message bus/mediator with PostgreSQL-backed durable inbox/outbox for local cascading messages. Wolverine is configured with convention-based handler discovery and EF Core transactional middleware. No external transport is configured here.
 
 ---
 
@@ -119,7 +119,6 @@ public sealed class DoSomethingCommandHandler
         DoSomethingCommand command,
         ISomethingRepository repository,
         IUnitOfWork unitOfWork,
-        IMessageBus bus,
         CancellationToken ct)
     {
         // business logic
@@ -127,8 +126,9 @@ public sealed class DoSomethingCommandHandler
         await repository.AddAsync(entity, ct);
         await unitOfWork.CommitAsync(ct);
 
-        await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Something));
-        return new SomethingResponse(/* ... */);
+        OutgoingMessages messages = new();
+        messages.Add(new CacheInvalidationNotification(CacheTags.Something));
+        return (new SomethingResponse(/* ... */), messages);
     }
 }
 ```
@@ -239,8 +239,7 @@ Batch operations use `BatchFailureContext<T>` + `IBatchRule<T>` to collect per-i
 ```csharp
 var context = new BatchFailureContext<CreateProductRequest>(items);
 
-await context.ApplyRulesAsync(ct,
-    new FluentValidationBatchRule<CreateProductRequest>(itemValidator));
+await context.ApplyRulesAsync(ct, itemValidationRule);
 
 // Additional reference checks...
 context.AddFailures(BatchFailureMerge.MergeByIndex(categoryFailures, productDataFailures));
@@ -249,7 +248,7 @@ if (context.HasFailures)
     return context.ToFailureResponse();
 ```
 
-Batch rules live in `Application/Common/Batch/Rules/` and include `FluentValidationBatchRule`, `MarkMissingByIdBatchRule`, and `MarkMissingIdsBatchRule`.
+`IBatchRule<T>` is registered as an open generic in each module's DI setup (e.g. `services.AddScoped(typeof(IBatchRule<>), typeof(FluentValidationBatchRule<>))`), so handlers receive it via constructor/method injection. Batch rules live in `Application/Common/Batch/Rules/` and include `FluentValidationBatchRule`, `MarkMissingByIdBatchRule`, and `MarkMissingIdsBatchRule`.
 
 ---
 
@@ -355,31 +354,11 @@ await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Products));
 
 ---
 
-## Fire-and-Forget Events
+## Transactional Notifications
 
-`PublishSafeAsync` is an extension method on `IMessageBus` that swallows non-cancellation exceptions and logs them as warnings. Use it for notification events whose failure must not break the main command flow:
+This codebase standardizes on `OutgoingMessages` for post-write notifications. Wolverine persists and dispatches those cascading messages through the durable local outbox, so notification delivery stays coordinated with the write-side transaction.
 
-```csharp
-public static async Task PublishSafeAsync<TEvent>(
-    this IMessageBus bus, TEvent @event, ILogger logger)
-{
-    try
-    {
-        await bus.PublishAsync(@event);
-    }
-    catch (Exception ex) when (ex is not OperationCanceledException)
-    {
-        logger.LogWarning(ex, "Failed to publish {EventType}.", typeof(TEvent).Name);
-    }
-}
-```
-
-Usage in a handler:
-
-```csharp
-await bus.PublishSafeAsync(
-    new UserRegisteredNotification(user.Id, user.Email, user.Username), logger);
-```
+If a handler has no messages to emit, return `OutgoingMessagesHelper.Empty` instead of publishing directly.
 
 ---
 
@@ -417,11 +396,12 @@ All batch infrastructure lives in `Application/Common/Batch/`.
 ## Key Decisions
 
 - **WolverineFx over MediatR** -- convention-based discovery eliminates boilerplate interfaces; method injection removes constructor noise; built-in FluentValidation middleware replaces manual decorator wiring.
-- **Balanced durability mode** -- configured to match `Program.cs` while the current application usage remains in-process dispatch only.
+- **Durable local outbox** -- local cascading messages are persisted in PostgreSQL and flushed through Wolverine's EF Core transactional middleware.
 - **No marker interfaces** -- commands, queries, and events are plain records. Wolverine routes by type, not by interface.
 - **Convention over configuration** -- handler classes are discovered by naming convention (`*Handler` + `HandleAsync`), not by implementing `IRequestHandler<T>` or registering manually.
 - **Static `HandleAsync` with method injection** -- dependencies are parameters, not fields. Handlers have no mutable state and no constructor.
 - **One handler per file** -- message record + handler class co-located in the same file, following SRP.
 - **`IMessageBus` as the single dispatch surface** -- both REST controllers and GraphQL resolvers use the same dispatch mechanism, keeping handlers agnostic of the presentation layer.
-- **`PublishSafeAsync` for non-critical events** -- prevents notification failures (e.g., email) from breaking the main command flow.
+- **`OutgoingMessages` for transactional notifications** -- coordinates write-side changes with durable local dispatch.
+- **No best-effort publish helper** -- prefer `OutgoingMessages` so post-write notifications participate in the durable Wolverine flow.
 - **Batch validation in handlers, not middleware** -- each batch operation has unique reference-check logic that cannot be generalized into middleware.

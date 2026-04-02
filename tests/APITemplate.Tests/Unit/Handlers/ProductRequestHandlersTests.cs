@@ -1,6 +1,7 @@
-using APITemplate.Application.Common.Batch;
-using APITemplate.Application.Common.DTOs;
-using APITemplate.Application.Common.Events;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.DTOs;
+using Contracts.Events;
+using SharedKernel.Application.Events;
 using APITemplate.Application.Features.Product;
 using APITemplate.Application.Features.Product.DTOs;
 using APITemplate.Application.Features.Product.Repositories;
@@ -8,7 +9,7 @@ using APITemplate.Application.Features.Product.Specifications;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Entities.ProductData;
 using APITemplate.Domain.Interfaces;
-using APITemplate.Domain.Options;
+using SharedKernel.Domain.Options;
 using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;
@@ -28,6 +29,8 @@ public class ProductRequestHandlersTests
     private readonly Mock<IMessageBus> _busMock;
     private readonly Mock<IValidator<CreateProductRequest>> _createValidatorMock;
     private readonly Mock<IValidator<UpdateProductItem>> _updateValidatorMock;
+    private readonly Mock<IActorProvider> _actorProviderMock;
+    private readonly TimeProvider _timeProvider;
 
     public ProductRequestHandlersTests()
     {
@@ -38,8 +41,11 @@ public class ProductRequestHandlersTests
         _busMock = new Mock<IMessageBus>();
         _createValidatorMock = new Mock<IValidator<CreateProductRequest>>();
         _updateValidatorMock = new Mock<IValidator<UpdateProductItem>>();
+        _actorProviderMock = new Mock<IActorProvider>();
+        _timeProvider = TimeProvider.System;
         _unitOfWorkMock.SetupImmediateTransactionExecution();
         _unitOfWorkMock.SetupImmediateTransactionExecution<Product>();
+        _actorProviderMock.SetupGet(x => x.ActorId).Returns(Guid.NewGuid());
 
         // Default: validation passes
         _createValidatorMock
@@ -137,6 +143,20 @@ public class ProductRequestHandlersTests
                     It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>(),
                     It.IsAny<TransactionOptions?>()
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Products)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Categories)
                 ),
             Times.Once
         );
@@ -464,6 +484,8 @@ public class ProductRequestHandlersTests
             _repositoryMock.Object,
             _unitOfWorkMock.Object,
             _busMock.Object,
+            _actorProviderMock.Object,
+            _timeProvider,
             TestContext.Current.CancellationToken
         );
 
@@ -487,6 +509,31 @@ public class ProductRequestHandlersTests
                     It.IsAny<CancellationToken>(),
                     It.IsAny<TransactionOptions?>()
                 ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Products)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Categories)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Reviews)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p => p.PublishAsync(It.IsAny<ProductSoftDeletedNotification>()),
             Times.Once
         );
         product.ProductDataLinks.ShouldBeEmpty();
@@ -538,6 +585,20 @@ public class ProductRequestHandlersTests
                     It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>(),
                     It.IsAny<TransactionOptions?>()
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Products)
+                ),
+            Times.Once
+        );
+        _busMock.Verify(
+            p =>
+                p.PublishAsync(
+                    It.Is<CacheInvalidationNotification>(e => e.CacheTag == CacheTags.Categories)
                 ),
             Times.Once
         );
@@ -649,18 +710,19 @@ public class ProductRequestHandlersTests
     public async Task BatchUpdateAsync_RestoresSoftDeletedProductDataLink()
     {
         var restoredId = Guid.NewGuid();
+        var deletedLink = ProductDataLink.Create(Guid.NewGuid(), restoredId);
+        deletedLink.IsDeleted = true;
+        deletedLink.DeletedAtUtc = DateTime.UtcNow;
+        deletedLink.DeletedBy = Guid.NewGuid();
         var product = new Product
         {
             Id = Guid.NewGuid(),
             TenantId = Guid.NewGuid(),
             Name = "Old Name",
             Price = 10m,
-            ProductDataLinks = [],
+            ProductDataLinks = [deletedLink],
         };
-        var deletedLink = ProductDataLink.Create(product.Id, restoredId);
-        deletedLink.IsDeleted = true;
-        deletedLink.DeletedAtUtc = DateTime.UtcNow;
-        deletedLink.DeletedBy = Guid.NewGuid();
+        deletedLink.ProductId = product.Id;
 
         var item = new UpdateProductItem(product.Id, "New Name", null, 20m, null, [restoredId]);
         var batchRequest = new UpdateProductsRequest([item]);
@@ -948,6 +1010,8 @@ public class ProductRequestHandlersTests
             _repositoryMock.Object,
             _unitOfWorkMock.Object,
             _busMock.Object,
+            _actorProviderMock.Object,
+            _timeProvider,
             TestContext.Current.CancellationToken
         );
 

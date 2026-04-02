@@ -1,82 +1,102 @@
-using APITemplate.Application.Common.Middleware;
+using BackgroundJobs.Api;
+using BackgroundJobs.Application.Features.Jobs;
+using Chatting.Api;
+using Chatting.Application.Features.Streaming.Queries;
+using FileStorage.Api;
+using FileStorage.Application.Features.Upload;
+using Identity.Api;
+using Identity.Application.Features.User;
+using Identity.Infrastructure.Handlers;
 using JasperFx;
-using JasperFx.CodeGeneration;
+using JasperFx.Resources;
+using ProductCatalog.Api;
+using ProductCatalog.Application.Features.Product;
+using ProductCatalog.Infrastructure.Handlers;
+using Reviews.Api;
+using Reviews.Application.Features.ProductReview;
 using Serilog;
+using SharedKernel.Application.Middleware;
+using Webhooks.Api;
+using Webhooks.Application.Handlers;
 using Wolverine;
+using Wolverine.EntityFrameworkCore;
+using Wolverine.Postgresql;
 
-try
+var builder = WebApplication.CreateBuilder(args);
+string connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required.");
+
+builder.AddApplicationRedaction();
+
+builder.Host.UseSerilog(
+    (context, services, loggerConfiguration) =>
+    {
+        loggerConfiguration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .WriteTo.Console();
+    }
+);
+
+builder.Services.AddApiFoundation(builder.Configuration);
+builder.Services.AddApplicationComposition(builder.Configuration);
+builder.Services.AddObservability(builder.Configuration, builder.Environment);
+builder.Services.AddIdentityModule(builder.Configuration);
+builder.Services.AddProductCatalogModule(builder.Configuration);
+builder.Services.AddReviewsModule(builder.Configuration);
+builder.Services.AddFileStorageModule(builder.Configuration);
+builder.Services.AddBackgroundJobsModule(builder.Configuration);
+builder.Services.AddWebhooksModule(builder.Configuration);
+builder.Services.AddChattingModule(builder.Configuration);
+
+// Auto-create Wolverine schema tables (incoming/outgoing/dead-letter) on startup.
+// Scoped to Development only — in other environments run `db-apply` as a pre-deployment step.
+if (builder.Environment.IsDevelopment())
+    builder.Host.UseResourceSetupOnStartup();
+
+builder.Host.UseWolverine(options =>
 {
-    var builder = WebApplication.CreateBuilder(args); // Build host, configuration, and DI container.
-    builder.AddApplicationRedaction();
+    options.PersistMessagesWithPostgresql(connectionString);
 
-    builder.Host.UseSerilog(
-        (context, services, loggerConfiguration) =>
-        {
-            loggerConfiguration
-                .ReadFrom.Configuration(context.Configuration)
-                .ReadFrom.Services(services)
-                .AddOpenTelemetrySinks(context.Configuration, context.HostingEnvironment);
-        }
+    // Only activates for handlers with a DbContext enrolled via AddDbContextWithWolverineIntegration.
+    options.UseEntityFrameworkCoreTransactions();
+
+    // UseDurableLocalQueues persists cascading messages in PostgreSQL so they survive a crash
+    // between handler commit and message dispatch. UseStrictLocalQueues would additionally
+    // guarantee in-order processing per queue — not needed here since handlers are idempotent.
+    options.Policies.UseDurableLocalQueues();
+    options.Discovery.IncludeAssembly(typeof(CreateUserCommand).Assembly);
+    options.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly);
+    options.Discovery.IncludeAssembly(typeof(CreateProductReviewCommand).Assembly);
+    options.Discovery.IncludeAssembly(typeof(UploadFileCommand).Assembly);
+    options.Discovery.IncludeAssembly(typeof(SubmitJobCommand).Assembly);
+    options.Discovery.IncludeAssembly(typeof(CleanupExpiredInvitationsHandler).Assembly);
+    options.Discovery.IncludeAssembly(typeof(CleanupOrphanedProductDataHandler).Assembly);
+    options.Discovery.IncludeAssembly(typeof(SendWebhookCallbackHandler).Assembly);
+    options.Discovery.IncludeAssembly(typeof(GetNotificationStreamQuery).Assembly);
+    options.Policies.AddMiddleware(
+        typeof(ErrorOrValidationMiddleware),
+        chain =>
+            chain.ShouldApplyErrorOrValidation(
+                typeof(CreateUserCommand).Assembly,
+                typeof(CreateProductsCommand).Assembly,
+                typeof(CreateProductReviewCommand).Assembly,
+                typeof(UploadFileCommand).Assembly,
+                typeof(SubmitJobCommand).Assembly
+            )
     );
+});
 
-    builder.Services.AddApiFoundation(builder.Configuration); // Registers exception handling services (AddExceptionHandler + ProblemDetails), activated later in UseApiPipeline.
-    builder.Services.AddObservability(builder.Configuration, builder.Environment); // Register OpenTelemetry tracing/metrics and environment-specific exporters.
-    builder.Services.AddAuthenticationOptions(builder.Configuration, builder.Environment);
-    builder.Services.AddPersistence(builder.Configuration); // Register EF Core + repositories + relational health checks.
-    builder.Services.AddApplicationServices(); // Register application services + validators.
-    builder.Services.AddEmailServices(builder.Configuration); // Register email sending infrastructure (SMTP, templates, queue, background service).
-    builder.Services.AddBackgroundJobs(builder.Configuration); // Register TickerQ-backed recurring background jobs (cleanup, reindex, email retry).
-    builder.Services.AddMongoDB(builder.Configuration); // Register Mongo context/services + Mongo health checks.
-    builder.Services.AddKeycloakBffAuthentication(builder.Configuration, builder.Environment); // Register Keycloak hybrid JWT + BFF authentication.
-    builder.Services.AddKeycloakAdminService(); // Register Keycloak Admin API client for user management.
-    builder.Services.AddApiVersioningConfiguration(); // Register API versioning and explorer metadata.
-    builder.Services.AddGraphQLConfiguration(); // Register GraphQL schema and server services.
-    builder.Services.AddFileStorageServices(builder.Configuration); // Register file storage (local FS) for example upload/download.
-    builder.Services.AddJobServices(); // Register long-running job queue and background processor.
-    builder.Services.AddIncomingWebhookServices(builder.Configuration); // Register webhook HMAC validation, queue, and background processor.
-    builder.Services.AddOutgoingWebhookServices(); // Register outgoing webhook queue, signer, and delivery background service.
+var app = builder.Build();
 
-    builder.Services.CritterStackDefaults(x =>
-    {
-        x.Production.GeneratedCodeMode = TypeLoadMode.Static;
-        x.Production.AssertAllPreGeneratedTypesExist = true;
-        x.Development.GeneratedCodeMode = TypeLoadMode.Dynamic;
-    });
+if (app.Environment.IsDevelopment())
+    await app.UseDatabaseAsync();
 
-    builder.Host.UseWolverine(opts =>
-    {
-        opts.Durability.Mode = DurabilityMode.Balanced;
-        opts.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly);
-        opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
+app.UseApiPipeline();
+app.MapApplicationEndpoints();
 
-        // Apply ErrorOr validation middleware only to handlers returning ErrorOr<T>.
-        // Event handlers (returning Task) and non-ErrorOr handlers are not affected.
-        opts.Policies.AddMiddleware(
-            typeof(ErrorOrValidationMiddleware),
-            chain => chain.ShouldApplyErrorOrValidation(typeof(CreateProductsCommand).Assembly)
-        );
-    });
+await app.RunJasperFxCommands(args);
 
-    var app = builder.Build(); // Materialize the web app from configured services.
-    app.Logger.LogInformation("Starting APITemplate"); // Startup banner for diagnostics after logging pipeline is ready.
-
-    await app.UseDatabaseAsync(app.Lifetime.ApplicationStopping); // Apply SQL/Mongo migrations before serving traffic.
-    await app.WaitForKeycloakAsync(app.Lifetime.ApplicationStopping); // Wait for Keycloak to be reachable before serving traffic.
-    await app.UseBackgroundJobsAsync(app.Lifetime.ApplicationStopping); // Sync and start recurring TickerQ jobs after dependencies are ready.
-
-    app.UseApiPipeline(); // Configure middleware order for request processing.
-    app.MapApplicationEndpoints(); // Map REST/GraphQL/health endpoints.
-
-    app.Run(); // Start HTTP server and block until shutdown.
-}
-catch (Exception ex) when (ex is not HostAbortedException)
-{
-    Console.Error.WriteLine($"Application terminated unexpectedly: {ex}");
-    throw;
-}
-
-/// <summary>
-/// Application entry-point marker class; declared as a partial so integration tests can
-/// reference the assembly via <c>WebApplicationFactory&lt;Program&gt;</c>.
-/// </summary>
-public partial class Program; // Used by integration tests via WebApplicationFactory.
+public partial class Program;

@@ -1,7 +1,8 @@
 using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
-using APITemplate.Domain.Exceptions;
+using SharedKernel.Application.Errors;
+using SharedKernel.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -43,11 +44,11 @@ public class ApiExceptionHandlerTests
     {
         yield return
         [
-            new NotFoundException("Product", Guid.Empty, ErrorCatalog.Reviews.ProductNotFoundForReview),
+            new NotFoundException("Product", Guid.Empty, "REV-2101"),
             HttpStatusCode.NotFound,
             "Not Found",
             $"Product with id '{Guid.Empty}' not found.",
-            ErrorCatalog.Reviews.ProductNotFoundForReview
+            "REV-2101"
         ];
         yield return
         [

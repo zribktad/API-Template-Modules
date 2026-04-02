@@ -1,10 +1,10 @@
 using APITemplate.Domain.Entities;
-using APITemplate.Domain.Exceptions;
-using APITemplate.Application.Common.Context;
+using SharedKernel.Domain.Exceptions;
+using SharedKernel.Application.Context;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using APITemplate.Infrastructure.Persistence.SoftDelete;
+using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;

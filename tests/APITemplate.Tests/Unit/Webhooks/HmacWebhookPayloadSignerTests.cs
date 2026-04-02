@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.Webhooks;
 using Microsoft.Extensions.Options;
 using Shouldly;

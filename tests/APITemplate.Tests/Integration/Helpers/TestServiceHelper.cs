@@ -1,5 +1,5 @@
 using APITemplate.Application.Common.Security;
-using APITemplate.Application.Common.Startup;
+using SharedKernel.Application.Startup;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;

@@ -1,7 +1,7 @@
 using System.Data;
 using APITemplate.Api.Extensions;
-using APITemplate.Application.Common.Context;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
@@ -141,7 +141,7 @@ public class PostgresRetryConfigurationTests
     )
     {
         var defaults = new TransactionDefaultsOptions();
-        var overrides = new Domain.Options.TransactionOptions
+        var overrides = new SharedKernel.Domain.Options.TransactionOptions
         {
             TimeoutSeconds = timeoutSeconds,
             RetryCount = retryCount,

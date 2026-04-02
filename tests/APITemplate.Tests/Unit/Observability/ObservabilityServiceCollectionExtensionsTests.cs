@@ -1,5 +1,5 @@
 using APITemplate.Api.Extensions;
-using APITemplate.Application.Common.Options;
+using SharedKernel.Application.Options;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Shouldly;

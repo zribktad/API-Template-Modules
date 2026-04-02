@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Tests.Integration.Helpers;
+using ProductCatalog.Application.Features.Product.DTOs;
 using Shouldly;
 using Xunit;
 
