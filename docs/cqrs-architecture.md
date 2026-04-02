@@ -354,31 +354,11 @@ await bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Products));
 
 ---
 
-## Fire-and-Forget Events
+## Transactional Notifications
 
-`PublishSafeAsync` is an extension method on `IMessageBus` that swallows non-cancellation exceptions and logs them as warnings. Keep it only for explicitly best-effort notifications. For notifications that must be coordinated with the write transaction, prefer `OutgoingMessages` together with Wolverine's durable outbox:
+This codebase standardizes on `OutgoingMessages` for post-write notifications. Wolverine persists and dispatches those cascading messages through the durable local outbox, so notification delivery stays coordinated with the write-side transaction.
 
-```csharp
-public static async Task PublishSafeAsync<TEvent>(
-    this IMessageBus bus, TEvent @event, ILogger logger)
-{
-    try
-    {
-        await bus.PublishAsync(@event);
-    }
-    catch (Exception ex) when (ex is not OperationCanceledException)
-    {
-        logger.LogWarning(ex, "Failed to publish {EventType}.", typeof(TEvent).Name);
-    }
-}
-```
-
-Usage in a handler:
-
-```csharp
-await bus.PublishSafeAsync(
-    new UserRegisteredNotification(user.Id, user.Email, user.Username), logger);
-```
+If a handler has no messages to emit, return `OutgoingMessagesHelper.Empty` instead of publishing directly.
 
 ---
 
@@ -423,5 +403,5 @@ All batch infrastructure lives in `Application/Common/Batch/`.
 - **One handler per file** -- message record + handler class co-located in the same file, following SRP.
 - **`IMessageBus` as the single dispatch surface** -- both REST controllers and GraphQL resolvers use the same dispatch mechanism, keeping handlers agnostic of the presentation layer.
 - **`OutgoingMessages` for transactional notifications** -- coordinates write-side changes with durable local dispatch.
-- **`PublishSafeAsync` only for best-effort notifications** -- use it when notification failure must not affect the command outcome.
+- **No best-effort publish helper** -- prefer `OutgoingMessages` so post-write notifications participate in the durable Wolverine flow.
 - **Batch validation in handlers, not middleware** -- each batch operation has unique reference-check logic that cannot be generalized into middleware.
