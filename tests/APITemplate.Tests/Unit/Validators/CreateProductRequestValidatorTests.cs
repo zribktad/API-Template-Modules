@@ -1,3 +1,4 @@
+using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Application.Features.Product.Validation;
 using Shouldly;
 using Xunit;
