@@ -1,5 +1,32 @@
 # TODO
 
+## Architecture Review — Identified Issues
+
+### Critical
+
+- [ ] **Authorization code duplication** — `PermissionAuthorizationHandler` and `PermissionPolicyProvider` exist in both `APITemplate.Api/Api/Authorization/` and `Identity.Api/Authorization/` with divergent implementations (different constructors, auth schemes, `[SensitiveData]` attributes). Move to SharedKernel or Contracts as the single source of truth.
+
+### High Priority
+
+- [ ] **Mixed error handling patterns** — some handlers throw exceptions (`NotFoundException`, `ConflictException`), others return `ErrorOr<T>`. Two parallel pipelines (`ApiExceptionHandler` + `ErrorOrValidationMiddleware`) create cognitive overhead. Decide on one pattern and migrate consistently.
+- [ ] **Options classes split between SharedKernel and modules** — `BffOptions`, `KeycloakOptions`, `CorsOptions`, `EmailOptions`, `SystemIdentityOptions` exist in both places. Module-specific options (`BackgroundJobsOptions`, `FileStorageOptions`) are in SharedKernel where they don't belong. Each module should own its options; SharedKernel should contain only truly shared types.
+- [ ] **Anemic domain models** — `Tenant`, `StoredFile` and others are pure data containers. Business logic (activate/deactivate, status transitions) leaks into application handlers. Add domain methods and enforce invariants in entity constructors.
+
+### Medium Priority
+
+- [ ] **Business logic in handlers** — `CreateProductsCommand` creates entities and relationships directly in the handler. `CreateUserCommand` contains compensating transaction logic (Keycloak + DB rollback). Extract to factory methods on entities and domain services.
+- [ ] **Inconsistent logging** — only `ApiExceptionHandlerLogs.cs` and `UnitOfWorkLogs.cs` use source-generated `[LoggerMessage]` with event IDs. All other modules use inline `logger.LogXxx()`. Adopt source-generated logging with a per-module event ID range allocation strategy.
+- [ ] **Incomplete health checks** — only PostgreSQL and Keycloak are covered. Missing: Redis/Dragonfly, MongoDB (used by ProductCatalog), Wolverine messaging. Add `AddDragonflyHealthCheck()`, `AddMongoDbHealthCheck()` using the existing helper extension pattern.
+- [ ] **Soft delete cascade via three mechanisms** — the same business rule (cascade deletes on soft-delete) is implemented via database cascade rules, infrastructure `SoftDeleteProcessor`, and Wolverine event handlers simultaneously. Consolidate to event-driven approach only.
+
+### Low Priority
+
+- [ ] **Aggregate boundary violation** — `Product` entity has `Category? Category` navigation property — a direct reference to another aggregate root. Replace with `CategoryId`-only reference; load via query when needed.
+- [ ] **Missing value objects** — `Email` (string with no RFC validation), `Rating` (int with no range enforcement), `Price` (no currency/precision semantics), `TenantCode` (string with implicit format rules) should be strong value objects enforcing their invariants.
+- [ ] **Duplicate repository interfaces** — `IProductRepository` is defined in both `ProductCatalog.Domain/Interfaces/` and `ProductCatalog.Application/Features/Product/Repositories/`. Keep one definition in the Domain layer.
+
+---
+
 ## Wolverine Outbox & Durable Messaging
 
 - [ ] Enable `UseDurableOutboxOnAllSendingEndpoints()` and `UseDurableInboxOnAllListeners()` for reliable eventual consistency across modules.
