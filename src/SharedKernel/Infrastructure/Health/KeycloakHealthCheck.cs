@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 
 namespace SharedKernel.Infrastructure.Health;
 
@@ -14,11 +15,11 @@ public sealed class KeycloakHealthCheck : IHealthCheck
 
     public KeycloakHealthCheck(
         IHttpClientFactory httpClientFactory,
-        KeycloakHealthCheckOptions options
+        IOptions<KeycloakHealthCheckOptions> options
     )
     {
         _httpClientFactory = httpClientFactory;
-        _discoveryUrl = options.DiscoveryUrl;
+        _discoveryUrl = options.Value.DiscoveryUrl;
     }
 
     /// <summary>

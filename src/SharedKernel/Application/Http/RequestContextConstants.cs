@@ -42,5 +42,15 @@ public static class RequestContextConstants
         /// Serilog property name for the tenant ID.
         /// </summary>
         public const string TenantId = "TenantId";
+
+        /// <summary>
+        /// Serilog property name for the request host.
+        /// </summary>
+        public const string RequestHost = "RequestHost";
+
+        /// <summary>
+        /// Serilog property name for the request scheme.
+        /// </summary>
+        public const string RequestScheme = "RequestScheme";
     }
 }

@@ -1,6 +1,10 @@
 using System.Diagnostics;
-using SharedKernel.Application.Http;
+using System.Security.Claims;
+using Identity.Application.Common.Security;
+using Microsoft.AspNetCore.Http.Features;
 using Serilog.Context;
+using SharedKernel.Application.Http;
+using SharedKernel.Infrastructure.Observability;
 
 namespace APITemplate.Api.Middleware;
 
@@ -19,6 +23,11 @@ public sealed class RequestContextMiddleware
         var stopwatch = Stopwatch.StartNew();
         var traceId = Activity.Current?.TraceId.ToHexString() ?? context.TraceIdentifier;
 
+        string tenantId =
+            context.User.FindFirstValue(AuthConstants.Claims.TenantId) ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(tenantId))
+            Activity.Current?.SetTag(TelemetryTagKeys.TenantId, tenantId);
+
         context.Items[RequestContextConstants.ContextKeys.CorrelationId] = correlationId;
         context.Response.Headers[RequestContextConstants.Headers.CorrelationId] = correlationId;
         context.Response.Headers[RequestContextConstants.Headers.TraceId] = traceId;
@@ -31,15 +40,53 @@ public sealed class RequestContextMiddleware
             return Task.CompletedTask;
         });
 
-        using (LogContext.PushProperty(RequestContextConstants.LogProperties.CorrelationId, correlationId))
+        try
         {
-            await _next(context);
+            using (
+                LogContext.PushProperty(
+                    RequestContextConstants.LogProperties.CorrelationId,
+                    correlationId
+                )
+            )
+            using (
+                string.IsNullOrWhiteSpace(tenantId)
+                    ? null
+                    : LogContext.PushProperty(
+                        RequestContextConstants.LogProperties.TenantId,
+                        tenantId
+                    )
+            )
+            {
+                await _next(context);
+            }
+        }
+        finally
+        {
+            IHttpMetricsTagsFeature? metricsTagsFeature =
+                context.Features.Get<IHttpMetricsTagsFeature>();
+            if (metricsTagsFeature is not null)
+            {
+                metricsTagsFeature.Tags.Add(
+                    new(
+                        TelemetryTagKeys.ApiSurface,
+                        TelemetryApiSurfaceResolver.Resolve(context.Request.Path)
+                    )
+                );
+                metricsTagsFeature.Tags.Add(
+                    new(
+                        TelemetryTagKeys.Authenticated,
+                        context.User.Identity?.IsAuthenticated == true
+                    )
+                );
+            }
         }
     }
 
     private static string ResolveCorrelationId(HttpContext context)
     {
-        var incoming = context.Request.Headers[RequestContextConstants.Headers.CorrelationId].ToString();
+        var incoming = context
+            .Request.Headers[RequestContextConstants.Headers.CorrelationId]
+            .ToString();
         return string.IsNullOrWhiteSpace(incoming) ? context.TraceIdentifier : incoming;
     }
 }
