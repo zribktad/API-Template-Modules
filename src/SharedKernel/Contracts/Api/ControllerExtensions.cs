@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Contracts.Api;
+namespace SharedKernel.Contracts.Api;
 
 public static class ControllerExtensions
 {

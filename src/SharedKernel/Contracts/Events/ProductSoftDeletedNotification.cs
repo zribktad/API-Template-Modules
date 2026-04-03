@@ -1,4 +1,4 @@
-namespace Contracts.Events;
+namespace SharedKernel.Contracts.Events;
 
 /// <summary>
 /// Published after a product is soft-deleted, allowing downstream handlers

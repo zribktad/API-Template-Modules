@@ -1,4 +1,4 @@
-namespace Contracts.Queries.ProductCatalog;
+namespace SharedKernel.Contracts.Queries.ProductCatalog;
 
 /// <summary>
 /// Cross-module query that validates whether a product with the given identifier exists.

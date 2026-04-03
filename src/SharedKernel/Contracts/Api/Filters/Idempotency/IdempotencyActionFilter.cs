@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Contracts;
 
-namespace Contracts.Api.Filters.Idempotency;
+namespace SharedKernel.Contracts.Api.Filters.Idempotency;
 
 /// <summary>
 /// Filter that enforces idempotency for endpoints decorated with <see cref="IdempotentAttribute"/>.

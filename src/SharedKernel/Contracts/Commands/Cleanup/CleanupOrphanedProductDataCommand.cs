@@ -1,4 +1,4 @@
-namespace Contracts.Commands.Cleanup;
+namespace SharedKernel.Contracts.Commands.Cleanup;
 
 /// <summary>
 /// Cross-module command instructing the ProductCatalog module to delete orphaned product data documents.

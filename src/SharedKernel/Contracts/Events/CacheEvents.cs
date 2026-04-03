@@ -1,6 +1,6 @@
 using SharedKernel.Application.Events;
 
-namespace Contracts.Events;
+namespace SharedKernel.Contracts.Events;
 
 /// <summary>
 /// Cache invalidation event. Use with a <see cref="CacheTags"/> constant

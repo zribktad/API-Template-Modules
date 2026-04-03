@@ -1,4 +1,4 @@
-namespace Contracts.Events;
+namespace SharedKernel.Contracts.Events;
 
 /// <summary>
 /// Published after a new user successfully registers, triggering the welcome email notification.

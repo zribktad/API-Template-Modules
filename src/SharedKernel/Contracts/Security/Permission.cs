@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Contracts.Security;
+namespace SharedKernel.Contracts.Security;
 
 /// <summary>
 /// Centralised registry of all fine-grained permission string constants used throughout the application.

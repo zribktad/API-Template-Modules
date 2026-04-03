@@ -1,4 +1,4 @@
-namespace Contracts.Events;
+namespace SharedKernel.Contracts.Events;
 
 /// <summary>
 /// Published after a tenant is soft-deleted, allowing downstream handlers to trigger

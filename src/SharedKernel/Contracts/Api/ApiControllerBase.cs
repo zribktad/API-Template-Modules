@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Application.DTOs;
 
-namespace Contracts.Api;
+namespace SharedKernel.Contracts.Api;
 
 [ApiController]
 [Route("api/v{version:apiVersion}/[controller]")]

@@ -1,4 +1,4 @@
-namespace Contracts.Commands.Webhooks;
+namespace SharedKernel.Contracts.Commands.Webhooks;
 
 /// <summary>
 /// Cross-module command instructing the Webhooks module to deliver an outgoing webhook callback.

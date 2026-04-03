@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Application.DTOs;
 
-namespace Contracts.Api;
+namespace SharedKernel.Contracts.Api;
 
 public static class ErrorOrExtensions
 {
