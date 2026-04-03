@@ -1,7 +1,7 @@
 using ErrorOr;
 using HotChocolate.Authorization;
-using ProductCatalog.Features.GetProductById;
-using ProductCatalog.Features.GetProducts;
+using ProductCatalog.Features.Product.GetProductById;
+using ProductCatalog.Features.Product.GetProducts;
 using ProductCatalog.GraphQL.Models;
 using Wolverine;
 
@@ -61,4 +61,3 @@ public class ProductQueries
         return result.ToGraphQLNullableResult();
     }
 }
-

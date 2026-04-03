@@ -1,4 +1,4 @@
-using ProductCatalog.Features.CreateProducts;
+using ProductCatalog.Features.Product.CreateProducts;
 using Shouldly;
 using Xunit;
 

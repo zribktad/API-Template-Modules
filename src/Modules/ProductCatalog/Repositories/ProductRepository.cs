@@ -1,6 +1,6 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-using ProductCatalog.Features.GetProducts;
+using ProductCatalog.Features.Product.GetProducts;
 using ProductCatalog.Persistence;
 using ProductApplicationRepository = ProductCatalog.Interfaces.IProductRepository;
 
@@ -144,4 +144,3 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
             ];
     }
 }
-

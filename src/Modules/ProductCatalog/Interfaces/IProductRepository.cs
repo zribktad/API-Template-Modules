@@ -1,5 +1,5 @@
 using ErrorOr;
-using ProductCatalog.Features.GetProducts;
+using ProductCatalog.Features.Product.GetProducts;
 using ProductEntity = ProductCatalog.Entities.Product;
 
 namespace ProductCatalog.Interfaces;

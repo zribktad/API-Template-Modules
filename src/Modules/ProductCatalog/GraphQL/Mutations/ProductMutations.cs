@@ -1,7 +1,7 @@
 using ErrorOr;
 using HotChocolate.Authorization;
-using ProductCatalog.Features.CreateProducts;
-using ProductCatalog.Features.DeleteProducts;
+using ProductCatalog.Features.Product.CreateProducts;
+using ProductCatalog.Features.Product.DeleteProducts;
 using SharedKernel.Contracts.Security;
 using Wolverine;
 
@@ -59,4 +59,3 @@ public class ProductMutations
         return result.ToGraphQLResult();
     }
 }
-

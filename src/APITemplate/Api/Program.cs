@@ -10,7 +10,7 @@ using Identity.Handlers;
 using JasperFx;
 using JasperFx.Resources;
 using ProductCatalog;
-using ProductCatalog.Features.CreateProducts;
+using ProductCatalog.Features.Product.CreateProducts;
 using ProductCatalog.Handlers;
 using Reviews;
 using Reviews.Features;

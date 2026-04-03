@@ -1,4 +1,4 @@
-using ProductCatalog.Features.UpdateProducts;
+using ProductCatalog.Features.Product.UpdateProducts;
 using Shouldly;
 using Xunit;
 
