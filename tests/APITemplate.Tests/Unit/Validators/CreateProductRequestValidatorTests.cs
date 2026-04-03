@@ -1,5 +1,4 @@
-using ProductCatalog.Features.Product.DTOs;
-using ProductCatalog.Features.Product.Validation;
+using ProductCatalog.Features.CreateProducts;
 using Shouldly;
 using Xunit;
 

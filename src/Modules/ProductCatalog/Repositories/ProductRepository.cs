@@ -1,7 +1,8 @@
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using ProductCatalog.Features.GetProducts;
 using ProductCatalog.Persistence;
-using ProductApplicationRepository = ProductCatalog.Features.Product.Repositories.IProductRepository;
+using ProductApplicationRepository = ProductCatalog.Interfaces.IProductRepository;
 
 namespace ProductCatalog.Repositories;
 

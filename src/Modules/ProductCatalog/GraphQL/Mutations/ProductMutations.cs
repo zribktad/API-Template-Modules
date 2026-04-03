@@ -1,5 +1,7 @@
 using ErrorOr;
 using HotChocolate.Authorization;
+using ProductCatalog.Features.CreateProducts;
+using ProductCatalog.Features.DeleteProducts;
 using SharedKernel.Contracts.Security;
 using Wolverine;
 
