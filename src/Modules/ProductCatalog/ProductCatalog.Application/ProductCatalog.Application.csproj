@@ -12,7 +12,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ProductCatalog.Domain\ProductCatalog.Domain.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

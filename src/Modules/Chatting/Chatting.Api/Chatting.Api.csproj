@@ -13,7 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Chatting.Application\Chatting.Application.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

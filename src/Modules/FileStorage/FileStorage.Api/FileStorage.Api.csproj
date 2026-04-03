@@ -14,7 +14,6 @@
     <ProjectReference Include="..\FileStorage.Infrastructure\FileStorage.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Identity\Identity.Application\Identity.Application.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

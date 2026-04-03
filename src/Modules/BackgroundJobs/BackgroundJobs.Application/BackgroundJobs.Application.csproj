@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BackgroundJobs.Domain\BackgroundJobs.Domain.csproj" />
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
 

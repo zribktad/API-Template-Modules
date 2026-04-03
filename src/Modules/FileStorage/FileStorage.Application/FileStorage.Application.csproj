@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FileStorage.Domain\FileStorage.Domain.csproj" />
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
 

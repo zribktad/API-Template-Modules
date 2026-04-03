@@ -9,7 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BackgroundJobs.Application\BackgroundJobs.Application.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
