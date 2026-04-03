@@ -1,6 +1,6 @@
-using Reviews.Features;
-using Reviews.Domain;
 using ErrorOr;
+using Reviews.Domain;
+using Reviews.Features;
 
 namespace Reviews.Features;
 
@@ -24,12 +24,3 @@ public sealed class GetProductReviewsQueryHandler
         );
     }
 }
-
-
-
-
-
-
-
-
-

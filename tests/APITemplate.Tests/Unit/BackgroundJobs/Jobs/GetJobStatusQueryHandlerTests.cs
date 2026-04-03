@@ -1,6 +1,6 @@
+using BackgroundJobs.Domain;
 using BackgroundJobs.Features;
 using BackgroundJobs.Features;
-using BackgroundJobs.Shared;
 using Moq;
 using Shouldly;
 using Xunit;

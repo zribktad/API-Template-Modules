@@ -1,7 +1,7 @@
+using BackgroundJobs.Domain;
+using BackgroundJobs.Domain;
 using BackgroundJobs.Features;
 using BackgroundJobs.Features;
-using BackgroundJobs.Shared;
-using BackgroundJobs.Shared;
 using Moq;
 using SharedKernel.Domain.Interfaces;
 using Shouldly;

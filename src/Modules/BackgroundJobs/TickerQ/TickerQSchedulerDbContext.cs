@@ -1,5 +1,5 @@
-using SharedKernel.Application.Options.BackgroundJobs;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Application.Options.BackgroundJobs;
 using TickerQ.EntityFrameworkCore.DbContextFactory;
 using TickerQ.Utilities.Entities;
 
@@ -15,11 +15,11 @@ public sealed class TickerQSchedulerDbContext : TickerQDbContext<TimeTickerEntit
         modelBuilder.HasDefaultSchema(TickerQSchedulerOptions.DefaultSchemaName);
         base.OnModelCreating(modelBuilder);
 
-        foreach (Microsoft.EntityFrameworkCore.Metadata.IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes())
+        foreach (
+            Microsoft.EntityFrameworkCore.Metadata.IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes()
+        )
         {
             entityType.SetSchema(TickerQSchedulerOptions.DefaultSchemaName);
         }
     }
 }
-
-

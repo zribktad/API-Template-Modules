@@ -164,6 +164,3 @@ internal static partial class BackgroundJobsInfrastructureLogs
     )]
     public static partial void TickerQJobDefinitionsSynchronized(this ILogger logger, int count);
 }
-
-
-

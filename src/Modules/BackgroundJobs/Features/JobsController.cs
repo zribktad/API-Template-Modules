@@ -45,8 +45,3 @@ public sealed class JobsController(IMessageBus bus) : ApiControllerBase
         return result.ToActionResult(this);
     }
 }
-
-
-
-
-

@@ -7,11 +7,3 @@ namespace Reviews.Features;
 /// </summary>
 public sealed class CreateProductReviewRequestValidator
     : DataAnnotationsValidator<CreateProductReviewRequest>;
-
-
-
-
-
-
-
-

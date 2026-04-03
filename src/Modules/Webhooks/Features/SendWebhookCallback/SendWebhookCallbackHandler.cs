@@ -1,5 +1,7 @@
 using SharedKernel.Contracts.Commands.Webhooks;
-using Webhooks.Shared;
+using Webhooks.Contracts;
+using Webhooks.Security;
+using Webhooks.Services;
 
 namespace Webhooks.Features.SendWebhookCallback;
 
@@ -19,4 +21,3 @@ public sealed class SendWebhookCallbackHandler
         await outgoingQueue.EnqueueAsync(item, ct);
     }
 }
-

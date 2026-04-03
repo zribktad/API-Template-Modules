@@ -11,11 +11,3 @@ public sealed record ProductReviewResponse(
     int Rating,
     DateTime CreatedAtUtc
 ) : IHasId;
-
-
-
-
-
-
-
-

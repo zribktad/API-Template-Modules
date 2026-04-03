@@ -1,4 +1,4 @@
-using BackgroundJobs.Shared;
+using BackgroundJobs.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -13,7 +13,8 @@ public sealed class JobExecutionConfiguration : IEntityTypeConfiguration<JobExec
         builder.ConfigureTenantAuditable();
 
         builder.Property(j => j.JobType).IsRequired().HasMaxLength(100);
-        builder.Property(j => j.Status)
+        builder
+            .Property(j => j.Status)
             .HasConversion<string>()
             .IsRequired()
             .HasMaxLength(20)
@@ -26,5 +27,3 @@ public sealed class JobExecutionConfiguration : IEntityTypeConfiguration<JobExec
         builder.HasIndex(j => new { j.TenantId, j.SubmittedAtUtc });
     }
 }
-
-

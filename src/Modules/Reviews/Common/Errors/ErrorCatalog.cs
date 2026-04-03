@@ -10,7 +10,3 @@ public static class ErrorCatalog
             "You can only delete your own reviews.";
     }
 }
-
-
-
-

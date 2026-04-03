@@ -16,6 +16,3 @@ public sealed class GetJobStatusQueryHandler
             : entity.ToResponse();
     }
 }
-
-
-

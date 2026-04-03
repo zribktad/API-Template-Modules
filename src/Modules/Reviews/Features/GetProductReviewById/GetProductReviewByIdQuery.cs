@@ -19,10 +19,3 @@ public sealed class GetProductReviewByIdQueryHandler
         return item is null ? DomainErrors.Reviews.NotFound(request.Id) : item.ToResponse();
     }
 }
-
-
-
-
-
-
-

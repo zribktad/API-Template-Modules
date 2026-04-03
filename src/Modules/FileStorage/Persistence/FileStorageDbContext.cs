@@ -1,4 +1,8 @@
-using FileStorage.Shared;
+using FileStorage.Contracts;
+using FileStorage.Domain;
+using FileStorage.Errors;
+using FileStorage.Repositories;
+using FileStorage.Services;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
@@ -40,5 +44,3 @@ public sealed class FileStorageDbContext : ModuleDbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FileStorageDbContext).Assembly);
     }
 }
-
-

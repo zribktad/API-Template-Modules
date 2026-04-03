@@ -1,4 +1,4 @@
-using Chatting.Controllers.V1;
+using Chatting.Features;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
@@ -23,4 +23,3 @@ public static class ChattingModule
         return endpoints;
     }
 }
-

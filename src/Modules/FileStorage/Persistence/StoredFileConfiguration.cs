@@ -1,4 +1,8 @@
-using FileStorage.Shared;
+using FileStorage.Contracts;
+using FileStorage.Domain;
+using FileStorage.Errors;
+using FileStorage.Repositories;
+using FileStorage.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -10,7 +14,7 @@ internal sealed class StoredFileConfiguration : IEntityTypeConfiguration<StoredF
     public void Configure(EntityTypeBuilder<StoredFile> builder)
     {
         builder.ToTable("stored_files");
-        
+
         builder.ConfigureTenantAuditable();
 
         builder.Property(x => x.OriginalFileName).IsRequired().HasMaxLength(255);
@@ -21,5 +25,3 @@ internal sealed class StoredFileConfiguration : IEntityTypeConfiguration<StoredF
         builder.HasIndex(x => x.StoragePath).IsUnique();
     }
 }
-
-

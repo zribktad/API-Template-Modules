@@ -24,5 +24,3 @@ public sealed class DownloadFileQueryHandler
         return new FileDownloadResult(stream, entity.ContentType, entity.OriginalFileName);
     }
 }
-
-

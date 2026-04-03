@@ -1,7 +1,7 @@
-using SharedKernel.Application.Options.BackgroundJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.BackgroundJobs;
+using SharedKernel.Application.Options.BackgroundJobs;
 
 namespace BackgroundJobs.TickerQ.RecurringJobRegistrations;
 
@@ -9,7 +9,9 @@ public sealed class CleanupRecurringJobRegistration : IRecurringBackgroundJobReg
 {
     public RecurringBackgroundJobDefinition Build(IServiceProvider serviceProvider)
     {
-        BackgroundJobsOptions options = serviceProvider.GetRequiredService<IOptions<BackgroundJobsOptions>>().Value;
+        BackgroundJobsOptions options = serviceProvider
+            .GetRequiredService<IOptions<BackgroundJobsOptions>>()
+            .Value;
         return new(
             TickerQJobIds.Cleanup,
             TickerQFunctionNames.Cleanup,
@@ -19,5 +21,3 @@ public sealed class CleanupRecurringJobRegistration : IRecurringBackgroundJobReg
         );
     }
 }
-
-

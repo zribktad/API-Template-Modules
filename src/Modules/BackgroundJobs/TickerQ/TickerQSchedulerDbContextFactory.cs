@@ -39,5 +39,3 @@ public sealed class TickerQSchedulerDbContextFactory
         return new TickerQSchedulerDbContext(options);
     }
 }
-
-

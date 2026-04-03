@@ -18,17 +18,9 @@ public static class ReviewsModule
         return services;
     }
 
-    public static IEndpointRouteBuilder MapReviewsEndpoints(
-        this IEndpointRouteBuilder endpoints
-    )
+    public static IEndpointRouteBuilder MapReviewsEndpoints(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapControllers();
         return endpoints;
     }
 }
-
-
-
-
-
-

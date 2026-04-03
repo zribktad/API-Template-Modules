@@ -1,0 +1,20 @@
+namespace FileStorage.Domain;
+
+public static class ErrorCatalog
+{
+    public static class Files
+    {
+        public const string FileNotFound = "EXA-0404-FILE";
+        public const string InvalidFileType = "EXA-0400-FILE";
+        public const string FileTooLarge = "EXA-0400-SIZE";
+        public const string InvalidPatchDocument = "EXA-0400-PATCH";
+        public const string WebhookInvalidSignature = "EXA-0401-WEBHOOK";
+        public const string WebhookMissingHeaders = "EXA-0401-WEBHOOK-HDR";
+    }
+}
+
+
+
+
+
+

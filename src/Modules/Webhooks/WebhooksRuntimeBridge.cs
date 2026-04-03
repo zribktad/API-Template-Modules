@@ -6,8 +6,9 @@ using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
 using SharedKernel.Infrastructure.Resilience;
-using Webhooks.Shared;
-using Webhooks.Shared;
+using Webhooks.Contracts;
+using Webhooks.Security;
+using Webhooks.Services;
 
 namespace Webhooks;
 
@@ -68,4 +69,3 @@ public static class WebhooksRuntimeBridge
             );
     }
 }
-

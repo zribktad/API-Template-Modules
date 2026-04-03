@@ -100,5 +100,3 @@ internal static partial class NotificationsInfrastructureLogs
         string subject
     );
 }
-
-

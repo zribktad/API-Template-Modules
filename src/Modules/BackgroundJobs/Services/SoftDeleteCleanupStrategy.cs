@@ -44,6 +44,3 @@ public sealed class SoftDeleteCleanupStrategy<TEntity> : ISoftDeleteCleanupStrat
         return totalDeleted;
     }
 }
-
-
-

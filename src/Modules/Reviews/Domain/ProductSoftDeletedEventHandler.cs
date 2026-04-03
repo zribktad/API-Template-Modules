@@ -1,5 +1,5 @@
-using Reviews.Features;
 using Reviews;
+using Reviews.Features;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.ProductReview;
 
@@ -35,9 +35,3 @@ public static class ProductSoftDeletedEventHandler
         return messages;
     }
 }
-
-
-
-
-
-

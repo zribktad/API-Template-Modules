@@ -167,5 +167,3 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
     private static Task ReleaseAsync(IDatabase database, string key, string value) =>
         database.ScriptEvaluateAsync(ReleaseLockScript, new { key, value });
 }
-
-

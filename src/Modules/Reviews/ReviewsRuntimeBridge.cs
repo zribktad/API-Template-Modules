@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Reviews;
-using Reviews.Features;
 using Reviews.Domain;
+using Reviews.Features;
 using Reviews.Persistence;
 using Reviews.Repositories;
 using SharedKernel.Infrastructure.Configuration;
@@ -37,10 +37,3 @@ public static class ReviewsRuntimeBridge
         return services;
     }
 }
-
-
-
-
-
-
-

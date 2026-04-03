@@ -1,6 +1,8 @@
-using Notifications.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Notifications.Contracts;
+using Notifications.Domain;
+using Notifications.Services;
 
 namespace Notifications.Persistence;
 
@@ -45,6 +47,3 @@ public sealed class FailedEmailConfiguration : IEntityTypeConfiguration<FailedEm
         });
     }
 }
-
-
-

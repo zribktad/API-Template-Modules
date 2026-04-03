@@ -30,9 +30,3 @@ public static class ProductReviewMappings
     public static ProductReviewResponse ToResponse(this ProductReviewEntity review) =>
         CompiledProjection(review);
 }
-
-
-
-
-
-

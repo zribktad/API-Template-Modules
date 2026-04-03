@@ -96,10 +96,3 @@ public sealed class CreateProductReviewCommandHandler
         return (review.ToResponse(), messages);
     }
 }
-
-
-
-
-
-
-

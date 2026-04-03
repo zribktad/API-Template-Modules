@@ -96,5 +96,3 @@ public sealed class TickerQRecurringJobRegistrar
         _logger.TickerQJobDefinitionsSynchronized(definitions.Count);
     }
 }
-
-

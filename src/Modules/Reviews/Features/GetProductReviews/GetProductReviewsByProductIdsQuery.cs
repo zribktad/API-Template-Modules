@@ -1,6 +1,6 @@
 using ErrorOr;
-using Reviews.Features;
 using Reviews.Domain;
+using Reviews.Features;
 
 namespace Reviews.Features;
 
@@ -32,9 +32,3 @@ public sealed class GetProductReviewsByProductIdsQueryHandler
             request.ProductIds.Distinct().ToDictionary(id => id, id => lookup[id].ToArray());
     }
 }
-
-
-
-
-
-

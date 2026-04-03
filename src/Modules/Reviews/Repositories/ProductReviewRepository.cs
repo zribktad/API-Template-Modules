@@ -11,12 +11,3 @@ public sealed class ProductReviewRepository
     public ProductReviewRepository(ReviewsDbContext dbContext)
         : base(dbContext) { }
 }
-
-
-
-
-
-
-
-
-

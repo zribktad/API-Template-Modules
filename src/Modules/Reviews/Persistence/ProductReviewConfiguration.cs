@@ -22,9 +22,3 @@ public sealed class ProductReviewConfiguration : IEntityTypeConfiguration<Produc
         builder.HasIndex(r => new { r.TenantId, r.ProductId });
     }
 }
-
-
-
-
-
-

@@ -37,12 +37,3 @@ internal static class ProductReviewFilterCriteria
             query.Where(r => r.Audit.CreatedAtUtc <= filter.CreatedTo.Value);
     }
 }
-
-
-
-
-
-
-
-
-

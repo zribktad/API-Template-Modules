@@ -27,6 +27,3 @@ public static class BackgroundJobsModule
         return endpoints;
     }
 }
-
-
-

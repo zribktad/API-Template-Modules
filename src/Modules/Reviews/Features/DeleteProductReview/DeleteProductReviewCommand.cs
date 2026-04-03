@@ -22,12 +22,11 @@ public sealed class DeleteProductReviewCommandHandler
     )
     {
         Guid userId = actorProvider.ActorId;
-        ErrorOr<Reviews.Domain.ProductReview> reviewResult =
-            await reviewRepository.GetByIdOrError(
-                command.Id,
-                DomainErrors.Reviews.NotFound(command.Id),
-                ct
-            );
+        ErrorOr<Reviews.Domain.ProductReview> reviewResult = await reviewRepository.GetByIdOrError(
+            command.Id,
+            DomainErrors.Reviews.NotFound(command.Id),
+            ct
+        );
         if (reviewResult.IsError)
         {
             OutgoingMessages failureMessages = new();
@@ -69,9 +68,3 @@ public sealed class DeleteProductReviewCommandHandler
         return (Result.Success, messages);
     }
 }
-
-
-
-
-
-

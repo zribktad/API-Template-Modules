@@ -1,5 +1,5 @@
-using Reviews.Domain;
 using Ardalis.Specification;
+using Reviews.Domain;
 using ProductReviewEntity = Reviews.Domain.ProductReview;
 
 namespace Reviews.Features;
@@ -21,12 +21,3 @@ public sealed class ProductReviewSpecification
         Query.Select(ProductReviewMappings.Projection);
     }
 }
-
-
-
-
-
-
-
-
-

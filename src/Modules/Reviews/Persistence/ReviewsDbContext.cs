@@ -38,10 +38,3 @@ public sealed class ReviewsDbContext : ModuleDbContext
         ApplyGlobalFilters(modelBuilder);
     }
 }
-
-
-
-
-
-
-

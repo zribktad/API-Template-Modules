@@ -10,7 +10,3 @@ internal static class ReviewsDomainErrors
             Error.Validation("REV-0401", "Rating must be between 1 and 5.");
     }
 }
-
-
-
-

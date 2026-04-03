@@ -1,4 +1,6 @@
-using Notifications.Shared;
+using Notifications.Contracts;
+using Notifications.Domain;
+using Notifications.Services;
 using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.StoredProcedures;
@@ -19,6 +21,3 @@ public sealed record ClaimExpiredFailedEmailsProcedure(
     public FormattableString ToSql() =>
         $"SELECT * FROM claim_expired_failed_emails({Cutoff}, {BatchSize}, {ClaimedBy}, {ClaimedAtUtc}, {ClaimedUntilUtc})";
 }
-
-
-

@@ -1,4 +1,4 @@
-using BackgroundJobs.Shared;
+using BackgroundJobs.Domain;
 
 namespace BackgroundJobs.Features;
 
@@ -57,6 +57,3 @@ public sealed class SubmitJobCommandHandler
         return entity.ToResponse();
     }
 }
-
-
-

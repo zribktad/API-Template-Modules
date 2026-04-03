@@ -10,9 +10,3 @@ public sealed class ProductReviewsForSoftDeleteSpecification : Specification<Pro
         Query.Where(review => review.ProductId == productId);
     }
 }
-
-
-
-
-
-

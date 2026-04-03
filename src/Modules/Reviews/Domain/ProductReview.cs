@@ -21,9 +21,3 @@ public sealed class ProductReview : IAuditableTenantEntity, IHasId
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
 }
-
-
-
-
-
-

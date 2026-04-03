@@ -1,4 +1,4 @@
-using BackgroundJobs.Shared;
+using BackgroundJobs.Domain;
 using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Application.BackgroundJobs;
@@ -35,5 +35,3 @@ public sealed class ReindexRecurringJob
             ct
         );
 }
-
-

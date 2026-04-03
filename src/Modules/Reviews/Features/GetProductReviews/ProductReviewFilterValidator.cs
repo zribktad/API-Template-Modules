@@ -1,5 +1,5 @@
-using SharedKernel.Application.Validation;
 using FluentValidation;
+using SharedKernel.Application.Validation;
 
 namespace Reviews.Features;
 
@@ -35,11 +35,3 @@ public sealed class ProductReviewFilterValidator : AbstractValidator<ProductRevi
             .When(x => x.MinRating.HasValue && x.MaxRating.HasValue);
     }
 }
-
-
-
-
-
-
-
-

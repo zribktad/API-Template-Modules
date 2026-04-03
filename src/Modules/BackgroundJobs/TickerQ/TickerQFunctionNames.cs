@@ -7,5 +7,3 @@ internal static class TickerQFunctionNames
     public const string Reindex = "reindex-recurring-job";
     public const string EmailRetry = "email-retry-recurring-job";
 }
-
-

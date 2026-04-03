@@ -18,11 +18,3 @@ public sealed record ProductReviewFilter(
     int PageNumber = 1,
     int PageSize = PaginationFilter.DefaultPageSize
 ) : PaginationFilter(PageNumber, PageSize), IDateRangeFilter, ISortableFilter;
-
-
-
-
-
-
-
-

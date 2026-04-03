@@ -1,4 +1,4 @@
-using BackgroundJobs.Shared;
+using BackgroundJobs.Domain;
 using BackgroundJobs.Persistence;
 using SharedKernel.Infrastructure.Repositories;
 
@@ -9,6 +9,3 @@ public sealed class JobExecutionRepository : RepositoryBase<JobExecution>, IJobE
     public JobExecutionRepository(BackgroundJobsDbContext dbContext)
         : base(dbContext) { }
 }
-
-
-

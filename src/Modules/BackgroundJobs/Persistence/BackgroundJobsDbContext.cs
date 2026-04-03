@@ -1,4 +1,4 @@
-using BackgroundJobs.Shared;
+using BackgroundJobs.Domain;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
@@ -39,5 +39,3 @@ public sealed class BackgroundJobsDbContext : ModuleDbContext
         ApplyGlobalFilters(modelBuilder);
     }
 }
-
-

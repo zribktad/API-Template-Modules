@@ -10,7 +10,3 @@ public sealed record SubmitJobRequest(
     string? Parameters = null,
     [Url] [MaxLength(2048)] string? CallbackUrl = null
 );
-
-
-
-

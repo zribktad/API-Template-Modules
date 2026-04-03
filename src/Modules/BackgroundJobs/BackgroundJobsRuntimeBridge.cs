@@ -1,5 +1,5 @@
 using System.Reflection;
-using BackgroundJobs.Shared;
+using BackgroundJobs.Domain;
 using BackgroundJobs.Persistence;
 using BackgroundJobs.Repositories;
 using BackgroundJobs.Services;
@@ -190,5 +190,3 @@ public static class BackgroundJobsRuntimeBridge
         }
     }
 }
-
-

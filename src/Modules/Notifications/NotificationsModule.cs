@@ -26,5 +26,3 @@ public static class NotificationsModule
         return endpoints;
     }
 }
-
-

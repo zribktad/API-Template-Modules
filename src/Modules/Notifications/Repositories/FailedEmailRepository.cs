@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Notifications.Shared;
+using Notifications.Contracts;
+using Notifications.Domain;
 using Notifications.Persistence;
+using Notifications.Services;
 using Notifications.StoredProcedures;
 using SharedKernel.Domain.Interfaces;
 
@@ -87,6 +89,3 @@ public sealed class FailedEmailRepository : IFailedEmailRepository
         return Task.CompletedTask;
     }
 }
-
-
-

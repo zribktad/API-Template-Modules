@@ -24,12 +24,3 @@ public static class ProductReviewSortFields
             .Add(CreatedAt, r => r.Audit.CreatedAtUtc)
             .Default(r => r.Audit.CreatedAtUtc);
 }
-
-
-
-
-
-
-
-
-

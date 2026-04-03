@@ -1,4 +1,6 @@
-using Notifications.Shared;
+using Notifications.Contracts;
+using Notifications.Domain;
+using Notifications.Services;
 using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.StoredProcedures;
@@ -19,6 +21,3 @@ public sealed record ClaimRetryableFailedEmailsProcedure(
     public FormattableString ToSql() =>
         $"SELECT * FROM claim_retryable_failed_emails({MaxRetryAttempts}, {BatchSize}, {ClaimedBy}, {ClaimedAtUtc}, {ClaimedUntilUtc})";
 }
-
-
-

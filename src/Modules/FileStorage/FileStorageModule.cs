@@ -1,7 +1,10 @@
-using FileStorage.Features.Files;
-using FileStorage.Shared;
+using FileStorage.Contracts;
+using FileStorage.Domain;
+using FileStorage.Errors;
+using FileStorage.Features;
 using FileStorage.Persistence;
-using FileStorage.Shared;
+using FileStorage.Repositories;
+using FileStorage.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -67,5 +70,3 @@ public static class FileStorageModule
         services.AddControllers().AddApplicationPart(typeof(FilesController).Assembly);
     }
 }
-
-

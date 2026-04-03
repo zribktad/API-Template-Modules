@@ -2,10 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Notifications;
-using Notifications.Shared;
-using Notifications.Shared;
+using Notifications.Contracts;
+using Notifications.Domain;
 using Notifications.Persistence;
 using Notifications.Repositories;
+using Notifications.Services;
 using Polly;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
@@ -68,6 +69,3 @@ public static class NotificationsRuntimeBridge
         return services;
     }
 }
-
-
-

@@ -66,4 +66,3 @@ internal static partial class WebhooksInfrastructureLogs
         string eventId
     );
 }
-

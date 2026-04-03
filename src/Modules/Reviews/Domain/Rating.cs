@@ -26,9 +26,3 @@ public readonly record struct Rating
 
     public static implicit operator int(Rating rating) => rating.Value;
 }
-
-
-
-
-
-

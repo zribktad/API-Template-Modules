@@ -1,7 +1,7 @@
 global using Reviews.Common.Errors;
 global using Reviews.Common.Events;
-global using Reviews.Features;
 global using Reviews.Domain;
+global using Reviews.Features;
 global using SharedKernel.Application.Context;
 global using SharedKernel.Application.Contracts;
 global using SharedKernel.Application.DTOs;
@@ -13,10 +13,3 @@ global using SharedKernel.Contracts.Events;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities.Contracts;
 global using SharedKernel.Domain.Interfaces;
-
-
-
-
-
-
-

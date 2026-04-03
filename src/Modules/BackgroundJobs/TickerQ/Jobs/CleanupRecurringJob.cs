@@ -1,4 +1,4 @@
-using BackgroundJobs.Shared;
+using BackgroundJobs.Domain;
 using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -55,5 +55,3 @@ public sealed class CleanupRecurringJob
             ct
         );
 }
-
-

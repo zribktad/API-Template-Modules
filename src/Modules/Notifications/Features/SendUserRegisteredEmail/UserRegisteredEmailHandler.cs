@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Options;
-using Notifications.Shared;
+using Notifications.Contracts;
+using Notifications.Domain;
+using Notifications.Services;
 using SharedKernel.Contracts.Events;
 
 namespace Notifications.Features;
@@ -36,6 +38,3 @@ public sealed class UserRegisteredEmailHandler
         );
     }
 }
-
-
-
