@@ -1,3 +1,5 @@
+using ProductCatalog.Domain.ValueObjects;
+
 namespace ProductCatalog.Domain.Entities;
 
 /// <summary>
@@ -23,18 +25,7 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     public string? Description { get; set; }
 
     /// <summary>Price with 18,2 decimal precision (enforced by EF config).</summary>
-    public decimal Price
-    {
-        get => field;
-        set =>
-            field =
-                value >= 0
-                    ? value
-                    : throw new ArgumentOutOfRangeException(
-                        nameof(Price),
-                        "Price must be greater than or equal to zero."
-                    );
-    }
+    public Price Price { get; set; }
 
     public Guid? CategoryId { get; set; }
 
@@ -55,7 +46,7 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     public static Product Create(
         string name,
         string? description,
-        decimal price,
+        Price price,
         Guid? categoryId,
         IEnumerable<Guid>? productDataIds
     )
@@ -80,7 +71,7 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     /// <summary>
     /// Atomically replaces all mutable product fields in a single call, enforcing property-level invariants.
     /// </summary>
-    public void UpdateDetails(string name, string? description, decimal price, Guid? categoryId)
+    public void UpdateDetails(string name, string? description, Price price, Guid? categoryId)
     {
         Name = name;
         Description = description;
@@ -97,7 +88,7 @@ public sealed class Product : IAuditableTenantEntity, IHasId
         HashSet<Guid> targetSet = targetIds.ToHashSet();
         Dictionary<Guid, ProductDataLink> existingById = ProductDataLinks
             .GroupBy(link => link.ProductDataId)
-            .ToDictionary(g => g.Key, g => g.First());
+            .ToDictionary(group => group.Key, group => group.First());
 
         ProductDataLink[] linksToRemove = ProductDataLinks
             .Where(link => !targetSet.Contains(link.ProductDataId))

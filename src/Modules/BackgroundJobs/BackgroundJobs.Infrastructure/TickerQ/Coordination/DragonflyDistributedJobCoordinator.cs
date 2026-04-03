@@ -1,3 +1,4 @@
+using BackgroundJobs.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.BackgroundJobs;
@@ -62,10 +63,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
 
         if (!acquired)
         {
-            _logger.LogDebug(
-                "Skipped background job {JobName} because another instance currently owns the coordination lease.",
-                jobName
-            );
+            _logger.JobSkippedLeadershipNotAcquired(jobName);
             return;
         }
 
@@ -108,21 +106,11 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
     {
         if (!_options.TickerQ.FailClosed)
         {
-            _logger.LogWarning(
-                innerException,
-                "DragonFly coordination is unavailable for background job {JobName}; continuing because fail-closed is disabled. {Message}",
-                jobName,
-                message
-            );
+            _logger.CoordinationUnavailableFailOpenContinuing(innerException, jobName, message);
             return null;
         }
 
-        _logger.LogWarning(
-            innerException,
-            "Fail-closed coordination stopped background job {JobName}: {Message}",
-            jobName,
-            message
-        );
+        _logger.CoordinationFailClosedStopped(innerException, jobName, message);
 
         throw new InvalidOperationException(
             $"Background job '{jobName}' did not start because DragonFly coordination is unavailable. {message}",
@@ -139,11 +127,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            _logger.LogWarning(
-                ex,
-                "Error while renewing coordination lease for background job {JobName}. Proceeding to release the lock.",
-                jobName
-            );
+            _logger.CoordinationLeaseRenewalError(ex, jobName);
         }
     }
 
@@ -172,10 +156,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
             if (renewed != 0)
                 continue;
 
-            _logger.LogWarning(
-                "Lost DragonFly coordination lease for background job {JobName}; cancelling the in-flight execution.",
-                jobName
-            );
+            _logger.CoordinationLeaseLost(jobName);
             executionCts.Cancel();
             throw new InvalidOperationException(
                 $"Background job '{jobName}' lost its DragonFly coordination lease while still running."

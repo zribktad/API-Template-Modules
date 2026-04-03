@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Application.Features.Product.DTOs;
 
@@ -16,7 +15,7 @@ public sealed class PatchableProductDto
     [MaxLength(1000)]
     public string? Description { get; set; }
 
-    [Range(0.01, double.MaxValue, ErrorMessage = "Price must be positive.")]
+    [Range(0.0, double.MaxValue, ErrorMessage = "Price must be non-negative.")]
     public decimal Price { get; set; }
 
     public Guid? CategoryId { get; set; }

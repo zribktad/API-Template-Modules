@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.OutputCaching;
-using Microsoft.Extensions.Logging;
 using SharedKernel.Application.Context;
 
 namespace APITemplate.Api.Cache;
@@ -7,8 +6,8 @@ namespace APITemplate.Api.Cache;
 public sealed class OutputCacheInvalidationService(
     IOutputCacheStore outputCacheStore,
     ITenantProvider tenantProvider,
-    ILogger<OutputCacheInvalidationService> logger)
-    : IOutputCacheInvalidationService
+    ILogger<OutputCacheInvalidationService> logger
+) : IOutputCacheInvalidationService
 {
     public Task EvictAsync(string tag, CancellationToken cancellationToken = default) =>
         EvictAsync([tag], cancellationToken);
@@ -29,7 +28,7 @@ public sealed class OutputCacheInvalidationService(
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger.LogError(ex, "Failed to evict output cache for tag: {Tag}", targetTag);
+                logger.EvictOutputCacheFailed(ex, targetTag);
             }
         }
     }

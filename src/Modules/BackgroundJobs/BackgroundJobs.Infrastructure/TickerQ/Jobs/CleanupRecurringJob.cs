@@ -1,8 +1,9 @@
-using SharedKernel.Application.Options.BackgroundJobs;
 using BackgroundJobs.Application.Services;
+using BackgroundJobs.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.BackgroundJobs;
+using SharedKernel.Application.Options.BackgroundJobs;
 using TickerQ.Utilities.Base;
 
 namespace BackgroundJobs.Infrastructure.TickerQ.Jobs;
@@ -33,14 +34,23 @@ public sealed class CleanupRecurringJob
             TickerQFunctionNames.Cleanup,
             async token =>
             {
-                _logger.LogInformation("Executing cleanup recurring job for ticker {TickerId}.", context.Id);
+                _logger.ExecutingCleanupRecurringJob(context.Id);
 
                 await _cleanupService.CleanupExpiredInvitationsAsync(
-                    _options.ExpiredInvitationRetentionHours, _options.BatchSize, token);
+                    _options.ExpiredInvitationRetentionHours,
+                    _options.BatchSize,
+                    token
+                );
                 await _cleanupService.CleanupSoftDeletedRecordsAsync(
-                    _options.SoftDeleteRetentionDays, _options.BatchSize, token);
+                    _options.SoftDeleteRetentionDays,
+                    _options.BatchSize,
+                    token
+                );
                 await _cleanupService.CleanupOrphanedProductDataAsync(
-                    _options.OrphanedProductDataRetentionDays, _options.BatchSize, token);
+                    _options.OrphanedProductDataRetentionDays,
+                    _options.BatchSize,
+                    token
+                );
             },
             ct
         );

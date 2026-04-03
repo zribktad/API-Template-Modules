@@ -1,9 +1,6 @@
-using Contracts.Events;
 using ErrorOr;
 using ProductCatalog.Application.Features.Category.Specifications;
 using ProductCatalog.Domain;
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
 using Wolverine;
 
 namespace ProductCatalog.Application.Features.Category;
@@ -54,21 +51,26 @@ public sealed class DeleteCategoriesCommandHandler
         DeleteCategoriesCommand command,
         IReadOnlyList<ProductCatalog.Domain.Entities.Category> categories,
         ICategoryRepository repository,
+        IProductRepository productRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
-        // Remove categories in a single transaction
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
                 await repository.DeleteRangeAsync(categories, ct);
+                await productRepository.ClearCategoryAsync(
+                    categories.Select(category => category.Id).ToArray(),
+                    ct
+                );
             },
             ct
         );
 
         OutgoingMessages messages = new();
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
 
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }

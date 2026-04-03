@@ -1,5 +1,6 @@
 using ErrorOr;
 using Identity.Domain.Errors;
+using Identity.Domain.ValueObjects;
 
 namespace Identity.Domain.Entities;
 
@@ -11,17 +12,15 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
     public Guid Id { get; set; }
 
-    public string Email
+    public Email Email
     {
         get => field;
         private set
         {
-            field = string.IsNullOrWhiteSpace(value)
-                ? throw new ArgumentException("Invitation email cannot be empty.", nameof(Email))
-                : value.Trim();
-            NormalizedEmail = AppUser.NormalizeEmail(field);
+            field = value;
+            NormalizedEmail = value.Normalize();
         }
-    } = string.Empty;
+    }
 
     public string NormalizedEmail { get; private set; } = string.Empty;
     public string TokenHash { get; private set; } = string.Empty;
@@ -35,7 +34,7 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     public Guid? DeletedBy { get; set; }
 
     public static TenantInvitation Create(
-        string email,
+        Email email,
         string tokenHash,
         int expiryHours,
         TimeProvider timeProvider

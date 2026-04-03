@@ -1,4 +1,5 @@
 using BackgroundJobs.Application.Services;
+using BackgroundJobs.Infrastructure.Logging;
 using Contracts.Commands.Cleanup;
 using Microsoft.Extensions.Logging;
 using Wolverine;
@@ -56,11 +57,7 @@ public sealed class CleanupService : ICleanupService
 
             if (deleted > 0)
             {
-                _logger.LogInformation(
-                    "Cleaned up {Count} soft-deleted records from {Entity}.",
-                    deleted,
-                    strategy.EntityName
-                );
+                _logger.CleanedUpSoftDeletedRecords(deleted, strategy.EntityName);
             }
         }
     }

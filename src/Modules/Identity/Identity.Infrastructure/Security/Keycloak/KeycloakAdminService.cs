@@ -1,4 +1,5 @@
 using Identity.Application.Options;
+using Identity.Infrastructure.Logging;
 using Keycloak.AuthServices.Sdk.Admin;
 using Keycloak.AuthServices.Sdk.Admin.Models;
 using Keycloak.AuthServices.Sdk.Admin.Requests.Users;
@@ -46,16 +47,16 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
             EmailVerified = false,
         };
 
-        using HttpResponseMessage response = await _userClient.CreateUserWithResponseAsync(_realm, user, ct);
+        using HttpResponseMessage response = await _userClient.CreateUserWithResponseAsync(
+            _realm,
+            user,
+            ct
+        );
         response.EnsureSuccessStatusCode();
 
         string keycloakUserId = ExtractUserIdFromLocation(response);
 
-        _logger.LogInformation(
-            "Created Keycloak user {Username} with id {KeycloakUserId}",
-            username,
-            keycloakUserId
-        );
+        _logger.KeycloakUserCreated(username, keycloakUserId);
 
         // Best-effort: if the setup email fails, we still return the created user ID so the
         // caller can persist the local record. The user can be sent a password reset later.
@@ -77,11 +78,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogWarning(
-                ex,
-                "Failed to send setup email for Keycloak user {KeycloakUserId}. User was created but has no setup email.",
-                keycloakUserId
-            );
+            _logger.KeycloakSetupEmailFailed(ex, keycloakUserId);
         }
 
         return keycloakUserId;
@@ -103,10 +100,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
             ct
         );
 
-        _logger.LogInformation(
-            "Sent password reset email to Keycloak user {KeycloakUserId}",
-            keycloakUserId
-        );
+        _logger.KeycloakPasswordResetEmailSent(keycloakUserId);
     }
 
     /// <summary>Enables or disables the Keycloak account for the given user.</summary>
@@ -119,11 +113,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         var patch = new UserRepresentation { Enabled = enabled };
         await _userClient.UpdateUserAsync(_realm, keycloakUserId, patch, ct);
 
-        _logger.LogInformation(
-            "Set Keycloak user {KeycloakUserId} enabled={Enabled}",
-            keycloakUserId,
-            enabled
-        );
+        _logger.KeycloakUserEnabledSet(keycloakUserId, enabled);
     }
 
     /// <summary>
@@ -138,14 +128,11 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             // Treat 404 as success — the user was already deleted (e.g., retry scenario)
-            _logger.LogWarning(
-                "Keycloak user {KeycloakUserId} was not found during delete — treating as already deleted.",
-                keycloakUserId
-            );
+            _logger.KeycloakUserNotFoundOnDelete(keycloakUserId);
             return;
         }
 
-        _logger.LogInformation("Deleted Keycloak user {KeycloakUserId}", keycloakUserId);
+        _logger.KeycloakUserDeleted(keycloakUserId);
     }
 
     private static string ExtractUserIdFromLocation(HttpResponseMessage response)

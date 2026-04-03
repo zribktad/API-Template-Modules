@@ -1,11 +1,8 @@
-using Contracts.Events;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Polly.Registry;
+using ProductCatalog.Application.Logging;
 using ProductCatalog.Domain;
-using ProductCatalog.Domain.Interfaces;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Resilience;
 using Wolverine;
 
 namespace ProductCatalog.Application.Features.ProductData;
@@ -99,12 +96,7 @@ public sealed class DeleteProductDataCommandHandler
         }
         catch (Exception ex)
         {
-            logger.LogError(
-                ex,
-                "Failed to soft-delete ProductData document {ProductDataId} for tenant {TenantId}. Related ProductDataLinks may already be soft-deleted in PostgreSQL.",
-                state.Data.Id,
-                state.TenantId
-            );
+            logger.ProductDataSoftDeleteFailed(ex, state.Data.Id, state.TenantId);
             throw;
         }
 

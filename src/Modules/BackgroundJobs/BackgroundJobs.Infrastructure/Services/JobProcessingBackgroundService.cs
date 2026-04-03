@@ -1,6 +1,7 @@
 using System.Text.Json;
 using BackgroundJobs.Application.Services;
 using BackgroundJobs.Domain;
+using BackgroundJobs.Infrastructure.Logging;
 using Contracts.Commands.Webhooks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -70,7 +71,7 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
 
     protected override async Task HandleErrorAsync(Guid jobId, Exception ex, CancellationToken ct)
     {
-        _logger.LogError(ex, "Job {JobId} failed", jobId);
+        _logger.JobFailed(ex, jobId);
         await TryMarkFailedAsync(jobId, ex.Message, ct);
     }
 
@@ -98,7 +99,7 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to mark job {JobId} as failed", jobId);
+            _logger.MarkJobFailedError(ex, jobId);
         }
     }
 

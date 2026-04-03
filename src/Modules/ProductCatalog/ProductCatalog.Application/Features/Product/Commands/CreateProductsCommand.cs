@@ -2,6 +2,7 @@ using Contracts.Events;
 using ErrorOr;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.Entities;
+using ProductCatalog.Domain.ValueObjects;
 using SharedKernel.Application.Batch;
 using Wolverine;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
@@ -44,6 +45,16 @@ public sealed class CreateProductsCommandHandler
             )
         );
 
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (context.IsFailed(i))
+                continue;
+
+            ErrorOr<Price> priceResult = Price.Create(items[i].Price);
+            if (priceResult.IsError)
+                context.AddFailure(i, null, priceResult.FirstError.Description);
+        }
+
         if (context.HasFailures)
         {
             OutgoingMessages failureMessages = new();
@@ -53,14 +64,16 @@ public sealed class CreateProductsCommandHandler
 
         List<ProductEntity> entities = items
             .Select(item =>
-                ProductEntity.Create(
+            {
+                Price price = Price.FromPersistence(item.Price);
+                return ProductEntity.Create(
                     item.Name,
                     item.Description,
-                    item.Price,
+                    price,
                     item.CategoryId,
                     item.ProductDataIds
-                )
-            )
+                );
+            })
             .ToList();
 
         return (HandlerContinuation.Continue, entities, OutgoingMessagesHelper.Empty);

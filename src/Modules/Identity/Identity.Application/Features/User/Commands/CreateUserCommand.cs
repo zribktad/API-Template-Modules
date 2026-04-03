@@ -1,13 +1,9 @@
 using ErrorOr;
-using Identity.Application.Common.Security;
-using Identity.Application.Features.User.DTOs;
 using Identity.Application.Features.User.Mappings;
+using Identity.Application.Logging;
 using Identity.Domain;
-using Identity.Domain.Entities;
-using Identity.Domain.Interfaces;
+using Identity.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Application.Events;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
@@ -25,6 +21,11 @@ public sealed class CreateUserCommandHandler
         CancellationToken ct
     )
     {
+        ErrorOr<Email> emailValueResult = Email.Create(command.Request.Email);
+        if (emailValueResult.IsError)
+            return (emailValueResult.Errors, OutgoingMessagesHelper.Empty);
+        Email email = emailValueResult.Value;
+
         ErrorOr<Success> emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
             repository,
             command.Request.Email,
@@ -53,35 +54,27 @@ public sealed class CreateUserCommandHandler
             {
                 Id = Guid.NewGuid(),
                 Username = command.Request.Username,
-                Email = command.Request.Email,
+                Email = email,
                 KeycloakUserId = keycloakUserId,
             };
 
             await repository.AddAsync(user, ct);
             await unitOfWork.CommitAsync(ct);
             OutgoingMessages messages = new();
-            messages.Add(new UserRegisteredNotification(user.Id, user.Email, user.Username));
+            messages.Add(new UserRegisteredNotification(user.Id, user.Email.Value, user.Username));
             messages.Add(new CacheInvalidationNotification(CacheTags.Users));
             return (user.ToResponse(), messages);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogError(
-                ex,
-                "DB save failed after creating Keycloak user {KeycloakUserId}. Attempting compensating delete.",
-                keycloakUserId
-            );
+            logger.CreateUserDbSaveFailed(ex, keycloakUserId);
             try
             {
                 await keycloakAdmin.DeleteUserAsync(keycloakUserId, CancellationToken.None);
             }
             catch (Exception compensationEx)
             {
-                logger.LogError(
-                    compensationEx,
-                    "Compensating Keycloak delete failed for user {KeycloakUserId}. Manual cleanup required.",
-                    keycloakUserId
-                );
+                logger.CreateUserCompensatingDeleteFailed(compensationEx, keycloakUserId);
             }
             throw;
         }

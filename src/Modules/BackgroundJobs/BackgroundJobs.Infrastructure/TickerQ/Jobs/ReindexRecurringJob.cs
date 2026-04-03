@@ -1,4 +1,5 @@
 using BackgroundJobs.Application.Services;
+using BackgroundJobs.Infrastructure.Logging;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Application.BackgroundJobs;
 using TickerQ.Utilities.Base;
@@ -28,7 +29,7 @@ public sealed class ReindexRecurringJob
             TickerQFunctionNames.Reindex,
             async token =>
             {
-                _logger.LogInformation("Executing reindex recurring job for ticker {TickerId}.", context.Id);
+                _logger.ExecutingReindexRecurringJob(context.Id);
                 await _reindexService.ReindexFullTextSearchAsync(token);
             },
             ct

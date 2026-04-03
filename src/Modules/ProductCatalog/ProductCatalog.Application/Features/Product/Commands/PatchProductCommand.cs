@@ -1,12 +1,8 @@
-using Contracts.Events;
 using ErrorOr;
 using FluentValidation;
-using ProductCatalog.Application.Errors;
-using ProductCatalog.Application.Features.Product.DTOs;
 using ProductCatalog.Application.Features.Product.Mappings;
 using ProductCatalog.Domain;
-using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Domain.Interfaces;
+using ProductCatalog.Domain.ValueObjects;
 using SystemTextJsonPatch;
 using Wolverine;
 using IProductRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
@@ -64,7 +60,11 @@ public sealed class PatchProductCommandHandler
                 OutgoingMessagesHelper.Empty
             );
 
-        product.UpdateDetails(dto.Name, dto.Description, dto.Price, dto.CategoryId);
+        ErrorOr<Price> priceResult = Price.Create(dto.Price);
+        if (priceResult.IsError)
+            return (priceResult.FirstError, OutgoingMessagesHelper.Empty);
+
+        product.UpdateDetails(dto.Name, dto.Description, priceResult.Value, dto.CategoryId);
 
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>

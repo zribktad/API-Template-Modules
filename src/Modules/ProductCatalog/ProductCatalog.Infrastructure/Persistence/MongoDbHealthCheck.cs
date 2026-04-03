@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using ProductCatalog.Infrastructure.Logging;
 
 namespace ProductCatalog.Infrastructure.Persistence;
 
@@ -26,8 +27,8 @@ public sealed class MongoDbHealthCheck : IHealthCheck
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "MongoDB health check failed");
-            return HealthCheckResult.Unhealthy("MongoDB is not reachable");
+            _logger.MongoDbHealthCheckFailed(ex);
+            return HealthCheckResult.Unhealthy("MongoDB is not reachable", ex);
         }
     }
 }

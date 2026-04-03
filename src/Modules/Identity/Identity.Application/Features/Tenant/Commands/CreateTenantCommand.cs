@@ -1,10 +1,7 @@
 using ErrorOr;
-using Identity.Application.Features.Tenant.DTOs;
 using Identity.Application.Features.Tenant.Mappings;
 using Identity.Domain;
-using Identity.Domain.Interfaces;
-using SharedKernel.Application.Events;
-using SharedKernel.Domain.Interfaces;
+using Identity.Domain.ValueObjects;
 using Wolverine;
 using TenantEntity = Identity.Domain.Entities.Tenant;
 
@@ -22,6 +19,10 @@ public sealed class CreateTenantCommandHandler
         CancellationToken ct
     )
     {
+        ErrorOr<TenantCode> codeResult = TenantCode.Create(command.Request.Code);
+        if (codeResult.IsError)
+            return (codeResult.FirstError, OutgoingMessagesHelper.Empty);
+
         TenantEntity tenant;
         try
         {
@@ -31,7 +32,7 @@ public sealed class CreateTenantCommandHandler
                     Guid id = Guid.NewGuid();
                     TenantEntity entity = TenantEntity.Create(
                         id,
-                        command.Request.Code,
+                        codeResult.Value,
                         command.Request.Name
                     );
 
@@ -44,7 +45,7 @@ public sealed class CreateTenantCommandHandler
         catch (Exception ex) when (tenantCodeConflictDetector.IsCodeConflict(ex))
         {
             return (
-                DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code),
+                DomainErrors.Tenants.CodeAlreadyExists(codeResult.Value),
                 OutgoingMessagesHelper.Empty
             );
         }

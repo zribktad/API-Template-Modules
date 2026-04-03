@@ -1,6 +1,7 @@
-using ProductCatalog.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using ProductCatalog.Domain.Entities;
+using ProductCatalog.Domain.ValueObjects;
 
 namespace ProductCatalog.Infrastructure.Configurations;
 
@@ -16,7 +17,10 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(p => p.Description).HasMaxLength(1000);
 
-        builder.Property(p => p.Price).HasPrecision(18, 2);
+        builder
+            .Property(p => p.Price)
+            .HasConversion(price => price.Value, value => Price.FromPersistence(value))
+            .HasPrecision(18, 2);
 
         builder
             .HasOne(p => p.Category)
@@ -31,5 +35,3 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsTsVectorExpressionIndex("english");
     }
 }
-
-

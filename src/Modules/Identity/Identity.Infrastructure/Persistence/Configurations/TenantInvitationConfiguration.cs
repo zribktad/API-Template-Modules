@@ -1,3 +1,4 @@
+using Identity.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -11,7 +12,11 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
         builder.HasKey(i => i.Id);
         builder.ConfigureTenantAuditable();
 
-        builder.Property(i => i.Email).IsRequired().HasMaxLength(320);
+        builder
+            .Property(i => i.Email)
+            .HasConversion(e => e.Value, v => Email.FromPersistence(v))
+            .IsRequired()
+            .HasMaxLength(320);
         builder.Property(i => i.NormalizedEmail).IsRequired().HasMaxLength(320);
         builder.Property(i => i.TokenHash).IsRequired().HasMaxLength(128);
 

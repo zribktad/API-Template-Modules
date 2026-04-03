@@ -1,3 +1,5 @@
+using Identity.Domain.ValueObjects;
+using Identity.Infrastructure.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -40,46 +42,39 @@ public sealed class UserProvisioningService : IUserProvisioningService
     {
         // 1. Check if the user is already provisioned — bypass tenant filter because
         //    we only have the Keycloak subject ID, not a tenant context yet.
-        AppUser? existing = await _db.Users
-            .IgnoreQueryFilters()
+        AppUser? existing = await _db
+            .Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.KeycloakUserId == keycloakUserId, ct);
 
         if (existing is not null)
         {
-            _logger.LogDebug(
-                "User provisioning skipped — AppUser already exists for KeycloakUserId={KeycloakUserId}",
-                keycloakUserId
-            );
+            _logger.UserProvisioningSkippedAlreadyExists(keycloakUserId);
             return existing;
         }
 
         // 2. Look for an accepted invitation matching the normalised email.
         //    Bypass tenant filter — at this point no tenant context is active.
-        string normalizedEmail = AppUser.NormalizeEmail(email);
+        string normalizedEmail = Email.NormalizeRaw(email);
 
-        TenantInvitation? invitation = await _db.TenantInvitations
-            .IgnoreQueryFilters()
+        TenantInvitation? invitation = await _db
+            .TenantInvitations.IgnoreQueryFilters()
             .FirstOrDefaultAsync(
-                i =>
-                    i.NormalizedEmail == normalizedEmail
-                    && i.Status == InvitationStatus.Accepted,
+                i => i.NormalizedEmail == normalizedEmail && i.Status == InvitationStatus.Accepted,
                 ct
             );
 
         if (invitation is null)
         {
-            _logger.LogInformation(
-                "User provisioning skipped — no accepted invitation found for email={NormalizedEmail}",
-                normalizedEmail
-            );
+            _logger.UserProvisioningSkippedNoInvitation(normalizedEmail);
             return null;
         }
 
         // 3. Provision a new user from the invitation data.
+        // The email comes from Keycloak (trusted identity provider), so no re-validation is needed.
         AppUser user = new()
         {
             Username = username,
-            Email = email,
+            Email = Email.FromPersistence(email),
             KeycloakUserId = keycloakUserId,
             // TenantId must be set explicitly here. During OnTokenValidated, no tenant context
             // is active (ITenantProvider.HasTenant == false), so AuditableEntityStateManager
@@ -94,25 +89,16 @@ public sealed class UserProvisioningService : IUserProvisioningService
         {
             await _db.Users.AddAsync(user, ct);
             await _unitOfWork.CommitAsync(ct);
-            _logger.LogInformation(
-                "Provisioned new AppUser={UserId} for KeycloakUserId={KeycloakUserId}, TenantId={TenantId}",
-                user.Id,
-                keycloakUserId,
-                invitation.TenantId
-            );
+            _logger.UserProvisioned(user.Id, keycloakUserId, invitation.TenantId);
             return user;
         }
         catch (DbUpdateException ex)
         {
             // Concurrent request may have provisioned this user — re-fetch the winner.
-            _logger.LogWarning(
-                ex,
-                "DbUpdateException during provisioning for {KeycloakUserId}. Re-fetching.",
-                keycloakUserId
-            );
+            _logger.UserProvisioningConcurrencyRetry(ex, keycloakUserId);
 
-            return await _db.Users
-                    .IgnoreQueryFilters()
+            return await _db
+                    .Users.IgnoreQueryFilters()
                     .FirstOrDefaultAsync(u => u.KeycloakUserId == keycloakUserId, ct)
                 ?? throw new InvalidOperationException(
                     $"Provisioning failed for KeycloakUserId={keycloakUserId} and no existing user was found.",

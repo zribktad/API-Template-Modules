@@ -1,10 +1,11 @@
-using Notifications.Application.Common.Email;
-using Notifications.Domain;
-using SharedKernel.Application.Options.BackgroundJobs;
-using SharedKernel.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Notifications.Application.Common.Email;
+using Notifications.Domain;
+using Notifications.Infrastructure.Logging;
+using SharedKernel.Application.Options.BackgroundJobs;
+using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.Infrastructure.Email;
 
@@ -71,19 +72,11 @@ public sealed class FailedEmailStore : IFailedEmailStore
             await repository.AddAsync(failedEmail, ct);
             await unitOfWork.CommitAsync(ct);
 
-            _logger.LogWarning(
-                "Stored failed email to {Recipient} with subject '{Subject}' for retry.",
-                message.To,
-                message.Subject
-            );
+            _logger.FailedEmailStored(message.To, message.Subject);
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Failed to store failed email to {Recipient} for retry.",
-                message.To
-            );
+            _logger.FailedEmailStorageError(ex, message.To);
         }
     }
 }

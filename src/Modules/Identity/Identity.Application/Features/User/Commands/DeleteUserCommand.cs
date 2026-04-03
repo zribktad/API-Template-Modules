@@ -1,12 +1,7 @@
 using ErrorOr;
-using Identity.Application.Common.Security;
+using Identity.Application.Logging;
 using Identity.Domain;
-using Identity.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Extensions;
-using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
@@ -43,11 +38,7 @@ public sealed class DeleteUserCommandHandler
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogCritical(
-                ex,
-                "DB delete failed after Keycloak user {KeycloakUserId} was already deleted. Manual cleanup required.",
-                user.KeycloakUserId
-            );
+            logger.DeleteUserDbDeleteFailed(ex, user.KeycloakUserId);
             throw;
         }
 

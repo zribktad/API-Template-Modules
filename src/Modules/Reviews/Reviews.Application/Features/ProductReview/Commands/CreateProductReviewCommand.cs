@@ -1,10 +1,8 @@
-using Contracts.Events;
 using Contracts.Queries.ProductCatalog;
 using ErrorOr;
 using Reviews.Application.Features.ProductReview.Mappings;
 using Reviews.Domain;
-using Reviews.Domain.Interfaces;
-using SharedKernel.Application.Context;
+using Reviews.Domain.ValueObjects;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.Entities.ProductReview;
 
@@ -20,7 +18,7 @@ public sealed class CreateProductReviewCommandHandler
         Guid ProductId,
         Guid UserId,
         string? Comment,
-        int Rating
+        Rating Rating
     );
 
     public static async Task<(
@@ -35,6 +33,15 @@ public sealed class CreateProductReviewCommandHandler
     )
     {
         Guid userId = actorProvider.ActorId;
+
+        ErrorOr<Rating> rating = Rating.Create(command.Request.Rating);
+        if (rating.IsError)
+        {
+            OutgoingMessages ratingFailure = new();
+            ratingFailure.RespondToSender(rating.Errors);
+            return (HandlerContinuation.Stop, null, ratingFailure);
+        }
+
         ErrorOr<Success> productExists = await bus.InvokeAsync<ErrorOr<Success>>(
             new ValidateProductExistsQuery(command.Request.ProductId),
             ct
@@ -52,7 +59,7 @@ public sealed class CreateProductReviewCommandHandler
                 command.Request.ProductId,
                 userId,
                 command.Request.Comment,
-                command.Request.Rating
+                rating.Value
             ),
             OutgoingMessagesHelper.Empty
         );
@@ -66,7 +73,7 @@ public sealed class CreateProductReviewCommandHandler
         CancellationToken ct
     )
     {
-        var review = await unitOfWork.ExecuteInTransactionAsync(
+        ProductReviewEntity review = await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
                 ProductReviewEntity entity = new()

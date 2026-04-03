@@ -13,7 +13,7 @@ public static class TenantSortFields
     public static readonly SortField CreatedAt = new("createdAt");
 
     public static readonly SortFieldMap<TenantEntity> Map = new SortFieldMap<TenantEntity>()
-        .Add(Code, t => t.Code)
+        .Add(Code, t => (string)t.Code)
         .Add(Name, t => t.Name)
         .Add(CreatedAt, t => t.Audit.CreatedAtUtc)
         .Default(t => t.Audit.CreatedAtUtc);

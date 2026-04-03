@@ -1,12 +1,6 @@
 using ErrorOr;
-using Identity.Application.Features.User.DTOs;
 using Identity.Domain;
-using Identity.Domain.Entities;
-using Identity.Domain.Interfaces;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Extensions;
-using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Domain.Interfaces;
+using Identity.Domain.ValueObjects;
 using Wolverine;
 
 namespace Identity.Application.Features.User;
@@ -31,7 +25,12 @@ public sealed class UpdateUserCommandHandler
             return (userResult.Errors, OutgoingMessagesHelper.Empty);
         AppUser user = userResult.Value;
 
-        if (!string.Equals(user.Email, command.Request.Email, StringComparison.OrdinalIgnoreCase))
+        ErrorOr<Email> emailValueResult = Email.Create(command.Request.Email);
+        if (emailValueResult.IsError)
+            return (emailValueResult.Errors, OutgoingMessagesHelper.Empty);
+        Email newEmail = emailValueResult.Value;
+
+        if (!string.Equals(user.Email.Value, newEmail.Value, StringComparison.OrdinalIgnoreCase))
         {
             ErrorOr<Success> emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
                 repository,
@@ -56,7 +55,7 @@ public sealed class UpdateUserCommandHandler
         }
 
         user.Username = command.Request.Username;
-        user.Email = command.Request.Email;
+        user.Email = newEmail;
 
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);

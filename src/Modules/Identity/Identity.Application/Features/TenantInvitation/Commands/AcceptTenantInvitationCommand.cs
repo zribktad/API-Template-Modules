@@ -20,10 +20,8 @@ public sealed class AcceptTenantInvitationCommandHandler
     )
     {
         string tokenHash = tokenGenerator.HashToken(command.Token);
-        TenantInvitationEntity? invitation = await invitationRepository.GetValidByTokenHashAsync(
-            tokenHash,
-            ct
-        );
+        TenantInvitationEntity? invitation =
+            await invitationRepository.GetNonRevokedByTokenHashAsync(tokenHash, ct);
 
         if (invitation is null)
             return (DomainErrors.Invitations.NotFoundOrExpired(), OutgoingMessagesHelper.Empty);

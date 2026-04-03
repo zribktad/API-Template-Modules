@@ -24,6 +24,7 @@ public interface IProductRepository : IRepository<ProductEntity>
         ProductFilter filter,
         CancellationToken ct = default
     );
+
+    /// <summary>Sets <c>CategoryId</c> to <c>null</c> on all products whose <c>CategoryId</c> is in <paramref name="categoryIds"/>.</summary>
+    Task ClearCategoryAsync(IReadOnlyCollection<Guid> categoryIds, CancellationToken ct = default);
 }
-
-

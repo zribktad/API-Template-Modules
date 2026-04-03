@@ -3,6 +3,7 @@ using ErrorOr;
 using ProductCatalog.Application.Features.Product.Specifications;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.Entities;
+using ProductCatalog.Domain.ValueObjects;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
 using Wolverine;
@@ -66,6 +67,16 @@ public sealed class UpdateProductsCommandHandler
             )
         );
 
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (context.IsFailed(i))
+                continue;
+
+            ErrorOr<Price> priceResult = Price.Create(items[i].Price);
+            if (priceResult.IsError)
+                context.AddFailure(i, items[i].Id, priceResult.FirstError.Description);
+        }
+
         OutgoingMessages messages = new();
 
         if (context.HasFailures)
@@ -101,7 +112,8 @@ public sealed class UpdateProductsCommandHandler
                     UpdateProductItem item = items[i];
                     ProductEntity product = productMap[item.Id];
 
-                    product.UpdateDetails(item.Name, item.Description, item.Price, item.CategoryId);
+                    Price price = Price.FromPersistence(item.Price);
+                    product.UpdateDetails(item.Name, item.Description, price, item.CategoryId);
 
                     if (item.ProductDataIds is not null)
                         product.SyncProductDataLinks(item.ProductDataIds);

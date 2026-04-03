@@ -1,3 +1,5 @@
+using Identity.Domain.ValueObjects;
+
 namespace Identity.Domain.Entities;
 
 /// <summary>
@@ -8,14 +10,7 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
 {
     public Guid Id { get; set; }
 
-    public required string Code
-    {
-        get => field;
-        set =>
-            field = string.IsNullOrWhiteSpace(value)
-                ? throw new ArgumentException("Tenant code cannot be empty.", nameof(Code))
-                : value.Trim();
-    }
+    public required TenantCode Code { get; set; }
 
     public required string Name
     {
@@ -34,7 +29,7 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
 
-    public static Tenant Create(Guid id, string code, string name) =>
+    public static Tenant Create(Guid id, TenantCode code, string name) =>
         new()
         {
             Id = id,

@@ -18,12 +18,16 @@
 - [ ] **Inconsistent logging** — only `ApiExceptionHandlerLogs.cs` and `UnitOfWorkLogs.cs` use source-generated `[LoggerMessage]` with event IDs. All other modules use inline `logger.LogXxx()`. Adopt source-generated logging with a per-module event ID range allocation strategy.
 - [x] **Incomplete health checks** — only PostgreSQL and Keycloak are covered. Missing: Redis/Dragonfly, MongoDB (used by ProductCatalog), Wolverine messaging. Add `AddDragonflyHealthCheck()`, `AddMongoDbHealthCheck()` using the existing helper extension pattern.
 - [ ] **Soft delete cascade via three mechanisms** — the same business rule (cascade deletes on soft-delete) is implemented via database cascade rules, infrastructure `SoftDeleteProcessor`, and Wolverine event handlers simultaneously. Consolidate to event-driven approach only.
+- [ ] **`ClearCategoryAsync` bypasses EF Core change tracker** — `ExecuteUpdateAsync` is a bulk SQL operation that skips the DbContext tracker. If products are tracked in the same session (e.g. loaded during validation), their in-memory `CategoryId` stays non-null while the DB has `null`; a subsequent `SaveChanges` would overwrite the DB back. Verify no tracked products overlap with the bulk update, or invalidate affected entries after the call.
+- [ ] **Missing `CategorySoftDeletedNotification`** — category soft-delete (both `DeleteCategoriesCommand` and `TenantCascadeDeleteHandler`) publishes no notification. Product soft-delete publishes `ProductSoftDeletedNotification` which Reviews consumes. Any future module needing to react to category deletion has no hook. Add a `CategorySoftDeletedNotification` and publish it from both delete paths.
 
 ### Low Priority
 
 - [ ] **Aggregate boundary violation** — `Product` entity has `Category? Category` navigation property — a direct reference to another aggregate root. Replace with `CategoryId`-only reference; load via query when needed.
 - [ ] **Missing value objects** — `Email` (string with no RFC validation), `Rating` (int with no range enforcement), `Price` (no currency/precision semantics), `TenantCode` (string with implicit format rules) should be strong value objects enforcing their invariants.
 - [ ] **Duplicate repository interfaces** — `IProductRepository` is defined in both `ProductCatalog.Domain/Interfaces/` and `ProductCatalog.Application/Features/Product/Repositories/`. Keep one definition in the Domain layer.
+- [ ] **Integration test gap — `ProductDataLinks` cascade not verified** — `PostgresTenantSoftDeleteCascadeTests` verifies products and categories are soft-deleted but does not assert `ProductDataLinks` are also soft-deleted in the same cascade. Add assertion to guard against silent regression.
+- [ ] **`ProductDataLink` unique constraint** — `Product.SyncProductDataLinks` was previously guarded with `GroupBy().First()` to survive duplicate `ProductDataId` entries; simplified to `ToDictionary()` which throws on duplicates. Verify a unique constraint on `(ProductId, ProductDataId)` exists in the schema; add the migration if missing.
 
 ---
 

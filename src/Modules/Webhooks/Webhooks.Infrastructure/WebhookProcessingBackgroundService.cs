@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SharedKernel.Infrastructure.BackgroundJobs.Services;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
+using Webhooks.Infrastructure.Logging;
 
 namespace Webhooks.Infrastructure;
 
@@ -26,13 +27,17 @@ public sealed class WebhookProcessingBackgroundService
     protected override async Task ProcessItemAsync(WebhookPayload payload, CancellationToken ct)
     {
         await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        IEnumerable<IWebhookEventHandler> handlers = scope.ServiceProvider
-            .GetRequiredService<IEnumerable<IWebhookEventHandler>>();
+        IEnumerable<IWebhookEventHandler> handlers = scope.ServiceProvider.GetRequiredService<
+            IEnumerable<IWebhookEventHandler>
+        >();
 
         bool handled = false;
         foreach (IWebhookEventHandler handler in handlers)
         {
-            if (handler.EventType == WebhookConstants.WildcardEventType || handler.EventType == payload.EventType)
+            if (
+                handler.EventType == WebhookConstants.WildcardEventType
+                || handler.EventType == payload.EventType
+            )
             {
                 await handler.HandleAsync(payload, ct);
                 handled = true;
@@ -41,19 +46,17 @@ public sealed class WebhookProcessingBackgroundService
 
         if (!handled)
         {
-            _logger.LogWarning(
-                "No handler registered for webhook event type '{EventType}' (Id={EventId})",
-                payload.EventType,
-                payload.EventId
-            );
+            _logger.WebhookNoHandlerRegistered(payload.EventType, payload.EventId);
         }
     }
 
-    protected override Task HandleErrorAsync(WebhookPayload payload, Exception ex, CancellationToken ct)
+    protected override Task HandleErrorAsync(
+        WebhookPayload payload,
+        Exception ex,
+        CancellationToken ct
+    )
     {
-        _logger.LogError(ex,
-            "Failed to process webhook: Type={EventType}, Id={EventId}",
-            payload.EventType, payload.EventId);
+        _logger.WebhookProcessingFailed(ex, payload.EventType, payload.EventId);
         return Task.CompletedTask;
     }
 }

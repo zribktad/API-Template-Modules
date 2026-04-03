@@ -1,4 +1,5 @@
 using Contracts.Commands.Cleanup;
+using Identity.Infrastructure.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,8 @@ public sealed class CleanupExpiredInvitationsHandler
         IdentityDbContext dbContext,
         TimeProvider timeProvider,
         ILogger<CleanupExpiredInvitationsHandler> logger,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
         DateTime cutoff = timeProvider.GetUtcNow().UtcDateTime.AddHours(-command.RetentionHours);
         int totalDeleted = 0;
@@ -25,8 +27,7 @@ public sealed class CleanupExpiredInvitationsHandler
         do
         {
             deleted = await dbContext
-                .TenantInvitations
-                .IgnoreQueryFilters()
+                .TenantInvitations.IgnoreQueryFilters()
                 .Where(i => i.Status == InvitationStatus.Pending && i.ExpiresAtUtc < cutoff)
                 .OrderBy(i => i.ExpiresAtUtc)
                 .Take(command.BatchSize)
@@ -37,7 +38,7 @@ public sealed class CleanupExpiredInvitationsHandler
 
         if (totalDeleted > 0)
         {
-            logger.LogInformation("Cleaned up {Count} expired invitations.", totalDeleted);
+            logger.ExpiredInvitationsCleanedUp(totalDeleted);
         }
     }
 }

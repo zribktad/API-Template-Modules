@@ -1,6 +1,4 @@
 using System.Linq.Expressions;
-using Identity.Application.Features.User.DTOs;
-using Identity.Domain.Entities;
 
 namespace Identity.Application.Features.User.Mappings;
 
