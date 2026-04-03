@@ -1,6 +1,6 @@
 using ErrorOr;
-using ProductCatalog.Features.ProductData.Mappings;
 using ProductCatalog.Entities;
+using ProductCatalog.Features.ProductData.Mappings;
 using ProductCatalog.Interfaces;
 using SharedKernel.Application.Context;
 using SharedKernel.Contracts.Events;
@@ -32,10 +32,9 @@ public sealed class CreateImageProductDataCommandHandler
             FileSizeBytes = command.Request.FileSizeBytes,
         };
 
-        Domain.Entities.ProductData.ProductData created = await repository.CreateAsync(entity, ct);
+        Entities.ProductData.ProductData created = await repository.CreateAsync(entity, ct);
         OutgoingMessages messages = new();
         messages.Add(new CacheInvalidationNotification(CacheTags.ProductData));
         return (created.ToResponse(), messages);
     }
 }
-

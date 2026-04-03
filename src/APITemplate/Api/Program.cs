@@ -1,7 +1,7 @@
 using BackgroundJobs;
 using BackgroundJobs.Features;
 using Chatting;
-using Chatting.Features.Streaming.Queries;
+using Chatting.Features.GetNotificationStream;
 using FileStorage;
 using FileStorage.Features.Upload;
 using Identity;
@@ -13,6 +13,7 @@ using ProductCatalog;
 using ProductCatalog.Features.Product;
 using ProductCatalog.Handlers;
 using Reviews;
+using Reviews.Features;
 using Serilog;
 using SharedKernel.Application.Middleware;
 using Webhooks;

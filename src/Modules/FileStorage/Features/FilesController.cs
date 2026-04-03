@@ -1,12 +1,8 @@
 using Asp.Versioning;
 using ErrorOr;
-using FileStorage.Features;
-using FileStorage.Features.Download;
 using FileStorage.Contracts;
 using FileStorage.Domain;
-using FileStorage.Repositories;
-using FileStorage.Services;
-using FileStorage.Errors;
+using FileStorage.Features.Download;
 using FileStorage.Features.Upload;
 using Microsoft.AspNetCore.Mvc;
 using Wolverine;
@@ -84,7 +80,3 @@ public sealed class FilesController(IMessageBus bus) : ApiControllerBase
         }
     }
 }
-
-
-
-

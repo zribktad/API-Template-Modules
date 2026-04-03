@@ -58,7 +58,7 @@ internal static class ProductValidationHelper
         if (allCategoryIds.Count == 0)
             return [];
 
-        List<Domain.Entities.Category> existing = await categoryRepository.ListAsync(
+        List<Entities.Category> existing = await categoryRepository.ListAsync(
             new Category.Specifications.CategoriesByIdsSpecification(allCategoryIds),
             ct
         );
@@ -154,4 +154,3 @@ internal static class ProductValidationHelper
         return failures;
     }
 }
-

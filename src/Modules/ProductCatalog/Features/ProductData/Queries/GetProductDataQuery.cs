@@ -14,11 +14,10 @@ public sealed class GetProductDataQueryHandler
         CancellationToken ct
     )
     {
-        List<Domain.Entities.ProductData.ProductData> items = await repository.GetAllAsync(
+        List<Entities.ProductData.ProductData> items = await repository.GetAllAsync(
             request.Type,
             ct
         );
         return items.Select(item => item.ToResponse()).ToList();
     }
 }
-

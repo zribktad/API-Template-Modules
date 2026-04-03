@@ -2,6 +2,8 @@
   <Folder Name="/src/">
     <Project Path="src/APITemplate/Api/APITemplate.csproj" />
     <Project Path="src/SharedKernel/SharedKernel.csproj" />
+  </Folder>
+   <Folder Name="/src/Modules/">
     <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.csproj" />
     <Project Path="src/Modules/Chatting/Chatting.csproj" />
     <Project Path="src/Modules/FileStorage/FileStorage.csproj" />

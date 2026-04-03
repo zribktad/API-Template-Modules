@@ -1,7 +1,7 @@
 using ErrorOr;
 using FluentValidation;
-using ProductCatalog.Features.Product.Mappings;
 using ProductCatalog;
+using ProductCatalog.Features.Product.Mappings;
 using ProductCatalog.ValueObjects;
 using SystemTextJsonPatch;
 using Wolverine;
@@ -24,7 +24,7 @@ public sealed class PatchProductCommandHandler
         CancellationToken ct
     )
     {
-        Domain.Entities.Product? product = await repository.GetByIdAsync(command.Id, ct);
+        Entities.Product? product = await repository.GetByIdAsync(command.Id, ct);
         if (product is null)
             return (DomainErrors.Products.NotFound(command.Id), OutgoingMessagesHelper.Empty);
 
@@ -80,4 +80,3 @@ public sealed class PatchProductCommandHandler
         return (product.ToResponse(), messages);
     }
 }
-

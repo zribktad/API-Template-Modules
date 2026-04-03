@@ -1,10 +1,5 @@
-using FileStorage.Contracts;
-using FileStorage.Domain;
-using FileStorage.Errors;
 using FileStorage.Features;
 using FileStorage.Persistence;
-using FileStorage.Repositories;
-using FileStorage.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;

@@ -17,10 +17,7 @@ public sealed class GetProductDataByIdQueryHandler
     )
     {
         Guid tenantId = tenantProvider.TenantId;
-        Domain.Entities.ProductData.ProductData? data = await repository.GetByIdAsync(
-            request.Id,
-            ct
-        );
+        Entities.ProductData.ProductData? data = await repository.GetByIdAsync(request.Id, ct);
 
         if (data is null || data.TenantId != tenantId)
             return DomainErrors.ProductData.NotFound(request.Id);
@@ -28,4 +25,3 @@ public sealed class GetProductDataByIdQueryHandler
         return data.ToResponse();
     }
 }
-

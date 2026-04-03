@@ -15,7 +15,7 @@ public sealed class GetProductReviewByIdQueryHandler
         CancellationToken ct
     )
     {
-        Domain.Entities.ProductReview? item = await reviewRepository.GetByIdAsync(request.Id, ct);
+        ProductReview? item = await reviewRepository.GetByIdAsync(request.Id, ct);
         return item is null ? DomainErrors.Reviews.NotFound(request.Id) : item.ToResponse();
     }
 }

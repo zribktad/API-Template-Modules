@@ -1,8 +1,3 @@
-using FileStorage.Contracts;
-using FileStorage.Domain;
-using FileStorage.Errors;
-using FileStorage.Repositories;
-using FileStorage.Services;
 using Microsoft.Extensions.Options;
 
 namespace FileStorage.Features.Upload;
