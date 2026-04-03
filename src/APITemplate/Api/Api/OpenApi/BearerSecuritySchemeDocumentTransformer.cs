@@ -1,5 +1,5 @@
-using Identity.Common.Security;
 using Identity.Options;
+using Identity.Security;
 using Identity.Security.Keycloak;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

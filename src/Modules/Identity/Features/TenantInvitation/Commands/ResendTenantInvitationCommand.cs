@@ -1,7 +1,6 @@
 using ErrorOr;
 using Identity.Common.Email;
 using Identity.Options;
-using Identity;
 using Microsoft.Extensions.Options;
 using Wolverine;
 using TenantEntity = Identity.Entities.Tenant;
@@ -79,4 +78,3 @@ public sealed class ResendTenantInvitationCommandHandler
         return (Result.Success, messages);
     }
 }
-

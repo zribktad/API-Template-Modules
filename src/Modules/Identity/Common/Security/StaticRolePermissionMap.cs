@@ -1,4 +1,4 @@
-namespace Identity.Common.Security;
+namespace Identity.Security;
 
 /// <summary>
 /// Compile-time implementation of <see cref="IRolePermissionMap"/> that maps each
@@ -71,4 +71,3 @@ public sealed class StaticRolePermissionMap : IRolePermissionMap
         };
     }
 }
-

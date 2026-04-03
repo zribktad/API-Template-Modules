@@ -1,11 +1,4 @@
 using ErrorOr;
-using Identity.Common.Security;
-using Identity;
-using Identity.Interfaces;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Extensions;
-using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Features.User;
@@ -43,4 +36,3 @@ public sealed class SetUserActiveCommandHandler
         return (Result.Success, messages);
     }
 }
-

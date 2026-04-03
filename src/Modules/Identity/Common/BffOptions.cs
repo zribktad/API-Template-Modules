@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Identity.Common.Security;
 
 namespace Identity.Options;
 
@@ -33,4 +32,3 @@ public sealed class BffOptions
     [Range(0, int.MaxValue)]
     public int TokenRefreshThresholdMinutes { get; init; } = 2;
 }
-

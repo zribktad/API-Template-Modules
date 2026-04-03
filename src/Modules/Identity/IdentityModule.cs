@@ -1,16 +1,10 @@
 using FluentValidation;
-using Identity.Controllers.V1;
-using Identity.Security;
 using Identity.Common.Email;
-using Identity.Common.Security;
+using Identity.Controllers.V1;
 using Identity.Features.User.Validation;
 using Identity.Options;
-using Identity.Enums;
-using Identity.Interfaces;
-using Identity.Persistence;
 using Identity.Persistence.EntityNormalization;
 using Identity.Repositories;
-using Identity.Security;
 using Identity.Security.Keycloak;
 using Identity.Security.Tenant;
 using Identity.SoftDelete;
@@ -28,12 +22,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 using Polly;
 using SharedKernel.Application.Resilience;
-using SharedKernel.Domain.Entities;
 using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.EntityNormalization;
 using SharedKernel.Infrastructure.Registration;
 using SharedKernel.Infrastructure.Resilience;
 
@@ -321,4 +312,3 @@ public static class IdentityModule
         services.AddControllers().AddApplicationPart(typeof(UsersController).Assembly);
     }
 }
-

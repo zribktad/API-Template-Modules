@@ -1,4 +1,4 @@
-namespace Identity.Common.Security;
+namespace Identity.Security;
 
 /// <summary>
 /// Application-layer port that ensures a local <see cref="AppUser"/> record exists for an
@@ -17,4 +17,3 @@ public interface IUserProvisioningService
         CancellationToken ct = default
     );
 }
-

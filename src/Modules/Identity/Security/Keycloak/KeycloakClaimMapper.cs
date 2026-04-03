@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Identity.Common.Security;
 
 namespace Identity.Security.Keycloak;
 
@@ -46,4 +45,3 @@ public static class KeycloakClaimMapper
         }
     }
 }
-

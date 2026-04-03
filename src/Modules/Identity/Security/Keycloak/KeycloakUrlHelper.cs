@@ -1,5 +1,3 @@
-using Identity.Common.Security;
-
 namespace Identity.Security.Keycloak;
 
 /// <summary>
@@ -20,4 +18,3 @@ public static class KeycloakUrlHelper
     public static string BuildTokenEndpoint(string authServerUrl, string realm) =>
         $"{BuildAuthority(authServerUrl, realm)}/{AuthConstants.OpenIdConnect.TokenEndpointPath}";
 }
-

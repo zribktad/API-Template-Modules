@@ -1,4 +1,4 @@
-namespace Identity.Common.Security;
+namespace Identity.Security;
 
 /// <summary>
 /// Application-layer port for managing Keycloak users via the Admin REST API.
@@ -18,4 +18,3 @@ public interface IKeycloakAdminService
     /// <summary>Permanently deletes the specified Keycloak user.</summary>
     Task DeleteUserAsync(string keycloakUserId, CancellationToken ct = default);
 }
-

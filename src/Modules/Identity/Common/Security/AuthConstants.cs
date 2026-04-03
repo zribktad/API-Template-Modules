@@ -1,4 +1,4 @@
-namespace Identity.Common.Security;
+namespace Identity.Security;
 
 /// <summary>
 /// Shared constants for authentication, OpenID Connect, and OAuth2 token payload names.
@@ -109,5 +109,3 @@ public static class AuthConstants
         public const string TenantAdmin = "TenantAdmin";
     }
 }
-
-

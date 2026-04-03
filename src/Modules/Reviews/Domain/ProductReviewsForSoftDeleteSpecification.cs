@@ -1,7 +1,7 @@
 using Ardalis.Specification;
 using ProductReviewEntity = Reviews.Domain.ProductReview;
 
-namespace Reviews.Features;
+namespace Reviews.Domain;
 
 public sealed class ProductReviewsForSoftDeleteSpecification : Specification<ProductReviewEntity>
 {

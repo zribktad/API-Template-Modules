@@ -1,6 +1,5 @@
 using ErrorOr;
 using Identity.Common.Email;
-using Identity;
 using Wolverine;
 using TenantInvitationEntity = Identity.Entities.TenantInvitation;
 
@@ -37,4 +36,3 @@ public sealed class AcceptTenantInvitationCommandHandler
         return (Result.Success, messages);
     }
 }
-

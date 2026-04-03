@@ -1,9 +1,7 @@
-using Reviews;
-using Reviews.Features;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.ProductReview;
 
-namespace Reviews.Features;
+namespace Reviews.Domain;
 
 public static class ProductSoftDeletedEventHandler
 {

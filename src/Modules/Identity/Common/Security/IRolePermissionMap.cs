@@ -1,4 +1,4 @@
-namespace Identity.Common.Security;
+namespace Identity.Security;
 
 /// <summary>
 /// Defines the contract for querying which permissions are granted to a given role.
@@ -15,5 +15,3 @@ public interface IRolePermissionMap
     /// </summary>
     bool HasPermission(string role, string permission);
 }
-
-
