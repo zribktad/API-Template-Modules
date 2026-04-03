@@ -1,32 +1,18 @@
 <Solution>
-  <Folder Name="/src/APITemplate/">
+  <Folder Name="/src/">
     <Project Path="src/APITemplate/Api/APITemplate.Api.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/BackgroundJobs/">
+  <Folder Name="/src/Modules/">
     <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Chatting/">
     <Project Path="src/Modules/Chatting/Chatting.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/FileStorage/">
     <Project Path="src/Modules/FileStorage/FileStorage.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Identity/">
     <Project Path="src/Modules/Identity/Identity.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Notifications/">
     <Project Path="src/Modules/Notifications/Notifications.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/ProductCatalog/">
     <Project Path="src/Modules/ProductCatalog/ProductCatalog.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Reviews/">
     <Project Path="src/Modules/Reviews/Reviews.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Webhooks/">
     <Project Path="src/Modules/Webhooks/Webhooks.csproj" />
   </Folder>
-  <Folder Name="/src/SharedKernel/">
+  <Folder Name="/src/">
     <Project Path="src/SharedKernel/SharedKernel.csproj" />
   </Folder>
   <Folder Name="/tests/">
@@ -61,5 +47,3 @@
     <File Path=".dockerignore" />
   </Folder>
 </Solution>
-
-
