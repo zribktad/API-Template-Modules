@@ -20,6 +20,7 @@ public static class ErrorCatalog
     /// <summary>Generic authentication and authorisation error codes.</summary>
     public static class Auth
     {
+        public const string Unauthorized = "AUTH-0401";
         public const string Forbidden = "AUTH-0403";
     }
 }
