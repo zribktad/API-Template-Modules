@@ -33,6 +33,7 @@
     <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  <PackageReference Include="SystemTextJsonPatch" />
     <PackageReference Include="WolverineFx" />
   </ItemGroup>
 </Project>
