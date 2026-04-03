@@ -1,12 +1,12 @@
 using APITemplate.Api.Extensions;
 using APITemplate.Application.Common.BackgroundJobs;
-using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
 using APITemplate.Tests.Integration.Helpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SharedKernel.Application.Options;
 using Shouldly;
 using Xunit;
 

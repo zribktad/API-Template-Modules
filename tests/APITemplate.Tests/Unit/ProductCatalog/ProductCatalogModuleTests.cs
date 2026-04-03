@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ProductCatalog.Api;
-using ProductCatalog.Application.Features.Category.DTOs;
-using ProductCatalog.Application.Features.Product.DTOs;
+using ProductCatalog;
+using ProductCatalog.Features.Category.DTOs;
+using ProductCatalog.Features.Product.DTOs;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
 using Shouldly;

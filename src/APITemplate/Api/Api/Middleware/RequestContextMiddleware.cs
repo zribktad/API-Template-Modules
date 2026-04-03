@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Security.Claims;
-using Identity.Application.Common.Security;
+using Identity.Security;
 using Microsoft.AspNetCore.Http.Features;
 using Serilog.Context;
 using SharedKernel.Application.Http;

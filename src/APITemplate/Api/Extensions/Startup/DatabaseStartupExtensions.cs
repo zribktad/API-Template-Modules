@@ -1,12 +1,12 @@
-using BackgroundJobs.Infrastructure.Persistence;
-using BackgroundJobs.Infrastructure.TickerQ;
-using FileStorage.Infrastructure;
-using Identity.Infrastructure.Persistence;
+using BackgroundJobs.Persistence;
+using BackgroundJobs.TickerQ;
+using FileStorage.Persistence;
+using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using ProductCatalog.Infrastructure.Persistence;
-using Reviews.Infrastructure.Persistence;
+using ProductCatalog.Persistence;
+using Reviews.Persistence;
 
 namespace APITemplate.Api.Extensions.Startup;
 

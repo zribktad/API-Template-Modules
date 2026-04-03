@@ -1,0 +1,16 @@
+global using System.Reflection;
+global using Identity.Entities;
+global using Identity.Enums;
+global using Identity.Errors;
+global using Identity.Interfaces;
+global using SharedKernel.Application.Batch;
+global using SharedKernel.Application.Batch.Rules;
+global using SharedKernel.Application.Context;
+global using SharedKernel.Application.Contracts;
+global using SharedKernel.Application.Extensions;
+global using SharedKernel.Application.Search;
+global using SharedKernel.Application.Sorting;
+global using SharedKernel.Application.Validation;
+global using SharedKernel.Domain.Entities;
+global using SharedKernel.Domain.Entities.Contracts;
+global using SharedKernel.Domain.Interfaces;

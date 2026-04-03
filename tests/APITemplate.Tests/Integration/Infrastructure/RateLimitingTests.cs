@@ -19,7 +19,8 @@ public sealed class RateLimitingWebApplicationFactory : CustomWebApplicationFact
             {
                 o.PermitLimit = PermitLimit;
                 o.WindowMinutes = 1;
-            }));
+            })
+        );
     }
 }
 
@@ -72,11 +73,11 @@ public class RateLimitingTests : IClassFixture<RateLimitingWebApplicationFactory
         for (var i = 0; i < PermitLimit; i++)
             await clientA.GetAsync("/api/v1/products", ct);
 
-        (await clientA.GetAsync("/api/v1/products", ct)).StatusCode
-            .ShouldBe(HttpStatusCode.TooManyRequests);
+        (await clientA.GetAsync("/api/v1/products", ct)).StatusCode.ShouldBe(
+            HttpStatusCode.TooManyRequests
+        );
 
         // user-b has their own independent bucket — not affected
-        (await clientB.GetAsync("/api/v1/products", ct)).StatusCode
-            .ShouldBe(HttpStatusCode.OK);
+        (await clientB.GetAsync("/api/v1/products", ct)).StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 }

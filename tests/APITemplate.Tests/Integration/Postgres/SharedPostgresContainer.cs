@@ -6,11 +6,12 @@ namespace APITemplate.Tests.Integration.Postgres;
 
 public sealed class SharedPostgresContainer : IAsyncLifetime
 {
-    public PostgreSqlContainer Container { get; } = new PostgreSqlBuilder("postgres:16-alpine")
-        .WithUsername("postgres")
-        .WithPassword("postgres")
-        .WithCleanUp(true)
-        .Build();
+    public PostgreSqlContainer Container { get; } =
+        new PostgreSqlBuilder("postgres:16-alpine")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .WithCleanUp(true)
+            .Build();
 
     public string ServerConnectionString
     {
@@ -18,7 +19,7 @@ public sealed class SharedPostgresContainer : IAsyncLifetime
         {
             var builder = new NpgsqlConnectionStringBuilder(Container.GetConnectionString())
             {
-                Database = "postgres"
+                Database = "postgres",
             };
             return builder.ConnectionString;
         }

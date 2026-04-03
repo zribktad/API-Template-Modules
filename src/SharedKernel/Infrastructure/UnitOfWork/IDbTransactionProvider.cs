@@ -1,7 +1,7 @@
 using System.Data;
-using SharedKernel.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using SharedKernel.Domain.Options;
 
 namespace SharedKernel.Infrastructure.UnitOfWork;
 
@@ -24,6 +24,4 @@ public interface IDbTransactionProvider
 /// A module-scoped transaction provider interface.
 /// </summary>
 public interface IDbTransactionProvider<TContext> : IDbTransactionProvider
-    where TContext : DbContext
-{
-}
+    where TContext : DbContext { }

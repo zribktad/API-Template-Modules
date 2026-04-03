@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Identity.Application.Common.Security;
+using Identity.Security;
 using Microsoft.AspNetCore.Authorization;
 
 namespace APITemplate.Api.Authorization;

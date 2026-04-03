@@ -17,7 +17,8 @@ namespace SharedKernel.Domain.Interfaces;
 /// The keyless entity type that EF Core will materialise from the procedure result set.
 /// Must be registered with HasNoKey() in the DbContext.
 /// </typeparam>
-public interface IStoredProcedure<TResult> where TResult : class
+public interface IStoredProcedure<TResult>
+    where TResult : class
 {
     /// <summary>
     /// Returns an interpolated SQL string with all parameter values embedded.

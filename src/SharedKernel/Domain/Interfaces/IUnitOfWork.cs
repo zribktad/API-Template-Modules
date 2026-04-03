@@ -51,7 +51,8 @@ public interface IUnitOfWork
     Task ExecuteInTransactionAsync(
         Func<Task> action,
         CancellationToken ct = default,
-        TransactionOptions? options = null);
+        TransactionOptions? options = null
+    );
 
     /// <summary>
     /// Runs a multi-step relational write flow in one explicit transaction and returns a value.
@@ -64,5 +65,6 @@ public interface IUnitOfWork
     Task<T> ExecuteInTransactionAsync<T>(
         Func<Task<T>> action,
         CancellationToken ct = default,
-        TransactionOptions? options = null);
+        TransactionOptions? options = null
+    );
 }

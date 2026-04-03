@@ -278,7 +278,7 @@ APITemplate.Domain  ←  APITemplate.Application  ←  APITemplate.Infrastructur
 ### Folder layout
 
 ```text
-src/APITemplate.Api/
+src/APITemplate/Api/
 ├── Api/
 │   ├── Controllers/V1/        # REST endpoints (ProductsController, CategoriesController, …)
 │   ├── GraphQL/               # Types, Queries, Mutations, DataLoaders
@@ -1187,7 +1187,7 @@ While not natively shipped via default configuration files, this structure allow
 1. **Restore:** `dotnet restore APITemplate.slnx`
 2. **Build:** `dotnet build --no-restore APITemplate.slnx`
 3. **Test:** `dotnet test --no-build APITemplate.slnx`
-4. **Publish Container:** `docker build -t apitemplate-image:1.0 -f src/APITemplate.Api/Dockerfile .`
+4. **Publish Container:** `docker build -t apitemplate-image:1.0 -f src/APITemplate/Api/Dockerfile .`
 5. **Push Registry:** `docker push <registry>/apitemplate-image:1.0`
 
 Because the application encompasses the database (natively via DI) and HTTP context fully self-contained using containerization, it scales efficiently behind Kubernetes Ingress (Nginx) or any App Service / Container Apps equivalent, maintaining state natively using PostgreSQL and MongoDB.
@@ -1263,7 +1263,7 @@ Start the infrastructure services only, then run the API on the host:
 docker compose up -d postgres mongodb keycloak dragonfly
 ```
 
-Apply your connection strings in `src/APITemplate.Api/appsettings.Development.json`, then run:
+Apply your connection strings in `src/APITemplate/Api/appsettings.Development.json`, then run:
 
 ```bash
 dotnet run --project src/APITemplate.Api

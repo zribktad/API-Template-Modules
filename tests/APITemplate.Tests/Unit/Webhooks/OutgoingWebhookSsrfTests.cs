@@ -1,7 +1,9 @@
 using System.Net;
 using System.Reflection;
 using Shouldly;
-using Webhooks.Infrastructure;
+using Webhooks.Contracts;
+using Webhooks.Security;
+using Webhooks.Services;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;

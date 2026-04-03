@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Identity.Application.Common.Security;
+using Identity.Security;
 using SharedKernel.Application.Context;
 
 namespace APITemplate.Api.Security;

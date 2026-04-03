@@ -282,72 +282,11 @@ internal static class PackagePolicyTestFiles
     {
         var projectPaths = new[]
         {
-            Path.Combine(repoRoot, "src", "APITemplate", "Api", "APITemplate.Api.csproj"),
+            Path.Combine(repoRoot, "src", "APITemplate", "Api", "APITemplate.csproj"),
             Path.Combine(repoRoot, "src", "SharedKernel", "SharedKernel.csproj"),
-            Path.Combine(
-                repoRoot,
-                "src",
-                "Modules",
-                "Identity",
-                "Identity.Application",
-                "Identity.Application.csproj"
-            ),
-            Path.Combine(
-                repoRoot,
-                "src",
-                "Modules",
-                "ProductCatalog",
-                "ProductCatalog.Domain",
-                "ProductCatalog.Domain.csproj"
-            ),
-            Path.Combine(
-                repoRoot,
-                "src",
-                "Modules",
-                "ProductCatalog",
-                "ProductCatalog.Application",
-                "ProductCatalog.Application.csproj"
-            ),
-            Path.Combine(
-                repoRoot,
-                "src",
-                "Modules",
-                "ProductCatalog",
-                "ProductCatalog.Infrastructure",
-                "ProductCatalog.Infrastructure.csproj"
-            ),
-            Path.Combine(
-                repoRoot,
-                "src",
-                "Modules",
-                "ProductCatalog",
-                "ProductCatalog.Api",
-                "ProductCatalog.Api.csproj"
-            ),
-            Path.Combine(
-                repoRoot,
-                "src",
-                "Modules",
-                "Reviews",
-                "Reviews.Domain",
-                "Reviews.Domain.csproj"
-            ),
-            Path.Combine(
-                repoRoot,
-                "src",
-                "Modules",
-                "Reviews",
-                "Reviews.Application",
-                "Reviews.Application.csproj"
-            ),
-            Path.Combine(
-                repoRoot,
-                "src",
-                "Modules",
-                "Reviews",
-                "Reviews.Infrastructure",
-                "Reviews.Infrastructure.csproj"
-            ),
+            Path.Combine(repoRoot, "src", "Modules", "Identity", "Identity.csproj"),
+            Path.Combine(repoRoot, "src", "Modules", "ProductCatalog", "ProductCatalog.csproj"),
+            Path.Combine(repoRoot, "src", "Modules", "Reviews", "Reviews.csproj"),
         };
 
         var packageReferences = projectPaths

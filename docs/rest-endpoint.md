@@ -457,7 +457,7 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
 
 ## Step 10 – Add the Controller
 
-Controllers live in `src/APITemplate.Api/Api/Controllers/V1/`. They dispatch via Wolverine `IMessageBus`:
+Controllers live in `src/APITemplate/Api/Api/Controllers/V1/`. They dispatch via Wolverine `IMessageBus`:
 
 ```csharp
 // Api/Controllers/V1/OrdersController.cs
@@ -524,7 +524,7 @@ public sealed class OrdersController(IMessageBus bus) : ApiControllerBase
 
 ## Step 11 – Register in Dependency Injection
 
-**Repository** — add to `AddPersistence()` in `src/APITemplate.Api/Extensions/PersistenceServiceCollectionExtensions.cs`:
+**Repository** — add to `AddPersistence()` in `src/APITemplate/Api/Extensions/PersistenceServiceCollectionExtensions.cs`:
 
 ```csharp
 services.AddScoped<IOrderRepository, OrderRepository>();

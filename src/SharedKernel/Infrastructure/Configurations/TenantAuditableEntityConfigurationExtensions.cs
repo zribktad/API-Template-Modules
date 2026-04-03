@@ -1,7 +1,7 @@
-using SharedKernel.Domain.Entities;
-using SharedKernel.Domain.Entities.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SharedKernel.Domain.Entities;
+using SharedKernel.Domain.Entities.Contracts;
 
 namespace SharedKernel.Infrastructure.Configurations;
 

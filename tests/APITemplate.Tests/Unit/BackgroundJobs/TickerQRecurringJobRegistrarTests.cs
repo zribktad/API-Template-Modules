@@ -1,10 +1,10 @@
 using APITemplate.Application.Common.BackgroundJobs;
-using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.RecurringJobRegistrations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options;
 using Shouldly;
 using TickerQ.Utilities.Entities;
 using Xunit;

@@ -1,7 +1,6 @@
 using APITemplate.Api.Extensions;
 using APITemplate.Application.Common.BackgroundJobs;
 using APITemplate.Application.Common.Email;
-using SharedKernel.Application.Options;
 using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
@@ -10,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options;
 using Shouldly;
 using Xunit;
 

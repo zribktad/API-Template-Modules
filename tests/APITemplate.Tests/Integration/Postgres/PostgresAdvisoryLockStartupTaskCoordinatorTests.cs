@@ -1,6 +1,6 @@
-using SharedKernel.Application.Startup;
 using APITemplate.Infrastructure.Persistence.Startup;
 using Microsoft.Extensions.Logging.Abstractions;
+using SharedKernel.Application.Startup;
 using Shouldly;
 using Xunit;
 

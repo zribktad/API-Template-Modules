@@ -7,7 +7,10 @@ namespace SharedKernel.Contracts.Api;
 
 public static class ErrorOrExtensions
 {
-    public static ActionResult<T> ToActionResult<T>(this ErrorOr<T> result, ControllerBase controller)
+    public static ActionResult<T> ToActionResult<T>(
+        this ErrorOr<T> result,
+        ControllerBase controller
+    )
     {
         if (!result.IsError)
             return controller.Ok(result.Value);
@@ -22,12 +25,19 @@ public static class ErrorOrExtensions
     )
     {
         if (!result.IsError)
-            return controller.CreatedAtAction("GetById", routeValuesFactory(result.Value), result.Value);
+            return controller.CreatedAtAction(
+                "GetById",
+                routeValuesFactory(result.Value),
+                result.Value
+            );
 
         return ToProblemResult<T>(result.Errors, controller);
     }
 
-    public static IActionResult ToNoContentResult(this ErrorOr<Success> result, ControllerBase controller)
+    public static IActionResult ToNoContentResult(
+        this ErrorOr<Success> result,
+        ControllerBase controller
+    )
     {
         if (!result.IsError)
             return controller.NoContent();
@@ -47,8 +57,10 @@ public static class ErrorOrExtensions
     /// Returns ProblemDetails for the error case of any <see cref="ErrorOr{T}"/> result.
     /// Use when the success case is handled separately by the caller.
     /// </summary>
-    public static IActionResult ToErrorResult<T>(this ErrorOr<T> result, ControllerBase controller) =>
-        ToProblemDetails(result.Errors, controller);
+    public static IActionResult ToErrorResult<T>(
+        this ErrorOr<T> result,
+        ControllerBase controller
+    ) => ToProblemDetails(result.Errors, controller);
 
     public static ActionResult<BatchResponse> ToBatchResult(
         this ErrorOr<BatchResponse> result,
@@ -61,10 +73,15 @@ public static class ErrorOrExtensions
         return ToProblemResult<BatchResponse>(result.Errors, controller);
     }
 
-    private static ActionResult<T> ToProblemResult<T>(List<ErrorOr.Error> errors, ControllerBase controller) =>
-        ToProblemDetails(errors, controller);
+    private static ActionResult<T> ToProblemResult<T>(
+        List<ErrorOr.Error> errors,
+        ControllerBase controller
+    ) => ToProblemDetails(errors, controller);
 
-    private static ObjectResult ToProblemDetails(List<ErrorOr.Error> errors, ControllerBase controller)
+    private static ObjectResult ToProblemDetails(
+        List<ErrorOr.Error> errors,
+        ControllerBase controller
+    )
     {
         ErrorOr.Error firstError = errors[0];
         int statusCode = firstError.Type switch
@@ -87,9 +104,10 @@ public static class ErrorOrExtensions
             _ => "Internal Server Error",
         };
 
-        string detail = errors.Count > 1 && firstError.Type == ErrorType.Validation
-            ? string.Join(" ", errors.Select(e => e.Description))
-            : firstError.Description;
+        string detail =
+            errors.Count > 1 && firstError.Type == ErrorType.Validation
+                ? string.Join(" ", errors.Select(e => e.Description))
+                : firstError.Description;
 
         ProblemDetails problemDetails = new()
         {
@@ -97,7 +115,8 @@ public static class ErrorOrExtensions
             Title = title,
             Detail = detail,
             Instance = controller.HttpContext.Request.Path,
-            Type = $"{controller.HttpContext.Request.Scheme}://{controller.HttpContext.Request.Host}/errors/{firstError.Code}",
+            Type =
+                $"{controller.HttpContext.Request.Scheme}://{controller.HttpContext.Request.Host}/errors/{firstError.Code}",
         };
 
         problemDetails.Extensions["errorCode"] = firstError.Code;

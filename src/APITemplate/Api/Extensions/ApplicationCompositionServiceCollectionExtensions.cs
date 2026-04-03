@@ -3,7 +3,7 @@ using System.Text.Json;
 using APITemplate.Api.Authorization;
 using APITemplate.Api.Security;
 using Asp.Versioning;
-using Identity.Application.Common.Security;
+using Identity.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;

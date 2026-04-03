@@ -10,7 +10,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Postgres;
 
-public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : PostgresTestBase(postgres)
+public sealed class PostgresSearchTests(SharedPostgresContainer postgres)
+    : PostgresTestBase(postgres)
 {
     [Fact]
     public async Task ProductSearch_FullTextAndFacets_ReturnTenantScopedResults()
@@ -21,13 +22,14 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
             _factory.Services,
             username,
             $"{username}@example.com",
-            ct: ct);
+            ct: ct
+        );
 
         var otherTenant = new Tenant
         {
             Id = Guid.NewGuid(),
             Code = $"search-other-{Guid.NewGuid():N}",
-            Name = "Other Search Tenant"
+            Name = "Other Search Tenant",
         };
 
         await using (var scope = _factory.Services.CreateAsyncScope())
@@ -38,21 +40,21 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenant.Id,
-                Name = "Electronics"
+                Name = "Electronics",
             };
 
             var books = new Category
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenant.Id,
-                Name = "Books"
+                Name = "Books",
             };
 
             var otherCategory = new Category
             {
                 Id = Guid.NewGuid(),
                 TenantId = otherTenant.Id,
-                Name = "Electronics"
+                Name = "Electronics",
             };
 
             db.Tenants.Add(otherTenant);
@@ -65,7 +67,7 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                     Name = "Wireless Mouse",
                     Description = "Silent office mouse",
                     Price = 30m,
-                    CategoryId = electronics.Id
+                    CategoryId = electronics.Id,
                 },
                 new Product
                 {
@@ -74,7 +76,7 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                     Name = "Wireless Keyboard",
                     Description = "Mechanical office keyboard",
                     Price = 80m,
-                    CategoryId = electronics.Id
+                    CategoryId = electronics.Id,
                 },
                 new Product
                 {
@@ -83,7 +85,7 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                     Name = "Fantasy Novel",
                     Description = "Epic dragon story",
                     Price = 15m,
-                    CategoryId = books.Id
+                    CategoryId = books.Id,
                 },
                 new Product
                 {
@@ -92,22 +94,33 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                     Name = "Wireless Speaker",
                     Description = "Other tenant item",
                     Price = 120m,
-                    CategoryId = otherCategory.Id
-                });
+                    CategoryId = otherCategory.Id,
+                }
+            );
 
             await db.SaveChangesAsync(ct);
         }
 
-        IntegrationAuthHelper.Authenticate(_client, tenantId: tenant.Id, username: username, role: Domain.Enums.UserRole.User);
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            tenantId: tenant.Id,
+            username: username,
+            role: Domain.Enums.UserRole.User
+        );
 
         var response = await _client.GetAsync("/api/v1/products?query=wireless", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        var payload = await response.Content.ReadFromJsonAsync<ProductsResponse>(TestJsonOptions.CaseInsensitive, ct);
+        var payload = await response.Content.ReadFromJsonAsync<ProductsResponse>(
+            TestJsonOptions.CaseInsensitive,
+            ct
+        );
         payload.ShouldNotBeNull();
 
         payload!.Page.Items.Count().ShouldBe(2);
-        payload.Page.Items.Select(item => item.Name).ShouldBe(["Wireless Mouse", "Wireless Keyboard"], ignoreOrder: true);
+        payload
+            .Page.Items.Select(item => item.Name)
+            .ShouldBe(["Wireless Mouse", "Wireless Keyboard"], ignoreOrder: true);
         payload.Facets.Categories.Count.ShouldBe(1);
         payload.Facets.Categories.Single().CategoryName.ShouldBe("Electronics");
         payload.Facets.Categories.Single().Count.ShouldBe(2);
@@ -125,7 +138,8 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
             _factory.Services,
             username,
             $"{username}@example.com",
-            ct: ct);
+            ct: ct
+        );
 
         await using (var scope = _factory.Services.CreateAsyncScope())
         {
@@ -137,15 +151,16 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                     Id = Guid.NewGuid(),
                     TenantId = tenant.Id,
                     Name = "Office Supplies",
-                    Description = "Desk organization"
+                    Description = "Desk organization",
                 },
                 new Category
                 {
                     Id = Guid.NewGuid(),
                     TenantId = tenant.Id,
                     Name = "Kitchen Goods",
-                    Description = "Cookware"
-                });
+                    Description = "Cookware",
+                }
+            );
 
             db.Products.AddRange(
                 new Product
@@ -154,7 +169,7 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                     TenantId = tenant.Id,
                     Name = "Wireless Charger",
                     Description = "Fast charging pad",
-                    Price = 40m
+                    Price = 40m,
                 },
                 new Product
                 {
@@ -162,13 +177,19 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                     TenantId = tenant.Id,
                     Name = "Paper Notebook",
                     Description = "Meeting notes",
-                    Price = 12m
-                });
+                    Price = 12m,
+                }
+            );
 
             await db.SaveChangesAsync(ct);
         }
 
-        IntegrationAuthHelper.Authenticate(_client, tenantId: tenant.Id, username: username, role: Domain.Enums.UserRole.User);
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            tenantId: tenant.Id,
+            username: username,
+            role: Domain.Enums.UserRole.User
+        );
 
         var productsQuery = new
         {
@@ -188,15 +209,16 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                 {
                     query = "wireless",
                     pageNumber = 1,
-                    pageSize = 10
-                }
-            }
+                    pageSize = 10,
+                },
+            },
         };
 
         var products = await graphql.ReadRequiredGraphQLFieldAsync<ProductsData, ProductPage>(
             await graphql.PostAsync(productsQuery),
             data => data.Products,
-            "products");
+            "products"
+        );
 
         products.Page.Items.Count.ShouldBe(1);
         products.Page.Items[0].Name.ShouldBe("Wireless Charger");
@@ -218,15 +240,16 @@ public sealed class PostgresSearchTests(SharedPostgresContainer postgres) : Post
                 {
                     query = "office",
                     pageNumber = 1,
-                    pageSize = 10
-                }
-            }
+                    pageSize = 10,
+                },
+            },
         };
 
         var categories = await graphql.ReadRequiredGraphQLFieldAsync<CategoriesData, CategoryPage>(
             await graphql.PostAsync(categoriesQuery),
             data => data.Categories,
-            "categories");
+            "categories"
+        );
 
         categories.Page.Items.Count.ShouldBe(1);
         categories.Page.Items[0].Name.ShouldBe("Office Supplies");

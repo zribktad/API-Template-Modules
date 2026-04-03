@@ -1,7 +1,7 @@
-using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.Webhooks;
 using APITemplate.Tests.Integration.Helpers;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options;
 using Shouldly;
 using Xunit;
 

@@ -23,10 +23,14 @@ public class CorsTests : IClassFixture<CustomWebApplicationFactory>
         var response = await _client.SendAsync(request, ct);
 
         response.IsSuccessStatusCode.ShouldBeTrue();
-        response.Headers.TryGetValues("Access-Control-Allow-Origin", out var allowedOrigins).ShouldBeTrue();
+        response
+            .Headers.TryGetValues("Access-Control-Allow-Origin", out var allowedOrigins)
+            .ShouldBeTrue();
         allowedOrigins!.Single().ShouldBe("http://localhost:3000");
 
-        response.Headers.TryGetValues("Access-Control-Allow-Credentials", out var credValues).ShouldBeTrue();
+        response
+            .Headers.TryGetValues("Access-Control-Allow-Credentials", out var credValues)
+            .ShouldBeTrue();
         credValues!.Single().ShouldBe("true");
     }
 
@@ -53,9 +57,13 @@ public class CorsTests : IClassFixture<CustomWebApplicationFactory>
         var response = await _client.SendAsync(request, ct);
 
         response.IsSuccessStatusCode.ShouldBeTrue();
-        response.Headers.TryGetValues("Access-Control-Allow-Origin", out var allowedOrigins).ShouldBeTrue();
+        response
+            .Headers.TryGetValues("Access-Control-Allow-Origin", out var allowedOrigins)
+            .ShouldBeTrue();
         allowedOrigins!.Single().ShouldBe("http://localhost:3000");
-        response.Headers.TryGetValues("Access-Control-Allow-Credentials", out var credValues).ShouldBeTrue();
+        response
+            .Headers.TryGetValues("Access-Control-Allow-Credentials", out var credValues)
+            .ShouldBeTrue();
         credValues!.Single().ShouldBe("true");
     }
 
@@ -68,9 +76,13 @@ public class CorsTests : IClassFixture<CustomWebApplicationFactory>
 
         var response = await _client.SendAsync(request, ct);
 
-        response.Headers.TryGetValues("Access-Control-Allow-Origin", out var allowedOrigins).ShouldBeTrue();
+        response
+            .Headers.TryGetValues("Access-Control-Allow-Origin", out var allowedOrigins)
+            .ShouldBeTrue();
         allowedOrigins!.Single().ShouldBe("http://localhost:3000");
-        response.Headers.TryGetValues("Access-Control-Allow-Credentials", out var credValues).ShouldBeTrue();
+        response
+            .Headers.TryGetValues("Access-Control-Allow-Credentials", out var credValues)
+            .ShouldBeTrue();
         credValues!.Single().ShouldBe("true");
     }
 }

@@ -1,17 +1,17 @@
 using APITemplate.Api.Extensions;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Options;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using APITemplate.Infrastructure.Persistence.SoftDelete;
-using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Options;
+using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 

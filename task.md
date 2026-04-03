@@ -118,6 +118,6 @@
 
 ## Unit 8: Host Rewiring + Cleanup
 - [x] Wire up `Program.cs` extension methods
-- [x] Update `APITemplate.Api.csproj` references
+- [x] Update `APITemplate.csproj` references
 - [x] Delete legacy `APITemplate.Domain`, `APITemplate.Application`, `APITemplate.Infrastructure` (already removed)
 - [x] Final verification (`dotnet build`, `dotnet test`)

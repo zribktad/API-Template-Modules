@@ -1,0 +1,17 @@
+global using Reviews.Common.Errors;
+global using Reviews.Common.Events;
+global using Reviews.Domain;
+global using Reviews.Features;
+global using SharedKernel.Application.Context;
+global using SharedKernel.Application.Contracts;
+global using SharedKernel.Application.DTOs;
+global using SharedKernel.Application.Events;
+global using SharedKernel.Application.Extensions;
+global using SharedKernel.Application.Sorting;
+global using SharedKernel.Application.Validation;
+global using SharedKernel.Contracts.Api;
+global using SharedKernel.Contracts.Events;
+global using SharedKernel.Contracts.Security;
+global using SharedKernel.Domain.Common;
+global using SharedKernel.Domain.Entities.Contracts;
+global using SharedKernel.Domain.Interfaces;

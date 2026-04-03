@@ -1,7 +1,7 @@
 using APITemplate.Api.Extensions;
-using SharedKernel.Application.Options;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using SharedKernel.Application.Options;
 using Shouldly;
 using Xunit;
 

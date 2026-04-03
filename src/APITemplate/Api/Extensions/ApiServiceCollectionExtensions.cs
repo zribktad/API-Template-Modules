@@ -3,9 +3,9 @@ using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
 using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;
-using IdentityCacheTags = Identity.Application.Events.CacheTags;
-using ProductCatalogCacheTags = ProductCatalog.Application.Events.CacheTags;
-using ReviewsCacheTags = Reviews.Application.Events.CacheTags;
+using IdentityCacheTags = Identity.Events.CacheTags;
+using ProductCatalogCacheTags = ProductCatalog.Events.CacheTags;
+using ReviewsCacheTags = Reviews.Common.Events.CacheTags;
 
 namespace APITemplate.Api.Extensions;
 

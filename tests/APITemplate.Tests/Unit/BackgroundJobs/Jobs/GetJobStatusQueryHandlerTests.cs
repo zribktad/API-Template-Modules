@@ -1,6 +1,6 @@
-using BackgroundJobs.Application.Features.Jobs;
-using BackgroundJobs.Application.Features.Jobs.DTOs;
 using BackgroundJobs.Domain;
+using BackgroundJobs.Features;
+using BackgroundJobs.Features;
 using Moq;
 using Shouldly;
 using Xunit;

@@ -1,0 +1,14 @@
+global using Identity.Events;
+global using Identity.Features.Tenant;
+global using Identity.Features.Tenant.DTOs;
+global using Identity.Features.TenantInvitation;
+global using Identity.Features.TenantInvitation.DTOs;
+global using Identity.Features.User;
+global using Identity.Features.User.DTOs;
+global using Identity.Security;
+global using SharedKernel.Application.DTOs;
+global using SharedKernel.Application.Events;
+global using SharedKernel.Contracts.Api;
+global using SharedKernel.Contracts.Events;
+global using SharedKernel.Contracts.Security;
+global using SharedKernel.Domain.Common;

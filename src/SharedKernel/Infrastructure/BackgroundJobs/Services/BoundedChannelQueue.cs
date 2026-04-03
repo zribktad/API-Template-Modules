@@ -1,6 +1,6 @@
 using System.Threading.Channels;
-
 using SharedKernel.Application.BackgroundJobs;
+
 namespace SharedKernel.Infrastructure.BackgroundJobs.Services;
 
 /// <summary>

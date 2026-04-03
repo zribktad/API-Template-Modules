@@ -1,11 +1,11 @@
-using SharedKernel.Application.Context;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.StoredProcedures;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Application.Context;
+using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
@@ -20,7 +20,8 @@ public sealed class StoredProcedureExecutorTests
         var sut = new StoredProcedureExecutor(dbContext);
 
         await Should.ThrowAsync<InvalidOperationException>(() =>
-            sut.ExecuteAsync($"select 1", TestContext.Current.CancellationToken));
+            sut.ExecuteAsync($"select 1", TestContext.Current.CancellationToken)
+        );
     }
 
     private static AppDbContext CreateDbContext()
@@ -39,7 +40,8 @@ public sealed class StoredProcedureExecutorTests
             [],
             new AppUserEntityNormalizationService(),
             stateManager,
-            new SoftDeleteProcessor(stateManager));
+            new SoftDeleteProcessor(stateManager)
+        );
     }
 
     private sealed class TestTenantProvider : ITenantProvider

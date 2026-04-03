@@ -1,10 +1,10 @@
 using APITemplate.Application.Common.BackgroundJobs;
-using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Jobs;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using SharedKernel.Application.Options;
 using Shouldly;
 using TickerQ.Utilities.Base;
 using Xunit;

@@ -1,14 +1,14 @@
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Startup;
 using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.Persistence.Startup;
 using APITemplate.Tests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Startup;
+using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
