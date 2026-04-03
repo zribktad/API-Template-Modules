@@ -1,9 +1,9 @@
-using Contracts.Events;
 using ErrorOr;
 using ProductCatalog.Application.Features.ProductData.Mappings;
 using ProductCatalog.Domain.Entities;
 using ProductCatalog.Domain.Interfaces;
 using SharedKernel.Application.Context;
+using SharedKernel.Contracts.Events;
 using Wolverine;
 
 namespace ProductCatalog.Application.Features.ProductData;

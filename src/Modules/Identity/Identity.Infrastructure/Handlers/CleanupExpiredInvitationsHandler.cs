@@ -1,7 +1,7 @@
-using Contracts.Commands.Cleanup;
 using Identity.Infrastructure.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SharedKernel.Contracts.Commands.Cleanup;
 
 namespace Identity.Infrastructure.Handlers;
 

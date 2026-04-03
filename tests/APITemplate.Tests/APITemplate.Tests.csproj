@@ -39,12 +39,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\APITemplate.Api\APITemplate.Api.csproj" />
+    <ProjectReference Include="..\..\src\APITemplate\Api\APITemplate.Api.csproj" />
     <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.Application\BackgroundJobs.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.Domain\BackgroundJobs.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\Identity.Application\Identity.Application.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\src\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.Infrastructure\Webhooks.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

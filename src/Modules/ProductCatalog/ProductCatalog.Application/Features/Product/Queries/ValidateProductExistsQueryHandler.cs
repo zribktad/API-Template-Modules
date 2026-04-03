@@ -1,6 +1,6 @@
-using Contracts.Queries.ProductCatalog;
 using ErrorOr;
 using ProductCatalog.Application.Features.Product.Repositories;
+using SharedKernel.Contracts.Queries.ProductCatalog;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
 
 namespace ProductCatalog.Application.Features.Product.Queries;

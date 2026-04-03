@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
+using SharedKernel.Application.Errors;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
 
@@ -10,10 +11,15 @@ namespace Webhooks.Api.Filters;
 public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
 {
     private readonly IWebhookPayloadValidator _validator;
+    private readonly IProblemDetailsService _problemDetailsService;
 
-    public WebhookSignatureResourceFilter(IWebhookPayloadValidator validator)
+    public WebhookSignatureResourceFilter(
+        IWebhookPayloadValidator validator,
+        IProblemDetailsService problemDetailsService
+    )
     {
         _validator = validator;
+        _problemDetailsService = problemDetailsService;
     }
 
     public async Task OnResourceExecutionAsync(
@@ -44,17 +50,7 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
             )
         )
         {
-            context.Result = new ObjectResult(
-                new ProblemDetails
-                {
-                    Status = StatusCodes.Status401Unauthorized,
-                    Title = "Unauthorized",
-                    Detail = "Missing required webhook signature headers.",
-                }
-            )
-            {
-                StatusCode = StatusCodes.Status401Unauthorized,
-            };
+            await WriteUnauthorizedAsync(context, "Missing required webhook signature headers.");
             return;
         }
 
@@ -65,20 +61,32 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
 
         if (!_validator.IsValid(body, signature.ToString(), timestamp.ToString()))
         {
-            context.Result = new ObjectResult(
-                new ProblemDetails
-                {
-                    Status = StatusCodes.Status401Unauthorized,
-                    Title = "Unauthorized",
-                    Detail = "Invalid webhook signature.",
-                }
-            )
-            {
-                StatusCode = StatusCodes.Status401Unauthorized,
-            };
+            await WriteUnauthorizedAsync(context, "Invalid webhook signature.");
             return;
         }
 
         await next();
+    }
+
+    private async Task WriteUnauthorizedAsync(ResourceExecutingContext context, string detail)
+    {
+        string errorCode = ErrorCatalog.Auth.Unauthorized;
+        ProblemDetails pd = new()
+        {
+            Status = StatusCodes.Status401Unauthorized,
+            Title = "Unauthorized",
+            Detail = detail,
+        };
+        pd.Extensions["errorCode"] = errorCode;
+
+        context.HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+        bool written = await _problemDetailsService.TryWriteAsync(
+            new ProblemDetailsContext { HttpContext = context.HttpContext, ProblemDetails = pd }
+        );
+
+        context.Result = written
+            ? new EmptyResult()
+            : new ObjectResult(pd) { StatusCode = StatusCodes.Status401Unauthorized };
     }
 }

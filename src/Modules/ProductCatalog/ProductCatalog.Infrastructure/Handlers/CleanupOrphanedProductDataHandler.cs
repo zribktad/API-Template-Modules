@@ -1,9 +1,9 @@
-using Contracts.Commands.Cleanup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using ProductCatalog.Infrastructure.Logging;
 using ProductCatalog.Infrastructure.Persistence;
+using SharedKernel.Contracts.Commands.Cleanup;
 
 namespace ProductCatalog.Infrastructure.Handlers;
 

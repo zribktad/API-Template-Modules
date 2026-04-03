@@ -1,4 +1,4 @@
-using Contracts.Commands.Webhooks;
+using SharedKernel.Contracts.Commands.Webhooks;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
 

@@ -1,5 +1,5 @@
-using Contracts.Events;
 using Notifications.Application.Common.Email;
+using SharedKernel.Contracts.Events;
 
 namespace Notifications.Application.Common.Events;
 

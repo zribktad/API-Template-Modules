@@ -1,4 +1,3 @@
-using Contracts.Events;
 using ErrorOr;
 using ProductCatalog.Application.Features.Product.Specifications;
 using ProductCatalog.Domain;
@@ -6,6 +5,7 @@ using ProductCatalog.Domain.Entities;
 using ProductCatalog.Domain.ValueObjects;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
+using SharedKernel.Contracts.Events;
 using Wolverine;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
 using ProductRepositoryContract = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;

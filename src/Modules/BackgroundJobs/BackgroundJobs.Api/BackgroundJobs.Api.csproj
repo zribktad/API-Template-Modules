@@ -14,7 +14,6 @@
     <ProjectReference Include="..\BackgroundJobs.Application\BackgroundJobs.Application.csproj" />
     <ProjectReference Include="..\BackgroundJobs.Infrastructure\BackgroundJobs.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

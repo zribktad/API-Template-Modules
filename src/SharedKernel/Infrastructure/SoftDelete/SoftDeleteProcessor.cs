@@ -57,7 +57,7 @@ public class SoftDeleteProcessor : ISoftDeleteProcessor
         _stateManager.MarkSoftDeleted(entry, entity, now, actor);
 
         foreach (
-            ISoftDeleteCascadeRule? rule in softDeleteCascadeRules.Where(r => r.CanHandle(entity))
+            ISoftDeleteCascadeRule rule in softDeleteCascadeRules.Where(r => r.CanHandle(entity))
         )
         {
             IReadOnlyCollection<IAuditableTenantEntity> dependents = await rule.GetDependentsAsync(

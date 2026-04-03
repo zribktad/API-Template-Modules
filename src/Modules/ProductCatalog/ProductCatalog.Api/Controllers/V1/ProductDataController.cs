@@ -1,9 +1,9 @@
 using Asp.Versioning;
-using Contracts.Api;
-using Contracts.Security;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using SharedKernel.Contracts.Api;
+using SharedKernel.Contracts.Security;
 using Wolverine;
 
 namespace ProductCatalog.Api.Controllers.V1;

@@ -14,7 +14,6 @@
     <ProjectReference Include="..\Webhooks.Application\Webhooks.Application.csproj" />
     <ProjectReference Include="..\Webhooks.Infrastructure\Webhooks.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

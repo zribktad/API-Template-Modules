@@ -1,6 +1,6 @@
-using Contracts.Security;
 using ErrorOr;
 using HotChocolate.Authorization;
+using SharedKernel.Contracts.Security;
 using Wolverine;
 
 namespace ProductCatalog.Api.GraphQL.Mutations;

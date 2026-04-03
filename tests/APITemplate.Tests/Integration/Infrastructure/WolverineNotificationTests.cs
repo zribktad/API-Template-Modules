@@ -1,6 +1,6 @@
-using Contracts.Events;
-using SharedKernel.Application.Events;
 using Microsoft.Extensions.DependencyInjection;
+using SharedKernel.Application.Events;
+using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;
 using Xunit;

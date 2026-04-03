@@ -1,7 +1,7 @@
 using Asp.Versioning;
-using Contracts.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SharedKernel.Contracts.Api;
 using Webhooks.Api.Filters;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
