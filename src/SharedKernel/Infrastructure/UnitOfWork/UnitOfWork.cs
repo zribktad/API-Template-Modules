@@ -1,10 +1,10 @@
-using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Domain.Interfaces;
+using SharedKernel.Domain.Options;
 
 namespace SharedKernel.Infrastructure.UnitOfWork;
 
@@ -50,9 +50,14 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
             throw new InvalidOperationException(CommitWithinTransactionMessage);
         }
 
-        var effectiveOptions = _transactionDefaults.Resolve(null);
-        _logger.CommitStarted(effectiveOptions.RetryEnabled ?? true, effectiveOptions.TimeoutSeconds);
-        var strategy = _transactionProvider.CreateExecutionStrategy(effectiveOptions);
+        TransactionOptions effectiveOptions = _transactionDefaults.Resolve(null);
+        _logger.CommitStarted(
+            effectiveOptions.RetryEnabled ?? true,
+            effectiveOptions.TimeoutSeconds
+        );
+        IExecutionStrategy strategy = _transactionProvider.CreateExecutionStrategy(
+            effectiveOptions
+        );
         return strategy.ExecuteAsync(
             async cancellationToken =>
             {
@@ -84,11 +89,11 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         TransactionOptions? options = null
     )
     {
-        var currentTransaction = _transactionProvider.CurrentTransaction;
+        IDbContextTransaction? currentTransaction = _transactionProvider.CurrentTransaction;
         if (currentTransaction is not null)
             return await ExecuteWithinSavepointAsync(currentTransaction, action, options, ct);
 
-        var effectiveOptions = _transactionDefaults.Resolve(options);
+        TransactionOptions effectiveOptions = _transactionDefaults.Resolve(options);
         return await ExecuteAsOutermostTransactionAsync(action, effectiveOptions, ct);
     }
 
@@ -101,14 +106,15 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
     {
         ValidateNestedTransactionOptions(options);
         var savepointName = $"uow_sp_{Interlocked.Increment(ref _savepointCounter)}";
-        var snapshot = _trackedStateManager.Capture();
+        IReadOnlyDictionary<object, DbContextTrackedStateManager.TrackedEntitySnapshot> snapshot =
+            _trackedStateManager.Capture();
 
         _logger.SavepointCreating(savepointName);
         await transaction.CreateSavepointAsync(savepointName, ct);
         try
         {
-            using var scope = _managedTransactionScope.Enter();
-            var result = await action();
+            using IDisposable scope = _managedTransactionScope.Enter();
+            T? result = await action();
             await ReleaseSavepointIfSupportedAsync(transaction, savepointName, ct);
             _logger.SavepointReleased(savepointName);
             return result;
@@ -128,15 +134,19 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         CancellationToken ct
     )
     {
-        var strategy = _transactionProvider.CreateExecutionStrategy(effectiveOptions);
-        var previousActiveOptions = _activeTransactionOptions;
+        IExecutionStrategy strategy = _transactionProvider.CreateExecutionStrategy(
+            effectiveOptions
+        );
+        TransactionOptions? previousActiveOptions = _activeTransactionOptions;
 
         return await strategy.ExecuteAsync(
             state: action,
             operation: async (_, transactionalAction, cancellationToken) =>
             {
                 _activeTransactionOptions = effectiveOptions;
-                using var timeoutScope = _commandTimeoutScope.Apply(effectiveOptions.TimeoutSeconds);
+                using IDisposable timeoutScope = _commandTimeoutScope.Apply(
+                    effectiveOptions.TimeoutSeconds
+                );
                 _logger.OutermostTransactionStarted(
                     effectiveOptions.IsolationLevel!.Value,
                     effectiveOptions.TimeoutSeconds,
@@ -157,12 +167,15 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
                     _logger.DatabaseTransactionUnsupported(ex);
                 }
 
-                var snapshot = _trackedStateManager.Capture();
+                IReadOnlyDictionary<
+                    object,
+                    DbContextTrackedStateManager.TrackedEntitySnapshot
+                > snapshot = _trackedStateManager.Capture();
 
                 try
                 {
-                    using var scope = _managedTransactionScope.Enter();
-                    var result = await transactionalAction();
+                    using IDisposable scope = _managedTransactionScope.Enter();
+                    T? result = await transactionalAction();
                     await _dbContext.SaveChangesAsync(cancellationToken);
 
                     if (transaction is not null)
@@ -210,7 +223,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         if (options is null || options.IsEmpty())
             return;
 
-        var effectiveOptions = _transactionDefaults.Resolve(options);
+        TransactionOptions effectiveOptions = _transactionDefaults.Resolve(options);
         if (effectiveOptions != _activeTransactionOptions)
         {
             throw new InvalidOperationException(
@@ -230,9 +243,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         {
             await transaction.ReleaseSavepointAsync(savepointName, ct);
         }
-        catch (NotSupportedException)
-        {
-        }
+        catch (NotSupportedException) { }
     }
 
     private static bool IsTransactionNotSupported(Exception ex) =>

@@ -22,7 +22,7 @@ using Wolverine;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.Postgresql;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 string connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required.");
@@ -89,7 +89,7 @@ builder.Host.UseWolverine(options =>
     );
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
     await app.UseDatabaseAsync();

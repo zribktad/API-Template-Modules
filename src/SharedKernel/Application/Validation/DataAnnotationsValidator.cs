@@ -29,7 +29,7 @@ public abstract class DataAnnotationsValidator<T> : AbstractValidator<T>
                     // For records, also validate constructor parameter attributes that may not be on properties.
                     ValidateConstructorParameterAttributes(model, results);
 
-                    foreach (var result in results)
+                    foreach (ValidationResult result in results)
                         context.AddFailure(
                             result.MemberNames.FirstOrDefault() ?? string.Empty,
                             result.ErrorMessage!
@@ -48,20 +48,21 @@ public abstract class DataAnnotationsValidator<T> : AbstractValidator<T>
         List<ValidationResult> results
     )
     {
-        var type = model.GetType();
-        var constructor = type.GetConstructors().FirstOrDefault();
+        Type type = model.GetType();
+        ConstructorInfo? constructor = type.GetConstructors().FirstOrDefault();
         if (constructor is null)
             return;
 
         var existingMembers = new HashSet<string>(results.SelectMany(r => r.MemberNames));
 
-        foreach (var parameter in constructor.GetParameters())
+        foreach (ParameterInfo parameter in constructor.GetParameters())
         {
             if (existingMembers.Contains(parameter.Name ?? string.Empty))
                 continue;
 
-            var validationAttributes = parameter.GetCustomAttributes<ValidationAttribute>();
-            var property = type.GetProperty(
+            IEnumerable<ValidationAttribute> validationAttributes =
+                parameter.GetCustomAttributes<ValidationAttribute>();
+            PropertyInfo? property = type.GetProperty(
                 parameter.Name!,
                 BindingFlags.Public | BindingFlags.Instance
             );
@@ -71,9 +72,9 @@ public abstract class DataAnnotationsValidator<T> : AbstractValidator<T>
             var value = property.GetValue(model);
             var validationContext = new ValidationContext(model) { MemberName = parameter.Name };
 
-            foreach (var attribute in validationAttributes)
+            foreach (ValidationAttribute attribute in validationAttributes)
             {
-                var result = attribute.GetValidationResult(value, validationContext);
+                ValidationResult? result = attribute.GetValidationResult(value, validationContext);
                 if (result != ValidationResult.Success && result is not null)
                     results.Add(result);
             }

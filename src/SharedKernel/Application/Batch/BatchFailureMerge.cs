@@ -17,7 +17,7 @@ public static class BatchFailureMerge
 
         void Accumulate(BatchResultItem item)
         {
-            if (!errorsByIndex.TryGetValue(item.Index, out var list))
+            if (!errorsByIndex.TryGetValue(item.Index, out List<string>? list))
             {
                 list = [];
                 errorsByIndex[item.Index] = list;
@@ -25,15 +25,15 @@ public static class BatchFailureMerge
 
             list.AddRange(item.Errors);
 
-            if (!idByIndex.TryGetValue(item.Index, out var existingId))
+            if (!idByIndex.TryGetValue(item.Index, out Guid? existingId))
                 idByIndex[item.Index] = item.Id;
             else if (existingId is null && item.Id is not null)
                 idByIndex[item.Index] = item.Id;
         }
 
-        foreach (var x in first)
+        foreach (BatchResultItem x in first)
             Accumulate(x);
-        foreach (var x in second)
+        foreach (BatchResultItem x in second)
             Accumulate(x);
 
         return errorsByIndex

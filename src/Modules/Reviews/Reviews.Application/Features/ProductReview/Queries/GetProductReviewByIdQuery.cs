@@ -1,6 +1,6 @@
+using ErrorOr;
 using Reviews.Application.Features.ProductReview.Mappings;
 using Reviews.Domain.Interfaces;
-using ErrorOr;
 
 namespace Reviews.Application.Features.ProductReview;
 
@@ -16,10 +16,7 @@ public sealed class GetProductReviewByIdQueryHandler
         CancellationToken ct
     )
     {
-        var item = await reviewRepository.GetByIdAsync(request.Id, ct);
+        Domain.Entities.ProductReview? item = await reviewRepository.GetByIdAsync(request.Id, ct);
         return item is null ? DomainErrors.Reviews.NotFound(request.Id) : item.ToResponse();
     }
 }
-
-
-

@@ -18,7 +18,7 @@ public static class ErrorOrGraphQLExtensions
         if (!result.IsError)
             return result.Value;
 
-        var firstError = result.FirstError;
+        ErrorOr.Error firstError = result.FirstError;
         throw new GraphQLException(
             ErrorBuilder.New().SetMessage(firstError.Description).SetCode(firstError.Code).Build()
         );
@@ -37,12 +37,9 @@ public static class ErrorOrGraphQLExtensions
         if (result.FirstError.Type == ErrorType.NotFound)
             return default;
 
-        var firstError = result.FirstError;
+        ErrorOr.Error firstError = result.FirstError;
         throw new GraphQLException(
             ErrorBuilder.New().SetMessage(firstError.Description).SetCode(firstError.Code).Build()
         );
     }
 }
-
-
-

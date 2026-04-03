@@ -107,17 +107,6 @@ public class OrderServiceTests
             u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
-    public async Task DeleteAsync_WhenOrderNotFound_ThrowsNotFoundException()
-    {
-        _repositoryMock
-            .Setup(r => r.DeleteAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NotFoundException(nameof(Order), Guid.Empty));
-
-        var act = () => _sut.DeleteAsync(Guid.NewGuid());
-
-        await Should.ThrowAsync<NotFoundException>(act);
-    }
 }
 ```
 
@@ -236,14 +225,6 @@ public class OrderRepositoryTests : IDisposable
         var persisted = await _dbContext.Orders.FindAsync(order.Id);
         persisted.ShouldNotBeNull();
         persisted!.TotalAmount.ShouldBe(99.99m);
-    }
-
-    [Fact]
-    public async Task DeleteAsync_WhenNotExists_ThrowsNotFoundException()
-    {
-        var act = () => _sut.DeleteAsync(Guid.NewGuid());
-
-        await Should.ThrowAsync<NotFoundException>(act);
     }
 
     private static Order NewOrder(decimal amount) => new()
@@ -525,9 +506,9 @@ public sealed record OrdersData(OrderConnection Orders);
 
 | Layer | Test type | Key assertions |
 |-------|-----------|----------------|
-| Service | Unit | Business logic paths, `NotFoundException`, `CommitAsync` called |
+| Service | Unit | Business logic paths, `ErrorOr` error types, `CommitAsync` called |
 | Validator | Unit | Valid/invalid inputs, cross-field rules, error property names |
-| Repository | Unit (InMemory) | CRUD operations, `NotFoundException` on missing ID |
+| Repository | Unit (InMemory) | CRUD operations |
 | Middleware | Unit | Correct HTTP status codes, JSON error body |
 | Controller (REST) | Integration | HTTP status codes, response shape, auth enforcement |
 | GraphQL resolvers | Integration | `data` field shape, `errors` field on auth failure |

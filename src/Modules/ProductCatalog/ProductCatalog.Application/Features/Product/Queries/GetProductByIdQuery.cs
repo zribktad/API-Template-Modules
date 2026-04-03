@@ -1,6 +1,6 @@
+using ErrorOr;
 using ProductCatalog.Application.Features.Product.Repositories;
 using ProductCatalog.Application.Features.Product.Specifications;
-using ErrorOr;
 using ProductRepositoryContract = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
 
 namespace ProductCatalog.Application.Features.Product;
@@ -17,7 +17,7 @@ public sealed class GetProductByIdQueryHandler
         CancellationToken ct
     )
     {
-        var result = await repository.FirstOrDefaultAsync(
+        ProductResponse? result = await repository.FirstOrDefaultAsync(
             new ProductByIdSpecification(request.Id),
             ct
         );
@@ -28,5 +28,3 @@ public sealed class GetProductByIdQueryHandler
         return result;
     }
 }
-
-

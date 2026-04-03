@@ -8,7 +8,7 @@
 
 ### High Priority
 
-- [ ] **Mixed error handling patterns** — some handlers throw exceptions (`NotFoundException`, `ConflictException`), others return `ErrorOr<T>`. Two parallel pipelines (`ApiExceptionHandler` + `ErrorOrValidationMiddleware`) create cognitive overhead. Decide on one pattern and migrate consistently.
+- [x] **Mixed error handling patterns** — unified on `ErrorOr<T>` return pattern. Exception-based classes (`NotFoundException`, `ConflictException`, `ValidationException`, `AppException` hierarchy) removed. `ApiExceptionHandler` is now a safety net for `DbUpdateConcurrencyException` (409) and unhandled exceptions (500) only. `FluentValidationActionFilter` removed; validation runs through Wolverine middleware.
 - [x] **Options classes split between SharedKernel and modules** — `BffOptions`, `KeycloakOptions`, `CorsOptions`, `EmailOptions`, `SystemIdentityOptions` exist in both places. Module-specific options (`BackgroundJobsOptions`, `FileStorageOptions`) are in SharedKernel where they don't belong. Each module should own its options; SharedKernel should contain only truly shared types.
 - [ ] **Anemic domain models** — `Tenant`, `StoredFile` and others are pure data containers. Business logic (activate/deactivate, status transitions) leaks into application handlers. Add domain methods and enforce invariants in entity constructors.
 
@@ -203,7 +203,7 @@ Implement real-time notifications and chat using ASP.NET Core SignalR.
 ## Result Pattern
 
 - [x] Introduce `Result<T>` pattern (e.g. via `OneOf` or custom type) for expected failures instead of exceptions as flow control.
-- [ ] Migrate validation, not-found, and conflict scenarios from exceptions to explicit return types.
+- [x] Migrate validation, not-found, and conflict scenarios from exceptions to explicit return types.
 
 ## Testing Improvements
 

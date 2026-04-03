@@ -1,6 +1,6 @@
+using ErrorOr;
 using Reviews.Application.Features.ProductReview.Specifications;
 using Reviews.Domain.Interfaces;
-using ErrorOr;
 
 namespace Reviews.Application.Features.ProductReview;
 
@@ -22,16 +22,13 @@ public sealed class GetProductReviewsByProductIdsQueryHandler
             return (ErrorOr<IReadOnlyDictionary<Guid, ProductReviewResponse[]>>)
                 new Dictionary<Guid, ProductReviewResponse[]>();
 
-        var reviews = await reviewRepository.ListAsync(
+        List<ProductReviewResponse> reviews = await reviewRepository.ListAsync(
             new ProductReviewByProductIdsSpecification(request.ProductIds),
             ct
         );
-        var lookup = reviews.ToLookup(review => review.ProductId);
+        ILookup<Guid, ProductReviewResponse> lookup = reviews.ToLookup(review => review.ProductId);
 
         return (ErrorOr<IReadOnlyDictionary<Guid, ProductReviewResponse[]>>)
             request.ProductIds.Distinct().ToDictionary(id => id, id => lookup[id].ToArray());
     }
 }
-
-
-

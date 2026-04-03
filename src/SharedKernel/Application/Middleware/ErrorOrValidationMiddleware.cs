@@ -1,6 +1,7 @@
-using SharedKernel.Application.Errors;
 using ErrorOr;
 using FluentValidation;
+using FluentValidation.Results;
+using SharedKernel.Application.Errors;
 using Wolverine;
 
 namespace SharedKernel.Application.Middleware;
@@ -25,7 +26,7 @@ public static class ErrorOrValidationMiddleware
         if (validator is null)
             return (HandlerContinuation.Continue, default!);
 
-        var validationResult = await validator.ValidateAsync(message, ct);
+        ValidationResult validationResult = await validator.ValidateAsync(message, ct);
 
         if (validationResult.IsValid)
             return (HandlerContinuation.Continue, default!);

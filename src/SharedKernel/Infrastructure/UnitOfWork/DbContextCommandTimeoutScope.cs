@@ -45,7 +45,7 @@ internal sealed class DbContextCommandTimeoutScope(DbContext dbContext)
 
         public void Dispose()
         {
-            var scope = Interlocked.Exchange(ref _scope, null);
+            DbContextCommandTimeoutScope? scope = Interlocked.Exchange(ref _scope, null);
             if (scope is null)
                 return;
 

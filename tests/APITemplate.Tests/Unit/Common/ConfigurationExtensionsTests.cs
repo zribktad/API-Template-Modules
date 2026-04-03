@@ -1,5 +1,5 @@
-using SharedKernel.Infrastructure.Configuration;
 using Microsoft.Extensions.Configuration;
+using SharedKernel.Infrastructure.Configuration;
 using Shouldly;
 using Xunit;
 
@@ -13,9 +13,9 @@ public sealed class ConfigurationExtensionsTests
     [Fact]
     public void SectionFor_StripsOptionsSuffix_WhenTypeNameEndsWithOptions()
     {
-        var config = BuildConfig(new() { ["Email:SmtpHost"] = "smtp.example.com" });
+        IConfiguration config = BuildConfig(new() { ["Email:SmtpHost"] = "smtp.example.com" });
 
-        var section = config.SectionFor<EmailSectionOptions>();
+        IConfigurationSection section = config.SectionFor<EmailSectionOptions>();
 
         section.Key.ShouldBe("EmailSection");
         section.GetValue<string>("SmtpHost").ShouldBeNull(); // different key, no match
@@ -24,11 +24,11 @@ public sealed class ConfigurationExtensionsTests
     [Fact]
     public void SectionFor_UsesTypeName_WhenNoOptionsSuffix()
     {
-        var config = BuildConfig(
+        IConfiguration config = BuildConfig(
             new() { ["MongoDbSettings:ConnectionString"] = "mongodb://localhost" }
         );
 
-        var section = config.SectionFor<MongoDbSettings>();
+        IConfigurationSection section = config.SectionFor<MongoDbSettings>();
 
         section.Key.ShouldBe("MongoDbSettings");
         section.GetValue<string>("ConnectionString").ShouldBe("mongodb://localhost");
@@ -37,9 +37,9 @@ public sealed class ConfigurationExtensionsTests
     [Fact]
     public void SectionFor_ReturnsSectionMatchingStrippedName()
     {
-        var config = BuildConfig(new() { ["Email:SmtpHost"] = "smtp.example.com" });
+        IConfiguration config = BuildConfig(new() { ["Email:SmtpHost"] = "smtp.example.com" });
 
-        var section = config.SectionFor<EmailOptions>();
+        IConfigurationSection section = config.SectionFor<EmailOptions>();
 
         section.Key.ShouldBe("Email");
         section.GetValue<string>("SmtpHost").ShouldBe("smtp.example.com");
@@ -48,9 +48,9 @@ public sealed class ConfigurationExtensionsTests
     [Fact]
     public void SectionFor_ReturnsEmptySection_WhenKeyAbsent()
     {
-        var config = BuildConfig(new());
+        IConfiguration config = BuildConfig(new());
 
-        var section = config.SectionFor<EmailOptions>();
+        IConfigurationSection section = config.SectionFor<EmailOptions>();
 
         section.Key.ShouldBe("Email");
         section.Exists().ShouldBeFalse();

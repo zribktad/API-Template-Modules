@@ -1,3 +1,4 @@
+using ErrorOr;
 using ProductEntity = ProductCatalog.Domain.Entities.Product;
 
 namespace ProductCatalog.Application.Features.Product.Repositories;
@@ -8,7 +9,7 @@ namespace ProductCatalog.Application.Features.Product.Repositories;
 public interface IProductRepository : IRepository<ProductEntity>
 {
     /// <summary>Returns a single-query paged result of products matching the given filter.</summary>
-    Task<PagedResponse<ProductResponse>> GetPagedAsync(
+    Task<ErrorOr<PagedResponse<ProductResponse>>> GetPagedAsync(
         ProductFilter filter,
         CancellationToken ct = default
     );

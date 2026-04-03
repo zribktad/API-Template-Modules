@@ -1,7 +1,7 @@
-using SharedKernel.Domain.Entities.Contracts;
-using SharedKernel.Infrastructure.Auditing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using SharedKernel.Domain.Entities.Contracts;
+using SharedKernel.Infrastructure.Auditing;
 
 namespace SharedKernel.Infrastructure.SoftDelete;
 
@@ -56,15 +56,21 @@ public class SoftDeleteProcessor : ISoftDeleteProcessor
 
         _stateManager.MarkSoftDeleted(entry, entity, now, actor);
 
-        foreach (var rule in softDeleteCascadeRules.Where(r => r.CanHandle(entity)))
+        foreach (
+            ISoftDeleteCascadeRule? rule in softDeleteCascadeRules.Where(r => r.CanHandle(entity))
+        )
         {
-            var dependents = await rule.GetDependentsAsync(dbContext, entity, cancellationToken);
-            foreach (var dependent in dependents)
+            IReadOnlyCollection<IAuditableTenantEntity> dependents = await rule.GetDependentsAsync(
+                dbContext,
+                entity,
+                cancellationToken
+            );
+            foreach (IAuditableTenantEntity dependent in dependents)
             {
                 if (dependent.IsDeleted || dependent.TenantId != entity.TenantId)
                     continue;
 
-                var dependentEntry = dbContext.Entry(dependent);
+                EntityEntry<IAuditableTenantEntity> dependentEntry = dbContext.Entry(dependent);
                 await SoftDeleteWithRulesAsync(
                     dbContext,
                     dependentEntry,

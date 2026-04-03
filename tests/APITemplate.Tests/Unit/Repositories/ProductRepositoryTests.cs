@@ -1,12 +1,11 @@
 using APITemplate.Domain.Entities;
-using SharedKernel.Domain.Exceptions;
-using SharedKernel.Application.Context;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Application.Context;
+using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
@@ -89,30 +88,6 @@ public class ProductRepositoryTests : IDisposable
         updated.Price.ShouldBe(25m);
     }
 
-    [Fact]
-    public async Task DeleteAsync_WhenExists_RemovesProduct()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var product = CreateProduct("ToDelete", 10m);
-        _dbContext.Products.Add(product);
-        await _dbContext.SaveChangesAsync(ct);
-
-        await _sut.DeleteAsync(product.Id, ct);
-        await _dbContext.SaveChangesAsync(ct);
-
-        var deleted = await _dbContext.Products.FindAsync([product.Id], ct);
-        deleted.ShouldNotBeNull();
-        deleted!.IsDeleted.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task DeleteAsync_WhenNotExists_ThrowsNotFoundException()
-    {
-        var act = () => _sut.DeleteAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
-
-        await Should.ThrowAsync<NotFoundException>(act);
-    }
-
     private static Product CreateProduct(string name, decimal price)
     {
         return new Product
@@ -121,7 +96,7 @@ public class ProductRepositoryTests : IDisposable
             TenantId = TestTenantId,
             Name = name,
             Price = price,
-            Audit = new() { CreatedAtUtc = DateTime.UtcNow }
+            Audit = new() { CreatedAtUtc = DateTime.UtcNow },
         };
     }
 
@@ -137,7 +112,8 @@ public class ProductRepositoryTests : IDisposable
             [],
             new AppUserEntityNormalizationService(),
             stateManager,
-            new SoftDeleteProcessor(stateManager));
+            new SoftDeleteProcessor(stateManager)
+        );
     }
 
     private sealed class TestTenantProvider : ITenantProvider

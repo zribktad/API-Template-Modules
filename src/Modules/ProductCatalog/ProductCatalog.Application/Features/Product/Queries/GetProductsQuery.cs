@@ -15,15 +15,21 @@ public sealed class GetProductsQueryHandler
         CancellationToken ct
     )
     {
-        var page = await repository.GetPagedAsync(request.Filter, ct);
-        var categoryFacets = await repository.GetCategoryFacetsAsync(request.Filter, ct);
-        var priceFacets = await repository.GetPriceFacetsAsync(request.Filter, ct);
+        ErrorOr<PagedResponse<ProductResponse>> page = await repository.GetPagedAsync(
+            request.Filter,
+            ct
+        );
+        if (page.IsError)
+            return page.Errors;
+
+        IReadOnlyList<ProductCategoryFacetValue> categoryFacets =
+            await repository.GetCategoryFacetsAsync(request.Filter, ct);
+        IReadOnlyList<ProductPriceFacetBucketResponse> priceFacets =
+            await repository.GetPriceFacetsAsync(request.Filter, ct);
 
         return new ProductsResponse(
-            page,
+            page.Value,
             new ProductSearchFacetsResponse(categoryFacets, priceFacets)
         );
     }
 }
-
-

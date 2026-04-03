@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
-using SharedKernel.Domain.Exceptions;
 using Webhooks.Application.Contracts;
 using Webhooks.Application.DTOs;
 
@@ -21,8 +21,9 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
         ResourceExecutionDelegate next
     )
     {
-        bool hasAttribute = context.ActionDescriptor.EndpointMetadata
-            .Any(m => m is ValidateWebhookSignatureAttribute);
+        bool hasAttribute = context.ActionDescriptor.EndpointMetadata.Any(m =>
+            m is ValidateWebhookSignatureAttribute
+        );
 
         if (!hasAttribute)
         {
@@ -32,10 +33,29 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
 
         HttpRequest request = context.HttpContext.Request;
 
-        if (!request.Headers.TryGetValue(WebhookConstants.SignatureHeader, out StringValues signature)
-            || !request.Headers.TryGetValue(WebhookConstants.TimestampHeader, out StringValues timestamp))
+        if (
+            !request.Headers.TryGetValue(
+                WebhookConstants.SignatureHeader,
+                out StringValues signature
+            )
+            || !request.Headers.TryGetValue(
+                WebhookConstants.TimestampHeader,
+                out StringValues timestamp
+            )
+        )
         {
-            throw new UnauthorizedException("Missing required webhook signature headers.");
+            context.Result = new ObjectResult(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status401Unauthorized,
+                    Title = "Unauthorized",
+                    Detail = "Missing required webhook signature headers.",
+                }
+            )
+            {
+                StatusCode = StatusCodes.Status401Unauthorized,
+            };
+            return;
         }
 
         request.EnableBuffering();
@@ -45,7 +65,18 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
 
         if (!_validator.IsValid(body, signature.ToString(), timestamp.ToString()))
         {
-            throw new UnauthorizedException("Invalid webhook signature.");
+            context.Result = new ObjectResult(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status401Unauthorized,
+                    Title = "Unauthorized",
+                    Detail = "Invalid webhook signature.",
+                }
+            )
+            {
+                StatusCode = StatusCodes.Status401Unauthorized,
+            };
+            return;
         }
 
         await next();

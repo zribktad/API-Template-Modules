@@ -8,7 +8,7 @@ public static class ApiProblemDetailsOptions
     {
         options.CustomizeProblemDetails = context =>
         {
-            var extensions = context.ProblemDetails.Extensions;
+            IDictionary<string, object?> extensions = context.ProblemDetails.Extensions;
             extensions["traceId"] = context.HttpContext.TraceIdentifier;
 
             var errorCode =

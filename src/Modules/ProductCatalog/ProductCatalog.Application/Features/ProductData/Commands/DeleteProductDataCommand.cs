@@ -1,5 +1,6 @@
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Polly;
 using Polly.Registry;
 using ProductCatalog.Application.Logging;
 using ProductCatalog.Domain;
@@ -77,7 +78,7 @@ public sealed class DeleteProductDataCommandHandler
             ct
         );
 
-        var pipeline = resiliencePipelineProvider.GetPipeline(
+        ResiliencePipeline pipeline = resiliencePipelineProvider.GetPipeline(
             ResiliencePipelineKeys.MongoProductDataDelete
         );
 

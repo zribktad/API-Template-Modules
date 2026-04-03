@@ -9,9 +9,10 @@ public sealed class PackageReferencePolicyTests
     public void APITemplateCsproj_CompliesWithPackageFamilyVersionPolicy()
     {
         var repoRoot = PackagePolicyTestFiles.GetRepoRoot();
-        var result = PackageReferencePolicy.Evaluate(
+        PolicyEvaluationResult result = PackageReferencePolicy.Evaluate(
             PackagePolicyTestFiles.ReadProjectXml(repoRoot),
-            PackagePolicyTestFiles.ReadCentralPackageXml(repoRoot));
+            PackagePolicyTestFiles.ReadCentralPackageXml(repoRoot)
+        );
 
         result.Errors.ShouldBeEmpty();
     }
@@ -19,9 +20,10 @@ public sealed class PackageReferencePolicyTests
     [Fact]
     public void Evaluate_FailsWhenPackageFamiliesDriftFromPolicy()
     {
-        var result = PackageReferencePolicy.Evaluate(
+        PolicyEvaluationResult result = PackageReferencePolicy.Evaluate(
             PackagePolicyTestFiles.ProjectXmlWithoutInlineVersions,
-            PackagePolicyTestFiles.CentralPackageXmlWithVersionDrift);
+            PackagePolicyTestFiles.CentralPackageXmlWithVersionDrift
+        );
 
         result.Errors.ShouldContain(error => error.Contains(PackagePolicies.HealthChecks.Name));
         result.Errors.ShouldContain(error => error.Contains(PackagePolicies.HotChocolate.Name));

@@ -31,13 +31,10 @@ public sealed class ProductReviewsByProductDataLoader
         IReadOnlyDictionary<Guid, ProductReviewResponse[]>
     > LoadBatchAsync(IReadOnlyList<Guid> productIds, CancellationToken ct)
     {
-        var result = await _bus.InvokeAsync<
+        ErrorOr<IReadOnlyDictionary<Guid, ProductReviewResponse[]>> result = await _bus.InvokeAsync<
             ErrorOr<IReadOnlyDictionary<Guid, ProductReviewResponse[]>>
         >(new GetProductReviewsByProductIdsQuery(productIds), ct);
 
         return result.ToGraphQLResult();
     }
 }
-
-
-

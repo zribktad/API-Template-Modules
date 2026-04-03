@@ -1,42 +1,48 @@
+using System.Linq.Expressions;
+using Ardalis.Specification;
+using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 using SharedKernel.Application.Errors;
 using SharedKernel.Domain.Common;
-using SharedKernel.Domain.Exceptions;
 using SharedKernel.Domain.Interfaces;
 using SharedKernel.Infrastructure.Repositories.Pagination;
-using Ardalis.Specification;
-using Microsoft.EntityFrameworkCore;
 
 namespace SharedKernel.Infrastructure.Repositories;
 
 /// <summary>
 /// Generic EF Core repository that stages changes without flushing and provides shared paged-query support.
 /// </summary>
-public abstract class RepositoryBase<T> :
-    Ardalis.Specification.EntityFrameworkCore.RepositoryBase<T>,
-    IRepository<T>
+public abstract class RepositoryBase<T>
+    : Ardalis.Specification.EntityFrameworkCore.RepositoryBase<T>,
+        IRepository<T>
     where T : class
 {
     protected RepositoryBase(DbContext dbContext)
         : base(dbContext) { }
 
-    public virtual async Task<PagedResponse<TResult>> GetPagedAsync<TResult>(
+    public virtual async Task<ErrorOr<PagedResponse<TResult>>> GetPagedAsync<TResult>(
         ISpecification<T, TResult> spec,
         int pageNumber,
         int pageSize,
         CancellationToken ct = default
     )
     {
-        var baseQuery = ApplySpecification((ISpecification<T>)spec);
-        var countSource = ApplySpecification((ISpecification<T>)spec, evaluateCriteriaOnly: true);
+        IQueryable<T> baseQuery = ApplySpecification((ISpecification<T>)spec);
+        IQueryable<T> countSource = ApplySpecification(
+            (ISpecification<T>)spec,
+            evaluateCriteriaOnly: true
+        );
 
         if (spec.Selector is null)
             throw new InvalidOperationException(
                 $"Specification {spec.GetType().Name} must define a Select projection to use GetPagedAsync."
             );
 
-        var combinedSelector = spec.Selector.BuildPaged(countSource);
+        Expression<Func<T, PagedRow<TResult>>> combinedSelector = spec.Selector.BuildPaged(
+            countSource
+        );
         var skip = (pageNumber - 1) * pageSize;
-        var results = await baseQuery
+        List<PagedRow<TResult>> results = await baseQuery
             .Skip(skip)
             .Take(pageSize)
             .Select(combinedSelector)
@@ -58,9 +64,9 @@ public abstract class RepositoryBase<T> :
             if (totalCount > 0)
             {
                 var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-                throw new ValidationException(
-                    $"PageNumber {pageNumber} exceeds total pages ({totalPages}).",
-                    ErrorCatalog.General.PageOutOfRange
+                return Error.Validation(
+                    code: ErrorCatalog.General.PageOutOfRange,
+                    description: $"PageNumber {pageNumber} exceeds total pages ({totalPages})."
                 );
             }
         }
@@ -111,18 +117,5 @@ public abstract class RepositoryBase<T> :
     {
         DbContext.Set<T>().RemoveRange(entities);
         return Task.FromResult(0);
-    }
-
-    [Obsolete("Use GetByIdAsync + DeleteAsync(entity) with ErrorOr pattern instead.")]
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default, string? errorCode = null)
-    {
-        var entity =
-            await GetByIdAsync(id, ct)
-            ?? throw new NotFoundException(
-                typeof(T).Name,
-                id,
-                errorCode ?? ErrorCatalog.General.NotFound
-            );
-        DbContext.Set<T>().Remove(entity);
     }
 }

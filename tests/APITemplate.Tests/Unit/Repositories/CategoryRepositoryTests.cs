@@ -1,15 +1,14 @@
 using APITemplate.Domain.Entities;
-using SharedKernel.Domain.Exceptions;
 using APITemplate.Domain.Interfaces;
-using SharedKernel.Application.Context;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.Repositories;
 using APITemplate.Infrastructure.StoredProcedures;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using SharedKernel.Application.Context;
+using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
@@ -99,30 +98,6 @@ public class CategoryRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteAsync_WhenExists_RemovesCategory()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var category = CreateCategory("ToDelete");
-        _dbContext.Categories.Add(category);
-        await _dbContext.SaveChangesAsync(ct);
-
-        await _sut.DeleteAsync(category.Id, ct);
-        await _dbContext.SaveChangesAsync(ct);
-
-        var deleted = await _dbContext.Categories.FindAsync([category.Id], ct);
-        deleted.ShouldNotBeNull();
-        deleted!.IsDeleted.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task DeleteAsync_WhenNotExists_ThrowsNotFoundException()
-    {
-        var act = () => _sut.DeleteAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
-
-        await Should.ThrowAsync<NotFoundException>(act);
-    }
-
-    [Fact]
     public async Task GetStatsByIdAsync_WhenStatsExist_ReturnsStats()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -133,13 +108,16 @@ public class CategoryRepositoryTests : IDisposable
             CategoryName = "Electronics",
             ProductCount = 3,
             AveragePrice = 150m,
-            TotalReviews = 10
+            TotalReviews = 10,
         };
 
         _spExecutorMock
-            .Setup(e => e.QueryFirstAsync(
-                It.IsAny<GetProductCategoryStatsProcedure>(),
-                It.IsAny<CancellationToken>()))
+            .Setup(e =>
+                e.QueryFirstAsync(
+                    It.IsAny<GetProductCategoryStatsProcedure>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(expected);
 
         var result = await _sut.GetStatsByIdAsync(categoryId, ct);
@@ -151,9 +129,14 @@ public class CategoryRepositoryTests : IDisposable
         result.AveragePrice.ShouldBe(150m);
         result.TotalReviews.ShouldBe(10);
 
-        _spExecutorMock.Verify(e => e.QueryFirstAsync(
-            It.IsAny<GetProductCategoryStatsProcedure>(),
-            It.IsAny<CancellationToken>()), Times.Once);
+        _spExecutorMock.Verify(
+            e =>
+                e.QueryFirstAsync(
+                    It.IsAny<GetProductCategoryStatsProcedure>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -161,9 +144,12 @@ public class CategoryRepositoryTests : IDisposable
     {
         var ct = TestContext.Current.CancellationToken;
         _spExecutorMock
-            .Setup(e => e.QueryFirstAsync(
-                It.IsAny<GetProductCategoryStatsProcedure>(),
-                It.IsAny<CancellationToken>()))
+            .Setup(e =>
+                e.QueryFirstAsync(
+                    It.IsAny<GetProductCategoryStatsProcedure>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync((ProductCategoryStats?)null);
 
         var result = await _sut.GetStatsByIdAsync(Guid.NewGuid(), ct);
@@ -179,11 +165,14 @@ public class CategoryRepositoryTests : IDisposable
             TenantId = TestTenantId,
             Name = name,
             Description = description,
-            Audit = new() { CreatedAtUtc = DateTime.UtcNow }
+            Audit = new() { CreatedAtUtc = DateTime.UtcNow },
         };
     }
 
-    private static AppDbContext CreateDbContext(DbContextOptions<AppDbContext> options, ITenantProvider tenantProvider)
+    private static AppDbContext CreateDbContext(
+        DbContextOptions<AppDbContext> options,
+        ITenantProvider tenantProvider
+    )
     {
         var stateManager = new AuditableEntityStateManager();
 
@@ -195,7 +184,8 @@ public class CategoryRepositoryTests : IDisposable
             [],
             new AppUserEntityNormalizationService(),
             stateManager,
-            new SoftDeleteProcessor(stateManager));
+            new SoftDeleteProcessor(stateManager)
+        );
     }
 
     private sealed class TestTenantProvider : ITenantProvider

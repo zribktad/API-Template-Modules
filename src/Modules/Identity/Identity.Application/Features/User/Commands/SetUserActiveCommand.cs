@@ -22,14 +22,14 @@ public sealed class SetUserActiveCommandHandler
         CancellationToken ct
     )
     {
-        var userResult = await repository.GetByIdOrError(
+        ErrorOr<AppUser> userResult = await repository.GetByIdOrError(
             command.Id,
             DomainErrors.Users.NotFound(command.Id),
             ct
         );
         if (userResult.IsError)
             return (userResult.Errors, OutgoingMessagesHelper.Empty);
-        var user = userResult.Value;
+        AppUser user = userResult.Value;
 
         if (user.KeycloakUserId is not null)
             await keycloakAdmin.SetUserEnabledAsync(user.KeycloakUserId, command.IsActive, ct);

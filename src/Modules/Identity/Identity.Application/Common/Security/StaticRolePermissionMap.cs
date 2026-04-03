@@ -14,7 +14,7 @@ public sealed class StaticRolePermissionMap : IRolePermissionMap
     private static readonly IReadOnlyDictionary<string, IReadOnlySet<string>> Map = BuildMap();
 
     public IReadOnlySet<string> GetPermissions(string role) =>
-        Map.TryGetValue(role, out var permissions) ? permissions : Empty;
+        Map.TryGetValue(role, out IReadOnlySet<string>? permissions) ? permissions : Empty;
 
     public bool HasPermission(string role, string permission) =>
         GetPermissions(role).Contains(permission);
@@ -71,4 +71,3 @@ public sealed class StaticRolePermissionMap : IRolePermissionMap
         };
     }
 }
-

@@ -1,6 +1,6 @@
+using ErrorOr;
 using ProductCatalog.Application.Features.Category.Specifications;
 using ProductCatalog.Domain.Interfaces;
-using ErrorOr;
 
 namespace ProductCatalog.Application.Features.Category;
 
@@ -16,7 +16,7 @@ public sealed class GetCategoryByIdQueryHandler
         CancellationToken ct
     )
     {
-        var result = await repository.FirstOrDefaultAsync(
+        CategoryResponse? result = await repository.FirstOrDefaultAsync(
             new CategoryByIdSpecification(request.Id),
             ct
         );
@@ -27,5 +27,3 @@ public sealed class GetCategoryByIdQueryHandler
         return result;
     }
 }
-
-

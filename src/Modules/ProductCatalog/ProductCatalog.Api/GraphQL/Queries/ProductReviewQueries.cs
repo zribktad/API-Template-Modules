@@ -1,6 +1,6 @@
-using ProductCatalog.Api.GraphQL.Models;
 using ErrorOr;
 using HotChocolate.Authorization;
+using ProductCatalog.Api.GraphQL.Models;
 using Wolverine;
 
 namespace ProductCatalog.Api.GraphQL.Queries;
@@ -37,10 +37,9 @@ public class ProductReviewQueries
             input?.PageSize ?? 20
         );
 
-        var result = await bus.InvokeAsync<ErrorOr<PagedResponse<ProductReviewResponse>>>(
-            new GetProductReviewsQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<ProductReviewResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<ProductReviewResponse>>
+        >(new GetProductReviewsQuery(filter), ct);
         return new ProductReviewPageResult(result.ToGraphQLResult());
     }
 
@@ -51,10 +50,9 @@ public class ProductReviewQueries
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<ProductReviewResponse>>(
-            new GetProductReviewByIdQuery(id),
-            ct
-        );
+        ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<
+            ErrorOr<ProductReviewResponse>
+        >(new GetProductReviewByIdQuery(id), ct);
         return result.ToGraphQLNullableResult();
     }
 
@@ -72,13 +70,9 @@ public class ProductReviewQueries
             PageNumber: pageNumber,
             PageSize: pageSize
         );
-        var result = await bus.InvokeAsync<ErrorOr<PagedResponse<ProductReviewResponse>>>(
-            new GetProductReviewsQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<ProductReviewResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<ProductReviewResponse>>
+        >(new GetProductReviewsQuery(filter), ct);
         return new ProductReviewPageResult(result.ToGraphQLResult());
     }
 }
-
-
-

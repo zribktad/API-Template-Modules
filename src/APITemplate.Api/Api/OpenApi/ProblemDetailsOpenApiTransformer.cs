@@ -24,16 +24,16 @@ public sealed class ProblemDetailsOpenApiTransformer : IOpenApiDocumentTransform
         document.Components ??= new OpenApiComponents();
         document.Components.Schemas ??= new Dictionary<string, IOpenApiSchema>();
 
-        var problemDetailsSchema = BuildProblemDetailsSchema();
+        IOpenApiSchema problemDetailsSchema = BuildProblemDetailsSchema();
         document.Components.Schemas["ApiProblemDetails"] = problemDetailsSchema;
 
-        foreach (var pathEntry in document.Paths)
+        foreach (KeyValuePair<string, IOpenApiPathItem> pathEntry in document.Paths)
         {
-            var path = pathEntry.Value;
+            IOpenApiPathItem path = pathEntry.Value;
             if (path.Operations is null)
                 continue;
 
-            foreach (var operation in path.Operations.Values)
+            foreach (OpenApiOperation operation in path.Operations.Values)
             {
                 int[] errorStatusCodes =
                 [

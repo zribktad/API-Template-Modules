@@ -52,7 +52,8 @@ public sealed class SortFieldMap<TEntity>
     )
     {
         var desc = !string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
-        var key = _entries.FirstOrDefault(e => e.Field.Matches(sortBy)).KeySelector ?? _default;
+        Expression<Func<TEntity, object?>>? key =
+            _entries.FirstOrDefault(e => e.Field.Matches(sortBy)).KeySelector ?? _default;
 
         if (key is null)
             return;

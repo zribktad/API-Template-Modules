@@ -1,3 +1,4 @@
+using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -25,9 +26,9 @@ public static class ObservabilityServiceCollectionExtensions
         var serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString();
         var enableConsoleExporter =
             observabilityOptions.Exporters.Console.Enabled ?? environment.IsDevelopment();
-        var otlpEndpoint = ResolveOtlpEndpoint(observabilityOptions, environment);
+        Uri? otlpEndpoint = ResolveOtlpEndpoint(observabilityOptions, environment);
 
-        var openTelemetryBuilder = services
+        OpenTelemetryBuilder openTelemetryBuilder = services
             .AddOpenTelemetry()
             .ConfigureResource(resource =>
                 resource.AddService(serviceName: serviceName, serviceVersion: serviceVersion)
@@ -66,7 +67,7 @@ public static class ObservabilityServiceCollectionExtensions
         var explicitOtlpEnabled = observabilityOptions.Exporters.Otlp.Enabled == true;
         if (
             explicitOtlpEnabled
-            && Uri.TryCreate(observabilityOptions.Otlp.Endpoint, UriKind.Absolute, out var otlpUri)
+            && Uri.TryCreate(observabilityOptions.Otlp.Endpoint, UriKind.Absolute, out Uri? otlpUri)
         )
         {
             return otlpUri;
@@ -79,7 +80,7 @@ public static class ObservabilityServiceCollectionExtensions
             && Uri.TryCreate(
                 observabilityOptions.Aspire.Endpoint,
                 UriKind.Absolute,
-                out var aspireUri
+                out Uri? aspireUri
             )
         )
         {
