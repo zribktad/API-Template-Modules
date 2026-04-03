@@ -43,10 +43,8 @@
     <Project Path="src/Modules/Reviews/Reviews.Api/Reviews.Api.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Webhooks/">
-    <Project Path="src/Modules/Webhooks/Webhooks.Domain/Webhooks.Domain.csproj" />
-    <Project Path="src/Modules/Webhooks/Webhooks.Application/Webhooks.Application.csproj" />
-    <Project Path="src/Modules/Webhooks/Webhooks.Infrastructure/Webhooks.Infrastructure.csproj" />
-    <Project Path="src/Modules/Webhooks/Webhooks.Api/Webhooks.Api.csproj" />
+    <Project Path="src/Modules/Webhooks/Core/Webhooks.Core.csproj" />
+    <Project Path="src/Modules/Webhooks/Host/Webhooks.Host.csproj" />
   </Folder>
   <Folder Name="/src/SharedKernel/">
     <Project Path="src/SharedKernel/SharedKernel.csproj" />

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Reflection;
 using Shouldly;
-using Webhooks.Infrastructure;
+using Webhooks.Host.Shared;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;

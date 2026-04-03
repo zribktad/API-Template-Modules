@@ -31,8 +31,7 @@
     <ProjectReference Include="..\..\Modules\BackgroundJobs\BackgroundJobs.Api\BackgroundJobs.Api.csproj" />
     <ProjectReference Include="..\..\Modules\BackgroundJobs\BackgroundJobs.Application\BackgroundJobs.Application.csproj" />
     <ProjectReference Include="..\..\Modules\BackgroundJobs\BackgroundJobs.Infrastructure\BackgroundJobs.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Modules\Webhooks\Webhooks.Api\Webhooks.Api.csproj" />
-    <ProjectReference Include="..\..\Modules\Webhooks\Webhooks.Application\Webhooks.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Webhooks\Host\Webhooks.Host.csproj" />
     <ProjectReference Include="..\..\Modules\Chatting\Chatting.Api\Chatting.Api.csproj" />
     <ProjectReference Include="..\..\Modules\Chatting\Chatting.Application\Chatting.Application.csproj" />
   </ItemGroup>
