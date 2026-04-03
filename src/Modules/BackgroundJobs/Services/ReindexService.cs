@@ -17,20 +17,26 @@ public sealed partial class ReindexService : IReindexService
     private const double BloatThresholdPercent = 30.0;
 
     private readonly BackgroundJobsDbContext _dbContext;
+    private readonly IStoredProcedureExecutor _executor;
     private readonly ILogger<ReindexService> _logger;
 
-    public ReindexService(BackgroundJobsDbContext dbContext, ILogger<ReindexService> logger)
+    public ReindexService(
+        BackgroundJobsDbContext dbContext,
+        IStoredProcedureExecutor executor,
+        ILogger<ReindexService> logger
+    )
     {
         _dbContext = dbContext;
+        _executor = executor;
         _logger = logger;
     }
 
     public async Task ReindexFullTextSearchAsync(CancellationToken ct = default)
     {
-        GetFtsIndexNamesProcedure procedure = new();
-        List<string> ftsIndexes = await _dbContext
-            .Database.SqlQuery<string>(procedure.ToSql())
-            .ToListAsync(ct);
+        IReadOnlyList<string> ftsIndexes = await _executor.ScalarManyAsync(
+            new GetFtsIndexNamesProcedure(),
+            ct
+        );
 
         List<string> validIndexes = ftsIndexes
             .Where(index =>
@@ -67,10 +73,11 @@ public sealed partial class ReindexService : IReindexService
 
     private async Task<double> GetIndexBloatPercentAsync(string indexName, CancellationToken ct)
     {
-        GetIndexBloatPercentProcedure procedure = new(indexName);
-        return await _dbContext
-            .Database.SqlQuery<double>(procedure.ToSql())
-            .FirstOrDefaultAsync(ct);
+        double? result = await _executor.ScalarFirstAsync(
+            new GetIndexBloatPercentProcedure(indexName),
+            ct
+        );
+        return result ?? 0.0;
     }
 
     [GeneratedRegex(@"^[a-zA-Z_][a-zA-Z0-9_]*$")]

@@ -26,6 +26,16 @@ public sealed class StoredProcedureExecutor : IStoredProcedureExecutor
         where TResult : class =>
         await _dbContext.Set<TResult>().FromSqlInterpolated(procedure.ToSql()).ToListAsync(ct);
 
+    public async Task<TResult?> ScalarFirstAsync<TResult>(
+        IScalarStoredProcedure<TResult> procedure,
+        CancellationToken ct = default
+    ) => await _dbContext.Database.SqlQuery<TResult>(procedure.ToSql()).FirstOrDefaultAsync(ct);
+
+    public async Task<IReadOnlyList<TResult>> ScalarManyAsync<TResult>(
+        IScalarStoredProcedure<TResult> procedure,
+        CancellationToken ct = default
+    ) => await _dbContext.Database.SqlQuery<TResult>(procedure.ToSql()).ToListAsync(ct);
+
     public Task<int> ExecuteAsync(FormattableString sql, CancellationToken ct = default) =>
         _dbContext.Database.ExecuteSqlInterpolatedAsync(sql, ct);
 }

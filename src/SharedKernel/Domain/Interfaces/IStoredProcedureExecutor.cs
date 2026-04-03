@@ -27,6 +27,23 @@ public interface IStoredProcedureExecutor
         where TResult : class;
 
     /// <summary>
+    /// Executes a scalar procedure and returns the first value, or the default of
+    /// <typeparamref name="TResult"/> when the result set is empty.
+    /// </summary>
+    Task<TResult?> ScalarFirstAsync<TResult>(
+        IScalarStoredProcedure<TResult> procedure,
+        CancellationToken ct = default
+    );
+
+    /// <summary>
+    /// Executes a scalar procedure and returns all values as a read-only list.
+    /// </summary>
+    Task<IReadOnlyList<TResult>> ScalarManyAsync<TResult>(
+        IScalarStoredProcedure<TResult> procedure,
+        CancellationToken ct = default
+    );
+
+    /// <summary>
     /// Executes a procedure that performs a write operation (INSERT / UPDATE / DELETE)
     /// and returns the number of affected rows.
     /// </summary>
