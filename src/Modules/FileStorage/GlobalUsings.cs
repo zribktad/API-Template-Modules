@@ -1,0 +1,8 @@
+global using ErrorOr;
+global using FileStorage.Contracts;
+global using FileStorage.Domain;
+global using FileStorage.Services;
+global using SharedKernel.Application.DTOs;
+global using SharedKernel.Contracts.Api;
+global using SharedKernel.Contracts.Security;
+global using SharedKernel.Domain.Interfaces;
