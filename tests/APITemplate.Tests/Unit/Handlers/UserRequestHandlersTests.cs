@@ -1,6 +1,4 @@
 using System.Net.Http;
-using Contracts.Events;
-using SharedKernel.Application.Events;
 using APITemplate.Application.Common.Security;
 using APITemplate.Application.Features.User;
 using APITemplate.Application.Features.User.DTOs;
@@ -11,6 +9,8 @@ using APITemplate.Domain.Interfaces;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Moq;
+using SharedKernel.Application.Events;
+using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;
 using Xunit;

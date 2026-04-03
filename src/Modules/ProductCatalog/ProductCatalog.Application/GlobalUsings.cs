@@ -1,4 +1,3 @@
-global using Contracts.Events;
 global using ProductCatalog.Application.Errors;
 global using ProductCatalog.Application.Events;
 global using ProductCatalog.Application.Features.Category.DTOs;
@@ -19,6 +18,7 @@ global using SharedKernel.Application.Resilience;
 global using SharedKernel.Application.Search;
 global using SharedKernel.Application.Sorting;
 global using SharedKernel.Application.Validation;
+global using SharedKernel.Contracts.Events;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities.Contracts;
 global using SharedKernel.Domain.Interfaces;

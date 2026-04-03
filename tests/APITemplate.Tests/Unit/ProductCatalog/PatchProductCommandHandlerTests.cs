@@ -1,4 +1,3 @@
-using Contracts.Events;
 using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;
@@ -11,6 +10,7 @@ using ProductCatalog.Application.Features.Product.Repositories;
 using ProductCatalog.Domain;
 using ProductCatalog.Domain.Entities;
 using ProductCatalog.Domain.ValueObjects;
+using SharedKernel.Contracts.Events;
 using SharedKernel.Domain.Interfaces;
 using SharedKernel.Domain.Options;
 using Shouldly;

@@ -1,10 +1,10 @@
 using Asp.Versioning;
-using Contracts.Api;
-using Contracts.Security;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalog.Application.Features.Product.Commands;
 using ProductCatalog.Application.Features.Product.DTOs;
+using SharedKernel.Contracts.Api;
+using SharedKernel.Contracts.Security;
 using SystemTextJsonPatch;
 using Wolverine;
 

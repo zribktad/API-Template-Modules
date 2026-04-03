@@ -1,7 +1,7 @@
 using BackgroundJobs.Application.Services;
 using BackgroundJobs.Infrastructure.Logging;
-using Contracts.Commands.Cleanup;
 using Microsoft.Extensions.Logging;
+using SharedKernel.Contracts.Commands.Cleanup;
 using Wolverine;
 
 namespace BackgroundJobs.Infrastructure.Services;

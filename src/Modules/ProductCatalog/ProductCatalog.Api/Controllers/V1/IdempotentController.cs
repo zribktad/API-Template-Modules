@@ -1,11 +1,11 @@
 using Asp.Versioning;
-using Contracts.Api;
-using Contracts.Api.Filters.Idempotency;
-using Contracts.Security;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalog.Application.Features.Product.Commands;
 using ProductCatalog.Application.Features.Product.DTOs;
+using SharedKernel.Contracts.Api;
+using SharedKernel.Contracts.Api.Filters.Idempotency;
+using SharedKernel.Contracts.Security;
 using Wolverine;
 
 namespace ProductCatalog.Api.Controllers.V1;

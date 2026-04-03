@@ -1,7 +1,7 @@
-using Contracts.Events;
 using ErrorOr;
 using ProductCatalog.Domain;
 using SharedKernel.Application.Batch;
+using SharedKernel.Contracts.Events;
 using Wolverine;
 using CategoryEntity = ProductCatalog.Domain.Entities.Category;
 

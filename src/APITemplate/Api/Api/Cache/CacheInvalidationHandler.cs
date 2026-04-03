@@ -1,4 +1,4 @@
-using Contracts.Events;
+using SharedKernel.Contracts.Events;
 
 namespace APITemplate.Api.Cache;
 

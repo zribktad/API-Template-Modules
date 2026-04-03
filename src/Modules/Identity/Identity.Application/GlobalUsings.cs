@@ -1,6 +1,4 @@
 global using System.Reflection;
-global using Contracts.Events;
-global using Contracts.Security;
 global using Identity.Application.Common.Security;
 global using Identity.Application.Errors;
 global using Identity.Application.Events;
@@ -23,6 +21,8 @@ global using SharedKernel.Application.Extensions;
 global using SharedKernel.Application.Search;
 global using SharedKernel.Application.Sorting;
 global using SharedKernel.Application.Validation;
+global using SharedKernel.Contracts.Events;
+global using SharedKernel.Contracts.Security;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities;
 global using SharedKernel.Domain.Entities.Contracts;

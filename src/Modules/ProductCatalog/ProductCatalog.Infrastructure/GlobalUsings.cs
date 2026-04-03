@@ -1,4 +1,3 @@
-global using Contracts.Events;
 global using ProductCatalog.Application.Features.Category.DTOs;
 global using ProductCatalog.Application.Features.Product.DTOs;
 global using ProductCatalog.Application.Features.Product.Repositories;
@@ -9,6 +8,7 @@ global using ProductCatalog.Domain.Interfaces;
 global using SharedKernel.Application.Context;
 global using SharedKernel.Application.Events;
 global using SharedKernel.Application.Options.Infrastructure;
+global using SharedKernel.Contracts.Events;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities.Contracts;
 global using SharedKernel.Domain.Interfaces;

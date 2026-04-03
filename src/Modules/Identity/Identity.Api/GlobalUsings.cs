@@ -1,6 +1,3 @@
-global using Contracts.Api;
-global using Contracts.Events;
-global using Contracts.Security;
 global using Identity.Application.Common.Security;
 global using Identity.Application.Events;
 global using Identity.Application.Features.Tenant;
@@ -11,4 +8,7 @@ global using Identity.Application.Features.User;
 global using Identity.Application.Features.User.DTOs;
 global using SharedKernel.Application.DTOs;
 global using SharedKernel.Application.Events;
+global using SharedKernel.Contracts.Api;
+global using SharedKernel.Contracts.Events;
+global using SharedKernel.Contracts.Security;
 global using SharedKernel.Domain.Common;

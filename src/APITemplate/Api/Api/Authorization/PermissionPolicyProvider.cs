@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
-using Contracts.Security;
 using Identity.Application.Common.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
+using SharedKernel.Contracts.Security;
 
 namespace APITemplate.Api.Authorization;
 

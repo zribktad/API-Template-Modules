@@ -1,10 +1,10 @@
-using Contracts.Events;
-using SharedKernel.Application.Events;
-using SharedKernel.Application.Resilience;
 using APITemplate.Application.Features.ProductData.Handlers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Polly.Registry;
+using SharedKernel.Application.Events;
+using SharedKernel.Application.Resilience;
+using SharedKernel.Contracts.Events;
 using Shouldly;
 using Xunit;
 

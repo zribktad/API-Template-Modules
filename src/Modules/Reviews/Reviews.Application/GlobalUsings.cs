@@ -1,4 +1,3 @@
-global using Contracts.Events;
 global using Reviews.Application.Errors;
 global using Reviews.Application.Events;
 global using Reviews.Application.Features.ProductReview.DTOs;
@@ -11,6 +10,7 @@ global using SharedKernel.Application.Events;
 global using SharedKernel.Application.Extensions;
 global using SharedKernel.Application.Sorting;
 global using SharedKernel.Application.Validation;
+global using SharedKernel.Contracts.Events;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities.Contracts;
 global using SharedKernel.Domain.Interfaces;

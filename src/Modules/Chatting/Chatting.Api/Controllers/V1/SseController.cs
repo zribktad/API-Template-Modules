@@ -2,9 +2,9 @@ using System.Text.Json;
 using Asp.Versioning;
 using Chatting.Application.Features.Streaming.DTOs;
 using Chatting.Application.Features.Streaming.Queries;
-using Contracts.Api;
-using Contracts.Security;
 using Microsoft.AspNetCore.Mvc;
+using SharedKernel.Contracts.Api;
+using SharedKernel.Contracts.Security;
 using Wolverine;
 
 namespace Chatting.Api.Controllers.V1;

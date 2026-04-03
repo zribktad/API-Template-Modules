@@ -1,6 +1,6 @@
-using Notifications.Application.Common.Email;
-using Contracts.Events;
 using Microsoft.Extensions.Options;
+using Notifications.Application.Common.Email;
+using SharedKernel.Contracts.Events;
 
 namespace Notifications.Application.Common.Events;
 
