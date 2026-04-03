@@ -4,11 +4,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="APITemplate.Tests" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="artifacts\**\*.cs" />
     <Compile Remove="obj-codex\**\*.cs" />
@@ -16,26 +14,17 @@
     <None Remove="obj-codex\**\*" />
     <Compile Update="Internal\Generated\**\*.cs" Watch="false" />
   </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\..\Modules\Identity\Identity.Api\Identity.Api.csproj" />
-    <ProjectReference Include="..\..\Modules\ProductCatalog\ProductCatalog.Api\ProductCatalog.Api.csproj" />
-    <ProjectReference Include="..\..\Modules\ProductCatalog\ProductCatalog.Application\ProductCatalog.Application.csproj" />
-    <ProjectReference Include="..\..\Modules\Reviews\Reviews.Api\Reviews.Api.csproj" />
-    <ProjectReference Include="..\..\Modules\Reviews\Reviews.Application\Reviews.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\Identity.csproj" />
+    <ProjectReference Include="..\..\Modules\ProductCatalog\ProductCatalog.csproj" />
+    <ProjectReference Include="..\..\Modules\Reviews\Reviews.csproj" />
     <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\Modules\Notifications\Notifications.Api\Notifications.Api.csproj" />
-    <ProjectReference Include="..\..\Modules\Notifications\Notifications.Application\Notifications.Application.csproj" />
-    <ProjectReference Include="..\..\Modules\FileStorage\FileStorage.Api\FileStorage.Api.csproj" />
-    <ProjectReference Include="..\..\Modules\FileStorage\FileStorage.Application\FileStorage.Application.csproj" />
-    <ProjectReference Include="..\..\Modules\BackgroundJobs\BackgroundJobs.Api\BackgroundJobs.Api.csproj" />
-    <ProjectReference Include="..\..\Modules\BackgroundJobs\BackgroundJobs.Application\BackgroundJobs.Application.csproj" />
-    <ProjectReference Include="..\..\Modules\BackgroundJobs\BackgroundJobs.Infrastructure\BackgroundJobs.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Modules\Webhooks\Host\Webhooks.Host.csproj" />
-    <ProjectReference Include="..\..\Modules\Chatting\Chatting.Api\Chatting.Api.csproj" />
-    <ProjectReference Include="..\..\Modules\Chatting\Chatting.Application\Chatting.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Notifications\Notifications.csproj" />
+    <ProjectReference Include="..\..\Modules\FileStorage\FileStorage.csproj" />
+    <ProjectReference Include="..\..\Modules\BackgroundJobs\BackgroundJobs.csproj" />
+    <ProjectReference Include="..\..\Modules\Webhooks\Webhooks.csproj" />
+    <ProjectReference Include="..\..\Modules\Chatting\Chatting.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />

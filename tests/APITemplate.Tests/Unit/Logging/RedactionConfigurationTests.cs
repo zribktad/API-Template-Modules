@@ -1,5 +1,5 @@
-using SharedKernel.Application.Options.Security;
 using APITemplate.Infrastructure.Logging;
+using SharedKernel.Application.Options.Security;
 using Shouldly;
 using Xunit;
 

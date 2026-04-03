@@ -42,8 +42,11 @@ public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
         using var doc = JsonDocument.Parse(content);
 
         var paths = doc.RootElement.GetProperty("paths");
-        var productReviewsPath = paths.EnumerateObject()
-            .FirstOrDefault(p => p.Name.Contains("productreviews", StringComparison.OrdinalIgnoreCase))
+        var productReviewsPath = paths
+            .EnumerateObject()
+            .FirstOrDefault(p =>
+                p.Name.Contains("productreviews", StringComparison.OrdinalIgnoreCase)
+            )
             .Value;
 
         productReviewsPath.ValueKind.ShouldBe(JsonValueKind.Object);
@@ -52,10 +55,14 @@ public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
         var responses = productReviewsPost.GetProperty("responses");
 
         responses.TryGetProperty(StatusCodes.Status400BadRequest.ToString(), out _).ShouldBeTrue();
-        responses.TryGetProperty(StatusCodes.Status401Unauthorized.ToString(), out _).ShouldBeTrue();
+        responses
+            .TryGetProperty(StatusCodes.Status401Unauthorized.ToString(), out _)
+            .ShouldBeTrue();
         responses.TryGetProperty(StatusCodes.Status403Forbidden.ToString(), out _).ShouldBeTrue();
         responses.TryGetProperty(StatusCodes.Status404NotFound.ToString(), out _).ShouldBeTrue();
-        responses.TryGetProperty(StatusCodes.Status500InternalServerError.ToString(), out _).ShouldBeTrue();
+        responses
+            .TryGetProperty(StatusCodes.Status500InternalServerError.ToString(), out _)
+            .ShouldBeTrue();
     }
 
     [Fact]
@@ -100,7 +107,8 @@ public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
         var response = await _client.PostAsJsonAsync(
             "/graphql",
             new { query = "{ __typename }" },
-            ct);
+            ct
+        );
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }

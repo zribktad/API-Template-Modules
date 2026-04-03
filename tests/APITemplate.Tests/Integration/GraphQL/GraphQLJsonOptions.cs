@@ -6,6 +6,6 @@ internal static class GraphQLJsonOptions
 {
     internal static readonly JsonSerializerOptions Default = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 }

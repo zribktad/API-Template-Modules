@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using SharedKernel.Application.DTOs;
 using APITemplate.Tests.Integration.Helpers;
+using SharedKernel.Application.DTOs;
 using Shouldly;
 using Xunit;
 

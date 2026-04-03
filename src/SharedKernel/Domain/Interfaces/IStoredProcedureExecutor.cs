@@ -13,7 +13,8 @@ public interface IStoredProcedureExecutor
     /// </summary>
     Task<TResult?> QueryFirstAsync<TResult>(
         IStoredProcedure<TResult> procedure,
-        CancellationToken ct = default)
+        CancellationToken ct = default
+    )
         where TResult : class;
 
     /// <summary>
@@ -21,7 +22,8 @@ public interface IStoredProcedureExecutor
     /// </summary>
     Task<IReadOnlyList<TResult>> QueryManyAsync<TResult>(
         IStoredProcedure<TResult> procedure,
-        CancellationToken ct = default)
+        CancellationToken ct = default
+    )
         where TResult : class;
 
     /// <summary>

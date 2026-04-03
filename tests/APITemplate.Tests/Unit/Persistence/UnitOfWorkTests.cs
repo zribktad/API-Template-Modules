@@ -1,11 +1,6 @@
 using System.Data;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Infrastructure.SoftDelete;
-using SharedKernel.Infrastructure.UnitOfWork;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
-using SharedKernel.Domain.Options;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
@@ -14,6 +9,11 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Domain.Options;
+using SharedKernel.Infrastructure.SoftDelete;
+using SharedKernel.Infrastructure.UnitOfWork;
 using Shouldly;
 using Xunit;
 
@@ -34,28 +34,26 @@ public class UnitOfWorkTests
             TimeoutSeconds = 30,
             RetryEnabled = true,
             RetryCount = 6,
-            RetryDelaySeconds = 8
+            RetryDelaySeconds = 8,
         };
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, defaults, provider);
 
-        dbContext.Categories.Add(new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Committed"
-        });
+        dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Committed" });
 
         await sut.CommitAsync(TestContext.Current.CancellationToken);
 
         executionStrategy.ExecuteAsyncCallCount.ShouldBe(1);
-        provider.CapturedOptions.ShouldBe(new TransactionOptions
-        {
-            IsolationLevel = IsolationLevel.ReadCommitted,
-            TimeoutSeconds = 30,
-            RetryEnabled = true,
-            RetryCount = 6,
-            RetryDelaySeconds = 8
-        });
+        provider.CapturedOptions.ShouldBe(
+            new TransactionOptions
+            {
+                IsolationLevel = IsolationLevel.ReadCommitted,
+                TimeoutSeconds = 30,
+                RetryEnabled = true,
+                RetryCount = 6,
+                RetryDelaySeconds = 8,
+            }
+        );
         (await dbContext.Categories.CountAsync(TestContext.Current.CancellationToken)).ShouldBe(1);
     }
 
@@ -67,16 +65,15 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
-        await sut.ExecuteInTransactionAsync(async () =>
-        {
-            dbContext.Categories.Add(new Category
+        await sut.ExecuteInTransactionAsync(
+            async () =>
             {
-                Id = Guid.NewGuid(),
-                Name = "Books"
-            });
+                dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Books" });
 
-            await Task.CompletedTask;
-        }, TestContext.Current.CancellationToken);
+                await Task.CompletedTask;
+            },
+            TestContext.Current.CancellationToken
+        );
 
         executionStrategy.ExecuteAsyncCallCount.ShouldBe(1);
         provider.BegunIsolationLevel.ShouldBe(IsolationLevel.ReadCommitted);
@@ -96,7 +93,7 @@ public class UnitOfWorkTests
             TimeoutSeconds = 30,
             RetryEnabled = true,
             RetryCount = 3,
-            RetryDelaySeconds = 5
+            RetryDelaySeconds = 5,
         };
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, defaults, provider);
@@ -104,11 +101,7 @@ public class UnitOfWorkTests
         var result = await sut.ExecuteInTransactionAsync(
             async () =>
             {
-                var category = new Category
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Games"
-                };
+                var category = new Category { Id = Guid.NewGuid(), Name = "Games" };
 
                 dbContext.Categories.Add(category);
                 await Task.CompletedTask;
@@ -119,20 +112,28 @@ public class UnitOfWorkTests
             {
                 IsolationLevel = IsolationLevel.Serializable,
                 TimeoutSeconds = 12,
-                RetryEnabled = false
-            });
+                RetryEnabled = false,
+            }
+        );
 
         executionStrategy.ExecuteAsyncCallCount.ShouldBe(1);
         provider.BegunIsolationLevel.ShouldBe(IsolationLevel.Serializable);
-        provider.CapturedOptions.ShouldBe(new TransactionOptions
-        {
-            IsolationLevel = IsolationLevel.Serializable,
-            TimeoutSeconds = 12,
-            RetryEnabled = false,
-            RetryCount = 3,
-            RetryDelaySeconds = 5
-        });
-        (await dbContext.Categories.SingleAsync(c => c.Id == result, TestContext.Current.CancellationToken)).Name.ShouldBe("Games");
+        provider.CapturedOptions.ShouldBe(
+            new TransactionOptions
+            {
+                IsolationLevel = IsolationLevel.Serializable,
+                TimeoutSeconds = 12,
+                RetryEnabled = false,
+                RetryCount = 3,
+                RetryDelaySeconds = 5,
+            }
+        );
+        (
+            await dbContext.Categories.SingleAsync(
+                c => c.Id == result,
+                TestContext.Current.CancellationToken
+            )
+        ).Name.ShouldBe("Games");
     }
 
     [Fact]
@@ -143,17 +144,17 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
-        var act = () => sut.ExecuteInTransactionAsync(async () =>
-        {
-            dbContext.Categories.Add(new Category
-            {
-                Id = Guid.NewGuid(),
-                Name = "Music"
-            });
+        var act = () =>
+            sut.ExecuteInTransactionAsync(
+                async () =>
+                {
+                    dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Music" });
 
-            await Task.CompletedTask;
-            throw new InvalidOperationException("boom");
-        }, TestContext.Current.CancellationToken);
+                    await Task.CompletedTask;
+                    throw new InvalidOperationException("boom");
+                },
+                TestContext.Current.CancellationToken
+            );
 
         await Should.ThrowAsync<InvalidOperationException>(act);
         executionStrategy.ExecuteAsyncCallCount.ShouldBe(1);
@@ -169,25 +170,31 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
-        await sut.ExecuteInTransactionAsync(async () =>
-        {
-            dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer-A" });
-
-            try
+        await sut.ExecuteInTransactionAsync(
+            async () =>
             {
-                await sut.ExecuteInTransactionAsync(async () =>
+                dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer-A" });
+
+                try
                 {
-                    dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Inner" });
-                    await Task.CompletedTask;
-                    throw new InvalidOperationException("inner failure");
-                }, TestContext.Current.CancellationToken);
-            }
-            catch (InvalidOperationException)
-            {
-            }
+                    await sut.ExecuteInTransactionAsync(
+                        async () =>
+                        {
+                            dbContext.Categories.Add(
+                                new Category { Id = Guid.NewGuid(), Name = "Inner" }
+                            );
+                            await Task.CompletedTask;
+                            throw new InvalidOperationException("inner failure");
+                        },
+                        TestContext.Current.CancellationToken
+                    );
+                }
+                catch (InvalidOperationException) { }
 
-            dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer-B" });
-        }, TestContext.Current.CancellationToken);
+                dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer-B" });
+            },
+            TestContext.Current.CancellationToken
+        );
 
         var transaction = provider.LastCreatedTransaction!;
         executionStrategy.ExecuteAsyncCallCount.ShouldBe(1);
@@ -196,8 +203,8 @@ public class UnitOfWorkTests
         transaction.RollbackToSavepointCount.ShouldBe(1);
         transaction.CommitCount.ShouldBe(1);
 
-        var categoryNames = await dbContext.Categories
-            .OrderBy(c => c.Name)
+        var categoryNames = await dbContext
+            .Categories.OrderBy(c => c.Name)
             .Select(c => c.Name)
             .ToListAsync(TestContext.Current.CancellationToken);
 
@@ -212,16 +219,22 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
-        var nestedResult = await sut.ExecuteInTransactionAsync(async () =>
-        {
-            return await sut.ExecuteInTransactionAsync(async () =>
+        var nestedResult = await sut.ExecuteInTransactionAsync(
+            async () =>
             {
-                var category = new Category { Id = Guid.NewGuid(), Name = "Nested" };
-                dbContext.Categories.Add(category);
-                await Task.CompletedTask;
-                return category.Name;
-            }, TestContext.Current.CancellationToken);
-        }, TestContext.Current.CancellationToken);
+                return await sut.ExecuteInTransactionAsync(
+                    async () =>
+                    {
+                        var category = new Category { Id = Guid.NewGuid(), Name = "Nested" };
+                        dbContext.Categories.Add(category);
+                        await Task.CompletedTask;
+                        return category.Name;
+                    },
+                    TestContext.Current.CancellationToken
+                );
+            },
+            TestContext.Current.CancellationToken
+        );
 
         var transaction = provider.LastCreatedTransaction!;
         nestedResult.ShouldBe("Nested");
@@ -238,19 +251,24 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
-        var act = () => sut.ExecuteInTransactionAsync(async () =>
-        {
-            await sut.ExecuteInTransactionAsync(
+        var act = () =>
+            sut.ExecuteInTransactionAsync(
                 async () =>
                 {
-                    await Task.CompletedTask;
+                    await sut.ExecuteInTransactionAsync(
+                        async () =>
+                        {
+                            await Task.CompletedTask;
+                            return true;
+                        },
+                        TestContext.Current.CancellationToken,
+                        new TransactionOptions { IsolationLevel = IsolationLevel.Serializable }
+                    );
+
                     return true;
                 },
-                TestContext.Current.CancellationToken,
-                new TransactionOptions { IsolationLevel = IsolationLevel.Serializable });
-
-            return true;
-        }, TestContext.Current.CancellationToken);
+                TestContext.Current.CancellationToken
+            );
 
         var ex = await Should.ThrowAsync<InvalidOperationException>(act);
         ex.Message.ShouldContain("Nested transactions inherit");
@@ -264,17 +282,26 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
-        var act = () => sut.ExecuteInTransactionAsync(async () =>
-        {
-            dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer" });
+        var act = () =>
+            sut.ExecuteInTransactionAsync(
+                async () =>
+                {
+                    dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer" });
 
-            await sut.ExecuteInTransactionAsync(async () =>
-            {
-                dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Inner" });
-                await Task.CompletedTask;
-                throw new InvalidOperationException("nested bubble");
-            }, TestContext.Current.CancellationToken);
-        }, TestContext.Current.CancellationToken);
+                    await sut.ExecuteInTransactionAsync(
+                        async () =>
+                        {
+                            dbContext.Categories.Add(
+                                new Category { Id = Guid.NewGuid(), Name = "Inner" }
+                            );
+                            await Task.CompletedTask;
+                            throw new InvalidOperationException("nested bubble");
+                        },
+                        TestContext.Current.CancellationToken
+                    );
+                },
+                TestContext.Current.CancellationToken
+            );
 
         await Should.ThrowAsync<InvalidOperationException>(act);
         var transaction = provider.LastCreatedTransaction!;
@@ -293,11 +320,15 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
-        var act = () => sut.ExecuteInTransactionAsync(async () =>
-        {
-            dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer" });
-            await sut.CommitAsync(TestContext.Current.CancellationToken);
-        }, TestContext.Current.CancellationToken);
+        var act = () =>
+            sut.ExecuteInTransactionAsync(
+                async () =>
+                {
+                    dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer" });
+                    await sut.CommitAsync(TestContext.Current.CancellationToken);
+                },
+                TestContext.Current.CancellationToken
+            );
 
         var ex = await Should.ThrowAsync<InvalidOperationException>(act);
 
@@ -314,16 +345,25 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy);
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
-        var act = () => sut.ExecuteInTransactionAsync(async () =>
-        {
-            dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer" });
+        var act = () =>
+            sut.ExecuteInTransactionAsync(
+                async () =>
+                {
+                    dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Outer" });
 
-            await sut.ExecuteInTransactionAsync(async () =>
-            {
-                dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "Inner" });
-                await sut.CommitAsync(TestContext.Current.CancellationToken);
-            }, TestContext.Current.CancellationToken);
-        }, TestContext.Current.CancellationToken);
+                    await sut.ExecuteInTransactionAsync(
+                        async () =>
+                        {
+                            dbContext.Categories.Add(
+                                new Category { Id = Guid.NewGuid(), Name = "Inner" }
+                            );
+                            await sut.CommitAsync(TestContext.Current.CancellationToken);
+                        },
+                        TestContext.Current.CancellationToken
+                    );
+                },
+                TestContext.Current.CancellationToken
+            );
 
         var ex = await Should.ThrowAsync<InvalidOperationException>(act);
 
@@ -343,22 +383,19 @@ public class UnitOfWorkTests
         var provider = new RecordingTransactionProvider(executionStrategy)
         {
             BeginTransactionOverride = (_, _) =>
-                throw new NotSupportedException("Transactions are not supported by this provider.")
+                throw new NotSupportedException("Transactions are not supported by this provider."),
         };
         var sut = CreateUnitOfWork(dbContext, new TransactionDefaultsOptions(), provider);
 
         await sut.ExecuteInTransactionAsync(
             async () =>
             {
-                dbContext.Categories.Add(new Category
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "NoTx"
-                });
+                dbContext.Categories.Add(new Category { Id = Guid.NewGuid(), Name = "NoTx" });
 
                 await Task.CompletedTask;
             },
-            TestContext.Current.CancellationToken);
+            TestContext.Current.CancellationToken
+        );
 
         executionStrategy.ExecuteAsyncCallCount.ShouldBe(1);
         (await dbContext.Categories.CountAsync(TestContext.Current.CancellationToken)).ShouldBe(1);
@@ -367,12 +404,14 @@ public class UnitOfWorkTests
     private static AppDbUnitOfWork CreateUnitOfWork(
         AppDbContext dbContext,
         TransactionDefaultsOptions defaults,
-        IDbTransactionProvider transactionProvider)
-        => new(
+        IDbTransactionProvider transactionProvider
+    ) =>
+        new(
             dbContext,
             Options.Create(defaults),
             NullLogger<AppDbUnitOfWork>.Instance,
-            transactionProvider);
+            transactionProvider
+        );
 
     private static AppDbContext CreateDbContext()
     {
@@ -391,7 +430,8 @@ public class UnitOfWorkTests
             [],
             new AppUserEntityNormalizationService(),
             stateManager,
-            new SoftDeleteProcessor(stateManager));
+            new SoftDeleteProcessor(stateManager)
+        );
     }
 
     private sealed class TestTenantProvider : ITenantProvider
@@ -418,7 +458,11 @@ public class UnitOfWorkTests
         public TransactionOptions? CapturedOptions { get; private set; }
         public IsolationLevel? BegunIsolationLevel { get; private set; }
         public RecordingTransaction? LastCreatedTransaction { get; private set; }
-        public Func<IsolationLevel, CancellationToken, Task<IDbContextTransaction>>? BeginTransactionOverride { get; set; }
+        public Func<
+            IsolationLevel,
+            CancellationToken,
+            Task<IDbContextTransaction>
+        >? BeginTransactionOverride { get; set; }
 
         public IExecutionStrategy CreateExecutionStrategy(TransactionOptions options)
         {
@@ -426,7 +470,10 @@ public class UnitOfWorkTests
             return _executionStrategy;
         }
 
-        public Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken ct)
+        public Task<IDbContextTransaction> BeginTransactionAsync(
+            IsolationLevel isolationLevel,
+            CancellationToken ct
+        )
         {
             if (BeginTransactionOverride is not null)
                 return BeginTransactionOverride(isolationLevel, ct);
@@ -444,21 +491,21 @@ public class UnitOfWorkTests
         public int ExecuteAsyncCallCount { get; private set; }
         public bool RetriesOnFailure => true;
 
-        public void Execute(Action operation)
-            => throw new NotSupportedException();
+        public void Execute(Action operation) => throw new NotSupportedException();
 
-        public TResult Execute<TResult>(Func<TResult> operation)
-            => throw new NotSupportedException();
+        public TResult Execute<TResult>(Func<TResult> operation) =>
+            throw new NotSupportedException();
 
         public TResult Execute<TState, TResult>(
             TState state,
             Func<DbContext, TState, TResult> operation,
-            Func<DbContext, TState, ExecutionResult<TResult>>? verifySucceeded)
-            => throw new NotSupportedException();
+            Func<DbContext, TState, ExecutionResult<TResult>>? verifySucceeded
+        ) => throw new NotSupportedException();
 
         public Task ExecuteAsync(
             Func<CancellationToken, Task> operation,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
             ExecuteAsyncCallCount++;
             return operation(cancellationToken);
@@ -466,7 +513,8 @@ public class UnitOfWorkTests
 
         public Task<TResult> ExecuteAsync<TResult>(
             Func<CancellationToken, Task<TResult>> operation,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
             ExecuteAsyncCallCount++;
             return operation(cancellationToken);
@@ -475,8 +523,14 @@ public class UnitOfWorkTests
         public Task<TResult> ExecuteAsync<TState, TResult>(
             TState state,
             Func<DbContext, TState, CancellationToken, Task<TResult>> operation,
-            Func<DbContext, TState, CancellationToken, Task<ExecutionResult<TResult>>>? verifySucceeded,
-            CancellationToken cancellationToken = default)
+            Func<
+                DbContext,
+                TState,
+                CancellationToken,
+                Task<ExecutionResult<TResult>>
+            >? verifySucceeded,
+            CancellationToken cancellationToken = default
+        )
         {
             ExecuteAsyncCallCount++;
             return operation(null!, state, cancellationToken);
@@ -519,7 +573,10 @@ public class UnitOfWorkTests
 
         public void RollbackToSavepoint(string name) => RollbackToSavepointCount++;
 
-        public Task RollbackToSavepointAsync(string name, CancellationToken cancellationToken = default)
+        public Task RollbackToSavepointAsync(
+            string name,
+            CancellationToken cancellationToken = default
+        )
         {
             RollbackToSavepointCount++;
             return Task.CompletedTask;
@@ -527,7 +584,10 @@ public class UnitOfWorkTests
 
         public void ReleaseSavepoint(string name) => ReleaseSavepointCount++;
 
-        public Task ReleaseSavepointAsync(string name, CancellationToken cancellationToken = default)
+        public Task ReleaseSavepointAsync(
+            string name,
+            CancellationToken cancellationToken = default
+        )
         {
             ReleaseSavepointCount++;
             return Task.CompletedTask;
@@ -535,8 +595,6 @@ public class UnitOfWorkTests
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() { }
     }
 }

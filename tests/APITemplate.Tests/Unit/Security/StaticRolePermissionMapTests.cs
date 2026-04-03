@@ -1,5 +1,5 @@
-using Identity.Application.Common.Security;
-using Identity.Domain.Enums;
+using Identity.Common.Security;
+using Identity.Enums;
 using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;

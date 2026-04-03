@@ -1,5 +1,4 @@
 using APITemplate.Application.Common.Security;
-using SharedKernel.Application.Startup;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
@@ -19,6 +18,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
+using SharedKernel.Application.Startup;
 using StackExchange.Redis;
 
 namespace APITemplate.Tests.Integration.Helpers;

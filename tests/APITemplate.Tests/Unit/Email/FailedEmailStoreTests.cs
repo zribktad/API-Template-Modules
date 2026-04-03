@@ -1,5 +1,4 @@
 using APITemplate.Application.Common.Email;
-using SharedKernel.Application.Options;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Email;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using SharedKernel.Application.Options;
 using Shouldly;
 using Xunit;
 

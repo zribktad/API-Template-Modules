@@ -1,0 +1,16 @@
+global using ProductCatalog.Events;
+global using ProductCatalog.Features.Category;
+global using ProductCatalog.Features.Category.DTOs;
+global using ProductCatalog.Features.Product;
+global using ProductCatalog.Features.Product.DTOs;
+global using ProductCatalog.Features.ProductData;
+global using ProductCatalog.Features.ProductData.DTOs;
+global using ProductCatalog.GraphQL.Models;
+global using Reviews.Application.Features.ProductReview;
+global using Reviews.Application.Features.ProductReview.DTOs;
+global using SharedKernel.Application.DTOs;
+global using SharedKernel.Application.Events;
+global using SharedKernel.Contracts.Api;
+global using SharedKernel.Contracts.Events;
+global using SharedKernel.Contracts.Security;
+global using SharedKernel.Domain.Common;

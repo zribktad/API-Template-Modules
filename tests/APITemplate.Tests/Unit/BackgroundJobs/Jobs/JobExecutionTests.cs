@@ -1,4 +1,4 @@
-using BackgroundJobs.Domain;
+using BackgroundJobs.Shared;
 using Moq;
 using Shouldly;
 using Xunit;

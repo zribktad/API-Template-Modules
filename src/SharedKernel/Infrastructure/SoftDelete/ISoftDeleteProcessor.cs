@@ -1,6 +1,6 @@
-using SharedKernel.Domain.Entities.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using SharedKernel.Domain.Entities.Contracts;
 
 namespace SharedKernel.Infrastructure.SoftDelete;
 

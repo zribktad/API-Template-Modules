@@ -1,12 +1,12 @@
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Options;
 using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Options;
+using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
@@ -28,7 +28,7 @@ public class AuthBootstrapSeederTests
             IsActive = false,
             IsDeleted = true,
             DeletedAtUtc = DateTime.UtcNow,
-            DeletedBy = Guid.NewGuid()
+            DeletedBy = Guid.NewGuid(),
         };
 
         dbContext.Tenants.Add(tenant);
@@ -37,8 +37,8 @@ public class AuthBootstrapSeederTests
         var sut = CreateSeeder(dbContext);
         await sut.SeedAsync(ct);
 
-        var restoredTenant = await dbContext.Tenants
-            .IgnoreQueryFilters()
+        var restoredTenant = await dbContext
+            .Tenants.IgnoreQueryFilters()
             .SingleAsync(t => t.Code == "default", ct);
 
         restoredTenant.IsActive.ShouldBeTrue();
@@ -56,8 +56,8 @@ public class AuthBootstrapSeederTests
         var sut = CreateSeeder(dbContext);
         await sut.SeedAsync(ct);
 
-        var tenant = await dbContext.Tenants
-            .IgnoreQueryFilters()
+        var tenant = await dbContext
+            .Tenants.IgnoreQueryFilters()
             .SingleAsync(t => t.Code == "default", ct);
 
         tenant.ShouldNotBeNull();
@@ -81,16 +81,15 @@ public class AuthBootstrapSeederTests
             [],
             new AppUserEntityNormalizationService(),
             stateManager,
-            new SoftDeleteProcessor(stateManager));
+            new SoftDeleteProcessor(stateManager)
+        );
     }
 
     private static AuthBootstrapSeeder CreateSeeder(AppDbContext dbContext)
     {
-        var tenantOptions = Options.Create(new BootstrapTenantOptions
-        {
-            Code = "default",
-            Name = "Default Tenant"
-        });
+        var tenantOptions = Options.Create(
+            new BootstrapTenantOptions { Code = "default", Name = "Default Tenant" }
+        );
 
         return new AuthBootstrapSeeder(dbContext, tenantOptions);
     }

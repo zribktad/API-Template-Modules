@@ -1,6 +1,6 @@
-using SharedKernel.Application.Middleware;
 using ErrorOr;
 using FluentValidation;
+using SharedKernel.Application.Middleware;
 using Shouldly;
 using Wolverine;
 using Xunit;

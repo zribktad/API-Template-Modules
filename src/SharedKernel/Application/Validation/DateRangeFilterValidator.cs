@@ -1,5 +1,5 @@
-using SharedKernel.Application.Contracts;
 using FluentValidation;
+using SharedKernel.Application.Contracts;
 
 namespace SharedKernel.Application.Validation;
 

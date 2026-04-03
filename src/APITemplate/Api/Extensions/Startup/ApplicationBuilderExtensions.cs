@@ -1,10 +1,10 @@
 using APITemplate.Api.Middleware;
-using Chatting.Api;
-using FileStorage.Api;
+using Chatting;
+using FileStorage;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using ProductCatalog.Api;
+using ProductCatalog;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;

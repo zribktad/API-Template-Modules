@@ -289,8 +289,8 @@ internal static class PackagePolicyTestFiles
                 "src",
                 "Modules",
                 "Identity",
-                "Identity.Application",
-                "Identity.Application.csproj"
+                "Identity.Core",
+                "Identity.csproj"
             ),
             Path.Combine(
                 repoRoot,
@@ -298,7 +298,7 @@ internal static class PackagePolicyTestFiles
                 "Modules",
                 "ProductCatalog",
                 "ProductCatalog.Domain",
-                "ProductCatalog.Domain.csproj"
+                "ProductCatalog.csproj"
             ),
             Path.Combine(
                 repoRoot,
@@ -306,7 +306,7 @@ internal static class PackagePolicyTestFiles
                 "Modules",
                 "ProductCatalog",
                 "ProductCatalog.Application",
-                "ProductCatalog.Application.csproj"
+                "ProductCatalog.csproj"
             ),
             Path.Combine(
                 repoRoot,
@@ -314,7 +314,7 @@ internal static class PackagePolicyTestFiles
                 "Modules",
                 "ProductCatalog",
                 "ProductCatalog.Infrastructure",
-                "ProductCatalog.Infrastructure.csproj"
+                "ProductCatalog.csproj"
             ),
             Path.Combine(
                 repoRoot,
@@ -322,31 +322,31 @@ internal static class PackagePolicyTestFiles
                 "Modules",
                 "ProductCatalog",
                 "ProductCatalog.Api",
-                "ProductCatalog.Api.csproj"
+                "ProductCatalog.csproj"
             ),
             Path.Combine(
                 repoRoot,
                 "src",
                 "Modules",
                 "Reviews",
-                "Reviews.Domain",
-                "Reviews.Domain.csproj"
+                "Reviews.Core",
+                "Reviews.Core.csproj"
             ),
             Path.Combine(
                 repoRoot,
                 "src",
                 "Modules",
                 "Reviews",
-                "Reviews.Application",
-                "Reviews.Application.csproj"
+                "Reviews.Core",
+                "Reviews.Core.csproj"
             ),
             Path.Combine(
                 repoRoot,
                 "src",
                 "Modules",
                 "Reviews",
-                "Reviews.Infrastructure",
-                "Reviews.Infrastructure.csproj"
+                "Reviews.Host",
+                "Reviews.Host.csproj"
             ),
         };
 

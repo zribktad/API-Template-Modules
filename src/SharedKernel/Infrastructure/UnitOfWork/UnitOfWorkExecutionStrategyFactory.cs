@@ -1,7 +1,7 @@
-using SharedKernel.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
+using SharedKernel.Domain.Options;
 
 namespace SharedKernel.Infrastructure.UnitOfWork;
 

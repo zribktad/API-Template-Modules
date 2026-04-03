@@ -1,5 +1,5 @@
-using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.BackgroundJobs.Validation;
+using SharedKernel.Application.Options;
 using Shouldly;
 using Xunit;
 

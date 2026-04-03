@@ -6,7 +6,8 @@ public sealed record ApiErrorResponse(
     int Status,
     string Detail,
     string ErrorCode,
-    string TraceId);
+    string TraceId
+);
 
 public sealed record ProductDataContractResponse(
     Guid Id,
@@ -15,4 +16,5 @@ public sealed record ProductDataContractResponse(
     string? Description,
     DateTime CreatedAt,
     string? Format,
-    long? FileSizeBytes);
+    long? FileSizeBytes
+);

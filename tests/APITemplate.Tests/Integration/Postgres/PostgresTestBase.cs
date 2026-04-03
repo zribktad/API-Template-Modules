@@ -1,8 +1,4 @@
 using APITemplate.Api.Extensions;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Infrastructure.SoftDelete;
-using SharedKernel.Infrastructure.UnitOfWork;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
@@ -13,6 +9,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Respawn;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Infrastructure.SoftDelete;
+using SharedKernel.Infrastructure.UnitOfWork;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Postgres;

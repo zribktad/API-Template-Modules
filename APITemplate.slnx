@@ -3,48 +3,28 @@
     <Project Path="src/APITemplate/Api/APITemplate.Api.csproj" />
   </Folder>
   <Folder Name="/src/Modules/BackgroundJobs/">
-    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.Domain/BackgroundJobs.Domain.csproj" />
-    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.Application/BackgroundJobs.Application.csproj" />
-    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.Infrastructure/BackgroundJobs.Infrastructure.csproj" />
-    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.Api/BackgroundJobs.Api.csproj" />
+    <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Chatting/">
-    <Project Path="src/Modules/Chatting/Chatting.Application/Chatting.Application.csproj" />
-    <Project Path="src/Modules/Chatting/Chatting.Api/Chatting.Api.csproj" />
+    <Project Path="src/Modules/Chatting/Chatting.csproj" />
   </Folder>
   <Folder Name="/src/Modules/FileStorage/">
-    <Project Path="src/Modules/FileStorage/FileStorage.Domain/FileStorage.Domain.csproj" />
-    <Project Path="src/Modules/FileStorage/FileStorage.Application/FileStorage.Application.csproj" />
-    <Project Path="src/Modules/FileStorage/FileStorage.Infrastructure/FileStorage.Infrastructure.csproj" />
-    <Project Path="src/Modules/FileStorage/FileStorage.Api/FileStorage.Api.csproj" />
+    <Project Path="src/Modules/FileStorage/FileStorage.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Identity/">
-    <Project Path="src/Modules/Identity/Identity.Domain/Identity.Domain.csproj" />
-    <Project Path="src/Modules/Identity/Identity.Application/Identity.Application.csproj" />
-    <Project Path="src/Modules/Identity/Identity.Infrastructure/Identity.Infrastructure.csproj" />
-    <Project Path="src/Modules/Identity/Identity.Api/Identity.Api.csproj" />
+    <Project Path="src/Modules/Identity/Identity.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Notifications/">
-    <Project Path="src/Modules/Notifications/Notifications.Domain/Notifications.Domain.csproj" />
-    <Project Path="src/Modules/Notifications/Notifications.Application/Notifications.Application.csproj" />
-    <Project Path="src/Modules/Notifications/Notifications.Infrastructure/Notifications.Infrastructure.csproj" />
-    <Project Path="src/Modules/Notifications/Notifications.Api/Notifications.Api.csproj" />
+    <Project Path="src/Modules/Notifications/Notifications.csproj" />
   </Folder>
   <Folder Name="/src/Modules/ProductCatalog/">
-    <Project Path="src/Modules/ProductCatalog/ProductCatalog.Domain/ProductCatalog.Domain.csproj" />
-    <Project Path="src/Modules/ProductCatalog/ProductCatalog.Application/ProductCatalog.Application.csproj" />
-    <Project Path="src/Modules/ProductCatalog/ProductCatalog.Infrastructure/ProductCatalog.Infrastructure.csproj" />
-    <Project Path="src/Modules/ProductCatalog/ProductCatalog.Api/ProductCatalog.Api.csproj" />
+    <Project Path="src/Modules/ProductCatalog/ProductCatalog.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Reviews/">
-    <Project Path="src/Modules/Reviews/Reviews.Domain/Reviews.Domain.csproj" />
-    <Project Path="src/Modules/Reviews/Reviews.Application/Reviews.Application.csproj" />
-    <Project Path="src/Modules/Reviews/Reviews.Infrastructure/Reviews.Infrastructure.csproj" />
-    <Project Path="src/Modules/Reviews/Reviews.Api/Reviews.Api.csproj" />
+    <Project Path="src/Modules/Reviews/Reviews.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Webhooks/">
-    <Project Path="src/Modules/Webhooks/Core/Webhooks.Core.csproj" />
-    <Project Path="src/Modules/Webhooks/Host/Webhooks.Host.csproj" />
+    <Project Path="src/Modules/Webhooks/Webhooks.csproj" />
   </Folder>
   <Folder Name="/src/SharedKernel/">
     <Project Path="src/SharedKernel/SharedKernel.csproj" />
@@ -81,3 +61,5 @@
     <File Path=".dockerignore" />
   </Folder>
 </Solution>
+
+

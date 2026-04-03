@@ -1,4 +1,3 @@
-using SharedKernel.Application.Context;
 using APITemplate.Application.Features.User.DTOs;
 using APITemplate.Application.Features.User.Specifications;
 using APITemplate.Domain.Entities;
@@ -6,9 +5,10 @@ using APITemplate.Domain.Enums;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Application.Context;
+using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
@@ -79,7 +79,10 @@ public class UserRepositoryTests : IDisposable
     [Fact]
     public async Task ExistsByEmailAsync_WhenNotExists_ReturnsFalse()
     {
-        var result = await _sut.ExistsByEmailAsync("nonexistent@test.com", TestContext.Current.CancellationToken);
+        var result = await _sut.ExistsByEmailAsync(
+            "nonexistent@test.com",
+            TestContext.Current.CancellationToken
+        );
 
         result.ShouldBeFalse();
     }
@@ -92,7 +95,10 @@ public class UserRepositoryTests : IDisposable
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync(ct);
 
-        var result = await _sut.ExistsByUsernameAsync(AppUser.NormalizeUsername("existinguser"), ct);
+        var result = await _sut.ExistsByUsernameAsync(
+            AppUser.NormalizeUsername("existinguser"),
+            ct
+        );
 
         result.ShouldBeTrue();
     }
@@ -100,7 +106,10 @@ public class UserRepositoryTests : IDisposable
     [Fact]
     public async Task ExistsByUsernameAsync_WhenNotExists_ReturnsFalse()
     {
-        var result = await _sut.ExistsByUsernameAsync("NONEXISTENT", TestContext.Current.CancellationToken);
+        var result = await _sut.ExistsByUsernameAsync(
+            "NONEXISTENT",
+            TestContext.Current.CancellationToken
+        );
 
         result.ShouldBeFalse();
     }
@@ -133,10 +142,14 @@ public class UserRepositoryTests : IDisposable
         var ct = TestContext.Current.CancellationToken;
         _dbContext.Users.AddRange(
             CreateUser("AlphaAdmin", "alpha@example.com"),
-            CreateUser("betauser", "beta@example.com"));
+            CreateUser("betauser", "beta@example.com")
+        );
         await _dbContext.SaveChangesAsync(ct);
 
-        var result = await _sut.ListAsync(new UserFilterSpecification(new UserFilter(Username: "alpha")), ct);
+        var result = await _sut.ListAsync(
+            new UserFilterSpecification(new UserFilter(Username: "alpha")),
+            ct
+        );
 
         result.Select(user => user.Username).ShouldBe(["AlphaAdmin"]);
     }
@@ -147,10 +160,14 @@ public class UserRepositoryTests : IDisposable
         var ct = TestContext.Current.CancellationToken;
         _dbContext.Users.AddRange(
             CreateUser("exact", "Exact.Match@Test.com"),
-            CreateUser("partial", "other@test.com"));
+            CreateUser("partial", "other@test.com")
+        );
         await _dbContext.SaveChangesAsync(ct);
 
-        var result = await _sut.ListAsync(new UserFilterSpecification(new UserFilter(Email: "exact.match@test.com")), ct);
+        var result = await _sut.ListAsync(
+            new UserFilterSpecification(new UserFilter(Email: "exact.match@test.com")),
+            ct
+        );
 
         result.Select(user => user.Username).ShouldBe(["exact"]);
     }
@@ -166,7 +183,7 @@ public class UserRepositoryTests : IDisposable
             IsActive = true,
             Role = UserRole.User,
             TenantId = TestTenantId,
-            Audit = new() { CreatedAtUtc = DateTime.UtcNow }
+            Audit = new() { CreatedAtUtc = DateTime.UtcNow },
         };
     }
 
@@ -182,7 +199,8 @@ public class UserRepositoryTests : IDisposable
             [],
             new AppUserEntityNormalizationService(),
             stateManager,
-            new SoftDeleteProcessor(stateManager));
+            new SoftDeleteProcessor(stateManager)
+        );
     }
 
     private sealed class TestTenantProvider : ITenantProvider

@@ -1,6 +1,6 @@
-using Identity.Application.Common.Security;
-using Identity.Application.Options;
-using Identity.Infrastructure.Security.Keycloak;
+using Identity.Common.Security;
+using Identity.Options;
+using Identity.Security.Keycloak;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OpenApi;

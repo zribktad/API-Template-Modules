@@ -1,5 +1,5 @@
-using ProductCatalog.Application.Features.Product.DTOs;
-using ProductCatalog.Application.Features.Product.Validation;
+using ProductCatalog.Features.Product.DTOs;
+using ProductCatalog.Features.Product.Validation;
 using Shouldly;
 using Xunit;
 

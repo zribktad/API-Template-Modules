@@ -1,4 +1,4 @@
-using Identity.Application.Common.Security;
+using Identity.Common.Security;
 using Microsoft.AspNetCore.Authentication;
 
 namespace APITemplate.Api.Middleware;

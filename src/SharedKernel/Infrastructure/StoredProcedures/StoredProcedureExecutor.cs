@@ -1,5 +1,5 @@
-using SharedKernel.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Domain.Interfaces;
 
 namespace SharedKernel.Infrastructure.StoredProcedures;
 

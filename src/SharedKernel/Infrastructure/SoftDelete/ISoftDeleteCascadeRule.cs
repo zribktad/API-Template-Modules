@@ -1,5 +1,5 @@
-using SharedKernel.Domain.Entities.Contracts;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Domain.Entities.Contracts;
 
 namespace SharedKernel.Infrastructure.SoftDelete;
 

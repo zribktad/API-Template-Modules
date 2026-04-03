@@ -1,12 +1,12 @@
 using System.Data;
 using APITemplate.Api.Extensions;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Options;
 using APITemplate.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Options;
 using Shouldly;
 using Xunit;
 

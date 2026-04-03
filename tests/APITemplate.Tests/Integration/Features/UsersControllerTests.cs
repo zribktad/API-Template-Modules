@@ -26,12 +26,22 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
             _factory.Services,
             username: "regular-user",
             email: "regular-user@example.com",
-            ct: ct);
+            ct: ct
+        );
 
-        IntegrationAuthHelper.Authenticate(_client, user.Id, tenant.Id, user.Username, UserRole.User);
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            user.Id,
+            tenant.Id,
+            user.Username,
+            UserRole.User
+        );
 
         var response = await _client.GetAsync("/api/v1/users/me", ct);
-        var payload = await response.Content.ReadFromJsonAsync<UserResponse>(TestJsonOptions.CaseInsensitive, ct);
+        var payload = await response.Content.ReadFromJsonAsync<UserResponse>(
+            TestJsonOptions.CaseInsensitive,
+            ct
+        );
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         payload.ShouldNotBeNull();

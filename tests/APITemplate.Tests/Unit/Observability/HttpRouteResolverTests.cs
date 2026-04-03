@@ -13,10 +13,8 @@ public sealed class HttpRouteResolverTests
     {
         var resolvedRoute = HttpRouteResolver.ReplaceVersionToken(
             "api/v{version:apiVersion}/Products",
-            new RouteValueDictionary
-            {
-                ["version"] = "1"
-            });
+            new RouteValueDictionary { ["version"] = "1" }
+        );
 
         resolvedRoute.ShouldBe("api/v1/Products");
     }
@@ -26,7 +24,8 @@ public sealed class HttpRouteResolverTests
     {
         var resolvedRoute = HttpRouteResolver.ReplaceVersionToken(
             "api/v{version:apiVersion}/Products",
-            new RouteValueDictionary());
+            new RouteValueDictionary()
+        );
 
         resolvedRoute.ShouldBe("api/v{version:apiVersion}/Products");
     }

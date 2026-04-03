@@ -13,6 +13,5 @@ public static class ModuleRegistrationExtensions
         this IServiceCollection services,
         IConfiguration configuration
     )
-        where TContext : DbContext =>
-        new(services, configuration);
+        where TContext : DbContext => new(services, configuration);
 }
