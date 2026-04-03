@@ -1,3 +1,4 @@
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using ProductCatalog.Infrastructure.Persistence;
 using ProductApplicationRepository = ProductCatalog.Application.Features.Product.Repositories.IProductRepository;
@@ -28,7 +29,7 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
     }
 
     /// <summary>Returns a single-query paged result of products matching the given filter.</summary>
-    public async Task<PagedResponse<ProductResponse>> GetPagedAsync(
+    public async Task<ErrorOr<PagedResponse<ProductResponse>>> GetPagedAsync(
         ProductFilter filter,
         CancellationToken ct = default
     )

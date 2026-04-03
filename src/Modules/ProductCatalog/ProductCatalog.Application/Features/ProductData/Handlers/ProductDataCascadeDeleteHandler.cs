@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Polly;
 using Polly.Registry;
 using ProductCatalog.Application.Logging;
 
@@ -14,7 +15,7 @@ public sealed class ProductDataCascadeDeleteHandler
         CancellationToken ct
     )
     {
-        var pipeline = resiliencePipelineProvider.GetPipeline(
+        ResiliencePipeline pipeline = resiliencePipelineProvider.GetPipeline(
             ResiliencePipelineKeys.MongoProductDataDelete
         );
 

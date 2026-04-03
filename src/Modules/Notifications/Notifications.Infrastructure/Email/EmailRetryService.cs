@@ -5,6 +5,7 @@ using Notifications.Application.Common.Email;
 using Notifications.Domain;
 using Notifications.Infrastructure.Email;
 using Notifications.Infrastructure.Logging;
+using Polly;
 using Polly.Registry;
 using SharedKernel.Application.Options.BackgroundJobs;
 using SharedKernel.Application.Resilience;
@@ -59,10 +60,12 @@ public sealed class EmailRetryService : IEmailRetryService
         CancellationToken ct = default
     )
     {
-        var pipeline = _resiliencePipelineProvider.GetPipeline(ResiliencePipelineKeys.SmtpSend);
-        var claimedAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
-        var claimUntilUtc = claimedAtUtc.AddMinutes(_options.ClaimLeaseMinutes);
-        var emails = await _repository.ClaimRetryableBatchAsync(
+        ResiliencePipeline pipeline = _resiliencePipelineProvider.GetPipeline(
+            ResiliencePipelineKeys.SmtpSend
+        );
+        DateTime claimedAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
+        DateTime claimUntilUtc = claimedAtUtc.AddMinutes(_options.ClaimLeaseMinutes);
+        List<FailedEmail> emails = await _repository.ClaimRetryableBatchAsync(
             maxRetryAttempts,
             batchSize,
             _claimOwner,
@@ -71,7 +74,7 @@ public sealed class EmailRetryService : IEmailRetryService
             ct
         );
 
-        foreach (var email in emails)
+        foreach (FailedEmail email in emails)
         {
             try
             {
@@ -117,13 +120,13 @@ public sealed class EmailRetryService : IEmailRetryService
         CancellationToken ct = default
     )
     {
-        var cutoff = _timeProvider.GetUtcNow().UtcDateTime.AddHours(-deadLetterAfterHours);
+        DateTime cutoff = _timeProvider.GetUtcNow().UtcDateTime.AddHours(-deadLetterAfterHours);
         int processed;
 
         do
         {
-            var claimedAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
-            var expired = await _repository.ClaimExpiredBatchAsync(
+            DateTime claimedAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
+            List<FailedEmail> expired = await _repository.ClaimExpiredBatchAsync(
                 cutoff,
                 batchSize,
                 _claimOwner,
@@ -133,7 +136,7 @@ public sealed class EmailRetryService : IEmailRetryService
             );
             processed = expired.Count;
 
-            foreach (var email in expired)
+            foreach (FailedEmail email in expired)
             {
                 email.IsDeadLettered = true;
                 email.ClaimedBy = null;

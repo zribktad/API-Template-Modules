@@ -1,6 +1,6 @@
+using Asp.Versioning;
 using Contracts.Api;
 using Contracts.Security;
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
@@ -26,10 +26,9 @@ public sealed class CategoriesController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<PagedResponse<CategoryResponse>>>(
-            new GetCategoriesQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<CategoryResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<CategoryResponse>>
+        >(new GetCategoriesQuery(filter), ct);
         return result.ToActionResult(this);
     }
 
@@ -39,7 +38,7 @@ public sealed class CategoriesController(IMessageBus bus) : ApiControllerBase
     [OutputCache(PolicyName = CacheTags.Categories)]
     public async Task<ActionResult<CategoryResponse>> GetById(Guid id, CancellationToken ct)
     {
-        var result = await bus.InvokeAsync<ErrorOr<CategoryResponse>>(
+        ErrorOr<CategoryResponse> result = await bus.InvokeAsync<ErrorOr<CategoryResponse>>(
             new GetCategoryByIdQuery(id),
             ct
         );
@@ -54,7 +53,7 @@ public sealed class CategoriesController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new CreateCategoriesCommand(request),
             ct
         );
@@ -69,7 +68,7 @@ public sealed class CategoriesController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new UpdateCategoriesCommand(request),
             ct
         );
@@ -84,7 +83,7 @@ public sealed class CategoriesController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new DeleteCategoriesCommand(request),
             ct
         );
@@ -103,13 +102,9 @@ public sealed class CategoriesController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<ProductCategoryStatsResponse>>(
-            new GetCategoryStatsQuery(id),
-            ct
-        );
+        ErrorOr<ProductCategoryStatsResponse> result = await bus.InvokeAsync<
+            ErrorOr<ProductCategoryStatsResponse>
+        >(new GetCategoryStatsQuery(id), ct);
         return result.ToActionResult(this);
     }
 }
-
-
-

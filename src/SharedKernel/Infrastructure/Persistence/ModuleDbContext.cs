@@ -1,4 +1,7 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata;
 using SharedKernel.Application.Context;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Infrastructure.Auditing;
@@ -63,7 +66,7 @@ public abstract class ModuleDbContext : DbContext
 
     protected void ApplyGlobalFilters(ModelBuilder modelBuilder)
     {
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        foreach (IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (
                 !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType)
@@ -73,7 +76,7 @@ public abstract class ModuleDbContext : DbContext
                 continue;
             }
 
-            var method = typeof(ModuleDbContext)
+            MethodInfo method = typeof(ModuleDbContext)
                 .GetMethod(
                     nameof(SetGlobalFilter),
                     System.Reflection.BindingFlags.Instance
@@ -99,11 +102,11 @@ public abstract class ModuleDbContext : DbContext
 
     private async Task ApplyEntityAuditingAsync(CancellationToken cancellationToken)
     {
-        var now = _timeProvider.GetUtcNow().UtcDateTime;
-        var actor = _actorProvider.ActorId;
+        DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
+        Guid actor = _actorProvider.ActorId;
 
         foreach (
-            var entry in ChangeTracker
+            EntityEntry? entry in ChangeTracker
                 .Entries()
                 .Where(e => e.Entity is IAuditableTenantEntity)
                 .ToList()

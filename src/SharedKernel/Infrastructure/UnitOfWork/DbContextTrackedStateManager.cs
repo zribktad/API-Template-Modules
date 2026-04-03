@@ -26,9 +26,9 @@ internal sealed class DbContextTrackedStateManager(DbContext dbContext)
 
     public void Restore(IReadOnlyDictionary<object, TrackedEntitySnapshot> snapshot)
     {
-        foreach (var entry in dbContext.ChangeTracker.Entries().ToList())
+        foreach (EntityEntry? entry in dbContext.ChangeTracker.Entries().ToList())
         {
-            if (!snapshot.TryGetValue(entry.Entity, out var entitySnapshot))
+            if (!snapshot.TryGetValue(entry.Entity, out TrackedEntitySnapshot? entitySnapshot))
             {
                 entry.State = EntityState.Detached;
                 continue;

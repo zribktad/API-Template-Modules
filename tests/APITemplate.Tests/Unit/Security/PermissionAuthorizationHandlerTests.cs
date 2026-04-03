@@ -23,7 +23,7 @@ public class PermissionAuthorizationHandlerTests
     public async Task UserWithCorrectRole_Succeeds()
     {
         var requirement = new PermissionRequirement(Permission.Products.Read);
-        var user = CreatePrincipal(UserRole.User);
+        ClaimsPrincipal user = CreatePrincipal(UserRole.User);
         var context = new AuthorizationHandlerContext([requirement], user, null);
 
         await _handler.HandleAsync(context);
@@ -35,7 +35,7 @@ public class PermissionAuthorizationHandlerTests
     public async Task UserWithoutPermission_Fails()
     {
         var requirement = new PermissionRequirement(Permission.Products.Create);
-        var user = CreatePrincipal(UserRole.User);
+        ClaimsPrincipal user = CreatePrincipal(UserRole.User);
         var context = new AuthorizationHandlerContext([requirement], user, null);
 
         await _handler.HandleAsync(context);
@@ -47,7 +47,7 @@ public class PermissionAuthorizationHandlerTests
     public async Task PlatformAdmin_SucceedsForAnyPermission()
     {
         var requirement = new PermissionRequirement(Permission.Users.Delete);
-        var user = CreatePrincipal(UserRole.PlatformAdmin);
+        ClaimsPrincipal user = CreatePrincipal(UserRole.PlatformAdmin);
         var context = new AuthorizationHandlerContext([requirement], user, null);
 
         await _handler.HandleAsync(context);
@@ -59,7 +59,7 @@ public class PermissionAuthorizationHandlerTests
     public async Task TenantAdmin_SucceedsForProductCreate()
     {
         var requirement = new PermissionRequirement(Permission.Products.Create);
-        var user = CreatePrincipal(UserRole.TenantAdmin);
+        ClaimsPrincipal user = CreatePrincipal(UserRole.TenantAdmin);
         var context = new AuthorizationHandlerContext([requirement], user, null);
 
         await _handler.HandleAsync(context);
@@ -71,7 +71,7 @@ public class PermissionAuthorizationHandlerTests
     public async Task TenantAdmin_FailsForUserCreate()
     {
         var requirement = new PermissionRequirement(Permission.Users.Create);
-        var user = CreatePrincipal(UserRole.TenantAdmin);
+        ClaimsPrincipal user = CreatePrincipal(UserRole.TenantAdmin);
         var context = new AuthorizationHandlerContext([requirement], user, null);
 
         await _handler.HandleAsync(context);
@@ -93,10 +93,10 @@ public class PermissionAuthorizationHandlerTests
 
     private static ClaimsPrincipal CreatePrincipal(UserRole role)
     {
-        var claims = new[]
+        Claim[] claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Role, role.ToString())
+            new Claim(ClaimTypes.Role, role.ToString()),
         };
         return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
     }

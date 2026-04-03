@@ -4,7 +4,7 @@ This project uses a hybrid validation approach:
 
 - `DataAnnotationsValidator<T>` for simple per-field rules declared directly on DTOs
 - `FluentValidation` for cross-field, conditional, composed, and reusable rules
-- `FluentValidationActionFilter` to execute registered validators automatically before controller actions
+- Wolverine's `UseFluentValidation()` middleware to execute registered validators automatically before handlers run
 
 ---
 
@@ -15,22 +15,24 @@ The validation pipeline is:
 ```text
 HTTP Request body/query
   → Model binding
-  → FluentValidationActionFilter
-      → resolves IValidator<T> from DI
-      → runs DataAnnotationsValidator<T> and any extra FluentValidation rules
-  → If invalid: 400 Bad Request with ValidationProblemDetails
-  → If valid: controller action runs
+  → Controller action
+  → IMessageBus dispatch (Wolverine)
+      → Wolverine FluentValidation middleware
+          → resolves IValidator<T> from DI
+          → runs DataAnnotationsValidator<T> and any extra FluentValidation rules
+  → If invalid: ErrorOr<T> with validation errors → 400 Bad Request
+  → If valid: handler runs
 ```
 
-Registration is done in DI and MVC setup:
+Registration is done in DI and Wolverine setup:
 
 ```csharp
-services.AddControllers(options =>
-{
-    options.Filters.Add<FluentValidationActionFilter>();
-});
-
 services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
+
+builder.Host.UseWolverine(opts =>
+{
+    opts.UseFluentValidation(RegistrationBehavior.ExplicitRegistration);
+});
 ```
 
 There is no per-validator registration and no `AddFluentValidationAutoValidation()` middleware in the current implementation.
@@ -180,20 +182,23 @@ Use this sparingly. Business invariants that depend on broader domain state ofte
 
 ## Service-Level Validation
 
-For business rule violations discovered after request validation, throw the domain `ValidationException`.
+For business rule violations discovered after request validation, return an `ErrorOr` validation error.
 
 ```csharp
-public async Task<ProductResponse> CreateAsync(CreateProductRequest request, CancellationToken ct)
+public static async Task<ErrorOr<ProductResponse>> HandleAsync(
+    CreateProductCommand command,
+    IProductRepository repository,
+    CancellationToken ct)
 {
-    var existing = await _repository.GetByNameAsync(request.Name, ct);
+    var existing = await repository.GetByNameAsync(command.Request.Name, ct);
     if (existing is not null)
-        throw new ValidationException("A product with the same name already exists.");
+        return Error.Conflict(description: "A product with the same name already exists.");
 
     // continue
 }
 ```
 
-`ApiExceptionHandler` converts this into HTTP `400`.
+`ErrorOrValidationMiddleware` converts this into HTTP `409` or `400` via `ProblemDetails`.
 
 ---
 
@@ -249,8 +254,7 @@ The existing tests under `tests/APITemplate.Tests/Unit/Validators/` show both st
 | `Application/Common/Validation/PaginationFilterValidator.cs` | Shared pagination validation |
 | `Application/Common/Validation/DateRangeFilterValidator.cs` | Shared date-range validation |
 | `Application/Common/Validation/SortableFilterValidator.cs` | Shared sort parameter validation |
-| `Api/Filters/FluentValidationActionFilter.cs` | Runs validators for controller action arguments |
+| `Application/Middleware/ErrorOrValidationMiddleware.cs` | Wolverine middleware converting ErrorOr errors to HTTP responses |
 | `Application/Features/Product/Validation/ProductRequestValidatorBase.cs` | Hybrid validator example |
 | `Application/Features/ProductReview/Validation/CreateProductReviewRequestValidator.cs` | Attribute-only validator example |
-| `Domain/Exceptions/ValidationException.cs` | Service-layer validation error |
-| `Api/ExceptionHandling/ApiExceptionHandler.cs` | Converts validation exceptions to HTTP 400 |
+| `Api/ExceptionHandling/ApiExceptionHandler.cs` | Safety-net handler for `DbUpdateConcurrencyException` (409) and unhandled exceptions (500) |

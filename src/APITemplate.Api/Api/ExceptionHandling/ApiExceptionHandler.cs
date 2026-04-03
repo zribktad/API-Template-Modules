@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Domain.Exceptions;
+using SharedKernel.Application.Errors;
 
 namespace APITemplate.Api.ExceptionHandling;
 
@@ -37,7 +37,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             return true;
         }
 
-        var (statusCode, title, detail, errorCode, metadata) = Resolve(exception);
+        (int statusCode, string? title, string? detail, string? errorCode) = Resolve(exception);
         var problemDetails = new ProblemDetails
         {
             Status = statusCode,
@@ -48,8 +48,6 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         };
 
         problemDetails.Extensions["errorCode"] = errorCode;
-        if (metadata is not null && metadata.Count > 0)
-            problemDetails.Extensions["metadata"] = metadata;
 
         if (statusCode >= StatusCodes.Status500InternalServerError)
             _logger.UnhandledException(exception, statusCode, errorCode, context.TraceIdentifier);
@@ -84,32 +82,17 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             || cancellationToken.IsCancellationRequested
         );
 
-    private static (
-        int StatusCode,
-        string Title,
-        string Detail,
-        string ErrorCode,
-        IReadOnlyDictionary<string, object?>? Metadata
-    ) Resolve(Exception exception)
+    private static (int StatusCode, string Title, string Detail, string ErrorCode) Resolve(
+        Exception exception
+    )
     {
-        if (exception is AppException appException)
-        {
-            var (statusCode, title, defaultErrorCode) = MapToHttp(appException);
-            var errorCode = string.IsNullOrWhiteSpace(appException.ErrorCode)
-                ? defaultErrorCode
-                : appException.ErrorCode;
-
-            return (statusCode, title, appException.Message, errorCode!, appException.Metadata);
-        }
-
         if (exception is DbUpdateConcurrencyException)
         {
             return (
                 StatusCodes.Status409Conflict,
                 "Conflict",
                 "The resource was modified by another request. Please retrieve the latest version and retry.",
-                ErrorCatalog.General.ConcurrencyConflict,
-                null
+                ErrorCatalog.General.ConcurrencyConflict
             );
         }
 
@@ -117,45 +100,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             StatusCodes.Status500InternalServerError,
             "Internal Server Error",
             "An unexpected error occurred.",
-            ErrorCatalog.General.Unknown,
-            null
+            ErrorCatalog.General.Unknown
         );
     }
-
-    private static (int StatusCode, string Title, string ErrorCode) MapToHttp(
-        AppException exception
-    ) =>
-        exception switch
-        {
-            ValidationException => (
-                StatusCodes.Status400BadRequest,
-                "Bad Request",
-                ErrorCatalog.General.ValidationFailed
-            ),
-            UnauthorizedException => (
-                StatusCodes.Status401Unauthorized,
-                "Unauthorized",
-                ErrorCatalog.General.Unknown
-            ),
-            ForbiddenException => (
-                StatusCodes.Status403Forbidden,
-                "Forbidden",
-                ErrorCatalog.Auth.Forbidden
-            ),
-            NotFoundException => (
-                StatusCodes.Status404NotFound,
-                "Not Found",
-                ErrorCatalog.General.NotFound
-            ),
-            ConflictException => (
-                StatusCodes.Status409Conflict,
-                "Conflict",
-                ErrorCatalog.General.Conflict
-            ),
-            _ => (
-                StatusCodes.Status500InternalServerError,
-                "Internal Server Error",
-                ErrorCatalog.General.Unknown
-            ),
-        };
 }

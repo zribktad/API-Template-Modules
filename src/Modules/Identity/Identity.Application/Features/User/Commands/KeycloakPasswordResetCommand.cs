@@ -17,7 +17,7 @@ public sealed class KeycloakPasswordResetCommandHandler
         CancellationToken ct
     )
     {
-        var user = await repository.FindByEmailAsync(command.Request.Email, ct);
+        AppUser? user = await repository.FindByEmailAsync(command.Request.Email, ct);
 
         if (user is null || user.KeycloakUserId is null)
             return Result.Success;

@@ -1,6 +1,6 @@
-using ProductCatalog.Api.GraphQL.Models;
 using ErrorOr;
 using HotChocolate.Authorization;
+using ProductCatalog.Api.GraphQL.Models;
 using Wolverine;
 
 namespace ProductCatalog.Api.GraphQL.Queries;
@@ -31,10 +31,9 @@ public sealed class CategoryQueries
             input?.PageSize ?? PaginationFilter.DefaultPageSize
         );
 
-        var result = await bus.InvokeAsync<ErrorOr<PagedResponse<CategoryResponse>>>(
-            new GetCategoriesQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<CategoryResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<CategoryResponse>>
+        >(new GetCategoriesQuery(filter), ct);
         return new CategoryPageResult(result.ToGraphQLResult());
     }
 
@@ -45,13 +44,10 @@ public sealed class CategoryQueries
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<CategoryResponse>>(
+        ErrorOr<CategoryResponse> result = await bus.InvokeAsync<ErrorOr<CategoryResponse>>(
             new GetCategoryByIdQuery(id),
             ct
         );
         return result.ToGraphQLNullableResult();
     }
 }
-
-
-

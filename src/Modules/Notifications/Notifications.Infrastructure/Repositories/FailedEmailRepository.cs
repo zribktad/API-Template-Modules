@@ -1,8 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Notifications.Domain;
 using Notifications.Infrastructure.Persistence;
 using Notifications.Infrastructure.StoredProcedures;
 using SharedKernel.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace Notifications.Infrastructure.Repositories;
 
@@ -15,7 +15,10 @@ public sealed class FailedEmailRepository : IFailedEmailRepository
     private readonly NotificationsDbContext _dbContext;
     private readonly IStoredProcedureExecutor _executor;
 
-    public FailedEmailRepository(NotificationsDbContext dbContext, IStoredProcedureExecutor executor)
+    public FailedEmailRepository(
+        NotificationsDbContext dbContext,
+        IStoredProcedureExecutor executor
+    )
     {
         _dbContext = dbContext;
         _executor = executor;
@@ -45,7 +48,7 @@ public sealed class FailedEmailRepository : IFailedEmailRepository
             claimedAtUtc,
             claimedUntilUtc
         );
-        var result = await _executor.QueryManyAsync(procedure, ct);
+        IReadOnlyList<FailedEmail> result = await _executor.QueryManyAsync(procedure, ct);
         return result.ToList();
     }
 
@@ -66,7 +69,7 @@ public sealed class FailedEmailRepository : IFailedEmailRepository
             claimedAtUtc,
             claimedUntilUtc
         );
-        var result = await _executor.QueryManyAsync(procedure, ct);
+        IReadOnlyList<FailedEmail> result = await _executor.QueryManyAsync(procedure, ct);
         return result.ToList();
     }
 

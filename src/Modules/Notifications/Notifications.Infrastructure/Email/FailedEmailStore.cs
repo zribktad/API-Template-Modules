@@ -49,10 +49,11 @@ public sealed class FailedEmailStore : IFailedEmailStore
 
         try
         {
-            using var scope = _scopeFactory.CreateScope();
-            var repository = scope.ServiceProvider.GetRequiredService<IFailedEmailRepository>();
-            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
+            using IServiceScope scope = _scopeFactory.CreateScope();
+            IFailedEmailRepository repository =
+                scope.ServiceProvider.GetRequiredService<IFailedEmailRepository>();
+            IUnitOfWork unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            TimeProvider timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
             var failedEmail = new FailedEmail
             {

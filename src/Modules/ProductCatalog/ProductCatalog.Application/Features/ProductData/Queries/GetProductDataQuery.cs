@@ -1,6 +1,6 @@
+using ErrorOr;
 using ProductCatalog.Application.Features.ProductData.Mappings;
 using ProductCatalog.Domain.Interfaces;
-using ErrorOr;
 
 namespace ProductCatalog.Application.Features.ProductData;
 
@@ -14,9 +14,10 @@ public sealed class GetProductDataQueryHandler
         CancellationToken ct
     )
     {
-        var items = await repository.GetAllAsync(request.Type, ct);
+        List<Domain.Entities.ProductData.ProductData> items = await repository.GetAllAsync(
+            request.Type,
+            ct
+        );
         return items.Select(item => item.ToResponse()).ToList();
     }
 }
-
-

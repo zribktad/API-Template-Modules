@@ -171,7 +171,7 @@ public interface IProductRepository : IRepository<Product>
 }
 ```
 
-> `IRepository<T>` inherits from Ardalis `IRepositoryBase<T>` and adds `DeleteAsync(Guid id)`.
+> `IRepository<T>` inherits from Ardalis `IRepositoryBase<T>` and adds `GetPagedAsync` with `ErrorOr` result.
 
 **Implementation** — `Infrastructure/Repositories/{Feature}Repository.cs`:
 
@@ -655,7 +655,7 @@ public sealed class ProductsController(IMessageBus bus) : ApiControllerBase
 > - `bus.InvokeAsync<TResponse>(message, ct)` dispatches to the matching handler and returns the result.
 > - `ApiControllerBase` provides the `[ApiController]` attribute, versioned route template, and helper methods (`OkOrNotFound`, `OkOrUnprocessable`, `CreatedAtGetById`).
 > - Authorization uses `[RequirePermission(...)]` instead of `[Authorize]`.
-> - Validation of controller DTOs is handled automatically by `FluentValidationActionFilter`.
+> - Validation of request DTOs is handled by Wolverine's FluentValidation middleware before the handler runs.
 
 ---
 
@@ -712,8 +712,8 @@ dotnet ef migrations add Add{Feature} --project src/APITemplate
 | **Audit trail** | Auto-stamps `CreatedAtUtc`, `CreatedBy`, `UpdatedAtUtc`, `UpdatedBy` | `AppDbContext.SaveChangesAsync` |
 | **Concurrency** | PostgreSQL `xmin` system column as concurrency token → HTTP 409 on conflict | `ApiExceptionHandler` |
 | **Command validation** | FluentValidation via Wolverine's `UseFluentValidation()` middleware | Wolverine pipeline |
-| **Controller DTO validation** | Data Annotations + FluentValidation via action filter | `FluentValidationActionFilter` |
-| **Error handling** | `AppException` hierarchy → RFC 7807 ProblemDetails | `ApiExceptionHandler` |
+| **Controller DTO validation** | Data Annotations + FluentValidation via Wolverine middleware | Wolverine pipeline |
+| **Error handling** | `ErrorOr<T>` result pattern → RFC 7807 ProblemDetails | `ErrorOrValidationMiddleware`, `ApiExceptionHandler` |
 | **Handler discovery** | Wolverine auto-discovers `{Message}Handler` classes | `UseWolverine()` in host setup |
 | **JWT auth** | `[RequirePermission]` + tenant claim validation | Authorization middleware |
 
@@ -727,8 +727,7 @@ HTTP Request
     → Request Context Middleware (extracts tenant/actor from JWT)
       → Authentication Middleware (validates JWT)
         → Authorization Middleware (checks [RequirePermission])
-          → FluentValidationActionFilter (validates controller DTOs)
-            → Controller action
+          → Controller action
               → IMessageBus.InvokeAsync (Wolverine dispatch)
                 → Wolverine middleware (FluentValidation for commands)
                   → Handler.HandleAsync (business logic)

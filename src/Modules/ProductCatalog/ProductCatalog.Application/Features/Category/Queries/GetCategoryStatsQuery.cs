@@ -1,6 +1,6 @@
+using ErrorOr;
 using ProductCatalog.Application.Features.Category.Mappings;
 using ProductCatalog.Domain.Interfaces;
-using ErrorOr;
 
 namespace ProductCatalog.Application.Features.Category;
 
@@ -16,7 +16,7 @@ public sealed class GetCategoryStatsQueryHandler
         CancellationToken ct
     )
     {
-        var stats = await repository.GetStatsByIdAsync(request.Id, ct);
+        ProductCategoryStats? stats = await repository.GetStatsByIdAsync(request.Id, ct);
 
         if (stats is null)
             return DomainErrors.Categories.NotFound(request.Id);
@@ -24,5 +24,3 @@ public sealed class GetCategoryStatsQueryHandler
         return stats.ToResponse();
     }
 }
-
-

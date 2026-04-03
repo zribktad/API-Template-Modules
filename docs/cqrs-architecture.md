@@ -222,15 +222,9 @@ Validation operates at two levels:
 
 ### Wolverine FluentValidation Middleware
 
-`opts.UseFluentValidation(RegistrationBehavior.ExplicitRegistration)` registers a Wolverine middleware that runs any explicitly registered `IValidator<TMessage>` **before** the handler executes. If validation fails, a `ValidationException` is thrown and the handler is never called.
+`opts.UseFluentValidation(RegistrationBehavior.ExplicitRegistration)` registers a Wolverine middleware that runs any explicitly registered `IValidator<TMessage>` **before** the handler executes. If validation fails, an `ErrorOr` validation error is returned and the handler is never called.
 
 This covers all messages dispatched through `IMessageBus`.
-
-### FluentValidationActionFilter (REST layer)
-
-A global `IAsyncActionFilter` validates controller action arguments against registered `IValidator<T>` instances. If validation fails, it short-circuits with HTTP 400 and a `ValidationProblemDetails` body before the action method runs.
-
-This covers request DTOs bound from `[FromQuery]` / `[FromBody]` that are not wrapped in a command record.
 
 ### Batch Validation
 
@@ -388,7 +382,7 @@ All batch infrastructure lives in `Application/Common/Batch/`.
 | `CacheInvalidationHandler` | Api | Depends on `IOutputCacheInvalidationService` |
 | `UserRegisteredEmailHandler` | Application | Orchestrates email infrastructure |
 | Controllers, GraphQL resolvers | Api | Presentation -- dispatch via `IMessageBus` |
-| `FluentValidationActionFilter` | Api | REST-layer validation filter |
+| `ErrorOrValidationMiddleware` | Application | Wolverine middleware converting ErrorOr errors to HTTP responses |
 | Wolverine configuration (`UseWolverine`) | Api (`Program.cs`) | Infrastructure wiring |
 
 ---

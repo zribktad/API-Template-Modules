@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Results;
 using SharedKernel.Domain.Entities.Contracts;
 
 namespace SharedKernel.Application.Batch.Rules;
@@ -15,7 +16,10 @@ public sealed class FluentValidationBatchRule<TItem>(IValidator<TItem> validator
             if (context.IsFailed(i))
                 continue;
 
-            var validationResult = await _validator.ValidateAsync(context.Items[i], ct);
+            ValidationResult validationResult = await _validator.ValidateAsync(
+                context.Items[i],
+                ct
+            );
             if (!validationResult.IsValid)
             {
                 Guid? id = context.Items[i] is IHasId hasId ? hasId.Id : null;

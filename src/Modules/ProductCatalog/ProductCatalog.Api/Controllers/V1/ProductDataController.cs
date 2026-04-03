@@ -1,6 +1,6 @@
+using Asp.Versioning;
 using Contracts.Api;
 using Contracts.Security;
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
@@ -25,10 +25,9 @@ public sealed class ProductDataController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<List<ProductDataResponse>>>(
-            new GetProductDataQuery(type),
-            ct
-        );
+        ErrorOr<List<ProductDataResponse>> result = await bus.InvokeAsync<
+            ErrorOr<List<ProductDataResponse>>
+        >(new GetProductDataQuery(type), ct);
         return result.ToActionResult(this);
     }
 
@@ -38,7 +37,7 @@ public sealed class ProductDataController(IMessageBus bus) : ApiControllerBase
     [OutputCache(PolicyName = CacheTags.ProductData)]
     public async Task<ActionResult<ProductDataResponse>> GetById(Guid id, CancellationToken ct)
     {
-        var result = await bus.InvokeAsync<ErrorOr<ProductDataResponse>>(
+        ErrorOr<ProductDataResponse> result = await bus.InvokeAsync<ErrorOr<ProductDataResponse>>(
             new GetProductDataByIdQuery(id),
             ct
         );
@@ -53,7 +52,7 @@ public sealed class ProductDataController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<ProductDataResponse>>(
+        ErrorOr<ProductDataResponse> result = await bus.InvokeAsync<ErrorOr<ProductDataResponse>>(
             new CreateImageProductDataCommand(request),
             ct
         );
@@ -68,7 +67,7 @@ public sealed class ProductDataController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<ProductDataResponse>>(
+        ErrorOr<ProductDataResponse> result = await bus.InvokeAsync<ErrorOr<ProductDataResponse>>(
             new CreateVideoProductDataCommand(request),
             ct
         );
@@ -80,10 +79,10 @@ public sealed class ProductDataController(IMessageBus bus) : ApiControllerBase
     [RequirePermission(Permission.ProductData.Delete)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        var result = await bus.InvokeAsync<ErrorOr<Success>>(new DeleteProductDataCommand(id), ct);
+        ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
+            new DeleteProductDataCommand(id),
+            ct
+        );
         return result.ToNoContentResult(this);
     }
 }
-
-
-

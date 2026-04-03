@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
-using Notifications.Application.Common.Email;
 using Fluid;
+using Notifications.Application.Common.Email;
 
 namespace Notifications.Infrastructure.Email;
 
@@ -24,7 +24,7 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
         CancellationToken ct = default
     )
     {
-        var template = await GetOrParseTemplateAsync(templateName);
+        IFluidTemplate template = await GetOrParseTemplateAsync(templateName);
         var context = new TemplateContext(model);
         return await template.RenderAsync(context);
     }
@@ -33,11 +33,10 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
     {
         Lazy<Task<IFluidTemplate>> lazyTemplate = TemplateCache.GetOrAdd(
             templateName,
-            static name =>
-                new Lazy<Task<IFluidTemplate>>(
-                    () => ParseTemplateAsync(name),
-                    LazyThreadSafetyMode.ExecutionAndPublication
-                )
+            static name => new Lazy<Task<IFluidTemplate>>(
+                () => ParseTemplateAsync(name),
+                LazyThreadSafetyMode.ExecutionAndPublication
+            )
         );
 
         return AwaitTemplateAsync(templateName, lazyTemplate);
@@ -78,7 +77,7 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
         var resourceName =
             $"{ResourceAssembly.GetName().Name}.Email.Templates.{templateName}.liquid";
 
-        await using var stream =
+        await using Stream stream =
             ResourceAssembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidOperationException(
                 $"Email template '{templateName}' not found as embedded resource '{resourceName}'."

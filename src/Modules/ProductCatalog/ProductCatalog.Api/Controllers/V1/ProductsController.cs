@@ -1,6 +1,6 @@
+using Asp.Versioning;
 using Contracts.Api;
 using Contracts.Security;
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
@@ -24,7 +24,7 @@ public sealed class ProductsController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<ProductsResponse>>(
+        ErrorOr<ProductsResponse> result = await bus.InvokeAsync<ErrorOr<ProductsResponse>>(
             new GetProductsQuery(filter),
             ct
         );
@@ -37,7 +37,7 @@ public sealed class ProductsController(IMessageBus bus) : ApiControllerBase
     [OutputCache(PolicyName = CacheTags.Products)]
     public async Task<ActionResult<ProductResponse>> GetById(Guid id, CancellationToken ct)
     {
-        var result = await bus.InvokeAsync<ErrorOr<ProductResponse>>(
+        ErrorOr<ProductResponse> result = await bus.InvokeAsync<ErrorOr<ProductResponse>>(
             new GetProductByIdQuery(id),
             ct
         );
@@ -52,7 +52,7 @@ public sealed class ProductsController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new CreateProductsCommand(request),
             ct
         );
@@ -67,7 +67,7 @@ public sealed class ProductsController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new UpdateProductsCommand(request),
             ct
         );
@@ -82,13 +82,10 @@ public sealed class ProductsController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new DeleteProductsCommand(request),
             ct
         );
         return result.ToBatchResult(this);
     }
 }
-
-
-

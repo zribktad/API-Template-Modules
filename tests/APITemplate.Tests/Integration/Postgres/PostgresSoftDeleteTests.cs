@@ -1,9 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using SharedKernel.Application.DTOs;
-using Contracts.Events;
-using SharedKernel.Application.Events;
 using APITemplate.Application.Features.Product;
 using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.ProductReview;
@@ -12,9 +9,12 @@ using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Repositories;
 using APITemplate.Tests.Integration.Helpers;
+using Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using SharedKernel.Application.DTOs;
+using SharedKernel.Application.Events;
 using Shouldly;
 using Wolverine;
 using Xunit;
@@ -219,7 +219,8 @@ public sealed class PostgresSoftDeleteTests(SharedPostgresContainer postgres)
             var repository = new ProductRepository(deleteContext);
             var unitOfWork = CreateUnitOfWork(deleteContext);
 
-            await repository.DeleteAsync(product.Id, ct);
+            var result = await repository.GetByIdAsync(product.Id, ct);
+            await repository.DeleteAsync(result!, ct);
             await unitOfWork.CommitAsync(ct);
         }
 

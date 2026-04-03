@@ -28,8 +28,8 @@ public sealed class FilesController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        await using var stream = request.File.OpenReadStream();
-        var result = await bus.InvokeAsync<ErrorOr<FileUploadResponse>>(
+        await using Stream stream = request.File.OpenReadStream();
+        ErrorOr<FileUploadResponse> result = await bus.InvokeAsync<ErrorOr<FileUploadResponse>>(
             new UploadFileCommand(
                 new UploadFileRequest(
                     stream,
@@ -62,7 +62,7 @@ public sealed class FilesController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<FileDownloadResult>>(
+        ErrorOr<FileDownloadResult> result = await bus.InvokeAsync<ErrorOr<FileDownloadResult>>(
             new DownloadFileQuery(request),
             ct
         );

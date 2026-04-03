@@ -20,7 +20,9 @@ public static class ServiceCollectionOptionsExtensions
     )
         where TOptions : class
     {
-        var builder = services.AddOptions<TOptions>().Bind(configuration.SectionFor<TOptions>());
+        OptionsBuilder<TOptions> builder = services
+            .AddOptions<TOptions>()
+            .Bind(configuration.SectionFor<TOptions>());
         if (validateDataAnnotations)
             builder.ValidateDataAnnotations();
         builder.ValidateOnStart();

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Hosting;
-
 using SharedKernel.Application.BackgroundJobs;
+
 namespace SharedKernel.Infrastructure.BackgroundJobs.Services;
 
 /// <summary>
@@ -16,7 +16,7 @@ public abstract class QueueConsumerBackgroundService<T> : BackgroundService
 
     protected sealed override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await foreach (var item in _queue.ReadAllAsync(stoppingToken))
+        await foreach (T? item in _queue.ReadAllAsync(stoppingToken))
         {
             try
             {

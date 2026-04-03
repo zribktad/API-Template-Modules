@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace SharedKernel.Infrastructure.Repositories.Pagination;
 
@@ -14,21 +15,21 @@ internal static class PagedProjectionBuilder
         IQueryable<T> countSource
     )
     {
-        var countCall = Expression.Call(
+        MethodCallExpression countCall = Expression.Call(
             typeof(Queryable),
             nameof(Queryable.Count),
             [typeof(T)],
             countSource.Expression
         );
 
-        var ctor =
+        ConstructorInfo ctor =
             typeof(PagedRow<TResult>).GetConstructor([typeof(TResult), typeof(int)])
             ?? throw new InvalidOperationException(
                 $"No suitable constructor found for {typeof(PagedRow<TResult>)} with parameters (TResult, int)."
             );
 
-        var newExpr = Expression.New(ctor, selector.Body, countCall);
-        var entityParam = selector.Parameters[0];
+        NewExpression newExpr = Expression.New(ctor, selector.Body, countCall);
+        ParameterExpression entityParam = selector.Parameters[0];
         return Expression.Lambda<Func<T, PagedRow<TResult>>>(newExpr, entityParam);
     }
 }

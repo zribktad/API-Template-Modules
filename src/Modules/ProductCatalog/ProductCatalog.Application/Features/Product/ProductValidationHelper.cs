@@ -58,7 +58,7 @@ internal static class ProductValidationHelper
         if (allCategoryIds.Count == 0)
             return [];
 
-        var existing = await categoryRepository.ListAsync(
+        List<Domain.Entities.Category> existing = await categoryRepository.ListAsync(
             new Category.Specifications.CategoriesByIdsSpecification(allCategoryIds),
             ct
         );
@@ -74,7 +74,7 @@ internal static class ProductValidationHelper
             if (failedIndices.Contains(i))
                 continue;
 
-            var categoryId = categoryIdSelector(items[i]);
+            Guid? categoryId = categoryIdSelector(items[i]);
             if (categoryId.HasValue && allCategoryIds.Contains(categoryId.Value))
             {
                 Guid? failureId = items[i] is IHasId hasId ? hasId.Id : null;
@@ -103,7 +103,7 @@ internal static class ProductValidationHelper
         CancellationToken ct
     )
     {
-        var allProductDataIds = items
+        Guid[] allProductDataIds = items
             .Where(item => productDataIdsSelector(item) is { Count: > 0 })
             .SelectMany(item => productDataIdsSelector(item)!)
             .Distinct()
@@ -128,7 +128,7 @@ internal static class ProductValidationHelper
             if (failedIndices.Contains(i))
                 continue;
 
-            var pdIds = productDataIdsSelector(items[i]);
+            IReadOnlyCollection<Guid>? pdIds = productDataIdsSelector(items[i]);
             if (pdIds is not { Count: > 0 })
                 continue;
 
@@ -154,5 +154,3 @@ internal static class ProductValidationHelper
         return failures;
     }
 }
-
-

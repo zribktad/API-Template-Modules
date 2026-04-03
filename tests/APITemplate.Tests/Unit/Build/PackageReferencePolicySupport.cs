@@ -4,14 +4,22 @@ namespace APITemplate.Tests.Unit.Build;
 
 internal static class PackageReferencePolicy
 {
-    public static PolicyEvaluationResult Evaluate(string projectXml, string? centralPackagesXml = null)
+    public static PolicyEvaluationResult Evaluate(
+        string projectXml,
+        string? centralPackagesXml = null
+    )
     {
-        var projectReferences = ParseProjectReferences(projectXml);
-        var centralVersions = ParseCentralVersions(centralPackagesXml);
-        var resolvedReferences = ResolveVersions(projectReferences, centralVersions);
+        IReadOnlyList<PackageReference> projectReferences = ParseProjectReferences(projectXml);
+        IReadOnlyDictionary<string, string> centralVersions = ParseCentralVersions(
+            centralPackagesXml
+        );
+        IReadOnlyList<PackageReference> resolvedReferences = ResolveVersions(
+            projectReferences,
+            centralVersions
+        );
 
         var errors = new List<string>();
-        foreach (var rule in PackagePolicies.All)
+        foreach (IPackagePolicyRule rule in PackagePolicies.All)
             rule.Validate(resolvedReferences, errors);
 
         return new PolicyEvaluationResult(errors);
@@ -19,7 +27,8 @@ internal static class PackageReferencePolicy
 
     private static IReadOnlyList<PackageReference> ParseProjectReferences(string projectXml)
     {
-        return XDocument.Parse(projectXml)
+        return XDocument
+            .Parse(projectXml)
             .Descendants()
             .Where(node => node.Name.LocalName == "PackageReference")
             .Select(node => new PackageReference(
@@ -30,12 +39,15 @@ internal static class PackageReferencePolicy
             .ToList();
     }
 
-    private static IReadOnlyDictionary<string, string> ParseCentralVersions(string? centralPackagesXml)
+    private static IReadOnlyDictionary<string, string> ParseCentralVersions(
+        string? centralPackagesXml
+    )
     {
         if (string.IsNullOrWhiteSpace(centralPackagesXml))
             return new Dictionary<string, string>(StringComparer.Ordinal);
 
-        return XDocument.Parse(centralPackagesXml)
+        return XDocument
+            .Parse(centralPackagesXml)
             .Descendants()
             .Where(node => node.Name.LocalName == "PackageVersion")
             .Select(node => new
@@ -99,13 +111,7 @@ internal static class PackagePolicies
     );
 
     public static IReadOnlyList<IPackagePolicyRule> All { get; } =
-    [
-        HealthChecks,
-        HotChocolate,
-        Keycloak,
-        Ardalis,
-        Scalar,
-    ];
+    [HealthChecks, HotChocolate, Keycloak, Ardalis, Scalar];
 }
 
 internal interface IPackagePolicyRule
@@ -128,7 +134,11 @@ internal sealed record PrefixVersionRule(
         if (family.Count == 0)
             return;
 
-        var parsed = PackageVersionParsing.Parse(Name, family, errors);
+        List<(PackageReference Reference, Version Version)> parsed = PackageVersionParsing.Parse(
+            Name,
+            family,
+            errors
+        );
         if (parsed.Count == 0)
             return;
 
@@ -170,14 +180,15 @@ internal sealed record ExactPairVersionRule(
             return;
         }
 
-        var parsed = PackageVersionParsing.Parse(Name, pair, errors);
+        List<(PackageReference Reference, Version Version)> parsed = PackageVersionParsing.Parse(
+            Name,
+            pair,
+            errors
+        );
         if (parsed.Count == 0)
             return;
 
-        var distinctVersions = parsed
-            .Select(item => item.Version)
-            .Distinct()
-            .ToList();
+        var distinctVersions = parsed.Select(item => item.Version).Distinct().ToList();
 
         if (distinctVersions.Count > 1)
         {
@@ -192,7 +203,9 @@ internal sealed record RequiredPinnedVersionRule(string Name, string PackageId) 
 {
     public void Validate(IReadOnlyList<PackageReference> references, List<string> errors)
     {
-        var match = references.SingleOrDefault(reference => reference.Include == PackageId);
+        PackageReference? match = references.SingleOrDefault(reference =>
+            reference.Include == PackageId
+        );
         if (match is null)
         {
             errors.Add($"{Name} package reference is required.");
@@ -213,9 +226,9 @@ internal static class PackageVersionParsing
     )
     {
         var parsed = new List<(PackageReference, Version)>();
-        foreach (var reference in references)
+        foreach (PackageReference reference in references)
         {
-            if (!Version.TryParse(reference.Version, out var version))
+            if (!Version.TryParse(reference.Version, out Version? version))
             {
                 errors.Add(
                     $"{familyName} package {reference.Include} has an invalid version '{reference.Version}'."
@@ -232,8 +245,7 @@ internal static class PackageVersionParsing
 
 internal static class PackagePolicyTestFiles
 {
-    public const string ProjectXmlWithoutInlineVersions =
-        """
+    public const string ProjectXmlWithoutInlineVersions = """
         <Project Sdk="Microsoft.NET.Sdk.Web">
           <ItemGroup>
             <PackageReference Include="AspNetCore.HealthChecks.Redis" />
@@ -248,8 +260,7 @@ internal static class PackagePolicyTestFiles
         </Project>
         """;
 
-    public const string CentralPackageXmlWithVersionDrift =
-        """
+    public const string CentralPackageXmlWithVersionDrift = """
         <Project>
           <ItemGroup>
             <PackageVersion Include="AspNetCore.HealthChecks.Redis" Version="9.0.0" />

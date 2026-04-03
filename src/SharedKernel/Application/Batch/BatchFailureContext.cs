@@ -26,7 +26,7 @@ public sealed class BatchFailureContext<TItem>
 
     public void AddFailures(IEnumerable<BatchResultItem> failures)
     {
-        foreach (var failure in failures)
+        foreach (BatchResultItem failure in failures)
         {
             _failures.Add(failure);
             _failedIndices.Add(failure.Index);

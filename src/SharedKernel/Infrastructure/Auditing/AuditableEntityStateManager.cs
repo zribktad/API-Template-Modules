@@ -1,7 +1,7 @@
-using SharedKernel.Domain.Entities;
-using SharedKernel.Domain.Entities.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using SharedKernel.Domain.Entities;
+using SharedKernel.Domain.Entities.Contracts;
 
 namespace SharedKernel.Infrastructure.Auditing;
 
@@ -59,7 +59,9 @@ public class AuditableEntityStateManager : IAuditableEntityStateManager
 
     private static void EnsureAuditOwnedEntryState(EntityEntry ownerEntry, DateTime now, Guid actor)
     {
-        var auditEntry = ownerEntry.Reference(nameof(IAuditableTenantEntity.Audit)).TargetEntry;
+        EntityEntry? auditEntry = ownerEntry
+            .Reference(nameof(IAuditableTenantEntity.Audit))
+            .TargetEntry;
         if (auditEntry is null)
             return;
 

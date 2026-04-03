@@ -13,7 +13,7 @@ public class StaticRolePermissionMapTests
     [Fact]
     public void PlatformAdmin_HasAllPermissions()
     {
-        var permissions = _map.GetPermissions(UserRole.PlatformAdmin.ToString());
+        IReadOnlySet<string> permissions = _map.GetPermissions(UserRole.PlatformAdmin.ToString());
 
         permissions.Count.ShouldBe(Permission.All.Count);
         foreach (var permission in Permission.All)
@@ -77,7 +77,7 @@ public class StaticRolePermissionMapTests
     [Fact]
     public void UnknownRole_ReturnsEmptyPermissions()
     {
-        var permissions = _map.GetPermissions("UnknownRole");
+        IReadOnlySet<string> permissions = _map.GetPermissions("UnknownRole");
 
         permissions.ShouldBeEmpty();
     }

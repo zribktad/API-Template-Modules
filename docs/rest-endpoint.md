@@ -393,7 +393,7 @@ namespace APITemplate.Domain.Interfaces;
 public interface IOrderRepository : IRepository<Order> { }
 ```
 
-`IRepository<T>` extends `Ardalis.Specification.IRepositoryBase<T>` and adds `DeleteAsync(Guid id, ...)`.
+`IRepository<T>` extends `Ardalis.Specification.IRepositoryBase<T>` and adds `GetPagedAsync` returning `ErrorOr<PagedResponse<TResult>>`.
 
 **Implementation** in `src/APITemplate.Infrastructure/Repositories/`:
 

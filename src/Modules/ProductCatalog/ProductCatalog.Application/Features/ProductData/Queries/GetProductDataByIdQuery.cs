@@ -1,7 +1,7 @@
-using SharedKernel.Application.Context;
+using ErrorOr;
 using ProductCatalog.Application.Features.ProductData.Mappings;
 using ProductCatalog.Domain.Interfaces;
-using ErrorOr;
+using SharedKernel.Application.Context;
 
 namespace ProductCatalog.Application.Features.ProductData;
 
@@ -16,8 +16,11 @@ public sealed class GetProductDataByIdQueryHandler
         CancellationToken ct
     )
     {
-        var tenantId = tenantProvider.TenantId;
-        var data = await repository.GetByIdAsync(request.Id, ct);
+        Guid tenantId = tenantProvider.TenantId;
+        Domain.Entities.ProductData.ProductData? data = await repository.GetByIdAsync(
+            request.Id,
+            ct
+        );
 
         if (data is null || data.TenantId != tenantId)
             return DomainErrors.ProductData.NotFound(request.Id);
@@ -25,5 +28,3 @@ public sealed class GetProductDataByIdQueryHandler
         return data.ToResponse();
     }
 }
-
-

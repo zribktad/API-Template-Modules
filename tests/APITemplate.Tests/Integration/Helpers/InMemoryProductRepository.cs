@@ -1,11 +1,11 @@
 using APITemplate.Application.Features.Product.Specifications;
 using APITemplate.Domain.Entities;
-using SharedKernel.Domain.Exceptions;
 using APITemplate.Infrastructure.Persistence;
-using SharedKernel.Infrastructure.Repositories;
 using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
+using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Infrastructure.Repositories;
 using ProductEntity = APITemplate.Domain.Entities.Product;
 
 namespace APITemplate.Tests.Integration.Helpers;
@@ -30,7 +30,7 @@ internal sealed class InMemoryProductRepository : IProductRepository
         _inner = new InnerRepository(dbContext);
     }
 
-    public async Task<PagedResponse<ProductResponse>> GetPagedAsync(
+    public async Task<ErrorOr<PagedResponse<ProductResponse>>> GetPagedAsync(
         ProductFilter filter,
         CancellationToken ct = default
     )
@@ -109,18 +109,6 @@ internal sealed class InMemoryProductRepository : IProductRepository
                 }
             )
             .ToArray();
-    }
-
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default, string? errorCode = null)
-    {
-        var entity =
-            await _inner.GetByIdAsync(id, ct)
-            ?? throw new NotFoundException(
-                nameof(ProductEntity),
-                id,
-                errorCode ?? ErrorCatalog.General.NotFound
-            );
-        _dbContext.Set<ProductEntity>().Remove(entity);
     }
 
     public Task<ProductEntity?> GetByIdAsync<TId>(
@@ -225,7 +213,7 @@ internal sealed class InMemoryProductRepository : IProductRepository
         CancellationToken cancellationToken = default
     ) => _inner.DeleteRangeAsync(specification, cancellationToken);
 
-    public async Task<PagedResponse<TResult>> GetPagedAsync<TResult>(
+    public async Task<ErrorOr<PagedResponse<TResult>>> GetPagedAsync<TResult>(
         ISpecification<ProductEntity, TResult> spec,
         int pageNumber,
         int pageSize,
@@ -241,7 +229,8 @@ internal sealed class InMemoryProductRepository : IProductRepository
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         _inner.SaveChangesAsync(cancellationToken);
 
-    private sealed class InnerRepository : SharedKernel.Infrastructure.Repositories.RepositoryBase<ProductEntity>
+    private sealed class InnerRepository
+        : SharedKernel.Infrastructure.Repositories.RepositoryBase<ProductEntity>
     {
         public InnerRepository(AppDbContext dbContext)
             : base(dbContext) { }

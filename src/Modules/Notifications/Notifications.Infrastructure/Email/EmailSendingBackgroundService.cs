@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Notifications.Application.Common.Email;
 using Notifications.Infrastructure.BackgroundJobs.Services;
 using Notifications.Infrastructure.Logging;
+using Polly;
 using Polly.Registry;
 using SharedKernel.Application.Resilience;
 
@@ -38,7 +39,9 @@ public sealed class EmailSendingBackgroundService
     /// <summary>Executes delivery of <paramref name="message"/> through the configured SMTP resilience pipeline.</summary>
     protected override async Task ProcessItemAsync(EmailMessage message, CancellationToken ct)
     {
-        var pipeline = _resiliencePipelineProvider.GetPipeline(ResiliencePipelineKeys.SmtpSend);
+        ResiliencePipeline pipeline = _resiliencePipelineProvider.GetPipeline(
+            ResiliencePipelineKeys.SmtpSend
+        );
 
         await pipeline.ExecuteAsync(
             async token =>

@@ -115,7 +115,7 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     /// </summary>
     public void SoftDeleteProductDataLinks()
     {
-        foreach (var link in ProductDataLinks.ToArray())
+        foreach (ProductDataLink? link in ProductDataLinks.ToArray())
             ProductDataLinks.Remove(link);
     }
 }

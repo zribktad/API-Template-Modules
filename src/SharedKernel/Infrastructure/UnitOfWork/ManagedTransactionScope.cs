@@ -23,7 +23,7 @@ internal sealed class ManagedTransactionScope
 
         public void Dispose()
         {
-            var scope = Interlocked.Exchange(ref _scope, null);
+            ManagedTransactionScope? scope = Interlocked.Exchange(ref _scope, null);
             scope?.Exit();
         }
     }

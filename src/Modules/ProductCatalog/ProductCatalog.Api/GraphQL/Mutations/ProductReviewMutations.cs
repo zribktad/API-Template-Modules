@@ -21,10 +21,9 @@ public class ProductReviewMutations
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<ProductReviewResponse>>(
-            new CreateProductReviewCommand(input),
-            ct
-        );
+        ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<
+            ErrorOr<ProductReviewResponse>
+        >(new CreateProductReviewCommand(input), ct);
         return result.ToGraphQLResult();
     }
 
@@ -36,7 +35,7 @@ public class ProductReviewMutations
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<Success>>(
+        ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
             new DeleteProductReviewCommand(id),
             ct
         );
@@ -44,6 +43,3 @@ public class ProductReviewMutations
         return true;
     }
 }
-
-
-

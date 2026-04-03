@@ -20,7 +20,7 @@ public class ProductMutations
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new CreateProductsCommand(input),
             ct
         );
@@ -31,11 +31,11 @@ public class ProductMutations
     [Authorize(Policy = Permission.Products.Delete)]
     public async Task<bool> DeleteProduct(Guid id, [Service] IMessageBus bus, CancellationToken ct)
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new DeleteProductsCommand(new BatchDeleteRequest([id])),
             ct
         );
-        var batch = result.ToGraphQLResult();
+        BatchResponse batch = result.ToGraphQLResult();
         if (batch.FailureCount > 0)
             throw new GraphQLException(string.Join("; ", batch.Failures[0].Errors));
 
@@ -50,13 +50,10 @@ public class ProductMutations
         CancellationToken ct
     )
     {
-        var result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
+        ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new DeleteProductsCommand(input),
             ct
         );
         return result.ToGraphQLResult();
     }
 }
-
-
-

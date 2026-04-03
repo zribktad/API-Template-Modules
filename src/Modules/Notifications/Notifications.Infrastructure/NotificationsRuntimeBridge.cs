@@ -34,8 +34,8 @@ public static class NotificationsRuntimeBridge
             .ForwardUnitOfWork<Notifications.Domain.NotificationsDbMarker>()
             .AddRepository<IFailedEmailRepository, FailedEmailRepository>();
 
-        var emailSection = configuration.SectionFor<EmailOptions>();
-        var emailOptions = emailSection.Get<EmailOptions>() ?? new EmailOptions();
+        IConfigurationSection emailSection = configuration.SectionFor<EmailOptions>();
+        EmailOptions emailOptions = emailSection.Get<EmailOptions>() ?? new EmailOptions();
         services.AddValidatedOptions<EmailOptions>(configuration);
 
         services.AddQueueWithConsumer<
