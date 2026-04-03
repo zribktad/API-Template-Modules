@@ -164,7 +164,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: src/APITemplate.Api/Dockerfile
+      dockerfile: src/APITemplate/Api/Dockerfile
     restart: unless-stopped
     ports:
       - "8080:8080"
