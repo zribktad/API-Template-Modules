@@ -35,7 +35,7 @@
     <Compile Include="Unit\Webhooks\OutgoingWebhookSsrfTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\APITemplate\Api\APITemplate.Api.csproj" />
+    <ProjectReference Include="..\..\src\APITemplate\Api\APITemplate.csproj" />
     <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\Identity.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />

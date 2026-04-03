@@ -7,7 +7,7 @@
       "command": "dotnet",
       "args": [
         "build",
-        "${workspaceFolder}/src/APITemplate.Api/APITemplate.Api.csproj"
+        "${workspaceFolder}/src/APITemplate/Api/APITemplate.csproj"
       ],
       "problemMatcher": "$msCompile"
     },

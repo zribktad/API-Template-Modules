@@ -111,7 +111,7 @@ Status overview of DRY, KISS, and structural improvements identified by automate
 - **Assessment:** These features don't have filterable list queries, so missing folders are **acceptable** — no action needed unless specs are added later
 
 ### #5: Organize Filters/ Directory into Subdirectories
-- **Problem:** `src/APITemplate.Api/Api/Filters/` contains 6 files mixing unrelated concerns in a flat structure:
+- **Problem:** `src/APITemplate/Api/Api/Filters/` contains 6 files mixing unrelated concerns in a flat structure:
   - Validation: `FluentValidationActionFilter.cs`
   - Idempotency: `IdempotencyActionFilter.cs`, `IdempotencyConstants.cs`, `IdempotentAttribute.cs`
   - Webhooks: `ValidateWebhookSignatureAttribute.cs`, `WebhookSignatureResourceFilter.cs`

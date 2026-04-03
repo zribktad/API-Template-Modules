@@ -305,7 +305,7 @@ Each module follows the same skeleton using SharedKernel generics:
 
 ### Unit 8: Host Rewiring + Legacy Cleanup
 
-#### [MODIFY] [Program.cs](file:///c:/Users/Tad/Projects/API-Template-Monolith/src/APITemplate.Api/Program.cs)
+#### [MODIFY] [Program.cs](file:///c:/Users/Tad/Projects/API-Template-Monolith/src/APITemplate/Api/Program.cs)
 
 ```csharp
 // Replace monolithic extension calls with:
@@ -327,7 +327,7 @@ builder.Services.AddWebhooksModule(builder.Configuration);
 - Idempotency filter + store
 - Example controllers: IdempotentController, PatchController, SseController
 
-#### [MODIFY] [APITemplate.Api.csproj](file:///c:/Users/Tad/Projects/API-Template-Monolith/src/APITemplate.Api/APITemplate.Api.csproj)
+#### [MODIFY] [APITemplate.csproj](file:///c:/Users/Tad/Projects/API-Template-Monolith/src/APITemplate/Api/APITemplate.csproj)
 Remove old project refs. Add module Api project refs + SharedKernel + Contracts.
 
 #### [MODIFY] [APITemplate.slnx](file:///c:/Users/Tad/Projects/API-Template-Monolith/APITemplate.slnx)
@@ -428,7 +428,7 @@ dotnet test APITemplate.slnx --no-build
 | **[NEW]** `FileStorageDbContext.cs` | `FileStorage.Infrastructure/FileStorageDbContext.cs` | Infrastructure |
 | **[NEW]** `StoredFileRepository.cs` | `FileStorage.Infrastructure/StoredFileRepository.cs` | Infrastructure |
 | **[NEW]** `StoredFileConfiguration.cs` | `FileStorage.Infrastructure/StoredFileConfiguration.cs` | Infrastructure |
-| `src/APITemplate.Api/Api/Controllers/V1/FilesController.cs` | `FileStorage.Api/FilesController.cs` | Api |
+| `src/APITemplate/Api/Api/Controllers/V1/FilesController.cs` | `FileStorage.Api/FilesController.cs` | Api |
 | **[NEW]** `FileStorageModule.cs` | `FileStorage.Api/FileStorageModule.cs` | Api |
 
 ### Unit 6: BackgroundJobs Module - Detailed Extraction Plan
@@ -446,7 +446,7 @@ dotnet test APITemplate.slnx --no-build
 | **[NEW]** `BackgroundJobsDbContext.cs` | `BackgroundJobs.Infrastructure/BackgroundJobsDbContext.cs` | Infrastructure |
 | **[NEW]** `JobExecutionRepository.cs` | `BackgroundJobs.Infrastructure/JobExecutionRepository.cs` | Infrastructure |
 | **[NEW]** `JobExecutionConfiguration.cs` | `BackgroundJobs.Infrastructure/JobExecutionConfiguration.cs` | Infrastructure |
-| `src/APITemplate.Api/Api/Controllers/V1/JobsController.cs` | `BackgroundJobs.Api/JobsController.cs` | Api |
+| `src/APITemplate/Api/Api/Controllers/V1/JobsController.cs` | `BackgroundJobs.Api/JobsController.cs` | Api |
 | **[NEW]** `BackgroundJobsModule.cs` | `BackgroundJobs.Api/BackgroundJobsModule.cs` | Api |
 
 > [!IMPORTANT]

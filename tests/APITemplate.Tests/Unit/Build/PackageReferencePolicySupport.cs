@@ -282,7 +282,7 @@ internal static class PackagePolicyTestFiles
     {
         var projectPaths = new[]
         {
-            Path.Combine(repoRoot, "src", "APITemplate", "Api", "APITemplate.Api.csproj"),
+            Path.Combine(repoRoot, "src", "APITemplate", "Api", "APITemplate.csproj"),
             Path.Combine(repoRoot, "src", "SharedKernel", "SharedKernel.csproj"),
             Path.Combine(
                 repoRoot,

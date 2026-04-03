@@ -487,7 +487,7 @@ For each module, the migration follows this sequence:
 4. Update namespaces in all moved files (`{Module}.Domain.*` / `{Module}.Application.*` → `{Module}.Core.*`, `{Module}.Infrastructure.*` / `{Module}.Api.*` → `{Module}.Host.*`)
 5. Update `using` statements across the codebase that reference old namespaces
 6. Delete old `.csproj` files (`{Module}.Domain.csproj`, `{Module}.Application.csproj`, `{Module}.Infrastructure.csproj`, `{Module}.Api.csproj`)
-7. Update `APITemplate.Api.csproj` to reference `{Module}.Host` instead of old projects
+7. Update `APITemplate.csproj` to reference `{Module}.Host` instead of old projects
 8. Update `APITemplate.slnx` to reflect new project paths
 9. Update test project references and usings
 10. Split existing controllers into per-use-case controllers

@@ -1,8 +1,7 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/APITemplate/Api/APITemplate.Api.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/">
+    <Project Path="src/APITemplate/Api/APITemplate.csproj" />
+    <Project Path="src/SharedKernel/SharedKernel.csproj" />
     <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.csproj" />
     <Project Path="src/Modules/Chatting/Chatting.csproj" />
     <Project Path="src/Modules/FileStorage/FileStorage.csproj" />
@@ -11,9 +10,6 @@
     <Project Path="src/Modules/ProductCatalog/ProductCatalog.csproj" />
     <Project Path="src/Modules/Reviews/Reviews.csproj" />
     <Project Path="src/Modules/Webhooks/Webhooks.csproj" />
-  </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/SharedKernel/SharedKernel.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/APITemplate.Tests/APITemplate.Tests.csproj" />

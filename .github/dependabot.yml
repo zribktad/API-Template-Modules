@@ -21,7 +21,7 @@ updates:
           - "*"
 
   - package-ecosystem: "docker"
-    directory: "/src/APITemplate.Api"
+    directory: "/src/APITemplate/Api"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 2
