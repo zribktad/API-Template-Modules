@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
-using ProductCatalog.Features.Product.DTOs;
+using ProductCatalog.Features.IdempotentCreate;
 using Shouldly;
 using Xunit;
 

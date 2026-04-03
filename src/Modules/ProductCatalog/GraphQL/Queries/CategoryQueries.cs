@@ -1,5 +1,7 @@
 using ErrorOr;
 using HotChocolate.Authorization;
+using ProductCatalog.Features.GetCategories;
+using ProductCatalog.Features.GetCategoryById;
 using ProductCatalog.GraphQL.Models;
 using Wolverine;
 

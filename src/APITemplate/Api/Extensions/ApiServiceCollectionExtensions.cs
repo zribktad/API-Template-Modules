@@ -4,7 +4,7 @@ using APITemplate.Api.OpenApi;
 using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;
 using IdentityCacheTags = Identity.Events.CacheTags;
-using ProductCatalogCacheTags = ProductCatalog.Events.CacheTags;
+using ProductCatalogCacheTags = ProductCatalog.Common.Events.CacheTags;
 using ReviewsCacheTags = Reviews.Common.Events.CacheTags;
 
 namespace APITemplate.Api.Extensions;

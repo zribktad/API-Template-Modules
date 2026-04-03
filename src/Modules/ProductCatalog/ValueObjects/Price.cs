@@ -1,5 +1,5 @@
 using ErrorOr;
-using ProductCatalog.Errors;
+using ProductCatalog.Common.Errors;
 
 namespace ProductCatalog.ValueObjects;
 

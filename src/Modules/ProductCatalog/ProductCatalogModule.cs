@@ -8,13 +8,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Resilience;
 using Polly;
-using ProductCatalog.Controllers.V1;
 using ProductCatalog.GraphQL.DataLoaders;
 using ProductCatalog.GraphQL.Mutations;
 using ProductCatalog.GraphQL.Queries;
 using ProductCatalog.GraphQL.Types;
-using ProductCatalog.Features.Product.Repositories;
-using ProductCatalog.Features.Product.Validation;
 using ProductCatalog.Interfaces;
 using ProductCatalog.Persistence;
 using ProductCatalog.Repositories;
@@ -26,7 +23,7 @@ using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Health;
 using SharedKernel.Infrastructure.Registration;
-using ProductApplicationRepository = ProductCatalog.Features.Product.Repositories.IProductRepository;
+using ProductApplicationRepository = ProductCatalog.Interfaces.IProductRepository;
 
 namespace ProductCatalog;
 
@@ -53,7 +50,7 @@ public static class ProductCatalogModule
             .AddRepository<IProductDataRepository, ProductDataRepository>()
             .AddCascadeRule<ProductSoftDeleteCascadeRule>();
 
-        services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>(
+        services.AddValidatorsFromAssemblyContaining<ProductCatalogDbMarker>(
             filter: registration => !registration.ValidatorType.IsGenericTypeDefinition
         );
         services.AddScoped(typeof(IBatchRule<>), typeof(FluentValidationBatchRule<>));
@@ -94,7 +91,7 @@ public static class ProductCatalogModule
             }
         );
 
-        services.AddControllers().AddApplicationPart(typeof(ProductsController).Assembly);
+        services.AddControllers().AddApplicationPart(typeof(ProductCatalogModule).Assembly);
 
         services
             .AddGraphQLServer()
