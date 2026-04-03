@@ -31,16 +31,8 @@ public sealed class BackgroundJobsOptionsValidator : IValidateOptions<Background
         if (string.IsNullOrWhiteSpace(options.InstanceNamePrefix))
             failures.Add("BackgroundJobs:TickerQ:InstanceNamePrefix is required.");
 
-        if (
-            !string.Equals(
-                options.CoordinationConnection,
-                TickerQSchedulerOptions.DefaultCoordinationConnection,
-                StringComparison.OrdinalIgnoreCase
-            )
-        )
-            failures.Add(
-                $"BackgroundJobs:TickerQ:CoordinationConnection must be '{TickerQSchedulerOptions.DefaultCoordinationConnection}'."
-            );
+        if (string.IsNullOrWhiteSpace(options.CoordinationConnection))
+            failures.Add("BackgroundJobs:TickerQ:CoordinationConnection is required.");
     }
 
     private static void ValidateCleanup(CleanupJobOptions options, List<string> failures)

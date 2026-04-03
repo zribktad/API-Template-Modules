@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
 
-namespace FileStorage.Domain;
+namespace FileStorage.Services;
 
 /// <summary>
 /// Infrastructure implementation of <see cref="IFileStorageService"/> that persists files to the

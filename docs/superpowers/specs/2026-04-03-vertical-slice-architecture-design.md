@@ -1,19 +1,19 @@
-# Vertical Slice Architecture — Hybrid (Core + Host)
+# Vertical Slice Architecture — Single Project per Module
 
 ## Context
 
 The current module structure splits each bounded context into 4 separate projects (Domain, Application, Infrastructure, Api). When working on a single feature/use-case, a developer must navigate across 4 projects to find all related files (entity, handler, DTO, validator, repository, controller). This creates unnecessary cognitive overhead.
 
-The goal is to reorganize into a Vertical Slice Architecture where each use-case is self-contained in a small folder (2-4 files), while preserving compile-time layer isolation via a 2-project split: Core (business logic) + Host (infrastructure/API).
+The goal is to reorganize into a Vertical Slice Architecture where each use-case is self-contained in a small folder (2-4 files). Each module is a single project — compile-time layer isolation was deprioritized in favor of simplicity and reduced solution overhead.
 
 ## Design Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Projects per module | 2 (Core + Host) | Minimal cognitive overhead + compile-time isolation |
+| Projects per module | 1 (single project) | Less solution overhead, simpler builds, consistent structure |
 | Feature organization | Sub-slicing per use-case | Each folder has 2-4 files, not 50 |
-| Module uniformity | All modules use Core + Host | Never question "how many projects does this module have?" |
-| Naming convention | `{Module}.Core` / `{Module}.Host` | Core = business logic, Host = framework integration |
+| Module uniformity | All modules use a single project | Never question "how many projects does this module have?" |
+| Naming convention | `{Module}` | One project per bounded context |
 | Controller splitting | Per use-case | Small focused controllers instead of one god-controller |
 
 ## Architecture
@@ -21,9 +21,8 @@ The goal is to reorganize into a Vertical Slice Architecture where each use-case
 ### Project Dependencies
 
 ```
-{Module}.Core  -->  SharedKernel  (NO EF, NO ASP.NET references)
-{Module}.Host  -->  {Module}.Core + SharedKernel  (EF, ASP.NET allowed)
-APITemplate.Api --> all {Module}.Host projects
+{Module}  -->  SharedKernel
+APITemplate.Api --> all {Module} projects
 ```
 
 ### Core Project Contains

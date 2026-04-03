@@ -2,8 +2,6 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using Fluid;
 using Notifications.Contracts;
-using Notifications.Domain;
-using Notifications.Services;
 
 namespace Notifications.Services;
 
@@ -76,8 +74,7 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
 
     private static async Task<string> LoadTemplateAsync(string templateName)
     {
-        var resourceName =
-            $"{ResourceAssembly.GetName().Name}.Email.Templates.{templateName}.liquid";
+        var resourceName = $"{ResourceAssembly.GetName().Name}.{templateName}.liquid";
 
         await using Stream stream =
             ResourceAssembly.GetManifestResourceStream(resourceName)
@@ -89,8 +86,3 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
         return await reader.ReadToEndAsync();
     }
 }
-
-
-
-
-

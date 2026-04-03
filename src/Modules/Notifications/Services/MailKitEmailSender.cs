@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using Notifications.Contracts;
 using Notifications.Domain;
-using Notifications.Services;
 using Notifications.Logging;
 
 namespace Notifications.Services;
@@ -112,8 +111,3 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
         }
     }
 }
-
-
-
-
-

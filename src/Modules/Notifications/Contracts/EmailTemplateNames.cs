@@ -6,11 +6,7 @@ namespace Notifications.Contracts;
 /// </summary>
 public static class EmailTemplateNames
 {
-    public const string UserRegistration = "user-registration";
-    public const string TenantInvitation = "tenant-invitation";
-    public const string UserRoleChanged = "user-role-changed";
+    public const string UserRegistration = "Features.SendUserRegisteredEmail.user-registration";
+    public const string TenantInvitation = "Features.SendTenantInvitationEmail.tenant-invitation";
+    public const string UserRoleChanged = "Features.SendUserRoleChangedEmail.user-role-changed";
 }
-
-
-
-
