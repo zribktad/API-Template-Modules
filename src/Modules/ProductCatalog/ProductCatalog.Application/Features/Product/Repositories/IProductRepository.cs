@@ -26,5 +26,5 @@ public interface IProductRepository : IRepository<ProductEntity>
     );
 
     /// <summary>Sets <c>CategoryId</c> to <c>null</c> on all products whose <c>CategoryId</c> is in <paramref name="categoryIds"/>.</summary>
-    Task NullCategoryAsync(IReadOnlyCollection<Guid> categoryIds, CancellationToken ct = default);
+    Task ClearCategoryAsync(IReadOnlyCollection<Guid> categoryIds, CancellationToken ct = default);
 }

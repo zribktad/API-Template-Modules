@@ -109,7 +109,7 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
     }
 
     /// <summary>Bulk-sets <c>CategoryId</c> to <c>null</c> for all products whose <c>CategoryId</c> is in <paramref name="categoryIds"/>.</summary>
-    public async Task NullCategoryAsync(
+    public async Task ClearCategoryAsync(
         IReadOnlyCollection<Guid> categoryIds,
         CancellationToken ct = default
     )

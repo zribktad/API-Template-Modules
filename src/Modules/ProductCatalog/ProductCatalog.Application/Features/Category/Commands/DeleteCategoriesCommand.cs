@@ -56,14 +56,14 @@ public sealed class DeleteCategoriesCommandHandler
         CancellationToken ct
     )
     {
-        IReadOnlyList<Guid> categoryIds = categories.Select(category => category.Id).ToArray();
-
-        // Remove categories and null out CategoryId on affected products in a single transaction
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
                 await repository.DeleteRangeAsync(categories, ct);
-                await productRepository.NullCategoryAsync(categoryIds, ct);
+                await productRepository.ClearCategoryAsync(
+                    categories.Select(category => category.Id).ToArray(),
+                    ct
+                );
             },
             ct
         );
