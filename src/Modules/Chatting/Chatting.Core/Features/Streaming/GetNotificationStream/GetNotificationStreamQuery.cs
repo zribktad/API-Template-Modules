@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
-using Chatting.Application.Features.Streaming.DTOs;
 
-namespace Chatting.Application.Features.Streaming.Queries;
+namespace Chatting.Core.Features.Streaming.GetNotificationStream;
 
 public sealed record GetNotificationStreamQuery(SseStreamRequest Request);
 

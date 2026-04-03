@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Chatting.Application.Features.Streaming.DTOs;
+namespace Chatting.Core.Features.Streaming.GetNotificationStream;
 
 /// <summary>
 /// Configuration request for the SSE notification stream, specifying how many events should be emitted (1–100).

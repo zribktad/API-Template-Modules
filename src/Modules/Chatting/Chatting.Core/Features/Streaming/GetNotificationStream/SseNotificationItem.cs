@@ -1,4 +1,4 @@
-namespace Chatting.Application.Features.Streaming.DTOs;
+namespace Chatting.Core.Features.Streaming.GetNotificationStream;
 
 /// <summary>
 /// Represents a single Server-Sent Events (SSE) notification item emitted by the stream,
