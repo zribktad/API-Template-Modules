@@ -18,7 +18,7 @@ public sealed class TenantInvitationRepository
         _db = dbContext;
     }
 
-    public Task<TenantInvitation?> GetValidByTokenHashAsync(
+    public Task<TenantInvitation?> GetNonRevokedByTokenHashAsync(
         string tokenHash,
         CancellationToken ct = default
     ) =>

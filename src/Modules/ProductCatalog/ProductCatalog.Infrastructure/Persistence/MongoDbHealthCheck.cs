@@ -28,7 +28,7 @@ public sealed class MongoDbHealthCheck : IHealthCheck
         catch (Exception ex)
         {
             _logger.MongoDbHealthCheckFailed(ex);
-            return HealthCheckResult.Unhealthy("MongoDB is not reachable");
+            return HealthCheckResult.Unhealthy("MongoDB is not reachable", ex);
         }
     }
 }
