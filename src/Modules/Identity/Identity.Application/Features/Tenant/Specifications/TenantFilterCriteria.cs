@@ -25,7 +25,7 @@ internal static class TenantFilterCriteria
         query.Where(tenant =>
             EF.Functions.ToTsVector(
                     SearchDefaults.TextSearchConfiguration,
-                    tenant.Code.Value + " " + tenant.Name
+                    tenant.Code + " " + tenant.Name
                 )
                 .Matches(
                     EF.Functions.WebSearchToTsQuery(

@@ -2,6 +2,7 @@ using Contracts.Events;
 using ErrorOr;
 using FluentValidation;
 using FluentValidation.Results;
+using Identity.Domain.ValueObjects;
 using Moq;
 using ProductCatalog.Application.Events;
 using ProductCatalog.Application.Features.Product.Commands;
@@ -213,5 +214,62 @@ public sealed class PriceCreateTests
 
         result.IsError.ShouldBeFalse();
         result.Value.Value.ShouldBe(9.99m);
+    }
+}
+
+public sealed class EmailCreateTests
+{
+    [Theory]
+    [InlineData("@")]
+    [InlineData("abc@")]
+    [InlineData("plain-text")]
+    public void Create_WhenFormatIsInvalid_ReturnsValidationError(string input)
+    {
+        ErrorOr<Email> result = Email.Create(input);
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Validation);
+        result.FirstError.Description.ShouldBe("Invalid email format.");
+    }
+
+    [Fact]
+    public void Create_WhenFormatIsValid_ReturnsNormalizedEmailValue()
+    {
+        ErrorOr<Email> result = Email.Create("  user@example.com  ");
+
+        result.IsError.ShouldBeFalse();
+        result.Value.Value.ShouldBe("user@example.com");
+    }
+}
+
+public sealed class ProductSyncProductDataLinksTests
+{
+    [Fact]
+    public void SyncProductDataLinks_WhenExistingLinksContainDuplicates_DoesNotThrowAndRemovesObsoleteLinks()
+    {
+        Guid productId = Guid.NewGuid();
+        Guid keptProductDataId = Guid.NewGuid();
+        Guid removedProductDataId = Guid.NewGuid();
+
+        Product product = new()
+        {
+            Id = productId,
+            Name = "Product",
+            Price = Price.FromPersistence(1m),
+            ProductDataLinks =
+            [
+                ProductDataLink.Create(productId, keptProductDataId),
+                ProductDataLink.Create(productId, keptProductDataId),
+                ProductDataLink.Create(productId, removedProductDataId),
+            ],
+        };
+
+        Should.NotThrow(() => product.SyncProductDataLinks([keptProductDataId]));
+
+        product.ProductDataLinks.Count.ShouldBe(2);
+        product.ProductDataLinks.Count(link => link.ProductDataId == keptProductDataId).ShouldBe(2);
+        product
+            .ProductDataLinks.Any(link => link.ProductDataId == removedProductDataId)
+            .ShouldBeFalse();
     }
 }

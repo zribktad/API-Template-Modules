@@ -4,7 +4,7 @@ using Identity.Domain.Errors;
 namespace Identity.Domain.ValueObjects;
 
 /// <summary>
-/// Value object representing a validated email address. Must be non-empty, contain '@', and be at most 320 characters.
+/// Value object representing a validated email address. Must be non-empty, syntactically valid, and be at most 320 characters.
 /// </summary>
 public readonly record struct Email
 {
@@ -20,7 +20,7 @@ public readonly record struct Email
         if (string.IsNullOrEmpty(trimmed))
             return IdentityDomainErrors.Emails.Empty();
 
-        if (!trimmed.Contains('@'))
+        if (!System.Net.Mail.MailAddress.TryCreate(trimmed, out _))
             return IdentityDomainErrors.Emails.InvalidFormat();
 
         if (trimmed.Length > 320)

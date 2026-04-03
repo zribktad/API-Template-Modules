@@ -86,9 +86,9 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     public void SyncProductDataLinks(IEnumerable<Guid> targetIds)
     {
         HashSet<Guid> targetSet = targetIds.ToHashSet();
-        Dictionary<Guid, ProductDataLink> existingById = ProductDataLinks.ToDictionary(link =>
-            link.ProductDataId
-        );
+        Dictionary<Guid, ProductDataLink> existingById = ProductDataLinks
+            .GroupBy(link => link.ProductDataId)
+            .ToDictionary(group => group.Key, group => group.First());
 
         ProductDataLink[] linksToRemove = ProductDataLinks
             .Where(link => !targetSet.Contains(link.ProductDataId))

@@ -11,14 +11,7 @@ public static class UserMappings
     /// Expression tree used by EF Core to project an <see cref="AppUser"/> entity directly to a <see cref="UserResponse"/> in the database query.
     /// </summary>
     public static readonly Expression<Func<AppUser, UserResponse>> Projection =
-        u => new UserResponse(
-            u.Id,
-            u.Username,
-            u.Email.Value,
-            u.IsActive,
-            u.Role,
-            u.Audit.CreatedAtUtc
-        );
+        u => new UserResponse(u.Id, u.Username, u.Email, u.IsActive, u.Role, u.Audit.CreatedAtUtc);
 
     private static readonly Func<AppUser, UserResponse> CompiledProjection = Projection.Compile();
 

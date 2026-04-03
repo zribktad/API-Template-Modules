@@ -19,7 +19,7 @@ internal static class IdentityDomainErrors
             Error.Validation("EMAIL-0400-EMPTY", "Email cannot be empty.");
 
         internal static Error InvalidFormat() =>
-            Error.Validation("EMAIL-0400-FORMAT", "Email must contain '@'.");
+            Error.Validation("EMAIL-0400-FORMAT", "Invalid email format.");
 
         internal static Error TooLong() =>
             Error.Validation("EMAIL-0400-LENGTH", "Email cannot exceed 320 characters.");
