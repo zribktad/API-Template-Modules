@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.ProductData.CreateVideoProductData;
 
 /// <summary>
-/// Payload for uploading video product data, including duration, resolution, format, and file size.
-/// Validation constraints are expressed via data annotations and enforced by <c>CreateVideoProductDataRequestValidator</c>.
+///     Payload for uploading video product data, including duration, resolution, format, and file size.
+///     Validation constraints are expressed via data annotations and enforced by
+///     <c>CreateVideoProductDataRequestValidator</c>.
 /// </summary>
 public sealed record CreateVideoProductDataRequest(
     [NotEmpty(ErrorMessage = "Title is required.")]

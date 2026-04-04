@@ -1,8 +1,6 @@
 using System.Net;
 using System.Reflection;
 using Shouldly;
-using Webhooks.Contracts;
-using Webhooks.Security;
 using Webhooks.Services;
 using Xunit;
 
@@ -16,8 +14,10 @@ public sealed class OutgoingWebhookSsrfTests
             BindingFlags.NonPublic | BindingFlags.Static
         )!;
 
-    private static bool IsProhibited(IPAddress address) =>
-        (bool)IsProhibitedAddressMethod.Invoke(null, [address])!;
+    private static bool IsProhibited(IPAddress address)
+    {
+        return (bool)IsProhibitedAddressMethod.Invoke(null, [address])!;
+    }
 
     [Theory]
     [InlineData("127.0.0.1")]

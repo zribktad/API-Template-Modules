@@ -3,8 +3,8 @@ using Microsoft.Extensions.Compliance.Classification;
 namespace SharedKernel.Infrastructure.Logging;
 
 /// <summary>
-/// Defines the project-specific <see cref="DataClassification"/> taxonomy used to classify
-/// log parameters for compliance-aware redaction in the Microsoft.Extensions.Compliance pipeline.
+///     Defines the project-specific <see cref="DataClassification" /> taxonomy used to classify
+///     log parameters for compliance-aware redaction in the Microsoft.Extensions.Compliance pipeline.
 /// </summary>
 public static class LogDataClassifications
 {
@@ -21,8 +21,8 @@ public static class LogDataClassifications
 }
 
 /// <summary>
-/// Marks a log parameter or property as personally identifiable information, causing it to be
-/// redacted by the configured <see cref="LogDataClassifications.Personal"/> classification policy.
+///     Marks a log parameter or property as personally identifiable information, causing it to be
+///     redacted by the configured <see cref="LogDataClassifications.Personal" /> classification policy.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
 public sealed class PersonalDataAttribute : DataClassificationAttribute
@@ -32,8 +32,8 @@ public sealed class PersonalDataAttribute : DataClassificationAttribute
 }
 
 /// <summary>
-/// Marks a log parameter or property as sensitive business data, causing it to be
-/// redacted by the configured <see cref="LogDataClassifications.Sensitive"/> classification policy.
+///     Marks a log parameter or property as sensitive business data, causing it to be
+///     redacted by the configured <see cref="LogDataClassifications.Sensitive" /> classification policy.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
 public sealed class SensitiveDataAttribute : DataClassificationAttribute

@@ -8,9 +8,9 @@ using SharedKernel.Contracts.Commands.Cleanup;
 namespace ProductCatalog.Handlers;
 
 /// <summary>
-/// Wolverine handler that processes <see cref="CleanupOrphanedProductDataCommand"/> dispatched by the
-/// BackgroundJobs module. Identifies MongoDB ProductData documents that have no corresponding
-/// ProductDataLink in PostgreSQL and deletes them in paginated batches.
+///     Wolverine handler that processes <see cref="CleanupOrphanedProductDataCommand" /> dispatched by the
+///     BackgroundJobs module. Identifies MongoDB ProductData documents that have no corresponding
+///     ProductDataLink in PostgreSQL and deletes them in paginated batches.
 /// </summary>
 public sealed class CleanupOrphanedProductDataHandler
 {
@@ -36,9 +36,7 @@ public sealed class CleanupOrphanedProductDataHandler
             );
 
             if (lastSeenId.HasValue)
-            {
                 pageFilter &= Builders<ProductData>.Filter.Gt(d => d.Id, lastSeenId.Value);
-            }
 
             List<Guid> page = await mongoCollection
                 .Find(pageFilter)
@@ -48,9 +46,7 @@ public sealed class CleanupOrphanedProductDataHandler
                 .ToListAsync(ct);
 
             if (page.Count == 0)
-            {
                 break;
-            }
 
             List<Guid> linkedIds = await dbContext
                 .ProductDataLinks.IgnoreQueryFilters()
@@ -76,9 +72,6 @@ public sealed class CleanupOrphanedProductDataHandler
         }
 
         if (totalDeleted > 0)
-        {
             logger.OrphanedProductDataCleanedUp(totalDeleted);
-        }
     }
 }
-

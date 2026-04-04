@@ -4,14 +4,14 @@ using Microsoft.OpenApi;
 namespace APITemplate.Api.OpenApi;
 
 /// <summary>
-/// Shared helper for adding RFC 7807 <c>application/problem+json</c> error response entries
-/// to OpenAPI operations without duplicating the wiring across multiple transformers.
+///     Shared helper for adding RFC 7807 <c>application/problem+json</c> error response entries
+///     to OpenAPI operations without duplicating the wiring across multiple transformers.
 /// </summary>
 internal static class OpenApiErrorResponseHelper
 {
     /// <summary>
-    /// Adds an error response for <paramref name="statusCode"/> to the operation if one is not already present.
-    /// Uses the HTTP reason phrase as the description when <paramref name="description"/> is not supplied.
+    ///     Adds an error response for <paramref name="statusCode" /> to the operation if one is not already present.
+    ///     Uses the HTTP reason phrase as the description when <paramref name="description" /> is not supplied.
     /// </summary>
     internal static void AddErrorResponse(
         OpenApiOperation operation,
@@ -20,10 +20,10 @@ internal static class OpenApiErrorResponseHelper
         string? description = null
     )
     {
-        var statusCodeKey = statusCode.ToString();
+        string statusCodeKey = statusCode.ToString();
         operation.Responses ??= new OpenApiResponses();
 
-        var resolvedDescription = string.IsNullOrWhiteSpace(description)
+        string resolvedDescription = string.IsNullOrWhiteSpace(description)
             ? ReasonPhrases.GetReasonPhrase(statusCode)
             : description;
 
@@ -40,11 +40,14 @@ internal static class OpenApiErrorResponseHelper
                 )
                     mediaType.Schema ??= schema;
                 else
+                {
                     existing.Content["application/problem+json"] = new OpenApiMediaType
                     {
                         Schema = schema,
                     };
+                }
             }
+
             return;
         }
 
@@ -53,9 +56,10 @@ internal static class OpenApiErrorResponseHelper
         {
             response.Content = new Dictionary<string, OpenApiMediaType>
             {
-                ["application/problem+json"] = new OpenApiMediaType { Schema = schema },
+                ["application/problem+json"] = new() { Schema = schema },
             };
         }
+
         operation.Responses[statusCodeKey] = response;
     }
 }

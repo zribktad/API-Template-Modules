@@ -18,7 +18,7 @@ internal static class PackageReferencePolicy
             centralVersions
         );
 
-        var errors = new List<string>();
+        List<string> errors = new();
         foreach (IPackagePolicyRule rule in PackagePolicies.All)
             rule.Validate(resolvedReferences, errors);
 
@@ -70,7 +70,10 @@ internal static class PackageReferencePolicy
                 {
                     Version =
                         string.IsNullOrWhiteSpace(reference.Version)
-                        && centralVersions.TryGetValue(reference.Include, out var resolvedVersion)
+                        && centralVersions.TryGetValue(
+                            reference.Include,
+                            out string? resolvedVersion
+                        )
                             ? resolvedVersion
                             : reference.Version,
                 }
@@ -82,32 +85,32 @@ internal static class PackageReferencePolicy
 internal static class PackagePolicies
 {
     public static readonly PrefixVersionRule HealthChecks = new(
-        Name: "HealthChecks",
-        Prefix: "AspNetCore.HealthChecks.",
-        VersionSelector: version => version.Major.ToString()
+        "HealthChecks",
+        "AspNetCore.HealthChecks.",
+        version => version.Major.ToString()
     );
 
     public static readonly PrefixVersionRule HotChocolate = new(
-        Name: "HotChocolate",
-        Prefix: "HotChocolate.",
-        VersionSelector: version => version.ToString()
+        "HotChocolate",
+        "HotChocolate.",
+        version => version.ToString()
     );
 
     public static readonly PrefixVersionRule Keycloak = new(
-        Name: "Keycloak.AuthServices",
-        Prefix: "Keycloak.AuthServices.",
-        VersionSelector: version => version.ToString()
+        "Keycloak.AuthServices",
+        "Keycloak.AuthServices.",
+        version => version.ToString()
     );
 
     public static readonly ExactPairVersionRule Ardalis = new(
-        Name: "Ardalis.Specification",
-        FirstPackageId: "Ardalis.Specification",
-        SecondPackageId: "Ardalis.Specification.EntityFrameworkCore"
+        "Ardalis.Specification",
+        "Ardalis.Specification",
+        "Ardalis.Specification.EntityFrameworkCore"
     );
 
     public static readonly RequiredPinnedVersionRule Scalar = new(
-        Name: "Scalar.AspNetCore",
-        PackageId: "Scalar.AspNetCore"
+        "Scalar.AspNetCore",
+        "Scalar.AspNetCore"
     );
 
     public static IReadOnlyList<IPackagePolicyRule> All { get; } =
@@ -116,7 +119,7 @@ internal static class PackagePolicies
 
 internal interface IPackagePolicyRule
 {
-    void Validate(IReadOnlyList<PackageReference> references, List<string> errors);
+    public void Validate(IReadOnlyList<PackageReference> references, List<string> errors);
 }
 
 internal sealed record PrefixVersionRule(
@@ -127,7 +130,7 @@ internal sealed record PrefixVersionRule(
 {
     public void Validate(IReadOnlyList<PackageReference> references, List<string> errors)
     {
-        var family = references
+        List<PackageReference> family = references
             .Where(reference => reference.Include.StartsWith(Prefix, StringComparison.Ordinal))
             .ToList();
 
@@ -142,7 +145,7 @@ internal sealed record PrefixVersionRule(
         if (parsed.Count == 0)
             return;
 
-        var distinctVersions = parsed
+        List<string> distinctVersions = parsed
             .Select(item => VersionSelector(item.Version))
             .Distinct(StringComparer.Ordinal)
             .ToList();
@@ -164,7 +167,7 @@ internal sealed record ExactPairVersionRule(
 {
     public void Validate(IReadOnlyList<PackageReference> references, List<string> errors)
     {
-        var pair = references
+        List<PackageReference> pair = references
             .Where(reference =>
                 reference.Include == FirstPackageId || reference.Include == SecondPackageId
             )
@@ -188,7 +191,7 @@ internal sealed record ExactPairVersionRule(
         if (parsed.Count == 0)
             return;
 
-        var distinctVersions = parsed.Select(item => item.Version).Distinct().ToList();
+        List<Version> distinctVersions = parsed.Select(item => item.Version).Distinct().ToList();
 
         if (distinctVersions.Count > 1)
         {
@@ -225,7 +228,7 @@ internal static class PackageVersionParsing
         List<string> errors
     )
     {
-        var parsed = new List<(PackageReference, Version)>();
+        List<(PackageReference, Version)> parsed = new();
         foreach (PackageReference reference in references)
         {
             if (!Version.TryParse(reference.Version, out Version? version))
@@ -275,12 +278,16 @@ internal static class PackagePolicyTestFiles
         </Project>
         """;
 
-    public static string GetRepoRoot() =>
-        Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+    public static string GetRepoRoot()
+    {
+        return Path.GetFullPath(
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..")
+        );
+    }
 
     public static string ReadProjectXml(string repoRoot)
     {
-        var projectPaths = new[]
+        string[] projectPaths = new[]
         {
             Path.Combine(repoRoot, "src", "APITemplate", "Api", "APITemplate.csproj"),
             Path.Combine(repoRoot, "src", "SharedKernel", "SharedKernel.csproj"),
@@ -289,7 +296,7 @@ internal static class PackagePolicyTestFiles
             Path.Combine(repoRoot, "src", "Modules", "Reviews", "Reviews.csproj"),
         };
 
-        var packageReferences = projectPaths
+        List<XElement> packageReferences = projectPaths
             .Select(path => XDocument.Parse(File.ReadAllText(path)))
             .SelectMany(document =>
                 document
@@ -299,15 +306,17 @@ internal static class PackagePolicyTestFiles
             )
             .ToList();
 
-        var aggregateDocument = new XDocument(
+        XDocument aggregateDocument = new(
             new XElement("Project", new XElement("ItemGroup", packageReferences))
         );
 
         return aggregateDocument.ToString();
     }
 
-    public static string ReadCentralPackageXml(string repoRoot) =>
-        File.ReadAllText(Path.Combine(repoRoot, "Directory.Packages.props"));
+    public static string ReadCentralPackageXml(string repoRoot)
+    {
+        return File.ReadAllText(Path.Combine(repoRoot, "Directory.Packages.props"));
+    }
 }
 
 internal sealed record PackageReference(string Include, string Version);

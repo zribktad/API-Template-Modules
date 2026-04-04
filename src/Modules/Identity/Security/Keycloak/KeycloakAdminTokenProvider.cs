@@ -1,15 +1,15 @@
 using System.Net.Http.Json;
-using Identity.Options;
 using Identity.Logging;
+using Identity.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Identity.Security.Keycloak;
 
 /// <summary>
-/// Singleton service that acquires and caches a Keycloak service-account (client credentials) token.
-/// Tokens are kept in memory until they expire; a 30-second safety margin prevents
-/// using a token that is about to expire mid-flight.
+///     Singleton service that acquires and caches a Keycloak service-account (client credentials) token.
+///     Tokens are kept in memory until they expire; a 30-second safety margin prevents
+///     using a token that is about to expire mid-flight.
 /// </summary>
 public sealed class KeycloakAdminTokenProvider : IDisposable
 {
@@ -17,11 +17,11 @@ public sealed class KeycloakAdminTokenProvider : IDisposable
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOptions<KeycloakOptions> _keycloakOptions;
+    private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly ILogger<KeycloakAdminTokenProvider> _logger;
 
     private string? _cachedToken;
     private DateTimeOffset _tokenExpiresAt = DateTimeOffset.MinValue;
-    private readonly SemaphoreSlim _lock = new(1, 1);
 
     public KeycloakAdminTokenProvider(
         IHttpClientFactory httpClientFactory,
@@ -34,9 +34,14 @@ public sealed class KeycloakAdminTokenProvider : IDisposable
         _logger = logger;
     }
 
+    public void Dispose()
+    {
+        _lock.Dispose();
+    }
+
     /// <summary>
-    /// Returns a cached service-account access token, refreshing it via the Keycloak token endpoint
-    /// when it is absent or within the 30-second expiry margin. Thread-safe via <see cref="SemaphoreSlim"/>.
+    ///     Returns a cached service-account access token, refreshing it via the Keycloak token endpoint
+    ///     when it is absent or within the 30-second expiry margin. Thread-safe via <see cref="SemaphoreSlim" />.
     /// </summary>
     public async Task<string> GetTokenAsync(CancellationToken cancellationToken)
     {
@@ -53,9 +58,11 @@ public sealed class KeycloakAdminTokenProvider : IDisposable
             KeycloakTokenResponse response = await FetchTokenAsync(cancellationToken);
 
             if (string.IsNullOrWhiteSpace(response.AccessToken))
+            {
                 throw new InvalidOperationException(
                     "Keycloak token endpoint returned a response with an empty access_token."
                 );
+            }
 
             _cachedToken = response.AccessToken;
             _tokenExpiresAt = DateTimeOffset.UtcNow.AddSeconds(response.ExpiresIn);
@@ -109,9 +116,8 @@ public sealed class KeycloakAdminTokenProvider : IDisposable
         return token;
     }
 
-    private bool IsTokenValid() =>
-        _cachedToken is not null && DateTimeOffset.UtcNow < _tokenExpiresAt - ExpiryMargin;
-
-    public void Dispose() => _lock.Dispose();
+    private bool IsTokenValid()
+    {
+        return _cachedToken is not null && DateTimeOffset.UtcNow < _tokenExpiresAt - ExpiryMargin;
+    }
 }
-

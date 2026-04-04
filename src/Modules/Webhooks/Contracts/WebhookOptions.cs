@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Webhooks.Contracts;
 
 /// <summary>
-/// Configuration for incoming webhook verification, including the shared HMAC secret
-/// and the tolerance window used to reject replayed requests.
+///     Configuration for incoming webhook verification, including the shared HMAC secret
+///     and the tolerance window used to reject replayed requests.
 /// </summary>
 public sealed class WebhookOptions
 {
@@ -18,6 +18,3 @@ public sealed class WebhookOptions
     [Range(0, int.MaxValue)]
     public int TimestampToleranceSeconds { get; set; } = 300; // 5 minutes
 }
-
-
-

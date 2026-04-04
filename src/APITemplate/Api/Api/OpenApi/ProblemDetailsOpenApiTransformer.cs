@@ -1,19 +1,18 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
 namespace APITemplate.Api.OpenApi;
 
 /// <summary>
-/// Improved alternative to repeating <c>[ProducesResponseType(typeof(ProblemDetails), 400/404/500)]</c>
-/// on every controller action. This transformer adds ProblemDetails responses globally
-/// and avoids duplication across individual controllers.
+///     Improved alternative to repeating <c>[ProducesResponseType(typeof(ProblemDetails), 400/404/500)]</c>
+///     on every controller action. This transformer adds ProblemDetails responses globally
+///     and avoids duplication across individual controllers.
 /// </summary>
 public sealed class ProblemDetailsOpenApiTransformer : IOpenApiDocumentTransformer
 {
     /// <summary>
-    /// Registers the shared <c>ApiProblemDetails</c> schema component and attaches standardized
-    /// error responses (400, 401, 403, 404, 409, 500) to every operation in the document.
+    ///     Registers the shared <c>ApiProblemDetails</c> schema component and attaches standardized
+    ///     error responses (400, 401, 403, 404, 409, 500) to every operation in the document.
     /// </summary>
     public Task TransformAsync(
         OpenApiDocument document,
@@ -42,12 +41,14 @@ public sealed class ProblemDetailsOpenApiTransformer : IOpenApiDocumentTransform
                     StatusCodes.Status409Conflict,
                     StatusCodes.Status500InternalServerError,
                 ];
-                foreach (var statusCode in errorStatusCodes)
+                foreach (int statusCode in errorStatusCodes)
+                {
                     OpenApiErrorResponseHelper.AddErrorResponse(
                         operation,
                         statusCode,
                         problemDetailsSchema
                     );
+                }
             }
         }
 
@@ -55,8 +56,8 @@ public sealed class ProblemDetailsOpenApiTransformer : IOpenApiDocumentTransform
     }
 
     /// <summary>
-    /// Builds the reusable OpenAPI schema for the RFC 7807 ProblemDetails response payload,
-    /// including the custom <c>traceId</c>, <c>errorCode</c>, and <c>metadata</c> extensions.
+    ///     Builds the reusable OpenAPI schema for the RFC 7807 ProblemDetails response payload,
+    ///     including the custom <c>traceId</c>, <c>errorCode</c>, and <c>metadata</c> extensions.
     /// </summary>
     private static IOpenApiSchema BuildProblemDetailsSchema()
     {

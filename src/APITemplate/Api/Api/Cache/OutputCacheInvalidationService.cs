@@ -9,19 +9,23 @@ public sealed class OutputCacheInvalidationService(
     ILogger<OutputCacheInvalidationService> logger
 ) : IOutputCacheInvalidationService
 {
-    public Task EvictAsync(string tag, CancellationToken cancellationToken = default) =>
-        EvictAsync([tag], cancellationToken);
+    public Task EvictAsync(string tag, CancellationToken cancellationToken = default)
+    {
+        return EvictAsync([tag], cancellationToken);
+    }
 
     public async Task EvictAsync(
         IEnumerable<string> tags,
         CancellationToken cancellationToken = default
     )
     {
-        var tenantSuffix = tenantProvider.HasTenant ? $"-{tenantProvider.TenantId}" : string.Empty;
+        string tenantSuffix = tenantProvider.HasTenant
+            ? $"-{tenantProvider.TenantId}"
+            : string.Empty;
 
         foreach (string tag in tags.Distinct(StringComparer.Ordinal))
         {
-            var targetTag = $"{tag}{tenantSuffix}";
+            string targetTag = $"{tag}{tenantSuffix}";
             try
             {
                 await outputCacheStore.EvictByTagAsync(targetTag, cancellationToken);

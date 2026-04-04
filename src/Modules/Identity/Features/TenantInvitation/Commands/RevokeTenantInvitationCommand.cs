@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity;
 using Wolverine;
 using TenantInvitationEntity = Identity.Entities.TenantInvitation;
 
@@ -35,4 +34,3 @@ public sealed class RevokeTenantInvitationCommandHandler
         return (Result.Success, messages);
     }
 }
-

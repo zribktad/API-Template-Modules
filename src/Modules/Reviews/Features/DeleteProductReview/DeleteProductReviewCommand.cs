@@ -1,5 +1,4 @@
 using ErrorOr;
-using Reviews;
 using Wolverine;
 
 namespace Reviews.Features;
@@ -7,14 +6,10 @@ namespace Reviews.Features;
 /// <summary>Deletes the product review with the given identifier; only the review's author may delete it.</summary>
 public sealed record DeleteProductReviewCommand(Guid Id) : IHasId;
 
-/// <summary>Handles <see cref="DeleteProductReviewCommand"/>.</summary>
+/// <summary>Handles <see cref="DeleteProductReviewCommand" />.</summary>
 public sealed class DeleteProductReviewCommandHandler
 {
-    public static async Task<(
-        HandlerContinuation,
-        Reviews.Domain.ProductReview?,
-        OutgoingMessages
-    )> LoadAsync(
+    public static async Task<(HandlerContinuation, ProductReview?, OutgoingMessages)> LoadAsync(
         DeleteProductReviewCommand command,
         IProductReviewRepository reviewRepository,
         IActorProvider actorProvider,
@@ -22,7 +17,7 @@ public sealed class DeleteProductReviewCommandHandler
     )
     {
         Guid userId = actorProvider.ActorId;
-        ErrorOr<Reviews.Domain.ProductReview> reviewResult = await reviewRepository.GetByIdOrError(
+        ErrorOr<ProductReview> reviewResult = await reviewRepository.GetByIdOrError(
             command.Id,
             DomainErrors.Reviews.NotFound(command.Id),
             ct
@@ -34,7 +29,7 @@ public sealed class DeleteProductReviewCommandHandler
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 
-        Reviews.Domain.ProductReview review = reviewResult.Value;
+        ProductReview review = reviewResult.Value;
 
         if (review.UserId != userId)
         {
@@ -48,7 +43,7 @@ public sealed class DeleteProductReviewCommandHandler
 
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         DeleteProductReviewCommand command,
-        Reviews.Domain.ProductReview review,
+        ProductReview review,
         IProductReviewRepository reviewRepository,
         IUnitOfWork<ReviewsDbMarker> unitOfWork,
         CancellationToken ct

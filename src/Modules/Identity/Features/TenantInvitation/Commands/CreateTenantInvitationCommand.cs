@@ -2,7 +2,6 @@ using ErrorOr;
 using Identity.Common.Email;
 using Identity.Features.TenantInvitation.Mappings;
 using Identity.Options;
-using Identity;
 using Identity.ValueObjects;
 using Microsoft.Extensions.Options;
 using Wolverine;
@@ -35,10 +34,12 @@ public sealed class CreateTenantInvitationCommandHandler
         TenantInvitationOptions opts = invitationOptions.Value;
 
         if (await invitationRepository.HasPendingInvitationAsync(email.Normalize(), ct))
+        {
             return (
                 DomainErrors.Invitations.AlreadyPending(command.Request.Email),
                 OutgoingMessagesHelper.Empty
             );
+        }
 
         ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
             tenantProvider.TenantId,
@@ -79,4 +80,3 @@ public sealed class CreateTenantInvitationCommandHandler
         return (invitation.ToResponse(), messages);
     }
 }
-

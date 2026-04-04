@@ -1,9 +1,5 @@
 using ErrorOr;
-using ProductCatalog;
-using ProductCatalog.Entities;
 using ProductCatalog.ValueObjects;
-using SharedKernel.Application.Batch;
-using SharedKernel.Contracts.Events;
 using Wolverine;
 using ProductEntity = ProductCatalog.Entities.Product;
 using ProductRepositoryContract = ProductCatalog.Interfaces.IProductRepository;
@@ -13,7 +9,10 @@ namespace ProductCatalog.Features.Product.CreateProducts;
 /// <summary>Creates multiple products in a single batch operation.</summary>
 public sealed record CreateProductsCommand(CreateProductsRequest Request);
 
-/// <summary>Handles <see cref="CreateProductsCommand"/> by validating all items, bulk-validating references, and persisting in a single transaction.</summary>
+/// <summary>
+///     Handles <see cref="CreateProductsCommand" /> by validating all items, bulk-validating references, and
+///     persisting in a single transaction.
+/// </summary>
 public sealed class CreateProductsCommandHandler
 {
     public static async Task<(

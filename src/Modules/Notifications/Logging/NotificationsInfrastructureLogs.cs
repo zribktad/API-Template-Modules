@@ -4,7 +4,7 @@ using SharedKernel.Infrastructure.Logging;
 namespace Notifications.Logging;
 
 /// <summary>
-/// Source-generated logger extension methods for Notifications infrastructure diagnostics.
+///     Source-generated logger extension methods for Notifications infrastructure diagnostics.
 /// </summary>
 internal static partial class NotificationsInfrastructureLogs
 {

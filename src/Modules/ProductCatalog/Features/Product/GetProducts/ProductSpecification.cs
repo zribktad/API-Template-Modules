@@ -4,7 +4,8 @@ using ProductEntity = ProductCatalog.Entities.Product;
 namespace ProductCatalog.Features.Product.GetProducts;
 
 /// <summary>
-/// Ardalis specification that applies the full product filter, sorting, and projection to produce a <see cref="ProductResponse"/> list.
+///     Ardalis specification that applies the full product filter, sorting, and projection to produce a
+///     <see cref="ProductResponse" /> list.
 /// </summary>
 public sealed class ProductSpecification : Specification<ProductEntity, ProductResponse>
 {

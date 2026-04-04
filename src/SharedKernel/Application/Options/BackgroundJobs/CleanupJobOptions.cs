@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.Options.BackgroundJobs;
 
 /// <summary>
-/// Configuration for the periodic cleanup job that purges expired invitations, soft-deleted records,
-/// and orphaned product data according to the configured retention windows.
+///     Configuration for the periodic cleanup job that purges expired invitations, soft-deleted records,
+///     and orphaned product data according to the configured retention windows.
 /// </summary>
 public sealed class CleanupJobOptions
 {

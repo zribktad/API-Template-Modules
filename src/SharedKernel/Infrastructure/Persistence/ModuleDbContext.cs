@@ -11,20 +11,17 @@ using SharedKernel.Infrastructure.SoftDelete;
 namespace SharedKernel.Infrastructure.Persistence;
 
 /// <summary>
-/// Base EF Core context for modules that need multi-tenancy, audit stamping, soft delete, and optimistic concurrency.
+///     Base EF Core context for modules that need multi-tenancy, audit stamping, soft delete, and optimistic concurrency.
 /// </summary>
 public abstract class ModuleDbContext : DbContext
 {
-    private readonly ITenantProvider _tenantProvider;
     private readonly IActorProvider _actorProvider;
-    private readonly TimeProvider _timeProvider;
-    private readonly IReadOnlyCollection<ISoftDeleteCascadeRule> _softDeleteCascadeRules;
     private readonly IEntityNormalizationService _entityNormalizationService;
     private readonly IAuditableEntityStateManager _entityStateManager;
+    private readonly IReadOnlyCollection<ISoftDeleteCascadeRule> _softDeleteCascadeRules;
     private readonly ISoftDeleteProcessor _softDeleteProcessor;
-
-    protected Guid CurrentTenantId => _tenantProvider.TenantId;
-    protected bool HasTenant => _tenantProvider.HasTenant;
+    private readonly ITenantProvider _tenantProvider;
+    private readonly TimeProvider _timeProvider;
 
     protected ModuleDbContext(
         DbContextOptions options,
@@ -46,6 +43,9 @@ public abstract class ModuleDbContext : DbContext
         _entityStateManager = entityStateManager;
         _softDeleteProcessor = softDeleteProcessor;
     }
+
+    protected Guid CurrentTenantId => _tenantProvider.TenantId;
+    protected bool HasTenant => _tenantProvider.HasTenant;
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
@@ -72,16 +72,10 @@ public abstract class ModuleDbContext : DbContext
                 !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType)
                 || !typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType)
             )
-            {
                 continue;
-            }
 
             MethodInfo method = typeof(ModuleDbContext)
-                .GetMethod(
-                    nameof(SetGlobalFilter),
-                    System.Reflection.BindingFlags.Instance
-                        | System.Reflection.BindingFlags.NonPublic
-                )!
+                .GetMethod(nameof(SetGlobalFilter), BindingFlags.Instance | BindingFlags.NonPublic)!
                 .MakeGenericMethod(entityType.ClrType);
 
             method.Invoke(this, [modelBuilder]);
@@ -112,7 +106,7 @@ public abstract class ModuleDbContext : DbContext
                 .ToList()
         )
         {
-            var entity = (IAuditableTenantEntity)entry.Entity;
+            IAuditableTenantEntity entity = (IAuditableTenantEntity)entry.Entity;
             switch (entry.State)
             {
                 case EntityState.Added:

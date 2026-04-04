@@ -1,18 +1,20 @@
 using ErrorOr;
-using Identity.Errors;
 
 namespace Identity.ValueObjects;
 
 /// <summary>
-/// Value object representing a tenant code. Must be non-empty and at most 100 characters.
+///     Value object representing a tenant code. Must be non-empty and at most 100 characters.
 /// </summary>
 public readonly record struct TenantCode
 {
+    private TenantCode(string value)
+    {
+        Value = value;
+    }
+
     public string Value { get; }
 
-    private TenantCode(string value) => Value = value;
-
-    /// <summary>Creates a <see cref="TenantCode"/> after trimming and validating the input.</summary>
+    /// <summary>Creates a <see cref="TenantCode" /> after trimming and validating the input.</summary>
     public static ErrorOr<TenantCode> Create(string value)
     {
         string trimmed = value?.Trim() ?? string.Empty;
@@ -27,8 +29,13 @@ public readonly record struct TenantCode
     }
 
     /// <summary>Factory method for EF Core use only. Bypasses validation as values come from persistence.</summary>
-    public static TenantCode FromPersistence(string value) => new(value);
+    public static TenantCode FromPersistence(string value)
+    {
+        return new TenantCode(value);
+    }
 
-    public static implicit operator string(TenantCode code) => code.Value;
+    public static implicit operator string(TenantCode code)
+    {
+        return code.Value;
+    }
 }
-

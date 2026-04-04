@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Identity.Options;
 
 /// <summary>
-/// Configuration for the default tenant that is seeded when the application bootstraps for the first time.
+///     Configuration for the default tenant that is seeded when the application bootstraps for the first time.
 /// </summary>
 public sealed class BootstrapTenantOptions
 {
@@ -20,4 +20,3 @@ public sealed class BootstrapTenantOptions
     [MinLength(1)]
     public string Name { get; init; } = "Default Tenant";
 }
-

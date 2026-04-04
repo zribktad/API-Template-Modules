@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity;
 using Wolverine;
 
 namespace Identity.Features.User;
@@ -44,4 +43,3 @@ public sealed class ChangeUserRoleCommandHandler
         return (Result.Success, messages);
     }
 }
-

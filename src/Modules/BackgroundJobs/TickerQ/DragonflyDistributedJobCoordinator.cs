@@ -1,8 +1,6 @@
 using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.BackgroundJobs;
-using SharedKernel.Application.Options.BackgroundJobs;
 using StackExchange.Redis;
 
 namespace BackgroundJobs.TickerQ;
@@ -11,6 +9,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
 {
     private const int LeaseSeconds = 300;
     private const double LeaseRenewalDivider = 3.0;
+
     private static readonly LuaScript RenewLeaseScript = LuaScript.Prepare(
         """
         if redis.call('get', @key) == @value then
@@ -19,13 +18,14 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
         return 0
         """
     );
+
     private static readonly LuaScript ReleaseLockScript = LuaScript.Prepare(
         "if redis.call('get', @key) == @value then return redis.call('del', @key) else return 0 end"
     );
 
     private readonly IConnectionMultiplexer _connectionMultiplexer;
-    private readonly BackgroundJobsOptions _options;
     private readonly ILogger<DragonflyDistributedJobCoordinator> _logger;
+    private readonly BackgroundJobsOptions _options;
 
     public DragonflyDistributedJobCoordinator(
         IConnectionMultiplexer connectionMultiplexer,
@@ -58,7 +58,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
             lockKey,
             lockValue,
             TimeSpan.FromSeconds(LeaseSeconds),
-            when: When.NotExists
+            When.NotExists
         );
 
         if (!acquired)
@@ -164,6 +164,8 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
         }
     }
 
-    private static Task ReleaseAsync(IDatabase database, string key, string value) =>
-        database.ScriptEvaluateAsync(ReleaseLockScript, new { key, value });
+    private static Task ReleaseAsync(IDatabase database, string key, string value)
+    {
+        return database.ScriptEvaluateAsync(ReleaseLockScript, new { key, value });
+    }
 }

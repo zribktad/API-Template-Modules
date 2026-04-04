@@ -1,10 +1,9 @@
-using SharedKernel.Application.Sorting;
 using TenantEntity = Identity.Entities.Tenant;
 
 namespace Identity.Features.Tenant;
 
 /// <summary>
-/// Defines the sortable fields available for tenant queries and maps them to entity property expressions.
+///     Defines the sortable fields available for tenant queries and maps them to entity property expressions.
 /// </summary>
 public static class TenantSortFields
 {
@@ -18,4 +17,3 @@ public static class TenantSortFields
         .Add(CreatedAt, t => t.Audit.CreatedAtUtc)
         .Default(t => t.Audit.CreatedAtUtc);
 }
-

@@ -9,35 +9,39 @@ using OidcTokenValidatedContext = Microsoft.AspNetCore.Authentication.OpenIdConn
 namespace Identity.Security;
 
 /// <summary>
-/// Validates tenant-related claims after JWT/OIDC token validation and normalizes
-/// Keycloak claims into standard .NET claim types used by authorization policies.
+///     Validates tenant-related claims after JWT/OIDC token validation and normalizes
+///     Keycloak claims into standard .NET claim types used by authorization policies.
 /// </summary>
 public static class TenantClaimValidator
 {
     /// <summary>
-    /// JWT Bearer token callback. Maps Keycloak claims, enforces tenant claim presence for user
-    /// tokens, and provisions the local user record on first login.
+    ///     JWT Bearer token callback. Maps Keycloak claims, enforces tenant claim presence for user
+    ///     tokens, and provisions the local user record on first login.
     /// </summary>
-    public static Task OnTokenValidated(JwtTokenValidatedContext context) =>
-        ValidateTokenAsync(
+    public static Task OnTokenValidated(JwtTokenValidatedContext context)
+    {
+        return ValidateTokenAsync(
             context.Principal,
             context.HttpContext,
             msg => context.Fail(msg),
             "JWT Bearer",
             context.HttpContext.RequestAborted
         );
+    }
 
     /// <summary>
-    /// OpenID Connect token callback. Applies the same tenant and claim-mapping rules as JWT Bearer validation.
+    ///     OpenID Connect token callback. Applies the same tenant and claim-mapping rules as JWT Bearer validation.
     /// </summary>
-    public static Task OnTokenValidated(OidcTokenValidatedContext context) =>
-        ValidateTokenAsync(
+    public static Task OnTokenValidated(OidcTokenValidatedContext context)
+    {
+        return ValidateTokenAsync(
             context.Principal,
             context.HttpContext,
             msg => context.Fail(msg),
             "OIDC",
             context.HttpContext.RequestAborted
         );
+    }
 
     private static async Task ValidateTokenAsync(
         ClaimsPrincipal? principal,
@@ -57,24 +61,27 @@ public static class TenantClaimValidator
 
         if (!HasValidTenantClaim(principal) && !isServiceAccount)
         {
-            GetLogger(httpContext).LogWarning(
-                "Missing required {ClaimType} claim on {Scheme} token.",
-                AuthConstants.Claims.TenantId,
-                scheme
-            );
+            GetLogger(httpContext)
+                .LogWarning(
+                    "Missing required {ClaimType} claim on {Scheme} token.",
+                    AuthConstants.Claims.TenantId,
+                    scheme
+                );
             fail($"Missing required {AuthConstants.Claims.TenantId} claim.");
         }
     }
 
     /// <summary>
-    /// Checks whether the principal has a non-empty GUID value in the <c>tenant_id</c> claim.
+    ///     Checks whether the principal has a non-empty GUID value in the <c>tenant_id</c> claim.
     /// </summary>
-    public static bool HasValidTenantClaim(ClaimsPrincipal? principal) =>
-        principal?.HasClaim(c =>
-            c.Type == AuthConstants.Claims.TenantId
-            && Guid.TryParse(c.Value, out Guid tenantId)
-            && tenantId != Guid.Empty
-        ) == true;
+    public static bool HasValidTenantClaim(ClaimsPrincipal? principal)
+    {
+        return principal?.HasClaim(c =>
+                c.Type == AuthConstants.Claims.TenantId
+                && Guid.TryParse(c.Value, out Guid tenantId)
+                && tenantId != Guid.Empty
+            ) == true;
+    }
 
     private static async Task TryProvisionUserAsync(
         HttpContext httpContext,
@@ -86,9 +93,7 @@ public static class TenantClaimValidator
         {
             string? sub = principal?.FindFirstValue(AuthConstants.Claims.Subject);
             string? email = principal?.FindFirstValue(ClaimTypes.Email);
-            string? username = principal?.FindFirstValue(
-                AuthConstants.Claims.PreferredUsername
-            );
+            string? username = principal?.FindFirstValue(AuthConstants.Claims.PreferredUsername);
 
             if (
                 string.IsNullOrEmpty(sub)
@@ -104,10 +109,8 @@ public static class TenantClaimValidator
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            GetLogger(httpContext).LogWarning(
-                ex,
-                "User provisioning failed during token validation."
-            );
+            GetLogger(httpContext)
+                .LogWarning(ex, "User provisioning failed during token validation.");
         }
     }
 
@@ -121,9 +124,10 @@ public static class TenantClaimValidator
             );
     }
 
-    private static ILogger GetLogger(HttpContext httpContext) =>
-        httpContext.RequestServices
-            .GetRequiredService<ILoggerFactory>()
+    private static ILogger GetLogger(HttpContext httpContext)
+    {
+        return httpContext
+            .RequestServices.GetRequiredService<ILoggerFactory>()
             .CreateLogger(nameof(TenantClaimValidator));
+    }
 }
-

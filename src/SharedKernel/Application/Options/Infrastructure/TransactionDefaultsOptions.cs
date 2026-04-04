@@ -6,8 +6,8 @@ using SharedKernel.Domain.Options;
 namespace SharedKernel.Application.Options.Infrastructure;
 
 /// <summary>
-/// Application-level defaults for database transaction settings that can be overridden per call site.
-/// Consumed by infrastructure components to build consistent <see cref="TransactionOptions"/> instances.
+///     Application-level defaults for database transaction settings that can be overridden per call site.
+///     Consumed by infrastructure components to build consistent <see cref="TransactionOptions" /> instances.
 /// </summary>
 public sealed class TransactionDefaultsOptions
 {
@@ -30,24 +30,24 @@ public sealed class TransactionDefaultsOptions
     public int RetryDelaySeconds { get; set; } = 5;
 
     /// <summary>
-    /// Resolves the effective <see cref="TransactionOptions"/> by combining the configured defaults
-    /// in this instance with the specified <paramref name="overrides"/>.
+    ///     Resolves the effective <see cref="TransactionOptions" /> by combining the configured defaults
+    ///     in this instance with the specified <paramref name="overrides" />.
     /// </summary>
     /// <param name="overrides">
-    /// Optional per-call overrides. Any <c>null</c> or unset properties on <paramref name="overrides"/>
-    /// will fall back to the corresponding default value defined on this <see cref="TransactionDefaultsOptions"/>.
+    ///     Optional per-call overrides. Any <c>null</c> or unset properties on <paramref name="overrides" />
+    ///     will fall back to the corresponding default value defined on this <see cref="TransactionDefaultsOptions" />.
     /// </param>
     /// <returns>
-    /// A new <see cref="TransactionOptions"/> instance containing the resolved transaction settings.
+    ///     A new <see cref="TransactionOptions" /> instance containing the resolved transaction settings.
     /// </returns>
     /// <remarks>
-    /// This method is intended to be used by infrastructure and other consumers that require
-    /// consistent transaction configuration based on application-level defaults plus optional,
-    /// context-specific overrides.
+    ///     This method is intended to be used by infrastructure and other consumers that require
+    ///     consistent transaction configuration based on application-level defaults plus optional,
+    ///     context-specific overrides.
     /// </remarks>
     public TransactionOptions Resolve(TransactionOptions? overrides)
     {
-        var resolved = new TransactionOptions
+        TransactionOptions resolved = new()
         {
             IsolationLevel = overrides?.IsolationLevel ?? IsolationLevel,
             TimeoutSeconds = overrides?.TimeoutSeconds ?? TimeoutSeconds,
@@ -67,8 +67,8 @@ public sealed class TransactionDefaultsOptions
     }
 
     /// <summary>
-    /// Throws <see cref="ArgumentOutOfRangeException"/> when the given integer value is negative,
-    /// enforcing that transaction numeric settings are always non-negative.
+    ///     Throws <see cref="ArgumentOutOfRangeException" /> when the given integer value is negative,
+    ///     enforcing that transaction numeric settings are always non-negative.
     /// </summary>
     private static void ValidateNonNegative(int? value, string parameterName)
     {

@@ -4,18 +4,18 @@ using Identity.ValueObjects;
 namespace Identity.Features.User.Specifications;
 
 /// <summary>
-/// Internal extension that applies shared <see cref="UserFilter"/> criteria to an Ardalis specification builder.
+///     Internal extension that applies shared <see cref="UserFilter" /> criteria to an Ardalis specification builder.
 /// </summary>
 internal static class UserFilterCriteria
 {
     /// <summary>
-    /// Adds optional normalised-username contains, email exact-match, active-status, and role predicates to the query.
+    ///     Adds optional normalised-username contains, email exact-match, active-status, and role predicates to the query.
     /// </summary>
     internal static void ApplyFilter(this ISpecificationBuilder<AppUser> query, UserFilter filter)
     {
         if (!string.IsNullOrWhiteSpace(filter.Username))
         {
-            var normalizedUsername = AppUser.NormalizeUsername(filter.Username);
+            string normalizedUsername = AppUser.NormalizeUsername(filter.Username);
             query.Where(u => u.NormalizedUsername.Contains(normalizedUsername));
         }
 
@@ -32,4 +32,3 @@ internal static class UserFilterCriteria
             query.Where(u => u.Role == filter.Role.Value);
     }
 }
-

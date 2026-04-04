@@ -4,8 +4,8 @@ using SharedKernel.Application.Contracts;
 namespace SharedKernel.Application.Validation;
 
 /// <summary>
-/// FluentValidation validator that ensures <c>SortBy</c> is one of a known set of allowed field names
-/// and that <c>SortDirection</c> is either <c>asc</c> or <c>desc</c> (case-insensitive).
+///     FluentValidation validator that ensures <c>SortBy</c> is one of a known set of allowed field names
+///     and that <c>SortDirection</c> is either <c>asc</c> or <c>desc</c> (case-insensitive).
 /// </summary>
 public sealed class SortableFilterValidator<T> : AbstractValidator<T>
     where T : ISortableFilter

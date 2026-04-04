@@ -1,6 +1,4 @@
 using Asp.Versioning;
-using BackgroundJobs.Features;
-using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;

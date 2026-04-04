@@ -1,6 +1,6 @@
 using BackgroundJobs.Domain;
 using BackgroundJobs.Features;
-using BackgroundJobs.Features;
+using ErrorOr;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -18,14 +18,14 @@ public sealed class GetJobStatusQueryHandlerTests
         Guid id = Guid.NewGuid();
         _repository.Setup(r => r.GetByIdAsync(id, ct)).ReturnsAsync((JobExecution?)null);
 
-        ErrorOr.ErrorOr<JobStatusResponse> result = await GetJobStatusQueryHandler.HandleAsync(
+        ErrorOr<JobStatusResponse> result = await GetJobStatusQueryHandler.HandleAsync(
             new GetJobStatusQuery(new GetJobStatusRequest(id)),
             _repository.Object,
             ct
         );
 
         result.IsError.ShouldBeTrue();
-        result.FirstError.Type.ShouldBe(ErrorOr.ErrorType.NotFound);
+        result.FirstError.Type.ShouldBe(ErrorType.NotFound);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public sealed class GetJobStatusQueryHandlerTests
         };
         _repository.Setup(r => r.GetByIdAsync(entity.Id, ct)).ReturnsAsync(entity);
 
-        ErrorOr.ErrorOr<JobStatusResponse> result = await GetJobStatusQueryHandler.HandleAsync(
+        ErrorOr<JobStatusResponse> result = await GetJobStatusQueryHandler.HandleAsync(
             new GetJobStatusQuery(new GetJobStatusRequest(entity.Id)),
             _repository.Object,
             ct

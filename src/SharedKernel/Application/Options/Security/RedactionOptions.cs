@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.Options.Security;
 
 /// <summary>
-/// Configuration for the HMAC-based data redaction feature used to pseudonymise sensitive fields.
-/// The signing key is sourced from an environment variable whose name is specified here.
+///     Configuration for the HMAC-based data redaction feature used to pseudonymise sensitive fields.
+///     The signing key is sourced from an environment variable whose name is specified here.
 /// </summary>
 public sealed class RedactionOptions
 {

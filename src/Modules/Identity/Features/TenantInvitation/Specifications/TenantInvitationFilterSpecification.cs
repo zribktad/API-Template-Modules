@@ -1,19 +1,19 @@
 using Ardalis.Specification;
 using Identity.Features.TenantInvitation.Mappings;
-using Identity.Entities;
 using Identity.ValueObjects;
 using TenantInvitationEntity = Identity.Entities.TenantInvitation;
 
 namespace Identity.Features.TenantInvitation.Specifications;
 
 /// <summary>
-/// Ardalis specification that retrieves a filtered list of tenant invitations projected to <see cref="TenantInvitationResponse"/>.
+///     Ardalis specification that retrieves a filtered list of tenant invitations projected to
+///     <see cref="TenantInvitationResponse" />.
 /// </summary>
 public sealed class TenantInvitationFilterSpecification
     : Specification<TenantInvitationEntity, TenantInvitationResponse>
 {
     /// <summary>
-    /// Initialises the specification by applying filter criteria, descending creation-date ordering, and projection.
+    ///     Initialises the specification by applying filter criteria, descending creation-date ordering, and projection.
     /// </summary>
     public TenantInvitationFilterSpecification(TenantInvitationFilter filter)
     {
@@ -25,12 +25,13 @@ public sealed class TenantInvitationFilterSpecification
 }
 
 /// <summary>
-/// Internal extension that applies shared <see cref="TenantInvitationFilter"/> criteria to an Ardalis specification builder.
+///     Internal extension that applies shared <see cref="TenantInvitationFilter" /> criteria to an Ardalis specification
+///     builder.
 /// </summary>
 internal static class TenantInvitationFilterCriteria
 {
     /// <summary>
-    /// Adds optional email (normalised, case-insensitive contains) and status equality predicates to the query.
+    ///     Adds optional email (normalised, case-insensitive contains) and status equality predicates to the query.
     /// </summary>
     public static void ApplyFilter(
         this ISpecificationBuilder<TenantInvitationEntity> query,
@@ -47,4 +48,3 @@ internal static class TenantInvitationFilterCriteria
             query.Where(i => i.Status == filter.Status.Value);
     }
 }
-

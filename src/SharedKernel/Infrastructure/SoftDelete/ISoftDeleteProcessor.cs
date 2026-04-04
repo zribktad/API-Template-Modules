@@ -5,11 +5,11 @@ using SharedKernel.Domain.Entities.Contracts;
 namespace SharedKernel.Infrastructure.SoftDelete;
 
 /// <summary>
-/// Orchestrates recursive soft-delete processing for tracked EF Core entities.
+///     Orchestrates recursive soft-delete processing for tracked EF Core entities.
 /// </summary>
 public interface ISoftDeleteProcessor
 {
-    Task ProcessAsync(
+    public Task ProcessAsync(
         DbContext dbContext,
         EntityEntry entry,
         IAuditableTenantEntity entity,

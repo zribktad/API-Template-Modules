@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Reviews.Domain;
-using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.EntityNormalization;
 using SharedKernel.Infrastructure.SoftDelete;

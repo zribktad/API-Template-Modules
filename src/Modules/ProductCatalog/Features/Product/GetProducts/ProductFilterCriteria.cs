@@ -1,4 +1,3 @@
-using SharedKernel.Application.Search;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;
 using ProductEntity = ProductCatalog.Entities.Product;
@@ -6,12 +5,14 @@ using ProductEntity = ProductCatalog.Entities.Product;
 namespace ProductCatalog.Features.Product.GetProducts;
 
 /// <summary>
-/// Internal helper that extends <see cref="ISpecificationBuilder{T}"/> with product-specific filter predicates, centralising all WHERE-clause logic for reuse across multiple specifications.
+///     Internal helper that extends <see cref="ISpecificationBuilder{T}" /> with product-specific filter predicates,
+///     centralising all WHERE-clause logic for reuse across multiple specifications.
 /// </summary>
 internal static class ProductFilterCriteria
 {
     /// <summary>
-    /// Applies the active predicates from <paramref name="filter"/> to the specification builder, with optional overrides via <paramref name="options"/> to skip category-ID or price-range constraints when computing facets.
+    ///     Applies the active predicates from <paramref name="filter" /> to the specification builder, with optional overrides
+    ///     via <paramref name="options" /> to skip category-ID or price-range constraints when computing facets.
     /// </summary>
     internal static void ApplyFilter(
         this ISpecificationBuilder<ProductEntity> query,
@@ -56,14 +57,16 @@ internal static class ProductFilterCriteria
             query.Where(p => p.Audit.CreatedAtUtc <= filter.CreatedTo.Value);
 
         if (!options.IgnoreCategoryIds && filter.CategoryIds is { Count: > 0 })
+        {
             query.Where(p =>
                 p.CategoryId.HasValue && filter.CategoryIds.Contains(p.CategoryId.Value)
             );
+        }
     }
 }
 
 /// <summary>
-/// Controls which filter predicates are suppressed when building specifications for facet queries.
+///     Controls which filter predicates are suppressed when building specifications for facet queries.
 /// </summary>
 internal sealed record ProductFilterCriteriaOptions(
     bool IgnoreCategoryIds = false,

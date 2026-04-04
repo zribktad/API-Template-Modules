@@ -4,7 +4,7 @@ using SharedKernel.Infrastructure.Logging;
 namespace Webhooks.Logging;
 
 /// <summary>
-/// Source-generated logger extension methods for Webhooks infrastructure diagnostics.
+///     Source-generated logger extension methods for Webhooks infrastructure diagnostics.
 /// </summary>
 internal static partial class WebhooksInfrastructureLogs
 {

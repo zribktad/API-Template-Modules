@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.Validation;
 
 /// <summary>
-/// Data annotation attribute that rejects <see langword="null"/>, whitespace strings, and
-/// <see cref="Guid.Empty"/> values. Applicable to properties and constructor parameters.
+///     Data annotation attribute that rejects <see langword="null" />, whitespace strings, and
+///     <see cref="Guid.Empty" /> values. Applicable to properties and constructor parameters.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
 public sealed class NotEmptyAttribute : ValidationAttribute
@@ -14,16 +14,18 @@ public sealed class NotEmptyAttribute : ValidationAttribute
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
-        var isEmpty =
+        bool isEmpty =
             value is null
             || (value is string str && string.IsNullOrWhiteSpace(str))
             || (value is Guid guid && guid == Guid.Empty);
 
         if (isEmpty)
+        {
             return new ValidationResult(
                 FormatErrorMessage(validationContext.DisplayName),
                 [validationContext.MemberName!]
             );
+        }
 
         return ValidationResult.Success;
     }

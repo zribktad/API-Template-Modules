@@ -8,7 +8,7 @@ public sealed class MarkMissingByIdBatchRule<TItem>(
 {
     public Task ApplyAsync(BatchFailureContext<TItem> context, CancellationToken ct)
     {
-        for (var i = 0; i < context.Items.Count; i++)
+        for (int i = 0; i < context.Items.Count; i++)
         {
             if (context.IsFailed(i))
                 continue;

@@ -1,8 +1,8 @@
 namespace ProductCatalog.GraphQL.Models;
 
 /// <summary>
-/// GraphQL input type for querying product reviews, supporting filters by product,
-/// user, rating range, date range, sorting, and pagination.
+///     GraphQL input type for querying product reviews, supporting filters by product,
+///     user, rating range, date range, sorting, and pagination.
 /// </summary>
 public sealed class ProductReviewQueryInput
 {
@@ -17,7 +17,3 @@ public sealed class ProductReviewQueryInput
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = PaginationFilter.DefaultPageSize;
 }
-
-
-
-

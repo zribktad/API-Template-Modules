@@ -1,9 +1,7 @@
 using BackgroundJobs.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Application.BackgroundJobs;
 using TickerQ.Utilities.Entities;
 
 namespace BackgroundJobs.TickerQ;
@@ -16,10 +14,10 @@ public sealed class TickerQRecurringJobRegistrar
     private const string UpdatedAtProperty = "UpdatedAt";
 
     private readonly TickerQSchedulerDbContext _dbContext;
+    private readonly ILogger<TickerQRecurringJobRegistrar> _logger;
     private readonly IEnumerable<IRecurringBackgroundJobRegistration> _registrations;
     private readonly IServiceProvider _serviceProvider;
     private readonly TimeProvider _timeProvider;
-    private readonly ILogger<TickerQRecurringJobRegistrar> _logger;
 
     public TickerQRecurringJobRegistrar(
         TickerQSchedulerDbContext dbContext,

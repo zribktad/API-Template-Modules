@@ -7,13 +7,17 @@ namespace APITemplate.Tests.Unit.Common;
 
 public sealed class ConfigurationExtensionsTests
 {
-    private static IConfiguration BuildConfig(Dictionary<string, string?> values) =>
-        new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+    private static IConfiguration BuildConfig(Dictionary<string, string?> values)
+    {
+        return new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+    }
 
     [Fact]
     public void SectionFor_StripsOptionsSuffix_WhenTypeNameEndsWithOptions()
     {
-        IConfiguration config = BuildConfig(new() { ["Email:SmtpHost"] = "smtp.example.com" });
+        IConfiguration config = BuildConfig(
+            new Dictionary<string, string?> { ["Email:SmtpHost"] = "smtp.example.com" }
+        );
 
         IConfigurationSection section = config.SectionFor<EmailSectionOptions>();
 
@@ -25,7 +29,10 @@ public sealed class ConfigurationExtensionsTests
     public void SectionFor_UsesTypeName_WhenNoOptionsSuffix()
     {
         IConfiguration config = BuildConfig(
-            new() { ["MongoDbSettings:ConnectionString"] = "mongodb://localhost" }
+            new Dictionary<string, string?>
+            {
+                ["MongoDbSettings:ConnectionString"] = "mongodb://localhost",
+            }
         );
 
         IConfigurationSection section = config.SectionFor<MongoDbSettings>();
@@ -37,7 +44,9 @@ public sealed class ConfigurationExtensionsTests
     [Fact]
     public void SectionFor_ReturnsSectionMatchingStrippedName()
     {
-        IConfiguration config = BuildConfig(new() { ["Email:SmtpHost"] = "smtp.example.com" });
+        IConfiguration config = BuildConfig(
+            new Dictionary<string, string?> { ["Email:SmtpHost"] = "smtp.example.com" }
+        );
 
         IConfigurationSection section = config.SectionFor<EmailOptions>();
 
@@ -48,7 +57,7 @@ public sealed class ConfigurationExtensionsTests
     [Fact]
     public void SectionFor_ReturnsEmptySection_WhenKeyAbsent()
     {
-        IConfiguration config = BuildConfig(new());
+        IConfiguration config = BuildConfig(new Dictionary<string, string?>());
 
         IConfigurationSection section = config.SectionFor<EmailOptions>();
 

@@ -12,9 +12,3 @@ public static class ErrorCatalog
         public const string WebhookMissingHeaders = "EXA-0401-WEBHOOK-HDR";
     }
 }
-
-
-
-
-
-

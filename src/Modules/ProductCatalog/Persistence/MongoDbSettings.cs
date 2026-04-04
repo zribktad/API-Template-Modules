@@ -1,7 +1,7 @@
 namespace ProductCatalog.Persistence;
 
 /// <summary>
-/// Strongly-typed settings for the MongoDB connection, bound from the application configuration.
+///     Strongly-typed settings for the MongoDB connection, bound from the application configuration.
 /// </summary>
 public sealed class MongoDbSettings
 {
@@ -9,6 +9,3 @@ public sealed class MongoDbSettings
 
     public string DatabaseName { get; init; } = string.Empty;
 }
-
-
-

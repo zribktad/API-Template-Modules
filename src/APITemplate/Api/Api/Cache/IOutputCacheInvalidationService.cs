@@ -2,7 +2,7 @@ namespace APITemplate.Api.Cache;
 
 public interface IOutputCacheInvalidationService
 {
-    Task EvictAsync(string tag, CancellationToken cancellationToken = default);
+    public Task EvictAsync(string tag, CancellationToken cancellationToken = default);
 
-    Task EvictAsync(IEnumerable<string> tags, CancellationToken cancellationToken = default);
+    public Task EvictAsync(IEnumerable<string> tags, CancellationToken cancellationToken = default);
 }

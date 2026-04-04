@@ -1,13 +1,11 @@
 using ErrorOr;
-using Reviews.Domain;
-using Reviews.Features;
 
 namespace Reviews.Features;
 
 /// <summary>Returns reviews grouped by product id for a batch of product identifiers.</summary>
 public sealed record GetProductReviewsByProductIdsQuery(IReadOnlyCollection<Guid> ProductIds);
 
-/// <summary>Handles <see cref="GetProductReviewsByProductIdsQuery"/>.</summary>
+/// <summary>Handles <see cref="GetProductReviewsByProductIdsQuery" />.</summary>
 public sealed class GetProductReviewsByProductIdsQueryHandler
 {
     public static async Task<
@@ -19,8 +17,10 @@ public sealed class GetProductReviewsByProductIdsQueryHandler
     )
     {
         if (request.ProductIds.Count == 0)
+        {
             return (ErrorOr<IReadOnlyDictionary<Guid, ProductReviewResponse[]>>)
                 new Dictionary<Guid, ProductReviewResponse[]>();
+        }
 
         List<ProductReviewResponse> reviews = await reviewRepository.ListAsync(
             new ProductReviewByProductIdsSpecification(request.ProductIds),

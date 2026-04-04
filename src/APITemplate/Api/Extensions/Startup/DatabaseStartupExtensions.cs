@@ -5,6 +5,7 @@ using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 using ProductCatalog.Persistence;
 using Reviews.Persistence;
 
@@ -41,7 +42,7 @@ public static class DatabaseStartupExtensions
         {
             await creator.CreateTablesAsync();
         }
-        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07")
+        catch (PostgresException ex) when (ex.SqlState == "42P07")
         {
             // 42P07 = relation already exists — safe to ignore
         }

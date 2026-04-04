@@ -4,11 +4,11 @@ using SharedKernel.Domain.Entities.Contracts;
 namespace SharedKernel.Infrastructure.Auditing;
 
 /// <summary>
-/// Abstracts audit-field stamping for auditable entities tracked by EF Core.
+///     Abstracts audit-field stamping for auditable entities tracked by EF Core.
 /// </summary>
 public interface IAuditableEntityStateManager
 {
-    void StampAdded(
+    public void StampAdded(
         EntityEntry entry,
         IAuditableTenantEntity entity,
         DateTime now,
@@ -17,9 +17,9 @@ public interface IAuditableEntityStateManager
         Guid currentTenantId
     );
 
-    void StampModified(IAuditableTenantEntity entity, DateTime now, Guid actor);
+    public void StampModified(IAuditableTenantEntity entity, DateTime now, Guid actor);
 
-    void MarkSoftDeleted(
+    public void MarkSoftDeleted(
         EntityEntry entry,
         IAuditableTenantEntity entity,
         DateTime now,

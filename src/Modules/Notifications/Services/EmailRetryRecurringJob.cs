@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
-using Notifications.Domain;
-using Notifications.Services;
 using Notifications.Logging;
 using SharedKernel.Application.BackgroundJobs;
 using SharedKernel.Application.Options.BackgroundJobs;
@@ -11,16 +9,16 @@ using TickerQ.Utilities.Base;
 namespace Notifications.Services;
 
 /// <summary>
-/// TickerQ recurring job that retries previously failed emails and dead-letters those that have
-/// exceeded the configured retry window, delegating to <see cref="IEmailRetryService"/>.
-/// Execution is gated by <see cref="IDistributedJobCoordinator"/> to prevent multi-node duplication.
+///     TickerQ recurring job that retries previously failed emails and dead-letters those that have
+///     exceeded the configured retry window, delegating to <see cref="IEmailRetryService" />.
+///     Execution is gated by <see cref="IDistributedJobCoordinator" /> to prevent multi-node duplication.
 /// </summary>
 public sealed class EmailRetryRecurringJob
 {
-    private readonly IEmailRetryService _emailRetryService;
     private readonly IDistributedJobCoordinator _coordinator;
-    private readonly EmailRetryJobOptions _options;
+    private readonly IEmailRetryService _emailRetryService;
     private readonly ILogger<EmailRetryRecurringJob> _logger;
+    private readonly EmailRetryJobOptions _options;
 
     public EmailRetryRecurringJob(
         IEmailRetryService emailRetryService,
@@ -36,12 +34,13 @@ public sealed class EmailRetryRecurringJob
     }
 
     /// <summary>
-    /// TickerQ entry-point that acquires the distributed leader lease and runs retry and
-    /// dead-letter operations using settings from <see cref="EmailRetryJobOptions"/>.
+    ///     TickerQ entry-point that acquires the distributed leader lease and runs retry and
+    ///     dead-letter operations using settings from <see cref="EmailRetryJobOptions" />.
     /// </summary>
     [TickerFunction("email-retry-recurring-job")]
-    public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct) =>
-        _coordinator.ExecuteIfLeaderAsync(
+    public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct)
+    {
+        return _coordinator.ExecuteIfLeaderAsync(
             "email-retry-recurring-job",
             async token =>
             {
@@ -60,9 +59,5 @@ public sealed class EmailRetryRecurringJob
             },
             ct
         );
+    }
 }
-
-
-
-
-

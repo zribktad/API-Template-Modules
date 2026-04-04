@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Registry;
 using ProductCatalog.Logging;
-using ProductCatalog;
 using Wolverine;
 
 namespace ProductCatalog.Features.ProductData.DeleteProductData;
@@ -12,13 +11,6 @@ public sealed record DeleteProductDataCommand(Guid Id) : IHasId;
 
 public sealed class DeleteProductDataCommandHandler
 {
-    public sealed record DeleteProductDataState(
-        ProductCatalog.Entities.ProductData.ProductData Data,
-        Guid TenantId,
-        Guid ActorId,
-        DateTime DeletedAtUtc
-    );
-
     public static async Task<(
         HandlerContinuation,
         DeleteProductDataState?,
@@ -34,8 +26,7 @@ public sealed class DeleteProductDataCommandHandler
     {
         Guid tenantId = tenantProvider.TenantId;
 
-        ProductCatalog.Entities.ProductData.ProductData? data =
-            await repository.GetByIdAsync(command.Id, ct);
+        Entities.ProductData.ProductData? data = await repository.GetByIdAsync(command.Id, ct);
 
         if (data is null || data.TenantId != tenantId)
         {
@@ -106,4 +97,11 @@ public sealed class DeleteProductDataCommandHandler
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
         return (Result.Success, messages);
     }
+
+    public sealed record DeleteProductDataState(
+        Entities.ProductData.ProductData Data,
+        Guid TenantId,
+        Guid ActorId,
+        DateTime DeletedAtUtc
+    );
 }

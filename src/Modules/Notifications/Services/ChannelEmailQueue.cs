@@ -1,16 +1,15 @@
 using Notifications.Contracts;
-using Notifications.Domain;
-using Notifications.Services;
+using SharedKernel.Infrastructure.BackgroundJobs.Services;
 
 namespace Notifications.Services;
 
 /// <summary>
-/// Bounded in-process email queue backed by a <see cref="System.Threading.Channels.Channel{T}"/>.
-/// Implements both <see cref="IEmailQueue"/> (producer) and <see cref="IEmailQueueReader"/> (consumer)
-/// so that callers and the sending background service remain decoupled.
+///     Bounded in-process email queue backed by a <see cref="System.Threading.Channels.Channel{T}" />.
+///     Implements both <see cref="IEmailQueue" /> (producer) and <see cref="IEmailQueueReader" /> (consumer)
+///     so that callers and the sending background service remain decoupled.
 /// </summary>
 public sealed class ChannelEmailQueue
-    : SharedKernel.Infrastructure.BackgroundJobs.Services.BoundedChannelQueue<EmailMessage>,
+    : BoundedChannelQueue<EmailMessage>,
         IEmailQueue,
         IEmailQueueReader
 {
@@ -19,8 +18,3 @@ public sealed class ChannelEmailQueue
     public ChannelEmailQueue()
         : base(DefaultCapacity) { }
 }
-
-
-
-
-

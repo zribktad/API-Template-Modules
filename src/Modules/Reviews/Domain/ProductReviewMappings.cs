@@ -4,14 +4,15 @@ using ProductReviewEntity = Reviews.Domain.ProductReview;
 namespace Reviews.Domain;
 
 /// <summary>
-/// Provides mapping utilities between product review domain entities and their response DTOs.
-/// The compiled projection is shared across specifications and in-memory conversions.
+///     Provides mapping utilities between product review domain entities and their response DTOs.
+///     The compiled projection is shared across specifications and in-memory conversions.
 /// </summary>
 public static class ProductReviewMappings
 {
     /// <summary>
-    /// EF Core-compatible expression that projects a <see cref="ProductReviewEntity"/> to a <see cref="ProductReviewResponse"/>.
-    /// Shared with specifications to ensure a consistent shape from both DB queries and entity-to-DTO conversions.
+    ///     EF Core-compatible expression that projects a <see cref="ProductReviewEntity" /> to a
+    ///     <see cref="ProductReviewResponse" />.
+    ///     Shared with specifications to ensure a consistent shape from both DB queries and entity-to-DTO conversions.
     /// </summary>
     public static readonly Expression<Func<ProductReviewEntity, ProductReviewResponse>> Projection =
         r => new ProductReviewResponse(
@@ -26,7 +27,12 @@ public static class ProductReviewMappings
     private static readonly Func<ProductReviewEntity, ProductReviewResponse> CompiledProjection =
         Projection.Compile();
 
-    /// <summary>Maps a <see cref="ProductReviewEntity"/> to a <see cref="ProductReviewResponse"/> using the compiled projection.</summary>
-    public static ProductReviewResponse ToResponse(this ProductReviewEntity review) =>
-        CompiledProjection(review);
+    /// <summary>
+    ///     Maps a <see cref="ProductReviewEntity" /> to a <see cref="ProductReviewResponse" /> using the compiled
+    ///     projection.
+    /// </summary>
+    public static ProductReviewResponse ToResponse(this ProductReviewEntity review)
+    {
+        return CompiledProjection(review);
+    }
 }

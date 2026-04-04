@@ -21,7 +21,7 @@ public sealed class ProductDataCascadeDeleteHandler
 
         try
         {
-            var count = await pipeline.ExecuteAsync(
+            long count = await pipeline.ExecuteAsync(
                 async token =>
                     await productDataRepository.SoftDeleteByTenantAsync(
                         @event.TenantId,

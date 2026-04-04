@@ -1,7 +1,7 @@
 namespace ProductCatalog.Features.Product.Shared;
 
 /// <summary>
-/// Combines a paged list of products with their associated search facets in a single response envelope.
+///     Combines a paged list of products with their associated search facets in a single response envelope.
 /// </summary>
 public sealed record ProductsResponse(
     PagedResponse<ProductResponse> Page,

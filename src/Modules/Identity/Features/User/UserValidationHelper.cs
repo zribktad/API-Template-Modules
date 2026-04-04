@@ -1,5 +1,3 @@
-using Identity.Entities;
-using Identity.Interfaces;
 using ErrorOr;
 
 namespace Identity.Features.User;
@@ -24,11 +22,10 @@ internal static class UserValidationHelper
         CancellationToken ct
     )
     {
-        var normalized = AppUser.NormalizeUsername(username);
+        string normalized = AppUser.NormalizeUsername(username);
         if (await repository.ExistsByUsernameAsync(normalized, ct))
             return DomainErrors.Users.UsernameAlreadyExists(username);
 
         return Result.Success;
     }
 }
-

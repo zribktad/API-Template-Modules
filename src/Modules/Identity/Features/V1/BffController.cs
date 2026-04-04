@@ -43,25 +43,29 @@ public sealed class BffController : ApiControllerBase
 
     [HttpGet("csrf")]
     [AllowAnonymous]
-    public IActionResult GetCsrf() =>
-        Ok(new
-        {
-            headerName = AuthConstants.Csrf.HeaderName,
-            headerValue = AuthConstants.Csrf.HeaderValue,
-        });
+    public IActionResult GetCsrf()
+    {
+        return Ok(
+            new
+            {
+                headerName = AuthConstants.Csrf.HeaderName,
+                headerValue = AuthConstants.Csrf.HeaderValue,
+            }
+        );
+    }
 
     [HttpGet("user")]
     public IActionResult GetUser()
     {
-        System.Security.Claims.ClaimsPrincipal user = HttpContext.User;
+        ClaimsPrincipal user = HttpContext.User;
         BffUserResponse result = new(
-            UserId: user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue(AuthConstants.Claims.Subject),
-            Username: user.FindFirstValue(ClaimTypes.Name),
-            Email: user.FindFirstValue(ClaimTypes.Email),
-            TenantId: user.FindFirstValue(AuthConstants.Claims.TenantId),
-            Roles: user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray()
+            user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? user.FindFirstValue(AuthConstants.Claims.Subject),
+            user.FindFirstValue(ClaimTypes.Name),
+            user.FindFirstValue(ClaimTypes.Email),
+            user.FindFirstValue(AuthConstants.Claims.TenantId),
+            user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray()
         );
         return Ok(result);
     }
 }
-

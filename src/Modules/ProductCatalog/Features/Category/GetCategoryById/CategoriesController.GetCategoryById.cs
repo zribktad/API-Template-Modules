@@ -2,8 +2,6 @@ using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using ProductCatalog.Features.Category.GetCategoryById;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Contracts.Security;
 
 namespace ProductCatalog.Features.Category;
 

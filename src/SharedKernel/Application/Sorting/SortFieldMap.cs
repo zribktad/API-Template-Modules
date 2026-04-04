@@ -4,17 +4,12 @@ using Ardalis.Specification;
 namespace SharedKernel.Application.Sorting;
 
 /// <summary>
-/// Fluent builder that maps named <see cref="SortField"/> values to strongly-typed key-selector expressions
-/// and applies the resulting <c>OrderBy</c> / <c>OrderByDescending</c> clause to an Ardalis Specification query.
+///     Fluent builder that maps named <see cref="SortField" /> values to strongly-typed key-selector expressions
+///     and applies the resulting <c>OrderBy</c> / <c>OrderByDescending</c> clause to an Ardalis Specification query.
 /// </summary>
 public sealed class SortFieldMap<TEntity>
     where TEntity : class
 {
-    private readonly record struct Entry(
-        SortField Field,
-        Expression<Func<TEntity, object?>> KeySelector
-    );
-
     private readonly List<Entry> _entries = [];
     private Expression<Func<TEntity, object?>>? _default;
 
@@ -22,13 +17,16 @@ public sealed class SortFieldMap<TEntity>
     public IReadOnlyCollection<string> AllowedNames =>
         _entries.Select(e => e.Field.Value).ToArray();
 
-    /// <summary>Registers a named sort field paired with its key-selector expression and returns <see langword="this"/> for chaining.</summary>
+    /// <summary>
+    ///     Registers a named sort field paired with its key-selector expression and returns <see langword="this" /> for
+    ///     chaining.
+    /// </summary>
     public SortFieldMap<TEntity> Add(
         SortField field,
         Expression<Func<TEntity, object?>> keySelector
     )
     {
-        _entries.Add(new(field, keySelector));
+        _entries.Add(new Entry(field, keySelector));
         return this;
     }
 
@@ -40,10 +38,10 @@ public sealed class SortFieldMap<TEntity>
     }
 
     /// <summary>
-    /// Resolves the appropriate key selector from <paramref name="sortBy"/> and appends an
-    /// <c>OrderBy</c> or <c>OrderByDescending</c> clause to <paramref name="query"/>.
-    /// Defaults to descending order; uses the fallback key selector when <paramref name="sortBy"/>
-    /// is unrecognised or <see langword="null"/>.
+    ///     Resolves the appropriate key selector from <paramref name="sortBy" /> and appends an
+    ///     <c>OrderBy</c> or <c>OrderByDescending</c> clause to <paramref name="query" />.
+    ///     Defaults to descending order; uses the fallback key selector when <paramref name="sortBy" />
+    ///     is unrecognised or <see langword="null" />.
     /// </summary>
     public void ApplySort(
         ISpecificationBuilder<TEntity> query,
@@ -51,7 +49,7 @@ public sealed class SortFieldMap<TEntity>
         string? sortDirection
     )
     {
-        var desc = !string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
+        bool desc = !string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase);
         Expression<Func<TEntity, object?>>? key =
             _entries.FirstOrDefault(e => e.Field.Matches(sortBy)).KeySelector ?? _default;
 
@@ -63,4 +61,9 @@ public sealed class SortFieldMap<TEntity>
         else
             query.OrderBy(key);
     }
+
+    private readonly record struct Entry(
+        SortField Field,
+        Expression<Func<TEntity, object?>> KeySelector
+    );
 }

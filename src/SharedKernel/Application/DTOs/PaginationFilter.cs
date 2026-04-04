@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.DTOs;
 
 /// <summary>
-/// Reusable pagination input carried by list query requests.
-/// Data-annotation constraints enforce valid ranges so FluentValidation and model binding both reject bad input.
+///     Reusable pagination input carried by list query requests.
+///     Data-annotation constraints enforce valid ranges so FluentValidation and model binding both reject bad input.
 /// </summary>
 public record PaginationFilter(
     [Range(1, int.MaxValue, ErrorMessage = "PageNumber must be greater than or equal to 1.")]

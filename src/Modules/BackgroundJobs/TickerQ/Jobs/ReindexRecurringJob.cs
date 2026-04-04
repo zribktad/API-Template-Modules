@@ -1,16 +1,14 @@
-using BackgroundJobs.Domain;
 using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Application.BackgroundJobs;
 using TickerQ.Utilities.Base;
 
 namespace BackgroundJobs.TickerQ.Jobs;
 
 public sealed class ReindexRecurringJob
 {
-    private readonly IReindexService _reindexService;
     private readonly IDistributedJobCoordinator _coordinator;
     private readonly ILogger<ReindexRecurringJob> _logger;
+    private readonly IReindexService _reindexService;
 
     public ReindexRecurringJob(
         IReindexService reindexService,
@@ -24,8 +22,9 @@ public sealed class ReindexRecurringJob
     }
 
     [TickerFunction(TickerQFunctionNames.Reindex)]
-    public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct) =>
-        _coordinator.ExecuteIfLeaderAsync(
+    public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct)
+    {
+        return _coordinator.ExecuteIfLeaderAsync(
             TickerQFunctionNames.Reindex,
             async token =>
             {
@@ -34,4 +33,5 @@ public sealed class ReindexRecurringJob
             },
             ct
         );
+    }
 }

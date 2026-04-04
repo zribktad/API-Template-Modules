@@ -1,4 +1,3 @@
-using BackgroundJobs.Domain;
 using BackgroundJobs.Persistence;
 using SharedKernel.Infrastructure.Repositories;
 

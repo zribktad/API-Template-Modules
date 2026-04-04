@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Notifications.Contracts;
 using Notifications.Domain;
-using Notifications.Services;
 
 namespace Notifications.Persistence;
 
-/// <summary>EF Core configuration for the <see cref="FailedEmail"/> entity, with composite indexes optimized for claim-based retry and expiration queries.</summary>
+/// <summary>
+///     EF Core configuration for the <see cref="FailedEmail" /> entity, with composite indexes optimized for
+///     claim-based retry and expiration queries.
+/// </summary>
 public sealed class FailedEmailConfiguration : IEntityTypeConfiguration<FailedEmail>
 {
     public void Configure(EntityTypeBuilder<FailedEmail> builder)

@@ -1,10 +1,8 @@
-using SharedKernel.Application.DTOs;
-
 namespace ProductCatalog.GraphQL.Models;
 
 /// <summary>
-/// GraphQL input type for querying products, supporting full-text search, price and date
-/// range filters, category constraints, sorting, and pagination.
+///     GraphQL input type for querying products, supporting full-text search, price and date
+///     range filters, category constraints, sorting, and pagination.
 /// </summary>
 public sealed class ProductQueryInput
 {
@@ -21,7 +19,3 @@ public sealed class ProductQueryInput
     public string? Query { get; init; }
     public IReadOnlyCollection<Guid>? CategoryIds { get; init; }
 }
-
-
-
-

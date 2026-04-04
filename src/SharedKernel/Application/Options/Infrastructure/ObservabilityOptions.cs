@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 namespace SharedKernel.Application.Options.Infrastructure;
 
 /// <summary>
-/// Root configuration object for observability (tracing, metrics, and logging) exporters and endpoints.
+///     Root configuration object for observability (tracing, metrics, and logging) exporters and endpoints.
 /// </summary>
 public sealed class ObservabilityOptions
 {
@@ -26,7 +26,7 @@ public sealed class ObservabilityOptions
 }
 
 /// <summary>
-/// Endpoint configuration for the OpenTelemetry Protocol (OTLP) exporter.
+///     Endpoint configuration for the OpenTelemetry Protocol (OTLP) exporter.
 /// </summary>
 public sealed class OtlpEndpointOptions
 {
@@ -35,7 +35,7 @@ public sealed class OtlpEndpointOptions
 }
 
 /// <summary>
-/// Endpoint configuration for the .NET Aspire dashboard exporter.
+///     Endpoint configuration for the .NET Aspire dashboard exporter.
 /// </summary>
 public sealed class AspireEndpointOptions
 {
@@ -44,7 +44,7 @@ public sealed class AspireEndpointOptions
 }
 
 /// <summary>
-/// Groups the enabled/disabled state for each supported observability exporter.
+///     Groups the enabled/disabled state for each supported observability exporter.
 /// </summary>
 public sealed class ObservabilityExportersOptions
 {
@@ -65,8 +65,8 @@ public sealed class ObservabilityExportersOptions
 }
 
 /// <summary>
-/// A simple toggle that enables or disables an individual observability exporter.
-/// When <see langword="null"/>, the exporter state falls back to the runtime default.
+///     A simple toggle that enables or disables an individual observability exporter.
+///     When <see langword="null" />, the exporter state falls back to the runtime default.
 /// </summary>
 public sealed class ObservabilityExporterToggleOptions
 {

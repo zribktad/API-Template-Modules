@@ -5,7 +5,7 @@ namespace ProductCatalog.Features.Category.GetCategories;
 /// <summary>Returns a paginated, filtered, and sorted list of categories.</summary>
 public sealed record GetCategoriesQuery(CategoryFilter Filter);
 
-/// <summary>Handles <see cref="GetCategoriesQuery"/>.</summary>
+/// <summary>Handles <see cref="GetCategoriesQuery" />.</summary>
 public sealed class GetCategoriesQueryHandler
 {
     public static async Task<ErrorOr<PagedResponse<CategoryResponse>>> HandleAsync(

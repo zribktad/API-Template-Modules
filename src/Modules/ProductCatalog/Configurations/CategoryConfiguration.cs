@@ -1,10 +1,9 @@
-using ProductCatalog.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ProductCatalog.Configurations;
 
-/// <summary>EF Core configuration for the <see cref="Category"/> entity, including a full-text search GIN index.</summary>
+/// <summary>EF Core configuration for the <see cref="Category" /> entity, including a full-text search GIN index.</summary>
 public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
 {
     public void Configure(EntityTypeBuilder<Category> builder)
@@ -23,6 +22,3 @@ public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .IsTsVectorExpressionIndex("english");
     }
 }
-
-
-

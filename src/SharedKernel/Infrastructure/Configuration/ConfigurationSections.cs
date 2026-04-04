@@ -1,7 +1,7 @@
 namespace SharedKernel.Infrastructure.Configuration;
 
 /// <summary>
-/// Configuration keys that cannot be derived from an Options class name by convention.
+///     Configuration keys that cannot be derived from an Options class name by convention.
 /// </summary>
 public static class ConfigurationSections
 {

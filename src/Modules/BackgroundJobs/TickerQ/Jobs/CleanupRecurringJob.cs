@@ -1,9 +1,6 @@
-using BackgroundJobs.Domain;
 using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.BackgroundJobs;
-using SharedKernel.Application.Options.BackgroundJobs;
 using TickerQ.Utilities.Base;
 
 namespace BackgroundJobs.TickerQ.Jobs;
@@ -12,8 +9,8 @@ public sealed class CleanupRecurringJob
 {
     private readonly ICleanupService _cleanupService;
     private readonly IDistributedJobCoordinator _coordinator;
-    private readonly CleanupJobOptions _options;
     private readonly ILogger<CleanupRecurringJob> _logger;
+    private readonly CleanupJobOptions _options;
 
     public CleanupRecurringJob(
         ICleanupService cleanupService,
@@ -29,8 +26,9 @@ public sealed class CleanupRecurringJob
     }
 
     [TickerFunction(TickerQFunctionNames.Cleanup)]
-    public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct) =>
-        _coordinator.ExecuteIfLeaderAsync(
+    public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct)
+    {
+        return _coordinator.ExecuteIfLeaderAsync(
             TickerQFunctionNames.Cleanup,
             async token =>
             {
@@ -54,4 +52,5 @@ public sealed class CleanupRecurringJob
             },
             ct
         );
+    }
 }

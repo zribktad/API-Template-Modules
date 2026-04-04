@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 namespace ProductCatalog.Logging;
 
 /// <summary>
-/// Source-generated logger extension methods for ProductCatalog infrastructure diagnostics.
+///     Source-generated logger extension methods for ProductCatalog infrastructure diagnostics.
 /// </summary>
 internal static partial class ProductCatalogInfrastructureLogs
 {
@@ -19,4 +19,3 @@ internal static partial class ProductCatalogInfrastructureLogs
     [LoggerMessage(EventId = 4051, Level = LogLevel.Error, Message = "MongoDB health check failed")]
     public static partial void MongoDbHealthCheckFailed(this ILogger logger, Exception exception);
 }
-

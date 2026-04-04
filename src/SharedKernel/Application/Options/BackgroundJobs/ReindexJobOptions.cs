@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.Options.BackgroundJobs;
 
 /// <summary>
-/// Configuration for the scheduled job that rebuilds search indexes on a periodic basis.
+///     Configuration for the scheduled job that rebuilds search indexes on a periodic basis.
 /// </summary>
 public sealed class ReindexJobOptions
 {

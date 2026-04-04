@@ -11,10 +11,8 @@ public class RequestContextMiddlewareTests
     [Fact]
     public async Task InvokeAsync_WhenHeaderProvided_EchoesCorrelationIdToResponse()
     {
-        var middleware = new RequestContextMiddleware(async ctx =>
-            await ctx.Response.WriteAsync("ok")
-        );
-        var context = new DefaultHttpContext();
+        RequestContextMiddleware middleware = new(async ctx => await ctx.Response.WriteAsync("ok"));
+        DefaultHttpContext context = new();
         context.Response.Body = new MemoryStream();
         context.Request.Headers[RequestContextConstants.Headers.CorrelationId] = "corr-123";
 
@@ -37,10 +35,8 @@ public class RequestContextMiddlewareTests
     [Fact]
     public async Task InvokeAsync_WhenHeaderMissing_UsesTraceIdentifierAsCorrelationId()
     {
-        var middleware = new RequestContextMiddleware(async ctx =>
-            await ctx.Response.WriteAsync("ok")
-        );
-        var context = new DefaultHttpContext();
+        RequestContextMiddleware middleware = new(async ctx => await ctx.Response.WriteAsync("ok"));
+        DefaultHttpContext context = new();
         context.Response.Body = new MemoryStream();
         context.TraceIdentifier = "trace-xyz";
 

@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity;
 using Identity.ValueObjects;
 using Wolverine;
 
@@ -65,4 +64,3 @@ public sealed class UpdateUserCommandHandler
         return (Result.Success, messages);
     }
 }
-

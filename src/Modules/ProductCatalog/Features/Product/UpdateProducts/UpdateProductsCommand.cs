@@ -1,10 +1,5 @@
 using ErrorOr;
-using ProductCatalog;
-using ProductCatalog.Entities;
 using ProductCatalog.ValueObjects;
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
-using SharedKernel.Contracts.Events;
 using Wolverine;
 using ProductEntity = ProductCatalog.Entities.Product;
 using ProductRepositoryContract = ProductCatalog.Interfaces.IProductRepository;
@@ -14,12 +9,15 @@ namespace ProductCatalog.Features.Product.UpdateProducts;
 /// <summary>Updates multiple products in a single batch operation.</summary>
 public sealed record UpdateProductsCommand(UpdateProductsRequest Request);
 
-/// <summary>Handles <see cref="UpdateProductsCommand"/> by validating all items, loading products in bulk, and updating in a single transaction.</summary>
+/// <summary>
+///     Handles <see cref="UpdateProductsCommand" /> by validating all items, loading products in bulk, and updating
+///     in a single transaction.
+/// </summary>
 public sealed class UpdateProductsCommandHandler
 {
     /// <summary>
-    /// Wolverine compound-handler load step: validates and loads products, short-circuiting the
-    /// handler pipeline with a failure response when any validation rule fails.
+    ///     Wolverine compound-handler load step: validates and loads products, short-circuiting the
+    ///     handler pipeline with a failure response when any validation rule fails.
     /// </summary>
     public static async Task<(
         HandlerContinuation,

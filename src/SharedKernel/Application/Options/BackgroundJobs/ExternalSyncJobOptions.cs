@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.Options.BackgroundJobs;
 
 /// <summary>
-/// Configuration for the scheduled job that synchronises data from external third-party systems.
+///     Configuration for the scheduled job that synchronises data from external third-party systems.
 /// </summary>
 public sealed class ExternalSyncJobOptions
 {

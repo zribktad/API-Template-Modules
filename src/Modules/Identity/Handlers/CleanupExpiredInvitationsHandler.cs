@@ -6,9 +6,9 @@ using SharedKernel.Contracts.Commands.Cleanup;
 namespace Identity.Handlers;
 
 /// <summary>
-/// Wolverine handler that processes <see cref="CleanupExpiredInvitationsCommand"/> dispatched by the
-/// BackgroundJobs module. Permanently deletes pending tenant invitations whose expiry is older than
-/// the configured retention window, using batched bulk deletes for efficiency.
+///     Wolverine handler that processes <see cref="CleanupExpiredInvitationsCommand" /> dispatched by the
+///     BackgroundJobs module. Permanently deletes pending tenant invitations whose expiry is older than
+///     the configured retention window, using batched bulk deletes for efficiency.
 /// </summary>
 public sealed class CleanupExpiredInvitationsHandler
 {
@@ -37,9 +37,6 @@ public sealed class CleanupExpiredInvitationsHandler
         } while (deleted == command.BatchSize);
 
         if (totalDeleted > 0)
-        {
             logger.ExpiredInvitationsCleanedUp(totalDeleted);
-        }
     }
 }
-

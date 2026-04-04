@@ -1,5 +1,6 @@
 // ── Domain ────────────────────────────────────────────────────────────────────
 // ── Application ───────────────────────────────────────────────────────────────
+
 global using ProductCatalog.Common.Errors;
 global using ProductCatalog.Common.Events;
 global using ProductCatalog.Entities;

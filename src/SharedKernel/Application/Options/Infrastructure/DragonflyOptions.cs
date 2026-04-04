@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.Options.Infrastructure;
 
 /// <summary>
-/// Configuration for the Dragonfly (Redis-compatible) connection used for distributed caching
-/// and background-job coordination.
+///     Configuration for the Dragonfly (Redis-compatible) connection used for distributed caching
+///     and background-job coordination.
 /// </summary>
 public sealed class DragonflyOptions
 {

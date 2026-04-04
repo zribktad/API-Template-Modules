@@ -7,13 +7,11 @@ using ProductApplicationRepository = ProductCatalog.Interfaces.IProductRepositor
 namespace ProductCatalog.Repositories;
 
 /// <summary>
-/// EF Core repository for <see cref="Product"/> with specification-based listing,
-/// count, category facet, and price bucket facet queries.
+///     EF Core repository for <see cref="Product" /> with specification-based listing,
+///     count, category facet, and price bucket facet queries.
 /// </summary>
 public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepository
 {
-    private readonly ProductCatalogDbContext _dbContext;
-
     private static readonly IReadOnlyList<ProductPriceFacetBucketResponse> DefaultPriceBuckets =
     [
         new("0 - 50", 0m, 50m, 0),
@@ -22,6 +20,8 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
         new("250 - 500", 250m, 500m, 0),
         new("500+", 500m, null, 0),
     ];
+
+    private readonly ProductCatalogDbContext _dbContext;
 
     public ProductRepository(ProductCatalogDbContext dbContext)
         : base(dbContext)
@@ -43,13 +43,16 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
         );
     }
 
-    /// <summary>Returns category facet counts for products matching the filter, ordered by descending count then category name.</summary>
+    /// <summary>
+    ///     Returns category facet counts for products matching the filter, ordered by descending count then category
+    ///     name.
+    /// </summary>
     public async Task<IReadOnlyList<ProductCategoryFacetValue>> GetCategoryFacetsAsync(
         ProductFilter filter,
         CancellationToken ct = default
     )
     {
-        var specification = new ProductCategoryFacetSpecification(filter);
+        ProductCategoryFacetSpecification specification = new(filter);
         IQueryable<Product> query =
             Ardalis.Specification.EntityFrameworkCore.SpecificationEvaluator.Default.GetQuery(
                 _dbContext.Products.AsQueryable(),
@@ -84,7 +87,7 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
         CancellationToken ct = default
     )
     {
-        var specification = new ProductPriceFacetSpecification(filter);
+        ProductPriceFacetSpecification specification = new(filter);
         IQueryable<Product> query =
             Ardalis.Specification.EntityFrameworkCore.SpecificationEvaluator.Default.GetQuery(
                 _dbContext.Products.AsQueryable(),
@@ -110,7 +113,10 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
             .ToArray();
     }
 
-    /// <summary>Bulk-sets <c>CategoryId</c> to <c>null</c> for all products whose <c>CategoryId</c> is in <paramref name="categoryIds"/>.</summary>
+    /// <summary>
+    ///     Bulk-sets <c>CategoryId</c> to <c>null</c> for all products whose <c>CategoryId</c> is in
+    ///     <paramref name="categoryIds" />.
+    /// </summary>
     public async Task ClearCategoryAsync(
         IReadOnlyCollection<Guid> categoryIds,
         CancellationToken ct = default
@@ -134,7 +140,9 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
         int FiveHundredAndAbove
     )
     {
-        public int[] ToArray() =>
+        public int[] ToArray()
+        {
+            return
             [
                 ZeroToFifty,
                 FiftyToOneHundred,
@@ -142,5 +150,6 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
                 TwoHundredFiftyToFiveHundred,
                 FiveHundredAndAbove,
             ];
+        }
     }
 }

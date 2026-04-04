@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ProductCatalog.Features.Product.UpdateProducts;
 
 /// <summary>
-/// Carries a list of product items to be updated in a single batch operation; accepts between 1 and 100 items.
+///     Carries a list of product items to be updated in a single batch operation; accepts between 1 and 100 items.
 /// </summary>
 public sealed record UpdateProductsRequest(
     [MinLength(1, ErrorMessage = "At least one item is required.")]
@@ -12,7 +12,7 @@ public sealed record UpdateProductsRequest(
 );
 
 /// <summary>
-/// Represents a single product within a batch update request, including its ID and replacement data.
+///     Represents a single product within a batch update request, including its ID and replacement data.
 /// </summary>
 public sealed record UpdateProductItem(
     [NotEmpty(ErrorMessage = "Product ID is required.")] Guid Id,

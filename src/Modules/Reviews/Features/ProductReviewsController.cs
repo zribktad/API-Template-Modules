@@ -17,10 +17,9 @@ public sealed class ProductReviewsController(IMessageBus bus) : ApiControllerBas
         CancellationToken ct
     )
     {
-        ErrorOr<PagedResponse<ProductReviewResponse>> result = await bus.InvokeAsync<ErrorOr<PagedResponse<ProductReviewResponse>>>(
-            new GetProductReviewsQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<ProductReviewResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<ProductReviewResponse>>
+        >(new GetProductReviewsQuery(filter), ct);
         return result.ToActionResult(this);
     }
 
@@ -29,10 +28,9 @@ public sealed class ProductReviewsController(IMessageBus bus) : ApiControllerBas
     [OutputCache(PolicyName = CacheTags.Reviews)]
     public async Task<ActionResult<ProductReviewResponse>> GetById(Guid id, CancellationToken ct)
     {
-        ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<ErrorOr<ProductReviewResponse>>(
-            new GetProductReviewByIdQuery(id),
-            ct
-        );
+        ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<
+            ErrorOr<ProductReviewResponse>
+        >(new GetProductReviewByIdQuery(id), ct);
         return result.ToActionResult(this);
     }
 
@@ -44,10 +42,9 @@ public sealed class ProductReviewsController(IMessageBus bus) : ApiControllerBas
         CancellationToken ct
     )
     {
-        ErrorOr<IReadOnlyList<ProductReviewResponse>> result = await bus.InvokeAsync<ErrorOr<IReadOnlyList<ProductReviewResponse>>>(
-            new GetProductReviewsByProductIdQuery(productId),
-            ct
-        );
+        ErrorOr<IReadOnlyList<ProductReviewResponse>> result = await bus.InvokeAsync<
+            ErrorOr<IReadOnlyList<ProductReviewResponse>>
+        >(new GetProductReviewsByProductIdQuery(productId), ct);
         return result.ToActionResult(this);
     }
 
@@ -58,10 +55,9 @@ public sealed class ProductReviewsController(IMessageBus bus) : ApiControllerBas
         CancellationToken ct
     )
     {
-        ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<ErrorOr<ProductReviewResponse>>(
-            new CreateProductReviewCommand(request),
-            ct
-        );
+        ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<
+            ErrorOr<ProductReviewResponse>
+        >(new CreateProductReviewCommand(request), ct);
         return result.ToCreatedResult(this, v => new { id = v.Id, version = this.GetApiVersion() });
     }
 
@@ -76,9 +72,3 @@ public sealed class ProductReviewsController(IMessageBus bus) : ApiControllerBas
         return result.ToNoContentResult(this);
     }
 }
-
-
-
-
-
-

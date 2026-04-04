@@ -1,7 +1,7 @@
 namespace SharedKernel.Infrastructure.UnitOfWork;
 
 /// <summary>
-/// Tracks the nesting depth of managed transaction scopes opened by the unit of work.
+///     Tracks the nesting depth of managed transaction scopes opened by the unit of work.
 /// </summary>
 internal sealed class ManagedTransactionScope
 {
@@ -15,7 +15,10 @@ internal sealed class ManagedTransactionScope
         return new Releaser(this);
     }
 
-    private void Exit() => Interlocked.Decrement(ref _depth);
+    private void Exit()
+    {
+        Interlocked.Decrement(ref _depth);
+    }
 
     private sealed class Releaser(ManagedTransactionScope scope) : IDisposable
     {

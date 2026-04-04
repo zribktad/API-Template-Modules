@@ -5,9 +5,9 @@ using FluentValidation;
 namespace SharedKernel.Application.Validation;
 
 /// <summary>
-/// Base FluentValidation validator that bridges Data Annotations attributes into the FluentValidation
-/// pipeline. Validates both property-level and constructor-parameter-level attributes, making it suitable
-/// for records whose validation attributes are declared on primary constructor parameters.
+///     Base FluentValidation validator that bridges Data Annotations attributes into the FluentValidation
+///     pipeline. Validates both property-level and constructor-parameter-level attributes, making it suitable
+///     for records whose validation attributes are declared on primary constructor parameters.
 /// </summary>
 public abstract class DataAnnotationsValidator<T> : AbstractValidator<T>
     where T : class
@@ -18,30 +18,27 @@ public abstract class DataAnnotationsValidator<T> : AbstractValidator<T>
             .Custom(
                 static (model, context) =>
                 {
-                    var results = new List<ValidationResult>();
-                    Validator.TryValidateObject(
-                        model,
-                        new ValidationContext(model),
-                        results,
-                        validateAllProperties: true
-                    );
+                    List<ValidationResult> results = new();
+                    Validator.TryValidateObject(model, new ValidationContext(model), results, true);
 
                     // For records, also validate constructor parameter attributes that may not be on properties.
                     ValidateConstructorParameterAttributes(model, results);
 
                     foreach (ValidationResult result in results)
+                    {
                         context.AddFailure(
                             result.MemberNames.FirstOrDefault() ?? string.Empty,
                             result.ErrorMessage!
                         );
+                    }
                 }
             );
     }
 
     /// <summary>
-    /// Inspects the first public constructor of <paramref name="model"/> and runs any
-    /// <see cref="ValidationAttribute"/> instances found on its parameters, appending
-    /// failures to <paramref name="results"/>. Skips parameters whose member names already have failures.
+    ///     Inspects the first public constructor of <paramref name="model" /> and runs any
+    ///     <see cref="ValidationAttribute" /> instances found on its parameters, appending
+    ///     failures to <paramref name="results" />. Skips parameters whose member names already have failures.
     /// </summary>
     private static void ValidateConstructorParameterAttributes(
         T model,
@@ -53,7 +50,7 @@ public abstract class DataAnnotationsValidator<T> : AbstractValidator<T>
         if (constructor is null)
             return;
 
-        var existingMembers = new HashSet<string>(results.SelectMany(r => r.MemberNames));
+        HashSet<string> existingMembers = new(results.SelectMany(r => r.MemberNames));
 
         foreach (ParameterInfo parameter in constructor.GetParameters())
         {
@@ -69,8 +66,8 @@ public abstract class DataAnnotationsValidator<T> : AbstractValidator<T>
             if (property is null)
                 continue;
 
-            var value = property.GetValue(model);
-            var validationContext = new ValidationContext(model) { MemberName = parameter.Name };
+            object? value = property.GetValue(model);
+            ValidationContext validationContext = new(model) { MemberName = parameter.Name };
 
             foreach (ValidationAttribute attribute in validationAttributes)
             {

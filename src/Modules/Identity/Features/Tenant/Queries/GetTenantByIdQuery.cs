@@ -1,8 +1,5 @@
-using Identity.Features.Tenant.DTOs;
-using SharedKernel.Domain.Entities.Contracts;
-using Identity.Features.Tenant.Specifications;
-using Identity.Interfaces;
 using ErrorOr;
+using Identity.Features.Tenant.Specifications;
 
 namespace Identity.Features.Tenant;
 
@@ -26,4 +23,3 @@ public sealed class GetTenantByIdQueryHandler
         return result;
     }
 }
-

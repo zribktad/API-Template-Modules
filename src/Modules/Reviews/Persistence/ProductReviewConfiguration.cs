@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Reviews.Domain;
 
 namespace Reviews.Persistence;
 
-/// <summary>EF Core configuration for the <see cref="ProductReview"/> entity.</summary>
+/// <summary>EF Core configuration for the <see cref="ProductReview" /> entity.</summary>
 public sealed class ProductReviewConfiguration : IEntityTypeConfiguration<ProductReview>
 {
     public void Configure(EntityTypeBuilder<ProductReview> builder)

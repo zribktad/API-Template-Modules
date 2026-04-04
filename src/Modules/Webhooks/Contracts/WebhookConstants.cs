@@ -1,7 +1,7 @@
 namespace Webhooks.Contracts;
 
 /// <summary>
-/// Centralises header names and HTTP client identifiers used by the webhook infrastructure.
+///     Centralises header names and HTTP client identifiers used by the webhook infrastructure.
 /// </summary>
 public static class WebhookConstants
 {
@@ -10,6 +10,3 @@ public static class WebhookConstants
     public const string OutgoingHttpClientName = "OutgoingWebhook";
     public const string WildcardEventType = "*";
 }
-
-
-

@@ -1,7 +1,8 @@
 namespace ProductCatalog.Features.Product.Shared;
 
 /// <summary>
-/// Represents a single price-range bucket in the product search facets, with a human-readable label and the count of matching products.
+///     Represents a single price-range bucket in the product search facets, with a human-readable label and the count of
+///     matching products.
 /// </summary>
 public sealed record ProductPriceFacetBucketResponse(
     string Label,

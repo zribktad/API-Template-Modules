@@ -1,16 +1,14 @@
-using BackgroundJobs.Domain;
 using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Application.BackgroundJobs;
 using TickerQ.Utilities.Base;
 
 namespace BackgroundJobs.TickerQ.Jobs;
 
 public sealed class ExternalSyncRecurringJob
 {
-    private readonly IExternalIntegrationSyncService _syncService;
     private readonly IDistributedJobCoordinator _coordinator;
     private readonly ILogger<ExternalSyncRecurringJob> _logger;
+    private readonly IExternalIntegrationSyncService _syncService;
 
     public ExternalSyncRecurringJob(
         IExternalIntegrationSyncService syncService,
@@ -24,8 +22,9 @@ public sealed class ExternalSyncRecurringJob
     }
 
     [TickerFunction(TickerQFunctionNames.ExternalSync)]
-    public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct) =>
-        _coordinator.ExecuteIfLeaderAsync(
+    public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct)
+    {
+        return _coordinator.ExecuteIfLeaderAsync(
             TickerQFunctionNames.ExternalSync,
             async token =>
             {
@@ -34,4 +33,5 @@ public sealed class ExternalSyncRecurringJob
             },
             ct
         );
+    }
 }

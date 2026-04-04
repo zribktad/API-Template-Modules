@@ -4,14 +4,14 @@ using Microsoft.Extensions.Options;
 namespace SharedKernel.Infrastructure.Health;
 
 /// <summary>
-/// Probes the Keycloak OpenID Connect discovery endpoint with a 5-second timeout.
+///     Probes the Keycloak OpenID Connect discovery endpoint with a 5-second timeout.
 /// </summary>
 public sealed class KeycloakHealthCheck : IHealthCheck
 {
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(5);
+    private readonly string _discoveryUrl;
 
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly string _discoveryUrl;
 
     public KeycloakHealthCheck(
         IHttpClientFactory httpClientFactory,
@@ -23,8 +23,8 @@ public sealed class KeycloakHealthCheck : IHealthCheck
     }
 
     /// <summary>
-    /// Issues an HTTP GET to the Keycloak discovery URL and returns <see cref="HealthCheckResult.Healthy"/>
-    /// on a 2xx response, or <see cref="HealthCheckResult.Unhealthy"/> on a non-success status or exception.
+    ///     Issues an HTTP GET to the Keycloak discovery URL and returns <see cref="HealthCheckResult.Healthy" />
+    ///     on a 2xx response, or <see cref="HealthCheckResult.Unhealthy" /> on a non-success status or exception.
     /// </summary>
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,

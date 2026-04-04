@@ -4,13 +4,13 @@ using Microsoft.Extensions.Hosting;
 namespace SharedKernel.Infrastructure.Registration;
 
 /// <summary>
-/// Shared registration helpers for bounded channel queues plus their hosted consumers.
+///     Shared registration helpers for bounded channel queues plus their hosted consumers.
 /// </summary>
 public static class QueueRegistrationExtensions
 {
     /// <summary>
-    /// Registers a singleton queue implementation that is exposed as both producer and reader,
-    /// then adds the background consumer service.
+    ///     Registers a singleton queue implementation that is exposed as both producer and reader,
+    ///     then adds the background consumer service.
     /// </summary>
     public static IServiceCollection AddQueueWithConsumer<TImpl, TQueue, TReader, TService>(
         this IServiceCollection services

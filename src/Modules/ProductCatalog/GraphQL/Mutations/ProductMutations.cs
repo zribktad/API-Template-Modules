@@ -2,14 +2,13 @@ using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Product.CreateProducts;
 using ProductCatalog.Features.Product.DeleteProducts;
-using SharedKernel.Contracts.Security;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Mutations;
 
 /// <summary>
-/// Hot Chocolate mutation type that exposes product write operations backed by
-/// batch CQRS handlers, enforcing per-operation authorization policies.
+///     Hot Chocolate mutation type that exposes product write operations backed by
+///     batch CQRS handlers, enforcing per-operation authorization policies.
 /// </summary>
 [Authorize]
 public class ProductMutations
@@ -29,7 +28,7 @@ public class ProductMutations
         return result.ToGraphQLResult();
     }
 
-    /// <summary>Deletes a single product by ID and returns <see langword="true"/> on success.</summary>
+    /// <summary>Deletes a single product by ID and returns <see langword="true" /> on success.</summary>
     [Authorize(Policy = Permission.Products.Delete)]
     public async Task<bool> DeleteProduct(Guid id, [Service] IMessageBus bus, CancellationToken ct)
     {

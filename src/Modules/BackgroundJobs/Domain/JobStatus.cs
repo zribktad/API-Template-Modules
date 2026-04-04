@@ -1,7 +1,7 @@
 namespace BackgroundJobs.Domain;
 
 /// <summary>
-/// Represents the execution state of a background <see cref="JobExecution"/>.
+///     Represents the execution state of a background <see cref="JobExecution" />.
 /// </summary>
 public enum JobStatus
 {
@@ -17,6 +17,3 @@ public enum JobStatus
     /// <summary>The job terminated with an error and will not be retried automatically.</summary>
     Failed,
 }
-
-
-

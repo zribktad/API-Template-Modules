@@ -5,8 +5,8 @@ using Microsoft.Extensions.Configuration;
 namespace Identity.Options;
 
 /// <summary>
-/// Configuration for the Keycloak identity provider, covering realm, server URL, client credentials,
-/// and startup readiness-check behaviour.
+///     Configuration for the Keycloak identity provider, covering realm, server URL, client credentials,
+///     and startup readiness-check behaviour.
 /// </summary>
 public sealed class KeycloakOptions
 {
@@ -39,7 +39,7 @@ public sealed class KeycloakOptions
 }
 
 /// <summary>
-/// Client-secret credentials used when authenticating against the Keycloak Admin REST API.
+///     Client-secret credentials used when authenticating against the Keycloak Admin REST API.
 /// </summary>
 public sealed class KeycloakCredentialsOptions
 {
@@ -47,4 +47,3 @@ public sealed class KeycloakCredentialsOptions
     [ConfigurationKeyName("secret")]
     public string Secret { get; init; } = string.Empty;
 }
-

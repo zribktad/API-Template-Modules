@@ -3,13 +3,11 @@ using Identity.ValueObjects;
 namespace Identity.Entities;
 
 /// <summary>
-/// Aggregate root representing a tenant (organisation) in the multi-tenant system.
-/// All other tenant-scoped entities reference this entity through <see cref="TenantId"/>.
+///     Aggregate root representing a tenant (organisation) in the multi-tenant system.
+///     All other tenant-scoped entities reference this entity through <see cref="TenantId" />.
 /// </summary>
 public sealed class Tenant : IAuditableTenantEntity, IHasId
 {
-    public Guid Id { get; set; }
-
     public required TenantCode Code { get; set; }
 
     public required string Name
@@ -28,18 +26,26 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
+    public Guid Id { get; set; }
 
-    public static Tenant Create(Guid id, TenantCode code, string name) =>
-        new()
+    public static Tenant Create(Guid id, TenantCode code, string name)
+    {
+        return new Tenant
         {
             Id = id,
             TenantId = id,
             Code = code,
             Name = name,
         };
+    }
 
-    public void Activate() => IsActive = true;
+    public void Activate()
+    {
+        IsActive = true;
+    }
 
-    public void Deactivate() => IsActive = false;
+    public void Deactivate()
+    {
+        IsActive = false;
+    }
 }
-

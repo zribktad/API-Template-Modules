@@ -48,4 +48,3 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasIndex(u => new { u.TenantId, u.NormalizedEmail }).IsUnique();
     }
 }
-

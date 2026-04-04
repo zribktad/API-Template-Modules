@@ -1,15 +1,15 @@
 namespace ProductCatalog.GraphQL.Types;
 
 /// <summary>
-/// Hot Chocolate object type that maps <see cref="ProductResponse"/> to the GraphQL schema,
-/// including a <c>reviews</c> field resolved via <see cref="ProductTypeResolvers"/> to batch-load
-/// associated reviews using the data loader.
+///     Hot Chocolate object type that maps <see cref="ProductResponse" /> to the GraphQL schema,
+///     including a <c>reviews</c> field resolved via <see cref="ProductTypeResolvers" /> to batch-load
+///     associated reviews using the data loader.
 /// </summary>
 public sealed class ProductType : ObjectType<ProductResponse>
 {
     /// <summary>
-    /// Configures field descriptions, scalar type mappings, and the batch-loaded <c>reviews</c>
-    /// resolver for the Product GraphQL type.
+    ///     Configures field descriptions, scalar type mappings, and the batch-loaded <c>reviews</c>
+    ///     resolver for the Product GraphQL type.
     /// </summary>
     protected override void Configure(IObjectTypeDescriptor<ProductResponse> descriptor)
     {
@@ -49,7 +49,3 @@ public sealed class ProductType : ObjectType<ProductResponse>
             .Description("The reviews associated with this product.");
     }
 }
-
-
-
-

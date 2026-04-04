@@ -1,17 +1,16 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
 namespace APITemplate.Api.OpenApi;
 
 /// <summary>
-/// OpenAPI document transformer that manually registers the <c>/health</c> endpoint in the
-/// generated specification, since health-check endpoints are not discovered automatically by ASP.NET Core OpenAPI.
+///     OpenAPI document transformer that manually registers the <c>/health</c> endpoint in the
+///     generated specification, since health-check endpoints are not discovered automatically by ASP.NET Core OpenAPI.
 /// </summary>
 public sealed class HealthCheckOpenApiDocumentTransformer : IOpenApiDocumentTransformer
 {
     /// <summary>
-    /// Adds a <c>GET /health</c> path item with 200 and 503 response descriptions to the document.
+    ///     Adds a <c>GET /health</c> path item with 200 and 503 response descriptions to the document.
     /// </summary>
     public Task TransformAsync(
         OpenApiDocument document,
@@ -21,15 +20,12 @@ public sealed class HealthCheckOpenApiDocumentTransformer : IOpenApiDocumentTran
     {
         document.Paths ??= new OpenApiPaths();
 
-        var pathItem = new OpenApiPathItem();
+        OpenApiPathItem pathItem = new();
         pathItem.AddOperation(
             HttpMethod.Get,
             new OpenApiOperation
             {
-                Tags = new HashSet<OpenApiTagReference>
-                {
-                    new OpenApiTagReference("Health", document, null),
-                },
+                Tags = new HashSet<OpenApiTagReference> { new("Health", document) },
                 Summary = "Health check",
                 Description = "Returns the health status of all registered services.",
                 Responses = new OpenApiResponses

@@ -1,5 +1,4 @@
 using Asp.Versioning;
-using SharedKernel.Contracts.Api;
 using Wolverine;
 
 namespace ProductCatalog.Features.ProductData;

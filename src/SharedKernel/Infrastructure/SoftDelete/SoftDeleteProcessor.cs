@@ -6,7 +6,7 @@ using SharedKernel.Infrastructure.Auditing;
 namespace SharedKernel.Infrastructure.SoftDelete;
 
 /// <summary>
-/// Default implementation that recursively soft-deletes an entity and all dependents surfaced by cascade rules.
+///     Default implementation that recursively soft-deletes an entity and all dependents surfaced by cascade rules.
 /// </summary>
 public class SoftDeleteProcessor : ISoftDeleteProcessor
 {
@@ -27,7 +27,7 @@ public class SoftDeleteProcessor : ISoftDeleteProcessor
         CancellationToken cancellationToken
     )
     {
-        var visited = new HashSet<IAuditableTenantEntity>(ReferenceEqualityComparer.Instance);
+        HashSet<IAuditableTenantEntity> visited = new(ReferenceEqualityComparer.Instance);
         return SoftDeleteWithRulesAsync(
             dbContext,
             entry,

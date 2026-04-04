@@ -1,7 +1,7 @@
 namespace Identity.Enums;
 
 /// <summary>
-/// Defines the authorization role assigned to an <see cref="Entities.AppUser"/>.
+///     Defines the authorization role assigned to an <see cref="Entities.AppUser" />.
 /// </summary>
 public enum UserRole
 {
@@ -14,4 +14,3 @@ public enum UserRole
     /// <summary>An administrator with elevated access scoped to a single tenant.</summary>
     TenantAdmin = 2,
 }
-

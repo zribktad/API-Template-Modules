@@ -4,11 +4,12 @@ using CategoryEntity = ProductCatalog.Entities.Category;
 namespace ProductCatalog.Features.Category.GetCategories;
 
 /// <summary>
-/// Ardalis specification for querying a filtered and sorted list of categories projected to <see cref="CategoryResponse"/>.
+///     Ardalis specification for querying a filtered and sorted list of categories projected to
+///     <see cref="CategoryResponse" />.
 /// </summary>
 public sealed class CategorySpecification : Specification<CategoryEntity, CategoryResponse>
 {
-    /// <summary>Initialises the specification by applying filter, sort, and projection from <paramref name="filter"/>.</summary>
+    /// <summary>Initialises the specification by applying filter, sort, and projection from <paramref name="filter" />.</summary>
     public CategorySpecification(CategoryFilter filter)
     {
         Query.ApplyFilter(filter);

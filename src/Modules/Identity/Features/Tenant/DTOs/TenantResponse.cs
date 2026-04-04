@@ -1,9 +1,7 @@
-using SharedKernel.Domain.Entities.Contracts;
-
 namespace Identity.Features.Tenant.DTOs;
 
 /// <summary>
-/// Read model returned to callers after a tenant query or creation.
+///     Read model returned to callers after a tenant query or creation.
 /// </summary>
 public sealed record TenantResponse(
     Guid Id,
@@ -12,4 +10,3 @@ public sealed record TenantResponse(
     bool IsActive,
     DateTime CreatedAtUtc
 ) : IHasId;
-

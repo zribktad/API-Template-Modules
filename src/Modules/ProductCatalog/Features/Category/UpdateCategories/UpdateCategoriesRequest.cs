@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.Category.UpdateCategories;
 
 /// <summary>
-/// Carries a list of category items to be updated in a single batch operation; accepts between 1 and 100 items.
+///     Carries a list of category items to be updated in a single batch operation; accepts between 1 and 100 items.
 /// </summary>
 public sealed record UpdateCategoriesRequest(
     [MinLength(1, ErrorMessage = "At least one item is required.")]
@@ -13,7 +12,7 @@ public sealed record UpdateCategoriesRequest(
 );
 
 /// <summary>
-/// Represents a single category within a batch update request, including its ID and replacement data.
+///     Represents a single category within a batch update request, including its ID and replacement data.
 /// </summary>
 public sealed record UpdateCategoryItem(
     [NotEmpty(ErrorMessage = "Category ID is required.")] Guid Id,

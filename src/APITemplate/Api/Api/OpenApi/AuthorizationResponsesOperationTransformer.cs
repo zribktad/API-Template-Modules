@@ -5,7 +5,7 @@ using Microsoft.OpenApi;
 namespace APITemplate.Api.OpenApi;
 
 /// <summary>
-/// Adds 401/403 responses only for operations that require authorization metadata.
+///     Adds 401/403 responses only for operations that require authorization metadata.
 /// </summary>
 public sealed class AuthorizationResponsesOperationTransformer : IOpenApiOperationTransformer
 {

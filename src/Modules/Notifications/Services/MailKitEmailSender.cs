@@ -3,20 +3,19 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Notifications.Contracts;
-using Notifications.Domain;
 using Notifications.Logging;
 
 namespace Notifications.Services;
 
 /// <summary>
-/// Infrastructure implementation of <see cref="IEmailSender"/> that delivers email over SMTP
-/// using MailKit, with optional authentication and TLS controlled by <see cref="EmailOptions"/>.
+///     Infrastructure implementation of <see cref="IEmailSender" /> that delivers email over SMTP
+///     using MailKit, with optional authentication and TLS controlled by <see cref="EmailOptions" />.
 /// </summary>
 public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
 {
-    private readonly EmailOptions _options;
-    private readonly ILogger<MailKitEmailSender> _logger;
     private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly ILogger<MailKitEmailSender> _logger;
+    private readonly EmailOptions _options;
     private SmtpClient? _client;
 
     public MailKitEmailSender(IOptions<EmailOptions> options, ILogger<MailKitEmailSender> logger)
@@ -25,13 +24,27 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
         _logger = logger;
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            await ResetClientAsync();
+        }
+        finally
+        {
+            _lock.Release();
+            _lock.Dispose();
+        }
+    }
+
     /// <summary>
-    /// Builds a MIME message, connects and optionally authenticates against the configured SMTP server,
-    /// sends the message, and disconnects cleanly before returning.
+    ///     Builds a MIME message, connects and optionally authenticates against the configured SMTP server,
+    ///     sends the message, and disconnects cleanly before returning.
     /// </summary>
     public async Task SendAsync(EmailMessage message, CancellationToken ct = default)
     {
-        var mimeMessage = new MimeMessage();
+        MimeMessage mimeMessage = new();
         mimeMessage.From.Add(new MailboxAddress(_options.SenderName, _options.SenderEmail));
         mimeMessage.To.Add(MailboxAddress.Parse(message.To));
         mimeMessage.Subject = message.Subject;
@@ -53,9 +66,7 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
             }
 
             if (!string.IsNullOrEmpty(_options.Username) && !client.IsAuthenticated)
-            {
                 await client.AuthenticateAsync(_options.Username, _options.Password, ct);
-            }
 
             await client.SendAsync(mimeMessage, ct);
         }
@@ -75,16 +86,12 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
     private async Task ResetClientAsync()
     {
         if (_client is null)
-        {
             return;
-        }
 
         try
         {
             if (_client.IsConnected)
-            {
-                await _client.DisconnectAsync(quit: true, CancellationToken.None);
-            }
+                await _client.DisconnectAsync(true, CancellationToken.None);
         }
         catch
         {
@@ -94,20 +101,6 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
         {
             _client.Dispose();
             _client = null;
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _lock.WaitAsync();
-        try
-        {
-            await ResetClientAsync();
-        }
-        finally
-        {
-            _lock.Release();
-            _lock.Dispose();
         }
     }
 }

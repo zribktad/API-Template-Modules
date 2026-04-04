@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace ProductCatalog.Features.Product.PatchProduct;
 
 /// <summary>
-/// Mutable DTO used as the patch target for JSON Patch operations on a product; declared as a class
-/// rather than a record because JSON Patch mutates the object in-place.
+///     Mutable DTO used as the patch target for JSON Patch operations on a product; declared as a class
+///     rather than a record because JSON Patch mutates the object in-place.
 /// </summary>
 public sealed class PatchableProductDto
 {

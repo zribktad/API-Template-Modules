@@ -9,7 +9,8 @@ using SharedKernel.Domain.Options;
 namespace SharedKernel.Infrastructure.UnitOfWork;
 
 /// <summary>
-/// Generic EF Core implementation of <see cref="IUnitOfWork{TContext}"/> backed by a module-specific <see cref="DbContext"/>.
+///     Generic EF Core implementation of <see cref="IUnitOfWork{TContext}" /> backed by a module-specific
+///     <see cref="DbContext" />.
 /// </summary>
 public class UnitOfWork<TContext> : IUnitOfWork<TContext>
     where TContext : DbContext
@@ -17,15 +18,16 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
     private const string CommitWithinTransactionMessage =
         "CommitAsync cannot be called inside ExecuteInTransactionAsync. The outermost transaction saves and commits automatically.";
 
+    private readonly DbContextCommandTimeoutScope _commandTimeoutScope;
+
     private readonly TContext _dbContext;
-    private readonly TransactionDefaultsOptions _transactionDefaults;
     private readonly ILogger _logger;
-    private readonly IDbTransactionProvider<TContext> _transactionProvider;
     private readonly ManagedTransactionScope _managedTransactionScope = new();
     private readonly DbContextTrackedStateManager _trackedStateManager;
-    private readonly DbContextCommandTimeoutScope _commandTimeoutScope;
-    private int _savepointCounter;
+    private readonly TransactionDefaultsOptions _transactionDefaults;
+    private readonly IDbTransactionProvider<TContext> _transactionProvider;
     private TransactionOptions? _activeTransactionOptions;
+    private int _savepointCounter;
 
     public UnitOfWork(
         TContext dbContext,
@@ -72,7 +74,8 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         Func<Task> action,
         CancellationToken ct = default,
         TransactionOptions? options = null
-    ) =>
+    )
+    {
         await ExecuteInTransactionAsync(
             async () =>
             {
@@ -82,6 +85,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
             ct,
             options
         );
+    }
 
     public async Task<T> ExecuteInTransactionAsync<T>(
         Func<Task<T>> action,
@@ -105,7 +109,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
     )
     {
         ValidateNestedTransactionOptions(options);
-        var savepointName = $"uow_sp_{Interlocked.Increment(ref _savepointCounter)}";
+        string savepointName = $"uow_sp_{Interlocked.Increment(ref _savepointCounter)}";
         IReadOnlyDictionary<object, DbContextTrackedStateManager.TrackedEntitySnapshot> snapshot =
             _trackedStateManager.Capture();
 
@@ -140,8 +144,8 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         TransactionOptions? previousActiveOptions = _activeTransactionOptions;
 
         return await strategy.ExecuteAsync(
-            state: action,
-            operation: async (_, transactionalAction, cancellationToken) =>
+            action,
+            async (_, transactionalAction, cancellationToken) =>
             {
                 _activeTransactionOptions = effectiveOptions;
                 using IDisposable timeoutScope = _commandTimeoutScope.Apply(
@@ -206,7 +210,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
                     _activeTransactionOptions = previousActiveOptions;
                 }
             },
-            verifySucceeded: null,
+            null,
             ct
         );
     }
@@ -246,6 +250,8 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         catch (NotSupportedException) { }
     }
 
-    private static bool IsTransactionNotSupported(Exception ex) =>
-        ex is InvalidOperationException or NotSupportedException;
+    private static bool IsTransactionNotSupported(Exception ex)
+    {
+        return ex is InvalidOperationException or NotSupportedException;
+    }
 }

@@ -16,16 +16,14 @@ public class StaticRolePermissionMapTests
         IReadOnlySet<string> permissions = _map.GetPermissions(UserRole.PlatformAdmin.ToString());
 
         permissions.Count.ShouldBe(Permission.All.Count);
-        foreach (var permission in Permission.All)
-        {
+        foreach (string permission in Permission.All)
             permissions.ShouldContain(permission);
-        }
     }
 
     [Fact]
     public void TenantAdmin_HasExpectedPermissions()
     {
-        var role = UserRole.TenantAdmin.ToString();
+        string role = UserRole.TenantAdmin.ToString();
 
         _map.HasPermission(role, Permission.Products.Read).ShouldBeTrue();
         _map.HasPermission(role, Permission.Products.Create).ShouldBeTrue();
@@ -54,7 +52,7 @@ public class StaticRolePermissionMapTests
     [Fact]
     public void User_HasReadOnlyAndReviewCreate()
     {
-        var role = UserRole.User.ToString();
+        string role = UserRole.User.ToString();
 
         _map.HasPermission(role, Permission.Products.Read).ShouldBeTrue();
         _map.HasPermission(role, Permission.Categories.Read).ShouldBeTrue();

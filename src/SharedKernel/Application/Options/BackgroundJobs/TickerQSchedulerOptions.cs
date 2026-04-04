@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.Options.BackgroundJobs;
 
 /// <summary>
-/// Configuration for the TickerQ scheduler, including distributed coordination and fail-safe behaviour.
+///     Configuration for the TickerQ scheduler, including distributed coordination and fail-safe behaviour.
 /// </summary>
 public sealed class TickerQSchedulerOptions
 {

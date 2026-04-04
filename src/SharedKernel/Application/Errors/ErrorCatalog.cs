@@ -1,8 +1,8 @@
 namespace SharedKernel.Application.Errors;
 
 /// <summary>
-/// Cross-cutting error codes shared by multiple modules.
-/// Module-specific error codes live in each module's own Errors/ErrorCatalog.cs.
+///     Cross-cutting error codes shared by multiple modules.
+///     Module-specific error codes live in each module's own Errors/ErrorCatalog.cs.
 /// </summary>
 public static class ErrorCatalog
 {

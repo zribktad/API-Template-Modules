@@ -26,4 +26,3 @@ public sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.HasIndex(t => t.IsActive);
     }
 }
-

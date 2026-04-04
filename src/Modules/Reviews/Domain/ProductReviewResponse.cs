@@ -1,7 +1,7 @@
 namespace Reviews.Domain;
 
 /// <summary>
-/// Read model returned by product review queries, representing a single review submitted by a user for a product.
+///     Read model returned by product review queries, representing a single review submitted by a user for a product.
 /// </summary>
 public sealed record ProductReviewResponse(
     Guid Id,

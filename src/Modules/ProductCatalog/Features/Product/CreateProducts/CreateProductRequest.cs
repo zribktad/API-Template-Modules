@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ProductCatalog.Features.Product.CreateProducts;
 
 /// <summary>
-/// Carries the data required to create a new product, including validation constraints enforced via data annotations.
+///     Carries the data required to create a new product, including validation constraints enforced via data annotations.
 /// </summary>
 public sealed record CreateProductRequest(
     [NotEmpty(ErrorMessage = "Product name is required.")]

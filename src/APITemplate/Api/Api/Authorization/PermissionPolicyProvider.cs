@@ -9,11 +9,13 @@ namespace APITemplate.Api.Authorization;
 
 public sealed class PermissionPolicyProvider : IAuthorizationPolicyProvider
 {
-    private readonly DefaultAuthorizationPolicyProvider _fallback;
     private readonly ConcurrentDictionary<string, AuthorizationPolicy> _cache = new();
+    private readonly DefaultAuthorizationPolicyProvider _fallback;
 
-    public PermissionPolicyProvider(IOptions<AuthorizationOptions> options) =>
+    public PermissionPolicyProvider(IOptions<AuthorizationOptions> options)
+    {
         _fallback = new DefaultAuthorizationPolicyProvider(options);
+    }
 
     public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
@@ -35,8 +37,13 @@ public sealed class PermissionPolicyProvider : IAuthorizationPolicyProvider
         return Task.FromResult<AuthorizationPolicy?>(policy);
     }
 
-    public Task<AuthorizationPolicy> GetDefaultPolicyAsync() => _fallback.GetDefaultPolicyAsync();
+    public Task<AuthorizationPolicy> GetDefaultPolicyAsync()
+    {
+        return _fallback.GetDefaultPolicyAsync();
+    }
 
-    public Task<AuthorizationPolicy?> GetFallbackPolicyAsync() =>
-        _fallback.GetFallbackPolicyAsync();
+    public Task<AuthorizationPolicy?> GetFallbackPolicyAsync()
+    {
+        return _fallback.GetFallbackPolicyAsync();
+    }
 }

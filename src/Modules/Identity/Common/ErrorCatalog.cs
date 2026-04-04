@@ -28,8 +28,8 @@ public static class ErrorCatalog
         public const string ExpiredMessage = "Invitation has expired.";
         public const string AlreadyAcceptedMessage = "Invitation has already been accepted.";
         public const string NotPendingMessage = "Only pending invitations can be resent.";
+
         public const string ExpiredCreateNewMessage =
             "Invitation has expired. Create a new one instead.";
     }
 }
-

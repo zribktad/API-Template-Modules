@@ -1,14 +1,11 @@
 using MongoDB.Driver;
-using ProductCatalog.Entities;
-using ProductCatalog.Interfaces;
 using ProductCatalog.Persistence;
-using SharedKernel.Application.Context;
 
 namespace ProductCatalog.Repositories;
 
 /// <summary>
-/// MongoDB repository for <see cref="ProductData"/> documents, applying tenant and soft-delete
-/// isolation at the query level since MongoDB has no EF Core global filter equivalent.
+///     MongoDB repository for <see cref="ProductData" /> documents, applying tenant and soft-delete
+///     isolation at the query level since MongoDB has no EF Core global filter equivalent.
 /// </summary>
 public sealed class ProductDataRepository : IProductDataRepository
 {
@@ -21,13 +18,21 @@ public sealed class ProductDataRepository : IProductDataRepository
         _tenantProvider = tenantProvider;
     }
 
-    /// <summary>Returns a single non-deleted document matching the given ID within the current tenant, or <c>null</c> if not found.</summary>
-    public async Task<ProductData?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        await _collection
+    /// <summary>
+    ///     Returns a single non-deleted document matching the given ID within the current tenant, or <c>null</c> if not
+    ///     found.
+    /// </summary>
+    public async Task<ProductData?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _collection
             .Find(x => x.Id == id && x.TenantId == _tenantProvider.TenantId && !x.IsDeleted)
             .FirstOrDefaultAsync(ct);
+    }
 
-    /// <summary>Returns non-deleted documents for the given IDs within the current tenant; deduplicates the ID list before querying.</summary>
+    /// <summary>
+    ///     Returns non-deleted documents for the given IDs within the current tenant; deduplicates the ID list before
+    ///     querying.
+    /// </summary>
     public async Task<List<ProductData>> GetByIdsAsync(
         IEnumerable<Guid> ids,
         CancellationToken ct = default
@@ -49,7 +54,10 @@ public sealed class ProductDataRepository : IProductDataRepository
             .ToListAsync(ct);
     }
 
-    /// <summary>Returns all non-deleted documents for the current tenant, optionally filtered by the MongoDB discriminator type.</summary>
+    /// <summary>
+    ///     Returns all non-deleted documents for the current tenant, optionally filtered by the MongoDB discriminator
+    ///     type.
+    /// </summary>
     public async Task<List<ProductData>> GetAllAsync(
         string? type = null,
         CancellationToken ct = default
@@ -100,8 +108,8 @@ public sealed class ProductDataRepository : IProductDataRepository
     }
 
     /// <summary>
-    /// Soft-deletes all non-deleted documents belonging to the specified tenant in a single
-    /// <c>UpdateMany</c> operation and returns the count of modified documents.
+    ///     Soft-deletes all non-deleted documents belonging to the specified tenant in a single
+    ///     <c>UpdateMany</c> operation and returns the count of modified documents.
     /// </summary>
     public async Task<long> SoftDeleteByTenantAsync(
         Guid tenantId,
@@ -128,4 +136,3 @@ public sealed class ProductDataRepository : IProductDataRepository
         return result.ModifiedCount;
     }
 }
-

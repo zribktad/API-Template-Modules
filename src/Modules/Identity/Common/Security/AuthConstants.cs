@@ -1,7 +1,7 @@
 namespace Identity.Security;
 
 /// <summary>
-/// Shared constants for authentication, OpenID Connect, and OAuth2 token payload names.
+///     Shared constants for authentication, OpenID Connect, and OAuth2 token payload names.
 /// </summary>
 public static class AuthConstants
 {
@@ -80,11 +80,11 @@ public static class AuthConstants
     }
 
     /// <summary>
-    /// Constants for the custom CSRF header contract used by <c>CsrfValidationMiddleware</c>.
+    ///     Constants for the custom CSRF header contract used by <c>CsrfValidationMiddleware</c>.
     /// </summary>
     /// <remarks>
-    /// SPAs retrieve these values at runtime via <c>GET /api/v1/bff/csrf</c> and must send
-    /// <c>X-CSRF: 1</c> on every non-safe (mutating) request authenticated with a session cookie.
+    ///     SPAs retrieve these values at runtime via <c>GET /api/v1/bff/csrf</c> and must send
+    ///     <c>X-CSRF: 1</c> on every non-safe (mutating) request authenticated with a session cookie.
     /// </remarks>
     public static class Csrf
     {

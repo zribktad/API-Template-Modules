@@ -1,6 +1,4 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Contracts.Api;
 using Wolverine;
 
 namespace ProductCatalog.Features.Category;

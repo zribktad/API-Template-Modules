@@ -1,4 +1,3 @@
-using Identity.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.Persistence;
@@ -36,4 +35,3 @@ public sealed class IdentityDbContext : ModuleDbContext
         ApplyGlobalFilters(modelBuilder);
     }
 }
-

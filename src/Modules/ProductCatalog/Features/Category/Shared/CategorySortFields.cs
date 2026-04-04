@@ -1,10 +1,9 @@
-using SharedKernel.Application.Sorting;
 using CategoryEntity = ProductCatalog.Entities.Category;
 
 namespace ProductCatalog.Features.Category.Shared;
 
 /// <summary>
-/// Defines the allowed sort fields for category queries and maps them to entity expressions.
+///     Defines the allowed sort fields for category queries and maps them to entity expressions.
 /// </summary>
 public static class CategorySortFields
 {
@@ -15,8 +14,8 @@ public static class CategorySortFields
     public static readonly SortField CreatedAt = new("createdAt");
 
     /// <summary>
-    /// The sort field map used to resolve and apply sorting to category specifications.
-    /// Defaults to sorting by <see cref="CreatedAt"/> when no sort field is specified.
+    ///     The sort field map used to resolve and apply sorting to category specifications.
+    ///     Defaults to sorting by <see cref="CreatedAt" /> when no sort field is specified.
     /// </summary>
     public static readonly SortFieldMap<CategoryEntity> Map = new SortFieldMap<CategoryEntity>()
         .Add(Name, c => c.Name)

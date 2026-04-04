@@ -1,9 +1,9 @@
 namespace Identity.Security;
 
 /// <summary>
-/// Compile-time implementation of <see cref="IRolePermissionMap"/> that maps each
-/// <see cref="UserRole"/> to a fixed set of permission strings.
-/// The mapping is built once and cached for the lifetime of the application.
+///     Compile-time implementation of <see cref="IRolePermissionMap" /> that maps each
+///     <see cref="UserRole" /> to a fixed set of permission strings.
+///     The mapping is built once and cached for the lifetime of the application.
 /// </summary>
 public sealed class StaticRolePermissionMap : IRolePermissionMap
 {
@@ -13,18 +13,22 @@ public sealed class StaticRolePermissionMap : IRolePermissionMap
 
     private static readonly IReadOnlyDictionary<string, IReadOnlySet<string>> Map = BuildMap();
 
-    public IReadOnlySet<string> GetPermissions(string role) =>
-        Map.TryGetValue(role, out IReadOnlySet<string>? permissions) ? permissions : Empty;
+    public IReadOnlySet<string> GetPermissions(string role)
+    {
+        return Map.TryGetValue(role, out IReadOnlySet<string>? permissions) ? permissions : Empty;
+    }
 
-    public bool HasPermission(string role, string permission) =>
-        GetPermissions(role).Contains(permission);
+    public bool HasPermission(string role, string permission)
+    {
+        return GetPermissions(role).Contains(permission);
+    }
 
     /// <summary>
-    /// Constructs the static role-to-permissions dictionary used for all permission lookups.
+    ///     Constructs the static role-to-permissions dictionary used for all permission lookups.
     /// </summary>
     private static Dictionary<string, IReadOnlySet<string>> BuildMap()
     {
-        var tenantAdminPermissions = new HashSet<string>(StringComparer.Ordinal)
+        HashSet<string> tenantAdminPermissions = new(StringComparer.Ordinal)
         {
             Permission.Products.Read,
             Permission.Products.Create,
@@ -52,7 +56,7 @@ public sealed class StaticRolePermissionMap : IRolePermissionMap
             Permission.Examples.Download,
         };
 
-        var userPermissions = new HashSet<string>(StringComparer.Ordinal)
+        HashSet<string> userPermissions = new(StringComparer.Ordinal)
         {
             Permission.Products.Read,
             Permission.Categories.Read,

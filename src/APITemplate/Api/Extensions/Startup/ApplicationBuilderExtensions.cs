@@ -94,9 +94,11 @@ public static class ApplicationBuilderExtensions
         return app;
     }
 
-    private static bool IsClientAbortedRequest(HttpContext httpContext, Exception? exception) =>
-        exception is OperationCanceledException oce
-        && oce.CancellationToken == httpContext.RequestAborted;
+    private static bool IsClientAbortedRequest(HttpContext httpContext, Exception? exception)
+    {
+        return exception is OperationCanceledException oce
+            && oce.CancellationToken == httpContext.RequestAborted;
+    }
 
     private sealed record HostStatusResponse(string Service, string Status);
 }

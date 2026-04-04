@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Application.Errors;
 
 namespace APITemplate.Api.ExceptionHandling;
 
@@ -38,7 +37,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         }
 
         (int statusCode, string? title, string? detail, string? errorCode) = Resolve(exception);
-        var problemDetails = new ProblemDetails
+        ProblemDetails problemDetails = new()
         {
             Status = statusCode,
             Title = title,
@@ -52,12 +51,14 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         if (statusCode >= StatusCodes.Status500InternalServerError)
             _logger.UnhandledException(exception, statusCode, errorCode, context.TraceIdentifier);
         else
+        {
             _logger.HandledApplicationException(
                 exception,
                 statusCode,
                 errorCode,
                 context.TraceIdentifier
             );
+        }
 
         context.Response.StatusCode = statusCode;
 
@@ -75,12 +76,14 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         HttpContext context,
         Exception exception,
         CancellationToken cancellationToken
-    ) =>
-        exception is OperationCanceledException
-        && (
-            context.RequestAborted.IsCancellationRequested
-            || cancellationToken.IsCancellationRequested
-        );
+    )
+    {
+        return exception is OperationCanceledException
+            && (
+                context.RequestAborted.IsCancellationRequested
+                || cancellationToken.IsCancellationRequested
+            );
+    }
 
     private static (int StatusCode, string Title, string Detail, string ErrorCode) Resolve(
         Exception exception

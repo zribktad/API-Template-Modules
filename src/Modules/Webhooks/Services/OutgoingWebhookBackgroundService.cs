@@ -5,8 +5,6 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Infrastructure.BackgroundJobs.Services;
 using Webhooks.Contracts;
-using Webhooks.Services;
-using Webhooks.Security;
 using Webhooks.Logging;
 
 namespace Webhooks.Services;
@@ -21,8 +19,8 @@ public sealed class OutgoingWebhookBackgroundService
     };
 
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IWebhookPayloadSigner _signer;
     private readonly ILogger<OutgoingWebhookBackgroundService> _logger;
+    private readonly IWebhookPayloadSigner _signer;
 
     public OutgoingWebhookBackgroundService(
         IOutgoingWebhookQueueReader queue,
@@ -77,24 +75,30 @@ public sealed class OutgoingWebhookBackgroundService
     private static async Task ValidateCallbackUrlAsync(string callbackUrl, CancellationToken ct)
     {
         if (!Uri.TryCreate(callbackUrl, UriKind.Absolute, out Uri? uri))
+        {
             throw new InvalidOperationException(
                 $"Callback URL '{callbackUrl}' is not a valid absolute URI."
             );
+        }
 
         if (!AllowedSchemes.Contains(uri.Scheme))
+        {
             throw new InvalidOperationException(
                 $"Callback URL scheme '{uri.Scheme}' is not allowed. Only HTTP and HTTPS are permitted."
             );
+        }
 
         IPAddress[] addresses = await Dns.GetHostAddressesAsync(uri.DnsSafeHost, ct);
 
         foreach (IPAddress address in addresses)
         {
             if (IsProhibitedAddress(address))
+            {
                 throw new InvalidOperationException(
                     $"Callback URL '{uri.Host}' resolves to a prohibited address ({address}). "
                         + "Requests to loopback, private, and link-local networks are not allowed."
                 );
+            }
         }
     }
 
@@ -126,7 +130,3 @@ public sealed class OutgoingWebhookBackgroundService
         return false;
     }
 }
-
-
-
-

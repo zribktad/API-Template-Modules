@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace SharedKernel.Infrastructure.Registration;
 
 /// <summary>
-/// Entry points for configuring module infrastructure.
+///     Entry points for configuring module infrastructure.
 /// </summary>
 public static class ModuleRegistrationExtensions
 {
@@ -13,5 +13,8 @@ public static class ModuleRegistrationExtensions
         this IServiceCollection services,
         IConfiguration configuration
     )
-        where TContext : DbContext => new(services, configuration);
+        where TContext : DbContext
+    {
+        return new ModuleRegistrationBuilder<TContext>(services, configuration);
+    }
 }

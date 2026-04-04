@@ -1,9 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Notifications;
 using Notifications.Contracts;
 using Notifications.Domain;
-using Notifications.Services;
 using Notifications.Logging;
 using Polly;
 using Polly.Registry;
@@ -14,20 +12,20 @@ using SharedKernel.Domain.Interfaces;
 namespace Notifications.Services;
 
 /// <summary>
-/// Infrastructure implementation of <see cref="IEmailRetryService"/> that claims and retries
-/// failed emails from the store and moves permanently undeliverable ones to the dead-letter state.
-/// Uses optimistic per-record claiming to avoid duplicate processing in multi-instance deployments.
+///     Infrastructure implementation of <see cref="IEmailRetryService" /> that claims and retries
+///     failed emails from the store and moves permanently undeliverable ones to the dead-letter state.
+///     Uses optimistic per-record claiming to avoid duplicate processing in multi-instance deployments.
 /// </summary>
 public sealed class EmailRetryService : IEmailRetryService
 {
     private readonly string _claimOwner;
-    private readonly IFailedEmailRepository _repository;
-    private readonly IEmailSender _sender;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly TimeProvider _timeProvider;
-    private readonly EmailRetryJobOptions _options;
-    private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
     private readonly ILogger<EmailRetryService> _logger;
+    private readonly EmailRetryJobOptions _options;
+    private readonly IFailedEmailRepository _repository;
+    private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
+    private readonly IEmailSender _sender;
+    private readonly TimeProvider _timeProvider;
+    private readonly IUnitOfWork _unitOfWork;
 
     public EmailRetryService(
         IFailedEmailRepository repository,
@@ -50,9 +48,9 @@ public sealed class EmailRetryService : IEmailRetryService
     }
 
     /// <summary>
-    /// Claims up to <paramref name="batchSize"/> retryable failed emails, attempts delivery via
-    /// the resilience pipeline, and commits progress per-email to prevent duplicate sends on crash.
-    /// Failures increment <c>RetryCount</c> and release the claim for future attempts.
+    ///     Claims up to <paramref name="batchSize" /> retryable failed emails, attempts delivery via
+    ///     the resilience pipeline, and commits progress per-email to prevent duplicate sends on crash.
+    ///     Failures increment <c>RetryCount</c> and release the claim for future attempts.
     /// </summary>
     public async Task RetryFailedEmailsAsync(
         int maxRetryAttempts,
@@ -78,7 +76,7 @@ public sealed class EmailRetryService : IEmailRetryService
         {
             try
             {
-                var message = new EmailMessage(
+                EmailMessage message = new(
                     email.To,
                     email.Subject,
                     email.HtmlBody,
@@ -111,8 +109,8 @@ public sealed class EmailRetryService : IEmailRetryService
     }
 
     /// <summary>
-    /// Claims and marks as dead-lettered any failed emails that have been retrying for longer than
-    /// <paramref name="deadLetterAfterHours"/> hours, processing in batches until none remain.
+    ///     Claims and marks as dead-lettered any failed emails that have been retrying for longer than
+    ///     <paramref name="deadLetterAfterHours" /> hours, processing in batches until none remain.
     /// </summary>
     public async Task DeadLetterExpiredAsync(
         int deadLetterAfterHours,
@@ -148,14 +146,7 @@ public sealed class EmailRetryService : IEmailRetryService
             }
 
             if (processed > 0)
-            {
                 await _unitOfWork.CommitAsync(ct);
-            }
         } while (processed == batchSize);
     }
 }
-
-
-
-
-

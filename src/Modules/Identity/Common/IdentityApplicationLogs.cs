@@ -4,7 +4,7 @@ using SharedKernel.Infrastructure.Logging;
 namespace Identity.Logging;
 
 /// <summary>
-/// Source-generated logger extension methods for Identity application diagnostics.
+///     Source-generated logger extension methods for Identity application diagnostics.
 /// </summary>
 internal static partial class IdentityApplicationLogs
 {
@@ -55,4 +55,3 @@ internal static partial class IdentityApplicationLogs
         Guid userId
     );
 }
-

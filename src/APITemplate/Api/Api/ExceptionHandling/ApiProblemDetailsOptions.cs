@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace APITemplate.Api.ExceptionHandling;
 
 public static class ApiProblemDetailsOptions
@@ -11,8 +9,8 @@ public static class ApiProblemDetailsOptions
             IDictionary<string, object?> extensions = context.ProblemDetails.Extensions;
             extensions["traceId"] = context.HttpContext.TraceIdentifier;
 
-            var errorCode =
-                extensions.TryGetValue("errorCode", out var existingErrorCode)
+            string errorCode =
+                extensions.TryGetValue("errorCode", out object? existingErrorCode)
                 && existingErrorCode is string existing
                     ? existing
                     : ErrorCatalog.General.Unknown;

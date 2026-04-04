@@ -1,8 +1,4 @@
 using ErrorOr;
-using ProductCatalog;
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
-using SharedKernel.Contracts.Events;
 using Wolverine;
 
 namespace ProductCatalog.Features.Category.UpdateCategories;
@@ -10,14 +6,12 @@ namespace ProductCatalog.Features.Category.UpdateCategories;
 /// <summary>Updates multiple categories in a single batch operation.</summary>
 public sealed record UpdateCategoriesCommand(UpdateCategoriesRequest Request);
 
-/// <summary>Handles <see cref="UpdateCategoriesCommand"/> by validating all items, loading categories in bulk, and updating in a single transaction.</summary>
+/// <summary>
+///     Handles <see cref="UpdateCategoriesCommand" /> by validating all items, loading categories in bulk, and
+///     updating in a single transaction.
+/// </summary>
 public sealed class UpdateCategoriesCommandHandler
 {
-    public sealed record UpdateCategoriesState(
-        IReadOnlyList<UpdateCategoryItem> Items,
-        IReadOnlyDictionary<Guid, ProductCatalog.Entities.Category> CategoryMap
-    );
-
     public static async Task<(
         HandlerContinuation,
         UpdateCategoriesState?,
@@ -34,11 +28,11 @@ public sealed class UpdateCategoriesCommandHandler
         await context.ApplyRulesAsync(ct, itemValidationRule);
 
         // Load all target categories and mark missing ones as failed
-        var requestedIds = items
+        HashSet<Guid> requestedIds = items
             .Where((_, i) => !context.IsFailed(i))
             .Select(item => item.Id)
             .ToHashSet();
-        var categoryMap = (
+        Dictionary<Guid, Entities.Category> categoryMap = (
             await repository.ListAsync(new CategoriesByIdsSpecification(requestedIds), ct)
         ).ToDictionary(c => c.Id);
 
@@ -80,7 +74,7 @@ public sealed class UpdateCategoriesCommandHandler
                 for (int i = 0; i < state.Items.Count; i++)
                 {
                     UpdateCategoryItem item = state.Items[i];
-                    ProductCatalog.Entities.Category category = state.CategoryMap[item.Id];
+                    Entities.Category category = state.CategoryMap[item.Id];
 
                     category.Name = item.Name;
                     category.Description = item.Description;
@@ -96,4 +90,9 @@ public sealed class UpdateCategoriesCommandHandler
 
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
+
+    public sealed record UpdateCategoriesState(
+        IReadOnlyList<UpdateCategoryItem> Items,
+        IReadOnlyDictionary<Guid, Entities.Category> CategoryMap
+    );
 }

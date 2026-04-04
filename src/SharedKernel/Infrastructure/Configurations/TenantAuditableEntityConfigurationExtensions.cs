@@ -6,8 +6,8 @@ using SharedKernel.Domain.Entities.Contracts;
 namespace SharedKernel.Infrastructure.Configurations;
 
 /// <summary>
-/// Applies the standard tenant, audit, soft-delete, and optimistic-concurrency configuration
-/// to any entity implementing <see cref="IAuditableTenantEntity"/>.
+///     Applies the standard tenant, audit, soft-delete, and optimistic-concurrency configuration
+///     to any entity implementing <see cref="IAuditableTenantEntity" />.
 /// </summary>
 public static class TenantAuditableEntityConfigurationExtensions
 {

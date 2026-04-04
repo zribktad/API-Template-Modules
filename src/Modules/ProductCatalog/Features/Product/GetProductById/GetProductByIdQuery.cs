@@ -6,7 +6,7 @@ namespace ProductCatalog.Features.Product.GetProductById;
 /// <summary>Retrieves a single product by its unique identifier.</summary>
 public sealed record GetProductByIdQuery(Guid Id) : IHasId;
 
-/// <summary>Handles <see cref="GetProductByIdQuery"/> by fetching from the product repository.</summary>
+/// <summary>Handles <see cref="GetProductByIdQuery" /> by fetching from the product repository.</summary>
 public sealed class GetProductByIdQueryHandler
 {
     public static async Task<ErrorOr<ProductResponse>> HandleAsync(

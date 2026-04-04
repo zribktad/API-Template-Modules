@@ -9,10 +9,10 @@ using Microsoft.Extensions.Options;
 namespace Identity.Security;
 
 /// <summary>
-/// A ticket store implementation that persists ASP.NET Core authentication tickets
-/// into an <see cref="IDistributedCache"/> (typically DragonFly/Redis) under a unique key,
-/// allowing the authentication cookie to contain only a small key while the full ticket
-/// (claims + properties) is stored in a shared cache reachable by any application instance.
+///     A ticket store implementation that persists ASP.NET Core authentication tickets
+///     into an <see cref="IDistributedCache" /> (typically DragonFly/Redis) under a unique key,
+///     allowing the authentication cookie to contain only a small key while the full ticket
+///     (claims + properties) is stored in a shared cache reachable by any application instance.
 /// </summary>
 public sealed class DragonflyTicketStore : ITicketStore
 {
@@ -66,6 +66,8 @@ public sealed class DragonflyTicketStore : ITicketStore
         }
     }
 
-    public Task RemoveAsync(string key) => _cache.RemoveAsync(key);
+    public Task RemoveAsync(string key)
+    {
+        return _cache.RemoveAsync(key);
+    }
 }
-

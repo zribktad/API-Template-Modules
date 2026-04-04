@@ -4,15 +4,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
 using SharedKernel.Application.Errors;
 using Webhooks.Contracts;
-using Webhooks.Services;
-using Webhooks.Security;
 
 namespace Webhooks.Security;
 
 public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
 {
-    private readonly IWebhookPayloadValidator _validator;
     private readonly IProblemDetailsService _problemDetailsService;
+    private readonly IWebhookPayloadValidator _validator;
 
     public WebhookSignatureResourceFilter(
         IWebhookPayloadValidator validator,
@@ -91,7 +89,3 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
             : new ObjectResult(pd) { StatusCode = StatusCodes.Status401Unauthorized };
     }
 }
-
-
-
-

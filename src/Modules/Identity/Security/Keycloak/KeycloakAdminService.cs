@@ -1,5 +1,6 @@
-using Identity.Options;
+using System.Net;
 using Identity.Logging;
+using Identity.Options;
 using Keycloak.AuthServices.Sdk.Admin;
 using Keycloak.AuthServices.Sdk.Admin.Models;
 using Keycloak.AuthServices.Sdk.Admin.Requests.Users;
@@ -9,14 +10,14 @@ using Microsoft.Extensions.Options;
 namespace Identity.Security.Keycloak;
 
 /// <summary>
-/// Keycloak Admin REST API client facade that wraps user lifecycle operations
-/// (create, enable/disable, password reset, delete) using the Keycloak SDK.
+///     Keycloak Admin REST API client facade that wraps user lifecycle operations
+///     (create, enable/disable, password reset, delete) using the Keycloak SDK.
 /// </summary>
 public sealed class KeycloakAdminService : IKeycloakAdminService
 {
-    private readonly IKeycloakUserClient _userClient;
-    private readonly string _realm;
     private readonly ILogger<KeycloakAdminService> _logger;
+    private readonly string _realm;
+    private readonly IKeycloakUserClient _userClient;
 
     public KeycloakAdminService(
         IKeycloakUserClient userClient,
@@ -30,8 +31,8 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
     }
 
     /// <summary>
-    /// Creates a new user in Keycloak and, on a best-effort basis, sends them an
-    /// email-verify + set-password action email. Returns the new Keycloak user ID.
+    ///     Creates a new user in Keycloak and, on a best-effort basis, sends them an
+    ///     email-verify + set-password action email. Returns the new Keycloak user ID.
     /// </summary>
     public async Task<string> CreateUserAsync(
         string username,
@@ -39,7 +40,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         CancellationToken ct = default
     )
     {
-        var user = new UserRepresentation
+        UserRepresentation user = new()
         {
             Username = username,
             Email = email,
@@ -110,14 +111,14 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         CancellationToken ct = default
     )
     {
-        var patch = new UserRepresentation { Enabled = enabled };
+        UserRepresentation patch = new() { Enabled = enabled };
         await _userClient.UpdateUserAsync(_realm, keycloakUserId, patch, ct);
 
         _logger.KeycloakUserEnabledSet(keycloakUserId, enabled);
     }
 
     /// <summary>
-    /// Deletes the Keycloak user. A 404 response is treated as success to handle idempotent retries.
+    ///     Deletes the Keycloak user. A 404 response is treated as success to handle idempotent retries.
     /// </summary>
     public async Task DeleteUserAsync(string keycloakUserId, CancellationToken ct = default)
     {
@@ -125,7 +126,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         {
             await _userClient.DeleteUserAsync(_realm, keycloakUserId, ct);
         }
-        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             // Treat 404 as success — the user was already deleted (e.g., retry scenario)
             _logger.KeycloakUserNotFoundOnDelete(keycloakUserId);
@@ -147,11 +148,12 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         string userId = location.Segments[^1].TrimEnd('/');
 
         if (string.IsNullOrWhiteSpace(userId))
+        {
             throw new InvalidOperationException(
                 $"Could not extract user ID from Keycloak Location header: {location}"
             );
+        }
 
         return userId;
     }
 }
-

@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Options;
 using Webhooks.Contracts;
-using Webhooks.Services;
-using Webhooks.Security;
 
 namespace Webhooks.Security;
 
@@ -24,7 +22,3 @@ public sealed class HmacWebhookPayloadSigner : IWebhookPayloadSigner
         return new WebhookSignatureResult(signature, timestamp);
     }
 }
-
-
-
-

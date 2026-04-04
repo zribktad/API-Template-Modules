@@ -10,7 +10,7 @@ using SharedKernel.Infrastructure.Repositories.Pagination;
 namespace SharedKernel.Infrastructure.Repositories;
 
 /// <summary>
-/// Generic EF Core repository that stages changes without flushing and provides shared paged-query support.
+///     Generic EF Core repository that stages changes without flushing and provides shared paged-query support.
 /// </summary>
 public abstract class RepositoryBase<T>
     : Ardalis.Specification.EntityFrameworkCore.RepositoryBase<T>,
@@ -28,20 +28,19 @@ public abstract class RepositoryBase<T>
     )
     {
         IQueryable<T> baseQuery = ApplySpecification((ISpecification<T>)spec);
-        IQueryable<T> countSource = ApplySpecification(
-            (ISpecification<T>)spec,
-            evaluateCriteriaOnly: true
-        );
+        IQueryable<T> countSource = ApplySpecification(spec, true);
 
         if (spec.Selector is null)
+        {
             throw new InvalidOperationException(
                 $"Specification {spec.GetType().Name} must define a Select projection to use GetPagedAsync."
             );
+        }
 
         Expression<Func<T, PagedRow<TResult>>> combinedSelector = spec.Selector.BuildPaged(
             countSource
         );
-        var skip = (pageNumber - 1) * pageSize;
+        int skip = (pageNumber - 1) * pageSize;
         List<PagedRow<TResult>> results = await baseQuery
             .Skip(skip)
             .Take(pageSize)
@@ -60,13 +59,13 @@ public abstract class RepositoryBase<T>
 
         if (pageNumber > 1)
         {
-            var totalCount = await baseQuery.CountAsync(ct);
+            int totalCount = await baseQuery.CountAsync(ct);
             if (totalCount > 0)
             {
-                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+                int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
                 return Error.Validation(
-                    code: ErrorCatalog.General.PageOutOfRange,
-                    description: $"PageNumber {pageNumber} exceeds total pages ({totalPages})."
+                    ErrorCatalog.General.PageOutOfRange,
+                    $"PageNumber {pageNumber} exceeds total pages ({totalPages})."
                 );
             }
         }

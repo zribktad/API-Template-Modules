@@ -15,9 +15,7 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
             !HttpMethods.IsGet(context.HttpContext.Request.Method)
             && !HttpMethods.IsHead(context.HttpContext.Request.Method)
         )
-        {
             return ValueTask.CompletedTask;
-        }
 
         string tenantId =
             context.HttpContext.User.FindFirstValue(AuthConstants.Claims.TenantId) ?? string.Empty;
@@ -38,9 +36,7 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
         List<string> originalTags = context.Tags.ToList();
         context.Tags.Clear();
         foreach (string tag in originalTags)
-        {
             context.Tags.Add($"{tag}-{tenantId}");
-        }
 
         return ValueTask.CompletedTask;
     }
@@ -48,10 +44,16 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
     public ValueTask ServeFromCacheAsync(
         OutputCacheContext context,
         CancellationToken cancellationToken
-    ) => ValueTask.CompletedTask;
+    )
+    {
+        return ValueTask.CompletedTask;
+    }
 
     public ValueTask ServeResponseAsync(
         OutputCacheContext context,
         CancellationToken cancellationToken
-    ) => ValueTask.CompletedTask;
+    )
+    {
+        return ValueTask.CompletedTask;
+    }
 }

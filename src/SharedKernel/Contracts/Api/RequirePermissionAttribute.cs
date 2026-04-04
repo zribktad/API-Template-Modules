@@ -6,5 +6,5 @@ namespace SharedKernel.Contracts.Api;
 public sealed class RequirePermissionAttribute : AuthorizeAttribute
 {
     public RequirePermissionAttribute(string permission)
-        : base(policy: permission) { }
+        : base(permission) { }
 }

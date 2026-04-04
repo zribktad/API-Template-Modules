@@ -1,4 +1,3 @@
-using ProductCatalog;
 using Wolverine;
 using CategoryEntity = ProductCatalog.Entities.Category;
 using ProductEntity = ProductCatalog.Entities.Product;
@@ -6,10 +5,10 @@ using ProductEntity = ProductCatalog.Entities.Product;
 namespace ProductCatalog.Features.TenantCascadeDelete;
 
 /// <summary>
-/// Handles <see cref="TenantSoftDeletedNotification"/> by cascading the soft-delete to all
-/// non-deleted <see cref="CategoryEntity"/> and <see cref="ProductEntity"/> records for the tenant.
-/// Publishes <see cref="ProductSoftDeletedNotification"/> per product so the Reviews module
-/// can cascade to ProductReviews, and invalidates the Products and Categories cache.
+///     Handles <see cref="TenantSoftDeletedNotification" /> by cascading the soft-delete to all
+///     non-deleted <see cref="CategoryEntity" /> and <see cref="ProductEntity" /> records for the tenant.
+///     Publishes <see cref="ProductSoftDeletedNotification" /> per product so the Reviews module
+///     can cascade to ProductReviews, and invalidates the Products and Categories cache.
 /// </summary>
 public static class TenantCascadeDeleteHandler
 {

@@ -1,6 +1,5 @@
 using ErrorOr;
 using Identity.Features.Tenant.Mappings;
-using Identity;
 using Identity.ValueObjects;
 using Wolverine;
 using TenantEntity = Identity.Entities.Tenant;
@@ -55,4 +54,3 @@ public sealed class CreateTenantCommandHandler
         return (tenant.ToResponse(), messages);
     }
 }
-

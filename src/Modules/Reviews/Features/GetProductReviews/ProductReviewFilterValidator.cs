@@ -1,11 +1,10 @@
 using FluentValidation;
-using SharedKernel.Application.Validation;
 
 namespace Reviews.Features;
 
 /// <summary>
-/// FluentValidation validator for <see cref="ProductReviewFilter"/>.
-/// Composes pagination, date-range, sortable, and rating-range validation rules.
+///     FluentValidation validator for <see cref="ProductReviewFilter" />.
+///     Composes pagination, date-range, sortable, and rating-range validation rules.
 /// </summary>
 public sealed class ProductReviewFilterValidator : AbstractValidator<ProductReviewFilter>
 {
