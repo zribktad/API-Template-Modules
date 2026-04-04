@@ -1,0 +1,17 @@
+using SharedKernel.Application.Validation;
+using FluentValidation;
+
+namespace ProductCatalog.Features.Category.GetCategories;
+
+/// <summary>
+/// FluentValidation validator for <see cref="CategoryFilter"/>.
+/// Composes pagination and sortable filter validation rules by inclusion.
+/// </summary>
+public sealed class CategoryFilterValidator : AbstractValidator<CategoryFilter>
+{
+    public CategoryFilterValidator()
+    {
+        Include(new PaginationFilterValidator());
+        Include(new SortableFilterValidator<CategoryFilter>(CategorySortFields.Map.AllowedNames));
+    }
+}

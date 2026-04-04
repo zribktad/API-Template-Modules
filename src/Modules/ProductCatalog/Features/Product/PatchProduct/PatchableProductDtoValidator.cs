@@ -1,0 +1,16 @@
+using FluentValidation;
+using SharedKernel.Application.Validation;
+
+namespace ProductCatalog.Features.Product.PatchProduct;
+
+/// <summary>
+/// FluentValidation validator for the post-patch <see cref="PatchableProductDto"/> state;
+/// applies data-annotation constraints and the shared description-required-above-price-threshold rule.
+/// </summary>
+public sealed class PatchableProductDtoValidator : DataAnnotationsValidator<PatchableProductDto>
+{
+    public PatchableProductDtoValidator()
+    {
+        RuleFor(x => x.Description).RequiredAbovePriceThreshold(x => x.Price);
+    }
+}

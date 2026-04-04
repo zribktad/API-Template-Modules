@@ -18,7 +18,7 @@ public class UnauthorizedAccessTests : IClassFixture<CustomWebApplicationFactory
     [InlineData("/api/v1/products")]
     [InlineData("/api/v1/categories")]
     [InlineData("/api/v1/productreviews")]
-    [InlineData("/api/v1/product-data")]
+    [InlineData("/api/v1/ProductData")]
     [InlineData("/api/v1/categories/00000000-0000-0000-0000-000000000001/stats")]
     public async Task GetEndpoint_WithoutToken_ReturnsUnauthorized(string endpoint)
     {

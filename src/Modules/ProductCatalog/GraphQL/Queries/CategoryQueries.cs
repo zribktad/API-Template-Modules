@@ -1,7 +1,7 @@
 using ErrorOr;
 using HotChocolate.Authorization;
-using ProductCatalog.Features.GetCategories;
-using ProductCatalog.Features.GetCategoryById;
+using ProductCatalog.Features.Category.GetCategories;
+using ProductCatalog.Features.Category.GetCategoryById;
 using ProductCatalog.GraphQL.Models;
 using Wolverine;
 
@@ -53,4 +53,3 @@ public sealed class CategoryQueries
         return result.ToGraphQLNullableResult();
     }
 }
-
