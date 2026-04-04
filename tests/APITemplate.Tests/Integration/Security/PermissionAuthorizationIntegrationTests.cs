@@ -209,7 +209,7 @@ public class PermissionAuthorizationIntegrationTests : IClassFixture<CustomWebAp
 
         // Then create a review as User
         var response = await client.PostAsJsonAsync(
-            "/api/v1/productreviews",
+            "/api/v1/product-reviews",
             new
             {
                 ProductId = productId,

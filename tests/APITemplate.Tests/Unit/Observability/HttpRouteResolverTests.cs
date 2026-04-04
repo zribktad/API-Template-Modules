@@ -12,18 +12,18 @@ public sealed class HttpRouteResolverTests
     public void ReplaceVersionToken_WhenRouteContainsApiVersionConstraint_ReplacesWithConcreteVersion()
     {
         var resolvedRoute = HttpRouteResolver.ReplaceVersionToken(
-            "api/v{version:apiVersion}/Products",
+            "api/v{version:apiVersion}/products",
             new RouteValueDictionary { ["version"] = "1" }
         );
 
-        resolvedRoute.ShouldBe("api/v1/Products");
+        resolvedRoute.ShouldBe("api/v1/products");
     }
 
     [Fact]
     public void ReplaceVersionToken_WhenVersionMissing_LeavesTemplateUnchanged()
     {
         var resolvedRoute = HttpRouteResolver.ReplaceVersionToken(
-            "api/v{version:apiVersion}/Products",
+            "api/v{version:apiVersion}/products",
             new RouteValueDictionary()
         );
 
@@ -34,10 +34,10 @@ public sealed class HttpRouteResolverTests
     public void Resolve_WhenEndpointTemplateMissing_FallsBackToRequestPath()
     {
         var httpContext = new DefaultHttpContext();
-        httpContext.Request.Path = "/api/v1/Products";
+        httpContext.Request.Path = "/api/v1/products";
 
         var resolvedRoute = HttpRouteResolver.Resolve(httpContext);
 
-        resolvedRoute.ShouldBe("/api/v1/Products");
+        resolvedRoute.ShouldBe("/api/v1/products");
     }
 }

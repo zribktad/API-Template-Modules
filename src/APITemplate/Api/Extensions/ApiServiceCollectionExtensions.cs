@@ -1,6 +1,8 @@
 using APITemplate.Api.Cache;
 using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using SharedKernel.Contracts.Api.Routing;
 using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;
 using IdentityCacheTags = Identity.Events.CacheTags;
@@ -18,6 +20,12 @@ public static class ApiServiceCollectionExtensions
     {
         services.AddProblemDetails(ApiProblemDetailsOptions.Configure);
         services.AddExceptionHandler<ApiExceptionHandler>();
+        services.AddControllers(options =>
+        {
+            options.Conventions.Add(
+                new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
+            );
+        });
         services.AddValidatedOptions<KeycloakHealthCheckOptions>(configuration);
         services
             .AddHealthChecks()
