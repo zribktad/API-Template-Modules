@@ -1,14 +1,15 @@
 using System.Net;
 using System.Text;
-using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Tests.Integration.Helpers;
 using APITemplate.Tests.Unit.Helpers;
 using Shouldly;
+using Webhooks.Contracts;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Features;
 
-public class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory>
+[Trait("Category", "Integration.Docker")]
+public sealed class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 

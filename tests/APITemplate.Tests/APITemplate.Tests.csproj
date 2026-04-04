@@ -4,67 +4,77 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
+    <!-- Opt in: dotnet test /p:RunDockerIntegration=true (requires Docker). Default run skips Testcontainers tests. -->
+    <VSTestTestCaseFilter Condition="'$(RunDockerIntegration)' != 'true'">Category!=Integration.Docker</VSTestTestCaseFilter>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ErrorOr"/>
-    <PackageReference Include="FluentValidation"/>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory"/>
-    <PackageReference Include="MockQueryable.Moq"/>
-    <PackageReference Include="SystemTextJsonPatch"/>
+    <PackageReference Include="ErrorOr" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="MockQueryable.Moq" />
+    <PackageReference Include="SystemTextJsonPatch" />
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk"/>
-    <PackageReference Include="Moq"/>
-    <PackageReference Include="Shouldly"/>
-    <PackageReference Include="xunit.runner.visualstudio"/>
-    <PackageReference Include="xunit.v3"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Testcontainers.MongoDb" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="xunit.v3" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <!--
-    Integration tests under Integration\ are excluded from this project on purpose: they still target
-    removed APITemplate.Application / Infrastructure (and related test host packages). Re-enable by
-    removing the line below after migrating those tests to the modular layout or moving them to a
-    dedicated integration test project. Until then, `dotnet test` on this project runs unit tests only.
+    Legacy integration tests still target the old monolith layout; they remain excluded. Modular
+    integration tests are opted in explicitly below (Docker / Testcontainers required).
   -->
   <ItemGroup>
-    <Compile Remove="GlobalUsings.ApplicationFeatures.cs"/>
-    <Compile Remove="Integration\**\*.cs"/>
-    <Compile Remove="Unit\Handlers\**\*.cs"/>
-    <Compile Remove="Unit\Repositories\**\*.cs"/>
-    <Compile Remove="Unit\Persistence\**\*.cs"/>
-    <Compile Remove="Unit\Integration\**\*.cs"/>
-    <Compile Remove="Unit\Email\**\*.cs"/>
-    <Compile Remove="Unit\Observability\HttpRouteResolverTests.cs"/>
-    <Compile Remove="Unit\Observability\ObservabilityServiceCollectionExtensionsTests.cs"/>
-    <Compile Remove="Unit\Validators\CreateProductReviewRequestValidatorTests.cs"/>
-    <Compile Remove="Unit\Validation\**\*.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\BackgroundJobsServiceCollectionExtensionsTests.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\CleanupRecurringJobTests.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\DragonflyDistributedJobCoordinatorTests.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\EmailRetryRecurringJobTests.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\EmailRetryServiceTests.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\TickerQRecurringJobRegistrarTests.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\TickerQSchedulerDbContextTests.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\ReindexRecurringJobTests.cs"/>
-    <Compile Remove="Unit\BackgroundJobs\ExternalSyncRecurringJobTests.cs"/>
-    <Compile Remove="Unit\Common\PaginationDefaultsTests.cs"/>
-    <Compile Remove="Unit\ErrorOrMapping\**\*.cs"/>
+    <Compile Remove="GlobalUsings.ApplicationFeatures.cs" />
+    <Compile Remove="Integration\**\*.cs" />
+    <Compile Include="Integration\CustomWebApplicationFactory.cs" />
+    <Compile Include="Integration\IntegrationAuthHelper.cs" />
+    <Compile Include="Integration\Helpers\TestConfigurationHelper.cs" />
+    <Compile Include="Integration\Helpers\TestServiceHelper.cs" />
+    <Compile Include="Integration\Helpers\TestOutputCacheStore.cs" />
+    <Compile Include="Integration\Features\WebhooksControllerTests.cs" />
+    <Compile Remove="Unit\Handlers\**\*.cs" />
+    <Compile Remove="Unit\Repositories\**\*.cs" />
+    <Compile Remove="Unit\Persistence\**\*.cs" />
+    <Compile Remove="Unit\Integration\**\*.cs" />
+    <Compile Remove="Unit\Email\**\*.cs" />
+    <Compile Remove="Unit\Observability\HttpRouteResolverTests.cs" />
+    <Compile Remove="Unit\Observability\ObservabilityServiceCollectionExtensionsTests.cs" />
+    <Compile Remove="Unit\Validators\CreateProductReviewRequestValidatorTests.cs" />
+    <Compile Remove="Unit\Validation\**\*.cs" />
+    <Compile Remove="Unit\BackgroundJobs\BackgroundJobsServiceCollectionExtensionsTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\CleanupRecurringJobTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\DragonflyDistributedJobCoordinatorTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\EmailRetryRecurringJobTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\EmailRetryServiceTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\TickerQRecurringJobRegistrarTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\TickerQSchedulerDbContextTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\ReindexRecurringJobTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\ExternalSyncRecurringJobTests.cs" />
+    <Compile Remove="Unit\Common\PaginationDefaultsTests.cs" />
+    <Compile Remove="Unit\ErrorOrMapping\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\APITemplate\Api\APITemplate.csproj"/>
-    <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.csproj"/>
-    <ProjectReference Include="..\..\src\Modules\Identity\Identity.csproj"/>
-    <ProjectReference Include="..\..\src\Modules\Notifications\Notifications.csproj"/>
-    <ProjectReference Include="..\..\src\Modules\FileStorage\FileStorage.csproj"/>
-    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.csproj"/>
-    <ProjectReference Include="..\..\src\Modules\Chatting\Chatting.csproj"/>
-    <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj"/>
-    <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.csproj"/>
+    <ProjectReference Include="..\..\src\APITemplate\Api\APITemplate.csproj" />
+    <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\Identity.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\Notifications.csproj" />
+    <ProjectReference Include="..\..\src\Modules\FileStorage\FileStorage.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Chatting\Chatting.csproj" />
+    <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.csproj" />
+    <ProjectReference Include="..\..\src\Modules\ProductCatalog\ProductCatalog.csproj" />
   </ItemGroup>
 </Project>
