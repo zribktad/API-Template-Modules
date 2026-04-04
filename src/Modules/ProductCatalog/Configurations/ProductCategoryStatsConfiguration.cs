@@ -19,5 +19,7 @@ public sealed class ProductCategoryStatsConfiguration
         // ExcludeFromMigrations tells EF Core to skip this type when generating migrations.
         // The entity exists only as a materialisation target for FromSql() calls.
         builder.ToTable("ProductCategoryStats", t => t.ExcludeFromMigrations());
+
+        builder.Property(s => s.CategoryName).HasMaxLength(100);
     }
 }
