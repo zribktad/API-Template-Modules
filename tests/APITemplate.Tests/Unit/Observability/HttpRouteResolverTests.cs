@@ -27,7 +27,7 @@ public sealed class HttpRouteResolverTests
             new RouteValueDictionary()
         );
 
-        resolvedRoute.ShouldBe("api/v{version:apiVersion}/Products");
+        resolvedRoute.ShouldBe("api/v{version:apiVersion}/products");
     }
 
     [Fact]

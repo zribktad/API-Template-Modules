@@ -15,9 +15,14 @@ public sealed partial class KebabCaseRouteTokenTransformer : IOutboundParameterT
             return null;
         }
 
-        return InsertHyphensBetweenWords().Replace(s, "$1-$2").ToLowerInvariant();
+        s = InsertHyphenAfterLowercaseOrDigitBeforeUppercase().Replace(s, "$1-$2");
+        s = InsertHyphenBetweenAcronymAndWord().Replace(s, "$1-$2");
+        return s.ToLowerInvariant();
     }
 
     [GeneratedRegex("([a-z0-9])([A-Z])", RegexOptions.CultureInvariant)]
-    private static partial Regex InsertHyphensBetweenWords();
+    private static partial Regex InsertHyphenAfterLowercaseOrDigitBeforeUppercase();
+
+    [GeneratedRegex("([A-Z]+)([A-Z][a-z])", RegexOptions.CultureInvariant)]
+    private static partial Regex InsertHyphenBetweenAcronymAndWord();
 }

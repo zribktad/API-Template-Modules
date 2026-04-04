@@ -1,6 +1,7 @@
 using APITemplate.Api.Cache;
 using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using SharedKernel.Contracts.Api.Routing;
 using SharedKernel.Infrastructure.Health;
@@ -20,7 +21,7 @@ public static class ApiServiceCollectionExtensions
     {
         services.AddProblemDetails(ApiProblemDetailsOptions.Configure);
         services.AddExceptionHandler<ApiExceptionHandler>();
-        services.AddControllers(options =>
+        services.Configure<MvcOptions>(options =>
         {
             options.Conventions.Add(
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
