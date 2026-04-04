@@ -67,7 +67,11 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
             new CreateUserCommand(request),
             ct
         );
-        return result.ToCreatedResult(this, v => new { id = v.Id, version = this.GetApiVersion() });
+        return result.ToCreatedResult(
+            this,
+            nameof(GetById),
+            v => new { id = v.Id, version = this.GetApiVersion() }
+        );
     }
 
     [HttpPut("{id:guid}")]

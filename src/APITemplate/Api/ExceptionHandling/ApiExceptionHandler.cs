@@ -36,7 +36,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             return true;
         }
 
-        (int statusCode, string? title, string? detail, string? errorCode) = Resolve(exception);
+        (int statusCode, string title, string detail, string errorCode) = Resolve(exception);
         ProblemDetails problemDetails = new()
         {
             Status = statusCode,

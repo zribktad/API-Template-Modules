@@ -18,6 +18,10 @@ public sealed partial class ProductDataController
             new CreateVideoProductDataCommand(request),
             ct
         );
-        return result.ToCreatedResult(this, v => new { id = v.Id, version = this.GetApiVersion() });
+        return result.ToCreatedResult(
+            this,
+            nameof(GetById),
+            v => new { id = v.Id, version = this.GetApiVersion() }
+        );
     }
 }

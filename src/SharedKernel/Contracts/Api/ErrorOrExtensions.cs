@@ -21,13 +21,14 @@ public static class ErrorOrExtensions
     public static ActionResult<T> ToCreatedResult<T>(
         this ErrorOr<T> result,
         ApiControllerBase controller,
+        string actionName,
         Func<T, object> routeValuesFactory
     )
     {
         if (!result.IsError)
         {
             return controller.CreatedAtAction(
-                "GetById",
+                actionName,
                 routeValuesFactory(result.Value),
                 result.Value
             );

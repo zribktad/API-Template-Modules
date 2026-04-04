@@ -58,7 +58,11 @@ public sealed class ProductReviewsController(IMessageBus bus) : ApiControllerBas
         ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<
             ErrorOr<ProductReviewResponse>
         >(new CreateProductReviewCommand(request), ct);
-        return result.ToCreatedResult(this, v => new { id = v.Id, version = this.GetApiVersion() });
+        return result.ToCreatedResult(
+            this,
+            nameof(GetById),
+            v => new { id = v.Id, version = this.GetApiVersion() }
+        );
     }
 
     [HttpDelete("{id:guid}")]
