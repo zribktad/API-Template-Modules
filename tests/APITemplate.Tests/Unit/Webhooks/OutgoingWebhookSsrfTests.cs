@@ -1,5 +1,6 @@
 using System.Net;
 using System.Reflection;
+using APITemplate.Tests.Unit.TestData;
 using Shouldly;
 using Webhooks.Services;
 using Xunit;
@@ -20,12 +21,7 @@ public sealed class OutgoingWebhookSsrfTests
     }
 
     [Theory]
-    [InlineData("127.0.0.1")]
-    [InlineData("10.0.0.1")]
-    [InlineData("172.16.0.1")]
-    [InlineData("172.31.255.255")]
-    [InlineData("192.168.1.1")]
-    [InlineData("169.254.1.1")]
+    [MemberData(nameof(SsrfTheoryData.PrivateIpv4Cases), MemberType = typeof(SsrfTheoryData))]
     public void IsProhibitedAddress_BlocksPrivateIPv4(string ip)
     {
         IsProhibited(IPAddress.Parse(ip)).ShouldBeTrue($"{ip} should be prohibited");

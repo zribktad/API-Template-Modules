@@ -1,7 +1,8 @@
-using APITemplate.Infrastructure.Webhooks;
+using APITemplate.Tests.Unit.Helpers;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options;
 using Shouldly;
+using Webhooks.Contracts;
+using Webhooks.Security;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;
@@ -52,10 +53,5 @@ public class HmacWebhookPayloadSignerTests
         var result = signer.Sign("test");
 
         result.Timestamp.ShouldBe(fixedTime.ToUnixTimeSeconds().ToString());
-    }
-
-    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
     }
 }

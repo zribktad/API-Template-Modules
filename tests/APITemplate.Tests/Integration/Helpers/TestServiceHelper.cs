@@ -1,24 +1,18 @@
-using APITemplate.Application.Common.Security;
-using APITemplate.Domain.Interfaces;
-using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
-using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
-using APITemplate.Infrastructure.Health;
-using APITemplate.Infrastructure.Persistence;
-using APITemplate.Infrastructure.Persistence.Startup;
-using APITemplate.Infrastructure.Security;
-using APITemplate.Tests.Helpers;
+using BackgroundJobs.TickerQ;
+using Identity.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.OutputCaching;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using Moq;
+using SharedKernel.Application.BackgroundJobs;
+using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Application.Startup;
+using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;
 
 namespace APITemplate.Tests.Integration.Helpers;
@@ -74,15 +68,16 @@ internal static class TestServiceHelper
         services.Configure<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckServiceOptions>(
             options =>
             {
-                var toRemove = options
-                    .Registrations.Where(r =>
-                        r.Name
-                            is HealthCheckNames.MongoDb
-                                or HealthCheckNames.Keycloak
-                                or HealthCheckNames.PostgreSql
-                                or HealthCheckNames.Dragonfly
-                    )
-                    .ToList();
+                List<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckRegistration> toRemove =
+                    options
+                        .Registrations.Where(r =>
+                            r.Name
+                                is HealthCheckNames.MongoDb
+                                    or HealthCheckNames.Keycloak
+                                    or HealthCheckNames.PostgreSql
+                                    or HealthCheckNames.Dragonfly
+                        )
+                        .ToList();
                 foreach (var r in toRemove)
                     options.Registrations.Remove(r);
             }
@@ -91,8 +86,6 @@ internal static class TestServiceHelper
 
     internal static void ReplaceOutputCacheWithInMemory(IServiceCollection services)
     {
-        // Remove DragonFly-backed cache services so tests use in-memory implementations
-        // and observability startup does not try to connect to a real Redis instance.
         services.RemoveAll<IOutputCacheStore>();
         services.RemoveAll<IConnectionMultiplexer>();
         services.AddOutputCache();
@@ -104,51 +97,27 @@ internal static class TestServiceHelper
 
     internal static void ReplaceDataProtectionWithInMemory(IServiceCollection services)
     {
-        // Replace DragonFly-backed DataProtection with EphemeralDataProtectionProvider (no key persistence).
         services.RemoveAll<IDataProtectionProvider>();
         services.AddSingleton<IDataProtectionProvider, EphemeralDataProtectionProvider>();
     }
 
-    internal static void ReplaceTicketStoreWithInMemory(IServiceCollection services)
-    {
-        // Replace Redis-backed IDistributedCache with in-memory so DragonflyTicketStore
-        // works without a real DragonFly instance in tests.
-        services.RemoveAll<IDistributedCache>();
-        services.AddDistributedMemoryCache();
-        services.RemoveAll<DragonflyTicketStore>();
-        services.AddSingleton<DragonflyTicketStore>();
-    }
-
-    internal static void MockMongoServices(IServiceCollection services)
-    {
-        services.RemoveAll(typeof(MongoDbContext));
-        services.RemoveAll(typeof(IProductDataRepository));
-        var mock = new Mock<IProductDataRepository>();
-        services.AddSingleton(mock);
-        services.AddSingleton(mock.Object);
-    }
-
-    internal static void ReplaceProductRepositoryWithInMemory(IServiceCollection services)
-    {
-        services.RemoveAll(typeof(IProductRepository));
-        services.AddScoped<IProductRepository, InMemoryProductRepository>();
-    }
-
     internal static void RemoveTickerQRuntimeServices(IServiceCollection services)
     {
-        var runtimeDescriptors = services.Where(IsTickerQRuntimeDescriptor).ToList();
-        foreach (var descriptor in runtimeDescriptors)
-        {
+        List<ServiceDescriptor> runtimeDescriptors = services
+            .Where(IsTickerQRuntimeDescriptor)
+            .ToList();
+        foreach (ServiceDescriptor descriptor in runtimeDescriptors)
             services.Remove(descriptor);
-        }
     }
 
     internal static void ReplaceStartupCoordinationWithNoOp(IServiceCollection services)
     {
         services.RemoveAll<IStartupTaskCoordinator>();
-        services.RemoveAll<TestNoOpStartupTaskCoordinator>();
-        services.AddScoped<TestNoOpStartupTaskCoordinator>();
-        services.AddScoped<IStartupTaskCoordinator, TestNoOpStartupTaskCoordinator>();
+        services.RemoveAll<APITemplate.Tests.Helpers.TestNoOpStartupTaskCoordinator>();
+        services.AddScoped<APITemplate.Tests.Helpers.TestNoOpStartupTaskCoordinator>();
+        services.AddScoped<IStartupTaskCoordinator>(sp =>
+            sp.GetRequiredService<APITemplate.Tests.Helpers.TestNoOpStartupTaskCoordinator>()
+        );
     }
 
     private static bool IsTickerQRuntimeDescriptor(ServiceDescriptor descriptor) =>
@@ -160,8 +129,7 @@ internal static class TestServiceHelper
         || descriptor.ServiceType == typeof(TickerQRecurringJobRegistrar)
         || descriptor.ServiceType == typeof(IDistributedJobCoordinator)
         || (
-            descriptor.ServiceType
-                == typeof(Application.Common.BackgroundJobs.IRecurringBackgroundJobRegistration)
+            descriptor.ServiceType == typeof(IRecurringBackgroundJobRegistration)
             && IsTickerQRuntimeType(descriptor.ImplementationType)
         );
 
@@ -178,22 +146,16 @@ internal static class TestServiceHelper
     private static bool IsTickerQRuntimeType(Type? type)
     {
         if (type is null)
-        {
             return false;
-        }
 
         if (
             IsTickerQRuntimeNamespace(type.Namespace)
             || IsTickerQRuntimeAssembly(type.Assembly.GetName().Name)
         )
-        {
             return true;
-        }
 
         if (!type.IsGenericType)
-        {
             return false;
-        }
 
         return type.GetGenericArguments().Any(IsTickerQRuntimeType);
     }

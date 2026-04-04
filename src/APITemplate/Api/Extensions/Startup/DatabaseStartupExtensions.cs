@@ -23,7 +23,7 @@ public static class DatabaseStartupExtensions
         await EnsureSchemaAsync<ReviewsDbContext>(sp);
         await EnsureSchemaAsync<FileStorageDbContext>(sp);
         await EnsureSchemaAsync<BackgroundJobsDbContext>(sp);
-        await EnsureSchemaAsync<TickerQSchedulerDbContext>(sp);
+        await EnsureSchemaIfRegisteredAsync<TickerQSchedulerDbContext>(sp);
 
         AuthBootstrapSeeder seeder = sp.GetRequiredService<AuthBootstrapSeeder>();
         await seeder.SeedAsync();
@@ -33,7 +33,25 @@ public static class DatabaseStartupExtensions
         where TContext : DbContext
     {
         TContext context = sp.GetRequiredService<TContext>();
+        await EnsureSchemaCoreAsync(context);
+    }
 
+    /// <summary>
+    ///     TickerQ (and its <see cref="TickerQSchedulerDbContext" />) is only registered when
+    ///     BackgroundJobs:TickerQ:Enabled is true and Dragonfly is configured.
+    /// </summary>
+    private static async Task EnsureSchemaIfRegisteredAsync<TContext>(IServiceProvider sp)
+        where TContext : DbContext
+    {
+        TContext? context = sp.GetService<TContext>();
+        if (context is null)
+            return;
+
+        await EnsureSchemaCoreAsync(context);
+    }
+
+    private static async Task EnsureSchemaCoreAsync(DbContext context)
+    {
         await context.Database.EnsureCreatedAsync();
 
         IRelationalDatabaseCreator creator = context.GetService<IRelationalDatabaseCreator>();

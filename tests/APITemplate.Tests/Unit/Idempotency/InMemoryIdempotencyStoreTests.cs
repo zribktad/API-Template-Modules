@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.Helpers;
 using SharedKernel.Application.Contracts;
 using SharedKernel.Infrastructure.Idempotency;
 using Shouldly;
@@ -5,18 +6,37 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Idempotency;
 
+/// <summary>
+///     Covers in-process idempotency. <see cref="SharedKernel.Infrastructure.Idempotency.DistributedCacheIdempotencyStore" /> depends on Redis Lua scripts;
+///     add container-backed integration tests if multi-instance lock semantics need automated coverage.
+/// </summary>
 public sealed class InMemoryIdempotencyStoreTests
 {
     private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(5);
 
-    [Fact]
-    public async Task TryAcquireAsync_WhenKeyIsNew_ReturnsLockToken()
+    [Theory]
+    [InlineData("key-1")]
+    [InlineData("tenant:scope:123")]
+    [InlineData("")]
+    public async Task TryAcquireAsync_WhenKeyIsNew_ReturnsLockToken(string key)
     {
-        CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
-        InMemoryIdempotencyStore store = new(time);
+        (InMemoryIdempotencyStore store, CancellationToken ct) = CreateStore();
 
-        string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
+        string? token = await store.TryAcquireAsync(key, DefaultTtl, ct);
+
+        token.ShouldNotBeNull();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3600000)]
+    public async Task TryAcquireAsync_VariousTtlsStillAcquires(int ttlMs)
+    {
+        (InMemoryIdempotencyStore store, CancellationToken ct) = CreateStore();
+        string key = Guid.NewGuid().ToString("N");
+
+        string? token = await store.TryAcquireAsync(key, TimeSpan.FromMilliseconds(ttlMs), ct);
 
         token.ShouldNotBeNull();
     }
@@ -25,7 +45,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task TryAcquireAsync_WhenLockAlreadyHeld_ReturnsNull()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? first = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -39,7 +59,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task TryAcquireAsync_WhenCachedResultExists_ReturnsNull()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -58,7 +78,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task TryAcquireAsync_WhenCachedResultExpired_ReturnsNewToken()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -79,7 +99,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task ReleaseAsync_WithCorrectToken_ReleasesLock()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -95,7 +115,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task ReleaseAsync_WithWrongToken_DoesNotReleaseLock()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -111,7 +131,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task SetAsync_ThenTryGetAsync_ReturnsCachedEntry()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         IdempotencyCacheEntry entry = new(
@@ -135,7 +155,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task TryGetAsync_WhenExpired_ReturnsNull()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         IdempotencyCacheEntry entry = new(200, "{}", "application/json");
@@ -147,18 +167,10 @@ public sealed class InMemoryIdempotencyStoreTests
         cached.ShouldBeNull();
     }
 
-    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    private static (InMemoryIdempotencyStore Store, CancellationToken Ct) CreateStore()
     {
-        private DateTimeOffset _utcNow = utcNow;
-
-        public override DateTimeOffset GetUtcNow()
-        {
-            return _utcNow;
-        }
-
-        public void Advance(TimeSpan duration)
-        {
-            _utcNow = _utcNow.Add(duration);
-        }
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        return (new InMemoryIdempotencyStore(time), ct);
     }
 }

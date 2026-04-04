@@ -42,12 +42,13 @@ public sealed class AuthBootstrapSeeder
 
     private Task<Tenant?> FindTenantAsync(string tenantCode, CancellationToken ct)
     {
+        TenantCode code = TenantCode.FromPersistence(tenantCode);
         return _dbContext
             .Tenants.IgnoreQueryFilters([
                 GlobalQueryFilterNames.SoftDelete,
                 GlobalQueryFilterNames.Tenant,
             ])
-            .FirstOrDefaultAsync(t => t.Code.Value == tenantCode, ct);
+            .FirstOrDefaultAsync(t => t.Code == code, ct);
     }
 
     private bool CreateTenant(TenantIdentity tenantIdentity)

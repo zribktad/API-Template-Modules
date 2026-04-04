@@ -1,5 +1,6 @@
-using APITemplate.Infrastructure.BackgroundJobs.Validation;
-using SharedKernel.Application.Options;
+using BackgroundJobs.Validation;
+using Microsoft.Extensions.Options;
+using SharedKernel.Application.Options.BackgroundJobs;
 using Shouldly;
 using Xunit;
 
@@ -7,57 +8,73 @@ namespace APITemplate.Tests.Unit.BackgroundJobs;
 
 public sealed class BackgroundJobsOptionsValidatorTests
 {
+    private readonly BackgroundJobsOptionsValidator _sut = new();
+
     [Fact]
-    public void Validate_ReturnsSuccess_WhenDisabledJobsHaveInvalidValues()
+    public void Validate_WhenTickerQEnabledAndMissingPrefix_Fails()
     {
-        var sut = new BackgroundJobsOptionsValidator();
-        var options = new BackgroundJobsOptions
+        BackgroundJobsOptions options = new()
         {
-            Cleanup = new CleanupJobOptions
-            {
-                Enabled = false,
-                Cron = "",
-                BatchSize = 0,
-                ExpiredInvitationRetentionHours = -1,
-                SoftDeleteRetentionDays = -1,
-                OrphanedProductDataRetentionDays = -1,
-            },
-            Reindex = new ReindexJobOptions { Enabled = false, Cron = "" },
-            ExternalSync = new ExternalSyncJobOptions { Enabled = false, Cron = "" },
-            EmailRetry = new EmailRetryJobOptions
-            {
-                Enabled = false,
-                Cron = "",
-                BatchSize = 0,
-                MaxRetryAttempts = 0,
-                ClaimLeaseMinutes = 0,
-                DeadLetterAfterHours = -1,
-            },
+            TickerQ = new TickerQSchedulerOptions { Enabled = true, InstanceNamePrefix = "   " },
         };
 
-        var result = sut.Validate(name: null, options);
+        ValidateOptionsResult result = _sut.Validate(null, options);
 
-        result.Succeeded.ShouldBeTrue();
+        result.Failed.ShouldBeTrue();
+        result.FailureMessage.ShouldContain("InstanceNamePrefix");
+    }
+
+    [Theory]
+    [InlineData("not valid cron")]
+    [InlineData("* * *")]
+    public void Validate_WhenCleanupEnabledAndCronInvalid_Fails(string cron)
+    {
+        BackgroundJobsOptions options = new()
+        {
+            Cleanup = new CleanupJobOptions { Enabled = true, Cron = cron },
+        };
+
+        ValidateOptionsResult result = _sut.Validate(null, options);
+
+        result.Failed.ShouldBeTrue();
+        result.FailureMessage.ShouldContain("CRON");
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(-3)]
+    public void Validate_WhenCleanupEnabledAndNegativeRetention_Fails(int days)
+    {
+        BackgroundJobsOptions options = new()
+        {
+            Cleanup = new CleanupJobOptions { Enabled = true, SoftDeleteRetentionDays = days },
+        };
+
+        ValidateOptionsResult result = _sut.Validate(null, options);
+
+        result.Failed.ShouldBeTrue();
     }
 
     [Fact]
-    public void Validate_ReturnsFailure_WhenEnabledCleanupHasInvalidValues()
+    public void Validate_WhenEmailRetryEnabledAndBatchSizeZero_Fails()
     {
-        var sut = new BackgroundJobsOptionsValidator();
-        var options = new BackgroundJobsOptions
+        BackgroundJobsOptions options = new()
         {
-            Cleanup = new CleanupJobOptions
-            {
-                Enabled = true,
-                Cron = "",
-                BatchSize = 0,
-            },
+            EmailRetry = new EmailRetryJobOptions { Enabled = true, BatchSize = 0 },
         };
 
-        var result = sut.Validate(name: null, options);
+        ValidateOptionsResult result = _sut.Validate(null, options);
 
         result.Failed.ShouldBeTrue();
-        result.Failures.ShouldContain("BackgroundJobs:Cleanup:Cron is required.");
-        result.Failures.ShouldContain("BackgroundJobs:Cleanup:BatchSize must be greater than 0.");
+    }
+
+    [Fact]
+    public void Validate_WhenDefaultsAndJobsDisabled_Succeeds()
+    {
+        BackgroundJobsOptions options = new();
+
+        ValidateOptionsResult result = _sut.Validate(null, options);
+
+        result.Succeeded.ShouldBeTrue();
     }
 }

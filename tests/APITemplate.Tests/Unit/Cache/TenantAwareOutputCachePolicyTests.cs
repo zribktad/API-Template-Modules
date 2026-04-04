@@ -1,4 +1,5 @@
 using APITemplate.Api.Cache;
+using APITemplate.Tests.Unit.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OutputCaching;
 using Shouldly;
@@ -62,6 +63,7 @@ public sealed class TenantAwareOutputCachePolicyTests
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Method = method;
         httpContext.Request.Path = "/api/v1/products";
+        httpContext.User = TestClaimsPrincipalFactory.WithTenantId(Guid.NewGuid().ToString());
         return new OutputCacheContext { HttpContext = httpContext };
     }
 }

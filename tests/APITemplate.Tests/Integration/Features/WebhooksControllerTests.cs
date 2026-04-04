@@ -1,20 +1,27 @@
 using System.Net;
 using System.Text;
-using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Tests.Integration.Helpers;
+using APITemplate.Tests.Unit.Helpers;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Shouldly;
+using Webhooks.Contracts;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Features;
 
-public class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory>
+[Trait("Category", "Integration.Docker")]
+public sealed class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory _factory;
+    private HttpClient? _client;
 
-    public WebhooksControllerTests(CustomWebApplicationFactory factory)
-    {
-        _client = factory.CreateClient();
-    }
+    /// <summary>
+    ///     Lazy client: test class ctor can run before the fixture's <see cref="IAsyncLifetime.InitializeAsync" />,
+    ///     so we must not call <see cref="WebApplicationFactory{Program}.CreateClient" /> in the ctor.
+    /// </summary>
+    private HttpClient Client => _client ??= _factory.CreateClient();
+
+    public WebhooksControllerTests(CustomWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task Receive_ValidSignature_Returns200()
@@ -35,7 +42,7 @@ public class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory
         request.Headers.Add(WebhookConstants.SignatureHeader, signature);
         request.Headers.Add(WebhookConstants.TimestampHeader, timestamp);
 
-        var response = await _client.SendAsync(request, ct);
+        var response = await Client.SendAsync(request, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
@@ -53,7 +60,7 @@ public class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory
         request.Headers.Add(WebhookConstants.SignatureHeader, "wrong-signature");
         request.Headers.Add(WebhookConstants.TimestampHeader, timestamp);
 
-        var response = await _client.SendAsync(request, ct);
+        var response = await Client.SendAsync(request, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
@@ -76,7 +83,7 @@ public class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory
         request.Headers.Add(WebhookConstants.SignatureHeader, signature);
         request.Headers.Add(WebhookConstants.TimestampHeader, expiredTimestamp);
 
-        var response = await _client.SendAsync(request, ct);
+        var response = await Client.SendAsync(request, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
@@ -90,9 +97,8 @@ public class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory
         {
             Content = new StringContent(body, Encoding.UTF8, "application/json"),
         };
-        // No signature or timestamp headers
 
-        var response = await _client.SendAsync(request, ct);
+        var response = await Client.SendAsync(request, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

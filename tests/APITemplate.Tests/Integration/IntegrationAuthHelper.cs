@@ -2,10 +2,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using APITemplate.Application.Common.Security;
-using APITemplate.Domain.Entities;
-using APITemplate.Domain.Enums;
-using APITemplate.Infrastructure.Persistence;
+using Identity.Entities;
+using Identity.Enums;
+using Identity.Persistence;
+using Identity.Security;
+using Identity.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -17,7 +18,7 @@ internal static class IntegrationAuthHelper
 
     internal static readonly RsaSecurityKey SecurityKey = new(RsaKey);
 
-    private static readonly SigningCredentials SigningCredentials = new(
+    private static readonly SigningCredentials _signingCredentials = new(
         SecurityKey,
         SecurityAlgorithms.RsaSha256
     );
@@ -46,7 +47,7 @@ internal static class IntegrationAuthHelper
             audience: "api-template",
             claims: claims,
             expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: SigningCredentials
+            signingCredentials: _signingCredentials
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -60,7 +61,7 @@ internal static class IntegrationAuthHelper
         UserRole role = UserRole.PlatformAdmin
     )
     {
-        var token = CreateTestToken(userId, tenantId, username, role);
+        string token = CreateTestToken(userId, tenantId, username, role);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
@@ -89,6 +90,9 @@ internal static class IntegrationAuthHelper
     ) =>
         Authenticate(client, userId, tenantId, username: "tenantadmin", role: UserRole.TenantAdmin);
 
+    /// <summary>
+    ///     Seeds an additional tenant and user for tests that need data beyond the bootstrap tenant.
+    /// </summary>
     public static async Task<(Tenant Tenant, AppUser User)> SeedTenantUserAsync(
         IServiceProvider services,
         string username,
@@ -98,25 +102,31 @@ internal static class IntegrationAuthHelper
         CancellationToken ct = default
     )
     {
-        await using var scope = services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await using AsyncServiceScope scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
+        string tenantCodeValue = $"t{Guid.NewGuid():N}"[..12];
+        TenantCode tenantCode = TenantCode.FromPersistence(tenantCodeValue);
+        var tenantId = Guid.NewGuid();
         var tenant = new Tenant
         {
-            Id = Guid.NewGuid(),
+            Id = tenantId,
             TenantId = Guid.Empty,
-            Code = $"tenant-{Guid.NewGuid():N}",
+            Code = tenantCode,
             Name = $"Tenant {username}",
-            IsActive = tenantIsActive,
         };
+        if (!tenantIsActive)
+            tenant.Deactivate();
+
+        Email emailVo = Email.FromPersistence(email);
 
         var user = new AppUser
         {
             Id = Guid.NewGuid(),
-            TenantId = tenant.Id,
-            KeycloakUserId = $"kc-{Guid.NewGuid():N}",
+            TenantId = tenantId,
             Username = username,
-            Email = email,
+            Email = emailVo,
+            KeycloakUserId = $"kc-{Guid.NewGuid():N}",
             IsActive = userIsActive,
             Role = UserRole.User,
         };
