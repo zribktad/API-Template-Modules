@@ -388,7 +388,7 @@ public sealed class PostgresSoftDeleteTests(SharedPostgresContainer postgres)
         }
 
         IntegrationAuthHelper.Authenticate(_client, tenantId: tenantId);
-        var response = await _client.DeleteAsync($"/api/v1/product-data/{productDataId}", ct);
+        var response = await _client.DeleteAsync($"/api/v1/ProductData/{productDataId}", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
         await using var verifyContext = await CreateDbContextAsync(false, Guid.Empty, actorId, ct);

@@ -1,15 +1,12 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using ProductCatalog.Features.ProductData.DeleteProductData;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.ProductData.DeleteProductData;
+namespace ProductCatalog.Features.ProductData;
 
-[ApiVersion(1.0)]
-[Route("api/v{version:apiVersion}/product-data")]
-public sealed class DeleteProductDataController(IMessageBus bus) : ApiControllerBase
+public sealed partial class ProductDataController
 {
     /// <summary>Deletes a product data document by its identifier.</summary>
     [HttpDelete("{id:guid}")]

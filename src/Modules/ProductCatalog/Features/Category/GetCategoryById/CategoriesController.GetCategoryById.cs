@@ -1,15 +1,13 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using ProductCatalog.Features.Category.GetCategoryById;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.Category.GetCategoryById;
+namespace ProductCatalog.Features.Category;
 
-[ApiVersion(1.0)]
-public sealed class GetCategoryByIdController(IMessageBus bus) : ApiControllerBase
+public sealed partial class CategoriesController
 {
     /// <summary>Returns a single category by its identifier, or 404 if not found.</summary>
     [HttpGet("{id:guid}")]

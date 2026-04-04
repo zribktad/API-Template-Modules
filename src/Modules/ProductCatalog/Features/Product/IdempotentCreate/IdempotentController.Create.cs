@@ -1,6 +1,6 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using ProductCatalog.Features.Shared.Routing;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Api.Filters.Idempotency;
 using SharedKernel.Contracts.Security;
@@ -8,13 +8,12 @@ using Wolverine;
 
 namespace ProductCatalog.Features.Product.IdempotentCreate;
 
-[ApiVersion(1.0)]
-/// <summary>
-/// Presentation-layer controller that demonstrates idempotent POST semantics using the
-/// <see cref="IdempotentAttribute"/> action filter to detect and short-circuit duplicate requests.
-/// </summary>
-public sealed class IdempotentCreateController(IMessageBus bus) : ApiControllerBase
+public sealed partial class IdempotentController
 {
+    /// <summary>
+    /// Demonstrates idempotent POST semantics using the
+    /// <see cref="IdempotentAttribute"/> filter for duplicate requests.
+    /// </summary>
     [HttpPost]
     [Idempotent]
     [RequirePermission(Permission.Examples.Create)]
@@ -29,6 +28,9 @@ public sealed class IdempotentCreateController(IMessageBus bus) : ApiControllerB
         if (result.IsError)
             return result.ToActionResult(this);
 
-        return Ok(result.Value);
+        return Created(
+            $"/api/v{this.GetApiVersion()}/{ProductCatalogRouteTemplates.IdempotentPathSegment}",
+            result.Value
+        );
     }
 }

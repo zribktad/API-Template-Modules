@@ -1,15 +1,12 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using ProductCatalog.Features.ProductData.CreateImageProductData;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.ProductData.CreateImageProductData;
+namespace ProductCatalog.Features.ProductData;
 
-[ApiVersion(1.0)]
-[Route("api/v{version:apiVersion}/product-data")]
-public sealed class CreateImageProductDataController(IMessageBus bus) : ApiControllerBase
+public sealed partial class ProductDataController
 {
     /// <summary>Creates a new image product-data document and returns it with a 201 Location header.</summary>
     [HttpPost("image")]

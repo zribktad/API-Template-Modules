@@ -1,4 +1,3 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Contracts.Api;
@@ -8,11 +7,10 @@ using Wolverine;
 
 namespace ProductCatalog.Features.Product.PatchProduct;
 
-[ApiVersion(1.0)]
-public sealed class PatchProductController(IMessageBus bus) : ApiControllerBase
+public sealed partial class PatchController
 {
     [HttpPatch("products/{id:guid}")]
-    [RequirePermission(Permission.Examples.Update)]
+    [RequirePermission(Permission.Products.Update)]
     public async Task<ActionResult<ProductResponse>> PatchProduct(
         Guid id,
         [FromBody] JsonPatchDocument<PatchableProductDto> patchDocument,

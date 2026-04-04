@@ -7,6 +7,7 @@ global using ProductCatalog.Entities.ProductData;
 global using ProductCatalog.Features.Category.Shared;
 global using ProductCatalog.Features.Product.Shared;
 global using ProductCatalog.Features.ProductData.Shared;
+global using ProductCatalog.Features.Shared.Routing;
 // ── API / Presentation ────────────────────────────────────────────────────────
 global using ProductCatalog.GraphQL.Models;
 global using ProductCatalog.Interfaces;

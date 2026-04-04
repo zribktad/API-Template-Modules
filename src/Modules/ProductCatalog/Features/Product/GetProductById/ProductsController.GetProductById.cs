@@ -1,15 +1,13 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using ProductCatalog.Features.Product.GetProductById;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.Product.GetProductById;
+namespace ProductCatalog.Features.Product;
 
-[ApiVersion(1.0)]
-public sealed class GetProductByIdController(IMessageBus bus) : ApiControllerBase
+public sealed partial class ProductsController
 {
     /// <summary>Returns a single product by its identifier, or 404 if not found.</summary>
     [HttpGet("{id:guid}")]

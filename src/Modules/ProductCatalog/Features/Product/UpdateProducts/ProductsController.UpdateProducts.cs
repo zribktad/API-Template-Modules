@@ -1,14 +1,12 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using ProductCatalog.Features.Product.UpdateProducts;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.Product.UpdateProducts;
+namespace ProductCatalog.Features.Product;
 
-[ApiVersion(1.0)]
-public sealed class UpdateProductsController(IMessageBus bus) : ApiControllerBase
+public sealed partial class ProductsController
 {
     /// <summary>Updates multiple products in a single batch operation.</summary>
     [HttpPut]

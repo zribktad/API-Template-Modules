@@ -1,19 +1,17 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using ProductCatalog.Features.Category.GetCategoryStats;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.Category.GetCategoryStats;
+namespace ProductCatalog.Features.Category;
 
-[ApiVersion(1.0)]
-public sealed class GetCategoryStatsController(IMessageBus bus) : ApiControllerBase
+public sealed partial class CategoriesController
 {
     /// <summary>
-    /// Returns aggregated statistics for a category by calling the
-    /// <c>get_product_category_stats(p_category_id)</c> stored procedure via EF Core FromSql.
+    /// Returns aggregated statistics for a category via
+    /// <c>get_product_category_stats(p_category_id)</c> (EF Core FromSql).
     /// </summary>
     [HttpGet("{id:guid}/stats")]
     [RequirePermission(Permission.Categories.Read)]

@@ -1,15 +1,13 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using ProductCatalog.Features.Product.GetProducts;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.Product.GetProducts;
+namespace ProductCatalog.Features.Product;
 
-[ApiVersion(1.0)]
-public sealed class GetProductsController(IMessageBus bus) : ApiControllerBase
+public sealed partial class ProductsController
 {
     /// <summary>Returns a filtered, paginated product list including search facets.</summary>
     [HttpGet]

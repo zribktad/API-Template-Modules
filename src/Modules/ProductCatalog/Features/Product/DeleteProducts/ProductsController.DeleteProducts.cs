@@ -1,14 +1,12 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using ProductCatalog.Features.Product.DeleteProducts;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.Product.DeleteProducts;
+namespace ProductCatalog.Features.Product;
 
-[ApiVersion(1.0)]
-public sealed class DeleteProductsController(IMessageBus bus) : ApiControllerBase
+public sealed partial class ProductsController
 {
     /// <summary>Soft-deletes multiple products in a single batch operation.</summary>
     [HttpDelete]

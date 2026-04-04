@@ -1,14 +1,12 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
+using ProductCatalog.Features.Category.UpdateCategories;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.Category.UpdateCategories;
+namespace ProductCatalog.Features.Category;
 
-[ApiVersion(1.0)]
-public sealed class UpdateCategoriesController(IMessageBus bus) : ApiControllerBase
+public sealed partial class CategoriesController
 {
     /// <summary>Updates multiple categories in a single batch operation.</summary>
     [HttpPut]

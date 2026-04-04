@@ -1,16 +1,13 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using ProductCatalog.Features.ProductData.GetProductData;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.ProductData.GetProductData;
+namespace ProductCatalog.Features.ProductData;
 
-[ApiVersion(1.0)]
-[Route("api/v{version:apiVersion}/product-data")]
-public sealed class GetProductDataController(IMessageBus bus) : ApiControllerBase
+public sealed partial class ProductDataController
 {
     /// <summary>Returns all product data documents, optionally filtered by type.</summary>
     [HttpGet]

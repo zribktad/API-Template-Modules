@@ -1,15 +1,13 @@
-using Asp.Versioning;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
+using ProductCatalog.Features.Category.GetCategories;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
-using Wolverine;
 
-namespace ProductCatalog.Features.Category.GetCategories;
+namespace ProductCatalog.Features.Category;
 
-[ApiVersion(1.0)]
-public sealed class GetCategoriesController(IMessageBus bus) : ApiControllerBase
+public sealed partial class CategoriesController
 {
     /// <summary>Returns a paginated, filterable list of categories from the output cache.</summary>
     [HttpGet]
