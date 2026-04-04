@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using APITemplate.Tests.Unit.Helpers;
 using Chatting.Features.GetNotificationStream;
 using Shouldly;
 using Xunit;
@@ -14,7 +15,10 @@ public sealed class SseStreamRequestValidationTests
     public void Validation_WhenCountOutOfRange_Fails(int count)
     {
         SseStreamRequest request = new() { Count = count };
-        bool valid = TryValidateAll(request, out List<ValidationResult> results);
+        bool valid = DataAnnotationsTestHelper.TryValidateAllProperties(
+            request,
+            out List<ValidationResult> results
+        );
 
         valid.ShouldBeFalse();
         results.ShouldNotBeEmpty();
@@ -27,19 +31,8 @@ public sealed class SseStreamRequestValidationTests
     public void Validation_WhenCountInRange_Passes(int count)
     {
         SseStreamRequest request = new() { Count = count };
-        bool valid = TryValidateAll(request, out _);
+        bool valid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out _);
 
         valid.ShouldBeTrue();
-    }
-
-    private static bool TryValidateAll(object instance, out List<ValidationResult> results)
-    {
-        results = [];
-        return Validator.TryValidateObject(
-            instance,
-            new ValidationContext(instance),
-            results,
-            validateAllProperties: true
-        );
     }
 }

@@ -49,16 +49,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        PostgreSqlContainer postgres =
-            _postgres
-            ?? throw new InvalidOperationException(
-                "PostgreSQL container was not started; IAsyncLifetime.InitializeAsync must run first."
-            );
-        MongoDbContainer mongo =
-            _mongo
-            ?? throw new InvalidOperationException(
-                "MongoDB container was not started; IAsyncLifetime.InitializeAsync must run first."
-            );
+        PostgreSqlContainer postgres = RequireStarted(_postgres, "PostgreSQL");
+        MongoDbContainer mongo = RequireStarted(_mongo, "MongoDB");
 
         string pg = postgres.GetConnectionString();
         string mongoConnectionString = mongo.GetConnectionString();
@@ -92,4 +84,11 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.UseEnvironment("Development");
     }
+
+    private static T RequireStarted<T>(T? container, string label)
+        where T : class =>
+        container
+        ?? throw new InvalidOperationException(
+            $"{label} container was not started; IAsyncLifetime.InitializeAsync must run first."
+        );
 }

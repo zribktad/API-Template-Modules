@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.Helpers;
 using SharedKernel.Application.Contracts;
 using SharedKernel.Infrastructure.Idempotency;
 using Shouldly;
@@ -44,7 +45,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task TryAcquireAsync_WhenLockAlreadyHeld_ReturnsNull()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? first = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -58,7 +59,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task TryAcquireAsync_WhenCachedResultExists_ReturnsNull()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -77,7 +78,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task TryAcquireAsync_WhenCachedResultExpired_ReturnsNewToken()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -98,7 +99,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task ReleaseAsync_WithCorrectToken_ReleasesLock()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -114,7 +115,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task ReleaseAsync_WithWrongToken_DoesNotReleaseLock()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
@@ -130,7 +131,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task SetAsync_ThenTryGetAsync_ReturnsCachedEntry()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         IdempotencyCacheEntry entry = new(
@@ -154,7 +155,7 @@ public sealed class InMemoryIdempotencyStoreTests
     public async Task TryGetAsync_WhenExpired_ReturnsNull()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         IdempotencyCacheEntry entry = new(200, "{}", "application/json");
@@ -169,22 +170,7 @@ public sealed class InMemoryIdempotencyStoreTests
     private static (InMemoryIdempotencyStore Store, CancellationToken Ct) CreateStore()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        MutableFakeTimeProvider time = new(DateTimeOffset.UtcNow);
         return (new InMemoryIdempotencyStore(time), ct);
-    }
-
-    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        private DateTimeOffset _utcNow = utcNow;
-
-        public override DateTimeOffset GetUtcNow()
-        {
-            return _utcNow;
-        }
-
-        public void Advance(TimeSpan duration)
-        {
-            _utcNow = _utcNow.Add(duration);
-        }
     }
 }

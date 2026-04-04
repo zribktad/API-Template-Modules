@@ -97,7 +97,6 @@ public sealed class WebhooksControllerTests : IClassFixture<CustomWebApplication
         {
             Content = new StringContent(body, Encoding.UTF8, "application/json"),
         };
-        // No signature or timestamp headers
 
         var response = await Client.SendAsync(request, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);

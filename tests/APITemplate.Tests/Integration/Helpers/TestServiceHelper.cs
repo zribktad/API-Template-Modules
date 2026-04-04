@@ -78,9 +78,7 @@ internal static class TestServiceHelper
                                     or HealthCheckNames.Dragonfly
                         )
                         .ToList();
-                foreach (
-                    Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckRegistration r in toRemove
-                )
+                foreach (var r in toRemove)
                     options.Registrations.Remove(r);
             }
         );

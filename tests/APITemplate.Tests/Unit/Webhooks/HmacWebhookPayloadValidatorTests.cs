@@ -100,9 +100,4 @@ public class HmacWebhookPayloadValidatorTests
 
         validator.IsValid(payload, signature, boundaryTimestamp).ShouldBeTrue();
     }
-
-    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
-    }
 }
