@@ -2,7 +2,7 @@ using System.Net;
 
 namespace APITemplate.Tests.Unit.TestData;
 
-/// <summary>Private / link-local IPv4 strings for SSRF guard tests.</summary>
+/// <summary>Prohibited local IPv4 strings (loopback, private, and link-local) for SSRF guard tests.</summary>
 public static class SsrfTheoryData
 {
     public static readonly string[] ProhibitedIpv4List =

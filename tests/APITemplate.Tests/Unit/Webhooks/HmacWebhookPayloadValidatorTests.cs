@@ -49,7 +49,7 @@ public class HmacWebhookPayloadValidatorTests
     [InlineData("", "sig", "1")]
     [InlineData("{}", "", "1")]
     [InlineData("{}", "sig", "")]
-    public void IsValid_WhenTimestampOrSignatureMissing_ReturnsFalse(
+    public void IsValid_WhenPayloadEmptyOrSignatureOrTimestampMissing_ReturnsFalse(
         string payload,
         string signature,
         string timestamp

@@ -26,7 +26,12 @@
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
-  <!-- Legacy suite referenced removed APITemplate.Application / Infrastructure; migrate separately -->
+  <!--
+    Integration tests under Integration\ are excluded from this project on purpose: they still target
+    removed APITemplate.Application / Infrastructure (and related test host packages). Re-enable by
+    removing the line below after migrating those tests to the modular layout or moving them to a
+    dedicated integration test project. Until then, `dotnet test` on this project runs unit tests only.
+  -->
   <ItemGroup>
     <Compile Remove="GlobalUsings.ApplicationFeatures.cs"/>
     <Compile Remove="Integration\**\*.cs"/>
