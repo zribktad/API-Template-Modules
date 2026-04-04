@@ -1,0 +1,28 @@
+# https://www.jetbrains.com/help/qodana/qodana-yaml.html
+# Do not store secrets here — this file is embedded in Qodana reports.
+
+version: "1.0"
+
+linter: qodana-dotnet
+
+profile:
+  name: qodana.starter
+
+# Restore + Release build before analysis (semantic model, source generators).
+# RESTORE_TOOLS/HUSKY match .github/workflows/pr-validation.yml.
+bootstrap: |
+  RESTORE_TOOLS=0 HUSKY=0 dotnet restore APITemplate.slnx
+  RESTORE_TOOLS=0 HUSKY=0 dotnet build APITemplate.slnx --no-restore --configuration Release
+
+# include:
+#   - name: <InspectionId>
+#
+# exclude:
+#   - name: <InspectionId>
+#     paths:
+#       - relative/path
+#
+# Quality gate (total problem count; works with Community for .NET):
+# failThreshold: 0
+#
+# severityThresholds in failureConditions are not supported on Qodana Community for .NET.

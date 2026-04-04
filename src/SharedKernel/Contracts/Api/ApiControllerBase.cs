@@ -4,6 +4,7 @@ using SharedKernel.Application.DTOs;
 namespace SharedKernel.Contracts.Api;
 
 [ApiController]
+// ReSharper disable once RouteTemplates.RouteParameterConstraintNotResolved
 [Route("api/v{version:apiVersion}/[controller]")]
 public abstract class ApiControllerBase : ControllerBase
 {

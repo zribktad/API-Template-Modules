@@ -8,7 +8,6 @@ using Wolverine;
 namespace Identity.Controllers.V1;
 
 [ApiVersion(1.0)]
-[Route("api/v{version:apiVersion}/tenant-invitations")]
 public sealed class TenantInvitationsController(IMessageBus bus) : ApiControllerBase
 {
     [HttpGet]
@@ -19,10 +18,9 @@ public sealed class TenantInvitationsController(IMessageBus bus) : ApiController
         CancellationToken ct
     )
     {
-        ErrorOr<PagedResponse<TenantInvitationResponse>> result = await bus.InvokeAsync<ErrorOr<PagedResponse<TenantInvitationResponse>>>(
-            new GetTenantInvitationsQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<TenantInvitationResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<TenantInvitationResponse>>
+        >(new GetTenantInvitationsQuery(filter), ct);
         return result.ToActionResult(this);
     }
 
@@ -33,19 +31,25 @@ public sealed class TenantInvitationsController(IMessageBus bus) : ApiController
         CancellationToken ct
     )
     {
-        ErrorOr<TenantInvitationResponse> result = await bus.InvokeAsync<ErrorOr<TenantInvitationResponse>>(
-            new CreateTenantInvitationCommand(request),
-            ct
-        );
+        ErrorOr<TenantInvitationResponse> result = await bus.InvokeAsync<
+            ErrorOr<TenantInvitationResponse>
+        >(new CreateTenantInvitationCommand(request), ct);
         if (result.IsError)
             return result.ToActionResult(this);
 
-        return CreatedAtAction(nameof(GetAll), new { version = this.GetApiVersion() }, result.Value);
+        return CreatedAtAction(
+            nameof(GetAll),
+            new { version = this.GetApiVersion() },
+            result.Value
+        );
     }
 
     [HttpPost("accept")]
     [AllowAnonymous]
-    public async Task<IActionResult> Accept([FromBody] AcceptInvitationRequest request, CancellationToken ct)
+    public async Task<IActionResult> Accept(
+        [FromBody] AcceptInvitationRequest request,
+        CancellationToken ct
+    )
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
             new AcceptTenantInvitationCommand(request.Token),
@@ -76,4 +80,3 @@ public sealed class TenantInvitationsController(IMessageBus bus) : ApiController
         return result.ToOkResult(this);
     }
 }
-
