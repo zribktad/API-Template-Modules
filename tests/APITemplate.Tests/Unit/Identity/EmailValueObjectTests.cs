@@ -12,7 +12,7 @@ public sealed class EmailValueObjectTests
     [MemberData(nameof(EmailTheoryData.InvalidRawInputs), MemberType = typeof(EmailTheoryData))]
     public void Create_WhenInvalid_ReturnsError(string? raw)
     {
-        ErrorOr<Email> result = Email.Create(raw ?? string.Empty);
+        ErrorOr<Email> result = Email.Create(raw!);
 
         result.IsError.ShouldBeTrue();
     }
