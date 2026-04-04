@@ -1,12 +1,11 @@
 using ErrorOr;
-using ProductCatalog.Interfaces;
 
 namespace ProductCatalog.Features.Category.GetCategoryById;
 
-/// <summary>Returns a single category by its unique identifier, or <see langword="null"/> if not found.</summary>
+/// <summary>Returns a single category by its unique identifier, or <see langword="null" /> if not found.</summary>
 public sealed record GetCategoryByIdQuery(Guid Id) : IHasId;
 
-/// <summary>Handles <see cref="GetCategoryByIdQuery"/>.</summary>
+/// <summary>Handles <see cref="GetCategoryByIdQuery" />.</summary>
 public sealed class GetCategoryByIdQueryHandler
 {
     public static async Task<ErrorOr<CategoryResponse>> HandleAsync(

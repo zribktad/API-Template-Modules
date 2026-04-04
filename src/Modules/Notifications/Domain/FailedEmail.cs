@@ -3,15 +3,14 @@ using SharedKernel.Domain.Entities.Contracts;
 namespace Notifications.Domain;
 
 /// <summary>
-/// Represents an email that could not be delivered and is queued for retry.
-/// Supports pessimistic concurrency via claim fields to prevent duplicate processing across workers.
+///     Represents an email that could not be delivered and is queued for retry.
+///     Supports pessimistic concurrency via claim fields to prevent duplicate processing across workers.
 /// </summary>
 public sealed class FailedEmail : IHasId
 {
-    /// <summary>Maximum character length stored for the <see cref="LastError"/> field.</summary>
+    /// <summary>Maximum character length stored for the <see cref="LastError" /> field.</summary>
     public const int LastErrorMaxLength = 2000;
 
-    public Guid Id { get; set; }
     public required string To { get; set; }
     public required string Subject { get; set; }
     public required string HtmlBody { get; set; }
@@ -24,9 +23,6 @@ public sealed class FailedEmail : IHasId
     public string? ClaimedBy { get; set; }
     public DateTime? ClaimedAtUtc { get; set; }
     public DateTime? ClaimedUntilUtc { get; set; }
+
+    public Guid Id { get; set; }
 }
-
-
-
-
-

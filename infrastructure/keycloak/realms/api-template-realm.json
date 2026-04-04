@@ -38,8 +38,14 @@
       "name": "API Template Scalar UI",
       "enabled": true,
       "publicClient": true,
-      "redirectUris": ["http://localhost:5174/*", "http://localhost:8080/*"],
-      "webOrigins": ["http://localhost:5174", "http://localhost:8080"],
+      "redirectUris": [
+        "http://localhost:5174/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5174",
+        "http://localhost:8080"
+      ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
@@ -163,7 +169,9 @@
       "firstName": "Admin",
       "lastName": "User",
       "attributes": {
-        "tenant_id": ["00000000-0000-0000-0000-000000000001"]
+        "tenant_id": [
+          "00000000-0000-0000-0000-000000000001"
+        ]
       },
       "credentials": [
         {
@@ -172,7 +180,9 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["PlatformAdmin"]
+      "realmRoles": [
+        "PlatformAdmin"
+      ]
     }
   ]
 }

@@ -1,8 +1,6 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalog.Features.Product.CreateProducts;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Contracts.Security;
 
 namespace ProductCatalog.Features.Product;
 

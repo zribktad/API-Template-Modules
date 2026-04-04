@@ -1,8 +1,8 @@
 namespace ProductCatalog.GraphQL.Types;
 
 /// <summary>
-/// Hot Chocolate object type that maps <see cref="ProductReviewResponse"/> to the GraphQL schema,
-/// annotating each field with descriptions and explicit scalar types.
+///     Hot Chocolate object type that maps <see cref="ProductReviewResponse" /> to the GraphQL schema,
+///     annotating each field with descriptions and explicit scalar types.
 /// </summary>
 public sealed class ProductReviewType : ObjectType<ProductReviewResponse>
 {
@@ -38,7 +38,3 @@ public sealed class ProductReviewType : ObjectType<ProductReviewResponse>
             .Description("The UTC timestamp of when the review was created.");
     }
 }
-
-
-
-

@@ -1,10 +1,10 @@
-using SharedKernel.Application.Validation;
 using FluentValidation;
 
 namespace ProductCatalog.Features.Product.GetProducts;
 
 /// <summary>
-/// FluentValidation validator for <see cref="ProductFilter"/>; composes pagination, date-range, sortable-field, and price-range rules including cross-field MinPrice/MaxPrice consistency.
+///     FluentValidation validator for <see cref="ProductFilter" />; composes pagination, date-range, sortable-field, and
+///     price-range rules including cross-field MinPrice/MaxPrice consistency.
 /// </summary>
 public sealed class ProductFilterValidator : AbstractValidator<ProductFilter>
 {

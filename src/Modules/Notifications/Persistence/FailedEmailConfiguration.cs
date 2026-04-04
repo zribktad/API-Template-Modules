@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Notifications.Contracts;
 using Notifications.Domain;
-using Notifications.Services;
 
 namespace Notifications.Persistence;
 
-/// <summary>EF Core configuration for the <see cref="FailedEmail"/> entity, with composite indexes optimized for claim-based retry and expiration queries.</summary>
+/// <summary>
+///     EF Core configuration for the <see cref="FailedEmail" /> entity, with composite indexes optimized for
+///     claim-based retry and expiration queries.
+/// </summary>
 public sealed class FailedEmailConfiguration : IEntityTypeConfiguration<FailedEmail>
 {
     public void Configure(EntityTypeBuilder<FailedEmail> builder)
@@ -15,7 +16,7 @@ public sealed class FailedEmailConfiguration : IEntityTypeConfiguration<FailedEm
 
         builder.Property(e => e.To).IsRequired().HasMaxLength(320);
         builder.Property(e => e.Subject).IsRequired().HasMaxLength(500);
-        builder.Property(e => e.HtmlBody).IsRequired();
+        builder.Property(e => e.HtmlBody).IsRequired().HasColumnType("text");
         builder.Property(e => e.LastError).HasMaxLength(FailedEmail.LastErrorMaxLength);
         builder.Property(e => e.TemplateName).HasMaxLength(100);
 

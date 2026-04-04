@@ -1,8 +1,5 @@
-using Identity.Features.TenantInvitation.DTOs;
-using Identity.Features.TenantInvitation.Specifications;
-using Identity.Interfaces;
-using SharedKernel.Domain.Common;
 using ErrorOr;
+using Identity.Features.TenantInvitation.Specifications;
 
 namespace Identity.Features.TenantInvitation;
 
@@ -24,4 +21,3 @@ public sealed class GetTenantInvitationsQueryHandler
         );
     }
 }
-

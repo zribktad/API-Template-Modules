@@ -3,7 +3,7 @@ using SharedKernel.Domain.Entities.Contracts;
 namespace FileStorage.Contracts;
 
 /// <summary>
-/// Represents the metadata of a successfully uploaded file as returned to the API consumer.
+///     Represents the metadata of a successfully uploaded file as returned to the API consumer.
 /// </summary>
 public sealed record FileUploadResponse(
     Guid Id,
@@ -13,7 +13,3 @@ public sealed record FileUploadResponse(
     string? Description,
     DateTime CreatedAtUtc
 ) : IHasId;
-
-
-
-

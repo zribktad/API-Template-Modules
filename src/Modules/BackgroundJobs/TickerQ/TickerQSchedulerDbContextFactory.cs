@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using SharedKernel.Application.Options.BackgroundJobs;
 
 namespace BackgroundJobs.TickerQ;
 
@@ -12,8 +11,8 @@ public sealed class TickerQSchedulerDbContextFactory
     {
         IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddJsonFile("appsettings.json", true)
+            .AddJsonFile("appsettings.Development.json", true)
             .AddEnvironmentVariables()
             .Build();
 

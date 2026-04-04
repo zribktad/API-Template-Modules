@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity.Features.User.DTOs;
 using Identity.Logging;
 using Microsoft.Extensions.Logging;
 
@@ -34,4 +33,3 @@ public sealed class KeycloakPasswordResetCommandHandler
         return Result.Success;
     }
 }
-

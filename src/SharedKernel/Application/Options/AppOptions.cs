@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace SharedKernel.Application.Options;
 
 /// <summary>
-/// Top-level application options that apply globally across the service.
+///     Top-level application options that apply globally across the service.
 /// </summary>
 public sealed class AppOptions
 {

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Identity.Options;
 
 /// <summary>
-/// Configuration for the CORS policy, listing the origins that are permitted to make cross-origin requests.
+///     Configuration for the CORS policy, listing the origins that are permitted to make cross-origin requests.
 /// </summary>
 public sealed class CorsOptions
 {
@@ -12,4 +12,3 @@ public sealed class CorsOptions
     [Required]
     public string[] AllowedOrigins { get; init; } = [];
 }
-

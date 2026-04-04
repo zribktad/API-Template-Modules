@@ -1,14 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using ProductCatalog.Entities;
-using ProductCatalog.Interfaces;
 using ProductCatalog.Persistence;
-using SharedKernel.Application.Context;
 
 namespace ProductCatalog.Repositories;
 
 /// <summary>
-/// EF Core repository for <see cref="ProductDataLink"/> join entities, providing queries
-/// that selectively bypass global filters when deleted links must be included.
+///     EF Core repository for <see cref="ProductDataLink" /> join entities, providing queries
+///     that selectively bypass global filters when deleted links must be included.
 /// </summary>
 public sealed class ProductDataLinkRepository : IProductDataLinkRepository
 {
@@ -25,7 +22,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     }
 
     /// <summary>
-    /// Returns links for the given product, optionally including soft-deleted entries by bypassing global filters.
+    ///     Returns links for the given product, optionally including soft-deleted entries by bypassing global filters.
     /// </summary>
     public async Task<IReadOnlyList<ProductDataLink>> ListByProductIdAsync(
         Guid productId,
@@ -76,14 +73,16 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     public Task<bool> HasActiveLinksForProductDataAsync(
         Guid productDataId,
         CancellationToken ct = default
-    ) =>
-        _dbContext
+    )
+    {
+        return _dbContext
             .ProductDataLinks.AsNoTracking()
             .AnyAsync(link => link.ProductDataId == productDataId, ct);
+    }
 
     /// <summary>
-    /// Stages removal of all active links for the given product data document so they
-    /// are soft-deleted when the unit of work commits.
+    ///     Stages removal of all active links for the given product data document so they
+    ///     are soft-deleted when the unit of work commits.
     /// </summary>
     public async Task SoftDeleteActiveLinksForProductDataAsync(
         Guid productDataId,
@@ -100,4 +99,3 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         _dbContext.ProductDataLinks.RemoveRange(links);
     }
 }
-

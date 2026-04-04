@@ -6,7 +6,7 @@ namespace ProductCatalog.Features.Product.GetProducts;
 /// <summary>Retrieves a filtered, sorted, and paged list of products together with search facets.</summary>
 public sealed record GetProductsQuery(ProductFilter Filter);
 
-/// <summary>Handles <see cref="GetProductsQuery"/> by fetching items, count, and facets from the repository.</summary>
+/// <summary>Handles <see cref="GetProductsQuery" /> by fetching items, count, and facets from the repository.</summary>
 public sealed class GetProductsQueryHandler
 {
     public static async Task<ErrorOr<ProductsResponse>> HandleAsync(

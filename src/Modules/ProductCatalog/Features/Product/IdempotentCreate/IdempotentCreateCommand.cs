@@ -1,5 +1,4 @@
 using ErrorOr;
-using ProductCatalog;
 using ProductCatalog.ValueObjects;
 using IProductRepository = ProductCatalog.Interfaces.IProductRepository;
 using ProductEntity = ProductCatalog.Entities.Product;

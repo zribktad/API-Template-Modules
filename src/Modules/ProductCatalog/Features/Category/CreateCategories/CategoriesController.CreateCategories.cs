@@ -1,8 +1,6 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalog.Features.Category.CreateCategories;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Contracts.Security;
 
 namespace ProductCatalog.Features.Category;
 

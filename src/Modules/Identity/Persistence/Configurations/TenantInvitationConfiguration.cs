@@ -44,4 +44,3 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
         builder.HasIndex(i => new { i.TenantId, i.NormalizedEmail });
     }
 }
-

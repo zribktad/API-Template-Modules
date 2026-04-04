@@ -1,12 +1,9 @@
 namespace Webhooks.Contracts;
 
 /// <summary>
-/// Application-layer abstraction for verifying the authenticity of inbound webhook payloads.
+///     Application-layer abstraction for verifying the authenticity of inbound webhook payloads.
 /// </summary>
 public interface IWebhookPayloadValidator
 {
-    bool IsValid(string payload, string signature, string timestamp);
+    public bool IsValid(string payload, string signature, string timestamp);
 }
-
-
-

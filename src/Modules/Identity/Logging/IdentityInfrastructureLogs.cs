@@ -4,7 +4,7 @@ using SharedKernel.Infrastructure.Logging;
 namespace Identity.Logging;
 
 /// <summary>
-/// Source-generated logger extension methods for Identity infrastructure diagnostics.
+///     Source-generated logger extension methods for Identity infrastructure diagnostics.
 /// </summary>
 internal static partial class IdentityInfrastructureLogs
 {
@@ -133,4 +133,3 @@ internal static partial class IdentityInfrastructureLogs
     )]
     public static partial void ExpiredInvitationsCleanedUp(this ILogger logger, int count);
 }
-

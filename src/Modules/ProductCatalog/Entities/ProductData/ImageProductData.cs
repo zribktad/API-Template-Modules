@@ -3,7 +3,8 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace ProductCatalog.Entities.ProductData;
 
 /// <summary>
-/// MongoDB document subtype that represents image media linked to a product, storing image-specific metadata such as dimensions and format.
+///     MongoDB document subtype that represents image media linked to a product, storing image-specific metadata such as
+///     dimensions and format.
 /// </summary>
 [BsonDiscriminator("image")]
 public sealed class ImageProductData : ProductData
@@ -16,6 +17,3 @@ public sealed class ImageProductData : ProductData
 
     public long FileSizeBytes { get; set; }
 }
-
-
-

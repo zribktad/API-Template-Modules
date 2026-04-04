@@ -1,42 +1,48 @@
-using ErrorOr;
-
 namespace ProductCatalog.Common.Errors;
 
 public static class DomainErrors
 {
     public static class Products
     {
-        public static Error NotFound(Guid id) =>
-            Error.NotFound(
-                code: ErrorCatalog.Products.NotFound,
-                description: string.Format(ErrorCatalog.Products.NotFoundMessage, id)
+        public static Error NotFound(Guid id)
+        {
+            return Error.NotFound(
+                ErrorCatalog.Products.NotFound,
+                string.Format(ErrorCatalog.Products.NotFoundMessage, id)
             );
+        }
     }
 
     public static class Patch
     {
-        public static Error InvalidPatchDocument(string message) =>
-            Error.Validation(
-                code: ErrorCatalog.Patch.InvalidDocument,
-                description: string.Format(ErrorCatalog.Patch.InvalidDocumentMessage, message)
+        public static Error InvalidPatchDocument(string message)
+        {
+            return Error.Validation(
+                ErrorCatalog.Patch.InvalidDocument,
+                string.Format(ErrorCatalog.Patch.InvalidDocumentMessage, message)
             );
+        }
     }
 
     public static class ProductData
     {
-        public static Error NotFound(Guid id) =>
-            Error.NotFound(
-                code: ErrorCatalog.ProductData.NotFound,
-                description: string.Format(ErrorCatalog.ProductData.NotFoundMessage, id)
+        public static Error NotFound(Guid id)
+        {
+            return Error.NotFound(
+                ErrorCatalog.ProductData.NotFound,
+                string.Format(ErrorCatalog.ProductData.NotFoundMessage, id)
             );
+        }
     }
 
     public static class Categories
     {
-        public static Error NotFound(Guid id) =>
-            Error.NotFound(
-                code: ErrorCatalog.Categories.NotFound,
-                description: string.Format(ErrorCatalog.Categories.NotFoundMessage, id)
+        public static Error NotFound(Guid id)
+        {
+            return Error.NotFound(
+                ErrorCatalog.Categories.NotFound,
+                string.Format(ErrorCatalog.Categories.NotFoundMessage, id)
             );
+        }
     }
 }

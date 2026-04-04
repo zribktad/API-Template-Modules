@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Notifications.Contracts;
 
 /// <summary>
-/// Configuration for the outbound SMTP email service, including connection settings, sender identity,
-/// and retry behaviour.
+///     Configuration for the outbound SMTP email service, including connection settings, sender identity,
+///     and retry behaviour.
 /// </summary>
 public sealed class EmailOptions
 {
@@ -50,7 +50,3 @@ public sealed class EmailOptions
     [Range(1, int.MaxValue)]
     public int RetryBaseDelaySeconds { get; set; } = 2;
 }
-
-
-
-

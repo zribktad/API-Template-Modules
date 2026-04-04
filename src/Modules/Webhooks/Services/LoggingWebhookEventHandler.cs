@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Webhooks.Contracts;
-using Webhooks.Services;
-using Webhooks.Security;
 using Webhooks.Logging;
 
 namespace Webhooks.Services;
@@ -23,7 +21,3 @@ public sealed class LoggingWebhookEventHandler : IWebhookEventHandler
         return Task.CompletedTask;
     }
 }
-
-
-
-

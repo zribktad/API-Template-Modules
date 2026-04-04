@@ -1,17 +1,16 @@
-using Identity.Features.User.DTOs;
-using Identity.Features.User.Mappings;
-using Identity.Entities;
 using Ardalis.Specification;
+using Identity.Features.User.Mappings;
 
 namespace Identity.Features.User.Specifications;
 
 /// <summary>
-/// Ardalis specification that retrieves a filtered and sorted list of users projected to <see cref="UserResponse"/>.
+///     Ardalis specification that retrieves a filtered and sorted list of users projected to <see cref="UserResponse" />.
 /// </summary>
 public sealed class UserFilterSpecification : Specification<AppUser, UserResponse>
 {
     /// <summary>
-    /// Initialises the specification by applying filter criteria, sort order, and projection from the given <paramref name="filter"/>.
+    ///     Initialises the specification by applying filter criteria, sort order, and projection from the given
+    ///     <paramref name="filter" />.
     /// </summary>
     public UserFilterSpecification(UserFilter filter)
     {
@@ -23,4 +22,3 @@ public sealed class UserFilterSpecification : Specification<AppUser, UserRespons
         Query.Select(UserMappings.Projection);
     }
 }
-

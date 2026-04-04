@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 namespace SharedKernel.Infrastructure.UnitOfWork;
 
 /// <summary>
-/// Captures and restores a snapshot of all non-detached EF Core change tracker entries.
+///     Captures and restores a snapshot of all non-detached EF Core change tracker entries.
 /// </summary>
 internal sealed class DbContextTrackedStateManager(DbContext dbContext)
 {

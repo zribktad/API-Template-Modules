@@ -1,9 +1,10 @@
 using BackgroundJobs.Domain;
-using BackgroundJobs.Domain;
 using BackgroundJobs.Features;
-using BackgroundJobs.Features;
+using ErrorOr;
 using Moq;
+using SharedKernel.Application.Errors;
 using SharedKernel.Domain.Interfaces;
+using SharedKernel.Domain.Options;
 using Shouldly;
 using Xunit;
 
@@ -11,11 +12,11 @@ namespace APITemplate.Tests.Unit.BackgroundJobs.Jobs;
 
 public sealed class SubmitJobCommandHandlerTests
 {
-    private readonly Mock<IJobExecutionRepository> _repository = new();
     private readonly Mock<IJobQueue> _jobQueue = new();
-    private readonly Mock<IUnitOfWork<BackgroundJobsDbMarker>> _unitOfWork = new();
-    private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly DateTime _now = new(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
+    private readonly Mock<IJobExecutionRepository> _repository = new();
+    private readonly Mock<TimeProvider> _timeProvider = new();
+    private readonly Mock<IUnitOfWork<BackgroundJobsDbMarker>> _unitOfWork = new();
 
     public SubmitJobCommandHandlerTests()
     {
@@ -25,14 +26,12 @@ public sealed class SubmitJobCommandHandlerTests
                 u.ExecuteInTransactionAsync(
                     It.IsAny<Func<Task>>(),
                     It.IsAny<CancellationToken>(),
-                    It.IsAny<SharedKernel.Domain.Options.TransactionOptions?>()
+                    It.IsAny<TransactionOptions?>()
                 )
             )
-            .Returns<
-                Func<Task>,
-                CancellationToken,
-                SharedKernel.Domain.Options.TransactionOptions?
-            >(async (action, _, _) => await action());
+            .Returns<Func<Task>, CancellationToken, TransactionOptions?>(
+                async (action, _, _) => await action()
+            );
     }
 
     [Fact]
@@ -45,7 +44,7 @@ public sealed class SubmitJobCommandHandlerTests
             .Callback<Guid, CancellationToken>((id, _) => enqueuedId = id)
             .Returns(ValueTask.CompletedTask);
 
-        ErrorOr.ErrorOr<JobStatusResponse> result = await SubmitJobCommandHandler.HandleAsync(
+        ErrorOr<JobStatusResponse> result = await SubmitJobCommandHandler.HandleAsync(
             new SubmitJobCommand(new SubmitJobRequest("data-export")),
             _repository.Object,
             _jobQueue.Object,
@@ -65,8 +64,8 @@ public sealed class SubmitJobCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         _jobQueue.Setup(q => q.EnqueueAsync(It.IsAny<Guid>(), ct)).Returns(ValueTask.CompletedTask);
 
-        ErrorOr.ErrorOr<JobStatusResponse> result = await SubmitJobCommandHandler.HandleAsync(
-            new SubmitJobCommand(new SubmitJobRequest("report-gen", "param1", null)),
+        ErrorOr<JobStatusResponse> result = await SubmitJobCommandHandler.HandleAsync(
+            new SubmitJobCommand(new SubmitJobRequest("report-gen", "param1")),
             _repository.Object,
             _jobQueue.Object,
             _unitOfWork.Object,
@@ -120,7 +119,7 @@ public sealed class SubmitJobCommandHandlerTests
             .Setup(q => q.EnqueueAsync(It.IsAny<Guid>(), ct))
             .ThrowsAsync(new InvalidOperationException("queue unavailable"));
 
-        ErrorOr.ErrorOr<JobStatusResponse> result = await SubmitJobCommandHandler.HandleAsync(
+        ErrorOr<JobStatusResponse> result = await SubmitJobCommandHandler.HandleAsync(
             new SubmitJobCommand(new SubmitJobRequest("report-gen")),
             _repository.Object,
             _jobQueue.Object,
@@ -130,9 +129,7 @@ public sealed class SubmitJobCommandHandlerTests
         );
 
         result.IsError.ShouldBeTrue();
-        result.FirstError.Code.ShouldBe(
-            SharedKernel.Application.Errors.ErrorCatalog.General.Unknown
-        );
+        result.FirstError.Code.ShouldBe(ErrorCatalog.General.Unknown);
         persisted.ShouldNotBeNull();
         persisted!.Status.ShouldBe(JobStatus.Failed);
         persisted.ErrorMessage.ShouldNotBeNull();

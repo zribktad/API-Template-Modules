@@ -1,6 +1,4 @@
 using Notifications.Contracts;
-using Notifications.Domain;
-using Notifications.Services;
 using SharedKernel.Contracts.Events;
 
 namespace Notifications.Features;
@@ -14,14 +12,14 @@ public sealed class TenantInvitationEmailHandler
         CancellationToken ct
     )
     {
-        var html = await templateRenderer.RenderAsync(
+        string html = await templateRenderer.RenderAsync(
             EmailTemplateNames.TenantInvitation,
             new
             {
                 @event.Email,
                 @event.TenantName,
-                InvitationUrl = @event.InvitationUrl,
-                ExpiryHours = @event.ExpiryHours,
+                @event.InvitationUrl,
+                @event.ExpiryHours,
             },
             ct
         );

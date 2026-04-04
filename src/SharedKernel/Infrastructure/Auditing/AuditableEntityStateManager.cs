@@ -6,7 +6,7 @@ using SharedKernel.Domain.Entities.Contracts;
 namespace SharedKernel.Infrastructure.Auditing;
 
 /// <summary>
-/// Default audit state manager that handles add/modify/soft-delete transitions for tenant-auditable entities.
+///     Default audit state manager that handles add/modify/soft-delete transitions for tenant-auditable entities.
 /// </summary>
 public class AuditableEntityStateManager : IAuditableEntityStateManager
 {

@@ -1,7 +1,8 @@
 namespace BackgroundJobs.Features;
 
 /// <summary>
-/// Represents the full runtime state of a background job, including progress, result payload, error information, and optional webhook callback URL.
+///     Represents the full runtime state of a background job, including progress, result payload, error information, and
+///     optional webhook callback URL.
 /// </summary>
 public sealed record JobStatusResponse(
     Guid Id,

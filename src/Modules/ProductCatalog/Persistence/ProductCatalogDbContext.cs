@@ -1,9 +1,6 @@
-using ProductCatalog.Configurations;
-using SharedKernel.Application.Context;
+using Microsoft.EntityFrameworkCore;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
-using Microsoft.EntityFrameworkCore;
 
 namespace ProductCatalog.Persistence;
 
@@ -41,4 +38,3 @@ public sealed class ProductCatalogDbContext : ModuleDbContext
         ApplyGlobalFilters(modelBuilder);
     }
 }
-

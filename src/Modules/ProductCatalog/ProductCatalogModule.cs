@@ -6,20 +6,15 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Resilience;
 using Polly;
+using Polly.Retry;
 using ProductCatalog.GraphQL.DataLoaders;
 using ProductCatalog.GraphQL.Mutations;
 using ProductCatalog.GraphQL.Queries;
 using ProductCatalog.GraphQL.Types;
-using ProductCatalog.Interfaces;
 using ProductCatalog.Persistence;
 using ProductCatalog.Repositories;
 using ProductCatalog.SoftDelete;
-using ProductCatalog.StoredProcedures;
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
-using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Health;
 using SharedKernel.Infrastructure.Registration;
@@ -42,7 +37,7 @@ public static class ProductCatalogModule
             .AddModule<ProductCatalogDbContext>(configuration)
             .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
-            .ForwardUnitOfWork<ProductCatalog.ProductCatalogDbMarker>()
+            .ForwardUnitOfWork<ProductCatalogDbMarker>()
             .AddStoredProcedureSupport()
             .AddRepository<ProductApplicationRepository, ProductRepository>()
             .AddRepository<ICategoryRepository, CategoryRepository>()
@@ -50,8 +45,8 @@ public static class ProductCatalogModule
             .AddRepository<IProductDataRepository, ProductDataRepository>()
             .AddCascadeRule<ProductSoftDeleteCascadeRule>();
 
-        services.AddValidatorsFromAssemblyContaining<ProductCatalogDbMarker>(
-            filter: registration => !registration.ValidatorType.IsGenericTypeDefinition
+        services.AddValidatorsFromAssemblyContaining<ProductCatalogDbMarker>(filter: registration =>
+            !registration.ValidatorType.IsGenericTypeDefinition
         );
         services.AddScoped(typeof(IBatchRule<>), typeof(FluentValidationBatchRule<>));
 
@@ -61,7 +56,8 @@ public static class ProductCatalogModule
         services.AddSingleton<MongoDbContext>();
 
         MongoDbSettings mongoSettings =
-            configuration.GetSection(ConfigurationSections.MongoDB).Get<MongoDbSettings>() ?? new();
+            configuration.GetSection(ConfigurationSections.MongoDB).Get<MongoDbSettings>()
+            ?? new MongoDbSettings();
         if (
             !string.IsNullOrWhiteSpace(mongoSettings.ConnectionString)
             && !string.IsNullOrWhiteSpace(mongoSettings.DatabaseName)
@@ -80,7 +76,7 @@ public static class ProductCatalogModule
             builder =>
             {
                 builder.AddRetry(
-                    new()
+                    new RetryStrategyOptions
                     {
                         MaxRetryAttempts = 3,
                         BackoffType = DelayBackoffType.Exponential,
@@ -124,4 +120,3 @@ public static class ProductCatalogModule
         return endpoints;
     }
 }
-

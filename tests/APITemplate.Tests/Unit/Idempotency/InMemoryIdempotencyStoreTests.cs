@@ -12,10 +12,11 @@ public sealed class InMemoryIdempotencyStoreTests
     [Fact]
     public async Task TryAcquireAsync_WhenKeyIsNew_ReturnsLockToken()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
-        string? token = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
 
         token.ShouldNotBeNull();
     }
@@ -23,11 +24,12 @@ public sealed class InMemoryIdempotencyStoreTests
     [Fact]
     public async Task TryAcquireAsync_WhenLockAlreadyHeld_ReturnsNull()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
-        string? first = await store.TryAcquireAsync("key-1", DefaultTtl);
-        string? second = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? first = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
+        string? second = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
 
         first.ShouldNotBeNull();
         second.ShouldBeNull();
@@ -36,17 +38,18 @@ public sealed class InMemoryIdempotencyStoreTests
     [Fact]
     public async Task TryAcquireAsync_WhenCachedResultExists_ReturnsNull()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
-        string? token = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
         token.ShouldNotBeNull();
 
         IdempotencyCacheEntry entry = new(200, """{"id":1}""", "application/json");
-        await store.SetAsync("key-1", entry, DefaultTtl);
-        await store.ReleaseAsync("key-1", token);
+        await store.SetAsync("key-1", entry, DefaultTtl, ct);
+        await store.ReleaseAsync("key-1", token!, ct);
 
-        string? secondToken = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? secondToken = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
 
         secondToken.ShouldBeNull();
     }
@@ -54,19 +57,20 @@ public sealed class InMemoryIdempotencyStoreTests
     [Fact]
     public async Task TryAcquireAsync_WhenCachedResultExpired_ReturnsNewToken()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
-        string? token = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
         token.ShouldNotBeNull();
 
         IdempotencyCacheEntry entry = new(200, """{"id":1}""", "application/json");
-        await store.SetAsync("key-1", entry, TimeSpan.FromSeconds(1));
-        await store.ReleaseAsync("key-1", token);
+        await store.SetAsync("key-1", entry, TimeSpan.FromSeconds(1), ct);
+        await store.ReleaseAsync("key-1", token!, ct);
 
         time.Advance(TimeSpan.FromMinutes(2));
 
-        string? secondToken = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? secondToken = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
 
         secondToken.ShouldNotBeNull();
     }
@@ -74,36 +78,39 @@ public sealed class InMemoryIdempotencyStoreTests
     [Fact]
     public async Task ReleaseAsync_WithCorrectToken_ReleasesLock()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
-        string? token = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
         token.ShouldNotBeNull();
 
-        await store.ReleaseAsync("key-1", token);
+        await store.ReleaseAsync("key-1", token!, ct);
 
-        string? newToken = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? newToken = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
         newToken.ShouldNotBeNull();
     }
 
     [Fact]
     public async Task ReleaseAsync_WithWrongToken_DoesNotReleaseLock()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
-        string? token = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
         token.ShouldNotBeNull();
 
-        await store.ReleaseAsync("key-1", "wrong-token");
+        await store.ReleaseAsync("key-1", "wrong-token", ct);
 
-        string? secondToken = await store.TryAcquireAsync("key-1", DefaultTtl);
+        string? secondToken = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
         secondToken.ShouldBeNull();
     }
 
     [Fact]
     public async Task SetAsync_ThenTryGetAsync_ReturnsCachedEntry()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
@@ -113,9 +120,9 @@ public sealed class InMemoryIdempotencyStoreTests
             "application/json",
             "/api/items/42"
         );
-        await store.SetAsync("key-1", entry, DefaultTtl);
+        await store.SetAsync("key-1", entry, DefaultTtl, ct);
 
-        IdempotencyCacheEntry? cached = await store.TryGetAsync("key-1");
+        IdempotencyCacheEntry? cached = await store.TryGetAsync("key-1", ct);
 
         cached.ShouldNotBeNull();
         cached.StatusCode.ShouldBe(201);
@@ -127,15 +134,16 @@ public sealed class InMemoryIdempotencyStoreTests
     [Fact]
     public async Task TryGetAsync_WhenExpired_ReturnsNull()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
         IdempotencyCacheEntry entry = new(200, "{}", "application/json");
-        await store.SetAsync("key-1", entry, TimeSpan.FromSeconds(1));
+        await store.SetAsync("key-1", entry, TimeSpan.FromSeconds(1), ct);
 
         time.Advance(TimeSpan.FromMinutes(2));
 
-        IdempotencyCacheEntry? cached = await store.TryGetAsync("key-1");
+        IdempotencyCacheEntry? cached = await store.TryGetAsync("key-1", ct);
         cached.ShouldBeNull();
     }
 
@@ -143,8 +151,14 @@ public sealed class InMemoryIdempotencyStoreTests
     {
         private DateTimeOffset _utcNow = utcNow;
 
-        public override DateTimeOffset GetUtcNow() => _utcNow;
+        public override DateTimeOffset GetUtcNow()
+        {
+            return _utcNow;
+        }
 
-        public void Advance(TimeSpan duration) => _utcNow = _utcNow.Add(duration);
+        public void Advance(TimeSpan duration)
+        {
+            _utcNow = _utcNow.Add(duration);
+        }
     }
 }

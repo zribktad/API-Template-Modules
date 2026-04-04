@@ -1,10 +1,8 @@
-using SharedKernel.Domain.Entities.Contracts;
-
 namespace Identity.Persistence.EntityNormalization;
 
 /// <summary>
-/// Normalizes <see cref="AppUser"/> fields (username and email) to their canonical
-/// casing before the entity is persisted, enabling case-insensitive uniqueness checks.
+///     Normalizes <see cref="AppUser" /> fields (username and email) to their canonical
+///     casing before the entity is persisted, enabling case-insensitive uniqueness checks.
 /// </summary>
 public sealed class AppUserEntityNormalizationService : IEntityNormalizationService
 {
@@ -17,4 +15,3 @@ public sealed class AppUserEntityNormalizationService : IEntityNormalizationServ
         user.NormalizedEmail = user.Email.Normalize();
     }
 }
-

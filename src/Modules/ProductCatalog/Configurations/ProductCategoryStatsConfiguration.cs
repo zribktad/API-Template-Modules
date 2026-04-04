@@ -1,15 +1,15 @@
-using ProductCatalog.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ProductCatalog.Configurations;
 
 /// <summary>
-/// Registers <see cref="ProductCategoryStats"/> as a keyless entity.
-/// HasNoKey() tells EF Core: this type has no primary key and no backing table.
-/// It can only be materialised via FromSql() or raw SQL queries.
+///     Registers <see cref="ProductCategoryStats" /> as a keyless entity.
+///     HasNoKey() tells EF Core: this type has no primary key and no backing table.
+///     It can only be materialised via FromSql() or raw SQL queries.
 /// </summary>
-public sealed class ProductCategoryStatsConfiguration : IEntityTypeConfiguration<ProductCategoryStats>
+public sealed class ProductCategoryStatsConfiguration
+    : IEntityTypeConfiguration<ProductCategoryStats>
 {
     public void Configure(EntityTypeBuilder<ProductCategoryStats> builder)
     {
@@ -19,8 +19,7 @@ public sealed class ProductCategoryStatsConfiguration : IEntityTypeConfiguration
         // ExcludeFromMigrations tells EF Core to skip this type when generating migrations.
         // The entity exists only as a materialisation target for FromSql() calls.
         builder.ToTable("ProductCategoryStats", t => t.ExcludeFromMigrations());
+
+        builder.Property(s => s.CategoryName).HasMaxLength(100);
     }
 }
-
-
-

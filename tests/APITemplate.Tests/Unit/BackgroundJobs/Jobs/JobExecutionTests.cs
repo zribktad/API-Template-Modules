@@ -7,13 +7,15 @@ namespace APITemplate.Tests.Unit.BackgroundJobs.Jobs;
 
 public sealed class JobExecutionTests
 {
-    private static JobExecution CreatePendingJob() =>
-        new()
+    private static JobExecution CreatePendingJob()
+    {
+        return new JobExecution
         {
             Id = Guid.NewGuid(),
             JobType = "test-job",
             SubmittedAtUtc = DateTime.UtcNow,
         };
+    }
 
     private static TimeProvider MockTimeAt(DateTime utcNow)
     {

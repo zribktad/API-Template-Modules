@@ -1,17 +1,18 @@
-using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Domain.Entities.Contracts;
 
 namespace Identity.SoftDelete;
 
 /// <summary>
-/// Soft-delete cascade rule for the Tenant aggregate.
-/// Cascades to Users and TenantInvitations within this module.
-/// Cross-module cascade (Products, Categories) is handled via <see cref="TenantSoftDeletedNotification"/>.
+///     Soft-delete cascade rule for the Tenant aggregate.
+///     Cascades to Users and TenantInvitations within this module.
+///     Cross-module cascade (Products, Categories) is handled via <see cref="TenantSoftDeletedNotification" />.
 /// </summary>
 public sealed class TenantSoftDeleteCascadeRule : ISoftDeleteCascadeRule
 {
-    public bool CanHandle(IAuditableTenantEntity entity) => entity is Tenant;
+    public bool CanHandle(IAuditableTenantEntity entity)
+    {
+        return entity is Tenant;
+    }
 
     public async Task<IReadOnlyCollection<IAuditableTenantEntity>> GetDependentsAsync(
         DbContext dbContext,
@@ -49,4 +50,3 @@ public sealed class TenantSoftDeleteCascadeRule : ISoftDeleteCascadeRule
         return dependents;
     }
 }
-

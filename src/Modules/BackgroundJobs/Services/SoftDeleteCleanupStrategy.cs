@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Domain.Entities.Contracts;
 
 namespace BackgroundJobs.Services;
 
 /// <summary>
-/// Generic implementation of <see cref="ISoftDeleteCleanupStrategy"/> that hard-deletes
-/// soft-deleted <typeparamref name="TEntity"/> rows in batches using EF Core bulk-delete.
+///     Generic implementation of <see cref="ISoftDeleteCleanupStrategy" /> that hard-deletes
+///     soft-deleted <typeparamref name="TEntity" /> rows in batches using EF Core bulk-delete.
 /// </summary>
 public sealed class SoftDeleteCleanupStrategy<TEntity> : ISoftDeleteCleanupStrategy
     where TEntity : class, ISoftDeletable

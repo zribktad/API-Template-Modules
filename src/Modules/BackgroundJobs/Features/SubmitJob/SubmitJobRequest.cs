@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace BackgroundJobs.Features;
 
 /// <summary>
-/// Carries the parameters needed to enqueue a new background job, including an optional JSON parameters string and an optional webhook callback URL.
+///     Carries the parameters needed to enqueue a new background job, including an optional JSON parameters string and an
+///     optional webhook callback URL.
 /// </summary>
 public sealed record SubmitJobRequest(
     [NotEmpty(ErrorMessage = "Job type is required.")] [MaxLength(100)] string JobType,

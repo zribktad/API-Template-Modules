@@ -1,8 +1,6 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalog.Features.Category.UpdateCategories;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Contracts.Security;
 
 namespace ProductCatalog.Features.Category;
 

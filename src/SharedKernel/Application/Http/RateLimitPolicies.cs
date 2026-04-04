@@ -1,7 +1,7 @@
 namespace SharedKernel.Application.Http;
 
 /// <summary>
-/// Centralizes rate-limit policy name constants used across the application and API layers.
+///     Centralizes rate-limit policy name constants used across the application and API layers.
 /// </summary>
 public static class RateLimitPolicies
 {

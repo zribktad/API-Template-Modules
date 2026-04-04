@@ -1,7 +1,7 @@
 namespace ProductCatalog.Features.Product.Shared;
 
 /// <summary>
-/// Represents a product as returned by the Application layer to API consumers, projected from the domain entity.
+///     Represents a product as returned by the Application layer to API consumers, projected from the domain entity.
 /// </summary>
 public sealed record ProductResponse(
     Guid Id,

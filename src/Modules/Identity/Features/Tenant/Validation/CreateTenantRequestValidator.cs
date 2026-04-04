@@ -1,10 +1,6 @@
-using Identity.Features.Tenant.DTOs;
-using SharedKernel.Application.Validation;
-
 namespace Identity.Features.Tenant.Validation;
 
 /// <summary>
-/// FluentValidation validator for <see cref="CreateTenantRequest"/> that enforces data-annotation constraints.
+///     FluentValidation validator for <see cref="CreateTenantRequest" /> that enforces data-annotation constraints.
 /// </summary>
 public sealed class CreateTenantRequestValidator : DataAnnotationsValidator<CreateTenantRequest>;
-

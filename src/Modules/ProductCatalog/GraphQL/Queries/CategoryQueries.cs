@@ -2,22 +2,21 @@ using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Category.GetCategories;
 using ProductCatalog.Features.Category.GetCategoryById;
-using ProductCatalog.GraphQL.Models;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Queries;
 
 /// <summary>
-/// Hot Chocolate query type extension that adds category queries to the <see cref="ProductQueries"/>
-/// root, providing paginated list and single-item lookup operations.
+///     Hot Chocolate query type extension that adds category queries to the <see cref="ProductQueries" />
+///     root, providing paginated list and single-item lookup operations.
 /// </summary>
 [Authorize]
 [ExtendObjectType(typeof(ProductQueries))]
 public sealed class CategoryQueries
 {
     /// <summary>
-    /// Returns a paginated category list, mapping the GraphQL input to the application-layer
-    /// filter before dispatching via the message bus.
+    ///     Returns a paginated category list, mapping the GraphQL input to the application-layer
+    ///     filter before dispatching via the message bus.
     /// </summary>
     public async Task<CategoryPageResult> GetCategories(
         CategoryQueryInput? input,
@@ -25,7 +24,7 @@ public sealed class CategoryQueries
         CancellationToken ct
     )
     {
-        var filter = new CategoryFilter(
+        CategoryFilter filter = new(
             input?.Query,
             input?.SortBy,
             input?.SortDirection,
@@ -39,7 +38,7 @@ public sealed class CategoryQueries
         return new CategoryPageResult(result.ToGraphQLResult());
     }
 
-    /// <summary>Returns a single category by ID, or <see langword="null"/> if not found.</summary>
+    /// <summary>Returns a single category by ID, or <see langword="null" /> if not found.</summary>
     public async Task<CategoryResponse?> GetCategoryById(
         Guid id,
         [Service] IMessageBus bus,

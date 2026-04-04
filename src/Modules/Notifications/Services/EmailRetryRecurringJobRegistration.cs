@@ -1,13 +1,13 @@
-using SharedKernel.Application.BackgroundJobs;
-using SharedKernel.Application.Options.BackgroundJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.BackgroundJobs;
+using SharedKernel.Application.Options.BackgroundJobs;
 
 namespace Notifications.Services;
 
 /// <summary>
-/// Provides the <see cref="RecurringBackgroundJobDefinition"/> for the email-retry recurring job,
-/// sourcing schedule and enablement from <see cref="BackgroundJobsOptions.EmailRetry"/>.
+///     Provides the <see cref="RecurringBackgroundJobDefinition" /> for the email-retry recurring job,
+///     sourcing schedule and enablement from <see cref="BackgroundJobsOptions.EmailRetry" />.
 /// </summary>
 public sealed class EmailRetryRecurringJobRegistration : IRecurringBackgroundJobRegistration
 {
@@ -16,9 +16,8 @@ public sealed class EmailRetryRecurringJobRegistration : IRecurringBackgroundJob
     {
         EmailRetryJobOptions options = serviceProvider
             .GetRequiredService<IOptions<BackgroundJobsOptions>>()
-            .Value
-            .EmailRetry;
-        return new(
+            .Value.EmailRetry;
+        return new RecurringBackgroundJobDefinition(
             new Guid("31261201-e220-45d0-bd7e-6d662ca1acaf"),
             "email-retry-recurring-job",
             options.Cron,
@@ -27,8 +26,3 @@ public sealed class EmailRetryRecurringJobRegistration : IRecurringBackgroundJob
         );
     }
 }
-
-
-
-
-

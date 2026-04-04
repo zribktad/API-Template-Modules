@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Options;
 using NCrontab;
-using SharedKernel.Application.Options.BackgroundJobs;
 
 namespace BackgroundJobs.Validation;
 
@@ -104,6 +103,7 @@ public sealed class BackgroundJobsOptionsValidator : IValidateOptions<Background
             failures.Add($"{path} is required.");
             return;
         }
+
         try
         {
             CrontabSchedule.Parse(cron);

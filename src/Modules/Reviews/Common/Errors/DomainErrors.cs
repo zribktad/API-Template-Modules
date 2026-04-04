@@ -6,22 +6,28 @@ public static class DomainErrors
 {
     public static class Reviews
     {
-        public static Error NotFound(Guid id) =>
-            Error.NotFound(
-                code: ErrorCatalog.Reviews.ReviewNotFound,
-                description: $"Review with id '{id}' not found."
+        public static Error NotFound(Guid id)
+        {
+            return Error.NotFound(
+                ErrorCatalog.Reviews.ReviewNotFound,
+                $"Review with id '{id}' not found."
             );
+        }
 
-        public static Error ProductNotFoundForReview(Guid productId) =>
-            Error.NotFound(
-                code: ErrorCatalog.Reviews.ProductNotFoundForReview,
-                description: $"Product with id '{productId}' not found."
+        public static Error ProductNotFoundForReview(Guid productId)
+        {
+            return Error.NotFound(
+                ErrorCatalog.Reviews.ProductNotFoundForReview,
+                $"Product with id '{productId}' not found."
             );
+        }
 
-        public static Error ForbiddenOwnReviewsOnly() =>
-            Error.Forbidden(
-                code: SharedKernel.Application.Errors.ErrorCatalog.Auth.Forbidden,
-                description: ErrorCatalog.Reviews.ForbiddenOwnReviewsOnlyMessage
+        public static Error ForbiddenOwnReviewsOnly()
+        {
+            return Error.Forbidden(
+                SharedKernel.Application.Errors.ErrorCatalog.Auth.Forbidden,
+                ErrorCatalog.Reviews.ForbiddenOwnReviewsOnlyMessage
             );
+        }
     }
 }

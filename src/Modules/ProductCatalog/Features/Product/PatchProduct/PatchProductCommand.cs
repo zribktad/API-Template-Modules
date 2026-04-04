@@ -1,6 +1,6 @@
 using ErrorOr;
 using FluentValidation;
-using ProductCatalog;
+using FluentValidation.Results;
 using ProductCatalog.ValueObjects;
 using SystemTextJsonPatch;
 using Wolverine;
@@ -47,17 +47,16 @@ public sealed class PatchProductCommandHandler
             );
         }
 
-        FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(
-            dto,
-            ct
-        );
+        ValidationResult validationResult = await validator.ValidateAsync(dto, ct);
         if (!validationResult.IsValid)
+        {
             return (
                 DomainErrors.Patch.InvalidPatchDocument(
                     string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage))
                 ),
                 OutgoingMessagesHelper.Empty
             );
+        }
 
         ErrorOr<Price> priceResult = Price.Create(dto.Price);
         if (priceResult.IsError)

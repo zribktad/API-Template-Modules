@@ -1,7 +1,4 @@
 using Asp.Versioning;
-using ErrorOr;
-using FileStorage.Contracts;
-using FileStorage.Domain;
 using FileStorage.Features.Download;
 using FileStorage.Features.Upload;
 using Microsoft.AspNetCore.Mvc;
@@ -17,8 +14,8 @@ namespace FileStorage.Features;
 public sealed class FilesController(IMessageBus bus) : ApiControllerBase
 {
     /// <summary>
-    /// Accepts a multipart form upload, streams the file to local storage via the application
-    /// layer, and returns a 201 with a Location header pointing to the download endpoint.
+    ///     Accepts a multipart form upload, streams the file to local storage via the application
+    ///     layer, and returns a 201 with a Location header pointing to the download endpoint.
     /// </summary>
     [HttpPost("upload")]
     [RequirePermission(Permission.Examples.Upload)]
@@ -52,8 +49,8 @@ public sealed class FilesController(IMessageBus bus) : ApiControllerBase
     }
 
     /// <summary>
-    /// Streams the stored file back to the caller, disposing the underlying stream on error to
-    /// prevent resource leaks.
+    ///     Streams the stored file back to the caller, disposing the underlying stream on error to
+    ///     prevent resource leaks.
     /// </summary>
     [HttpGet("{id:guid}/download")]
     [RequirePermission(Permission.Examples.Download)]

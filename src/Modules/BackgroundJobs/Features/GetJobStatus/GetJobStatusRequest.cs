@@ -1,6 +1,6 @@
 namespace BackgroundJobs.Features;
 
 /// <summary>
-/// Carries the unique identifier of the background job whose status is being queried.
+///     Carries the unique identifier of the background job whose status is being queried.
 /// </summary>
 public sealed record GetJobStatusRequest(Guid Id);

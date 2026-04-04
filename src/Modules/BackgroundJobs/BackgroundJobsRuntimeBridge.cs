@@ -1,5 +1,4 @@
 using System.Reflection;
-using BackgroundJobs.Domain;
 using BackgroundJobs.Persistence;
 using BackgroundJobs.Repositories;
 using BackgroundJobs.Services;
@@ -11,10 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.BackgroundJobs;
-using SharedKernel.Application.Options.BackgroundJobs;
 using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
 using TickerQ.DependencyInjection;
@@ -45,10 +41,7 @@ public static class BackgroundJobsRuntimeBridge
             IValidateOptions<BackgroundJobsOptions>,
             BackgroundJobsOptionsValidator
         >();
-        services.AddValidatedOptions<BackgroundJobsOptions>(
-            configuration,
-            validateDataAnnotations: false
-        );
+        services.AddValidatedOptions<BackgroundJobsOptions>(configuration, false);
         BackgroundJobsOptions options =
             configuration.SectionFor<BackgroundJobsOptions>().Get<BackgroundJobsOptions>()
             ?? new BackgroundJobsOptions();

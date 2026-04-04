@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
-using Notifications.Domain;
-using Notifications.Services;
 using SharedKernel.Contracts.Events;
 
 namespace Notifications.Features;
@@ -16,7 +14,7 @@ public sealed class UserRegisteredEmailHandler
         CancellationToken ct
     )
     {
-        var html = await templateRenderer.RenderAsync(
+        string html = await templateRenderer.RenderAsync(
             EmailTemplateNames.UserRegistration,
             new
             {

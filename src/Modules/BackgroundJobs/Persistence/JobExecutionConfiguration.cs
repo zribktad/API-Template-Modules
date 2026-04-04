@@ -1,4 +1,3 @@
-using BackgroundJobs.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -21,7 +20,10 @@ public sealed class JobExecutionConfiguration : IEntityTypeConfiguration<JobExec
             .HasDefaultValue(JobStatus.Pending)
             .HasSentinel((JobStatus)(-1));
         builder.Property(j => j.ProgressPercent).HasDefaultValue(0);
+        builder.Property(j => j.Parameters).HasColumnType("text");
         builder.Property(j => j.CallbackUrl).HasMaxLength(2048);
+        builder.Property(j => j.ResultPayload).HasColumnType("text");
+        builder.Property(j => j.ErrorMessage).HasColumnType("text");
 
         builder.HasIndex(j => j.Status);
         builder.HasIndex(j => new { j.TenantId, j.SubmittedAtUtc });

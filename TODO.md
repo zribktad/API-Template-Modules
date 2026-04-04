@@ -4,57 +4,99 @@
 
 ### Critical
 
-- [x] **Authorization code duplication** — `PermissionAuthorizationHandler` and `PermissionPolicyProvider` exist in both `APITemplate.Api/Api/Authorization/` and `Identity.Api/Authorization/` with divergent implementations (different constructors, auth schemes, `[SensitiveData]` attributes). Move to SharedKernel or Contracts as the single source of truth.
+- [x] **Authorization code duplication** — `PermissionAuthorizationHandler` and `PermissionPolicyProvider` exist in both
+  `APITemplate.Api/Api/Authorization/` and `Identity.Api/Authorization/` with divergent implementations (different
+  constructors, auth schemes, `[SensitiveData]` attributes). Move to SharedKernel or Contracts as the single source of
+  truth.
 
 ### High Priority
 
-- [x] **Mixed error handling patterns** — unified on `ErrorOr<T>` return pattern. Exception-based classes (`NotFoundException`, `ConflictException`, `ValidationException`, `AppException` hierarchy) removed. `ApiExceptionHandler` is now a safety net for `DbUpdateConcurrencyException` (409) and unhandled exceptions (500) only. `FluentValidationActionFilter` removed; validation runs through Wolverine middleware.
-- [x] **Options classes split between SharedKernel and modules** — `BffOptions`, `KeycloakOptions`, `CorsOptions`, `EmailOptions`, `SystemIdentityOptions` exist in both places. Module-specific options (`BackgroundJobsOptions`, `FileStorageOptions`) are in SharedKernel where they don't belong. Each module should own its options; SharedKernel should contain only truly shared types.
-- [ ] **Anemic domain models** — `Tenant`, `StoredFile` and others are pure data containers. Business logic (activate/deactivate, status transitions) leaks into application handlers. Add domain methods and enforce invariants in entity constructors.
+- [x] **Mixed error handling patterns** — unified on `ErrorOr<T>` return pattern. Exception-based classes (
+  `NotFoundException`, `ConflictException`, `ValidationException`, `AppException` hierarchy) removed.
+  `ApiExceptionHandler` is now a safety net for `DbUpdateConcurrencyException` (409) and unhandled exceptions (500)
+  only. `FluentValidationActionFilter` removed; validation runs through Wolverine middleware.
+- [x] **Options classes split between SharedKernel and modules** — `BffOptions`, `KeycloakOptions`, `CorsOptions`,
+  `EmailOptions`, `SystemIdentityOptions` exist in both places. Module-specific options (`BackgroundJobsOptions`,
+  `FileStorageOptions`) are in SharedKernel where they don't belong. Each module should own its options; SharedKernel
+  should contain only truly shared types.
+- [ ] **Anemic domain models** — `Tenant`, `StoredFile` and others are pure data containers. Business logic (
+  activate/deactivate, status transitions) leaks into application handlers. Add domain methods and enforce invariants in
+  entity constructors.
 
 ### Medium Priority
 
-- [ ] **Business logic in handlers** — `CreateProductsCommand` creates entities and relationships directly in the handler. `CreateUserCommand` contains compensating transaction logic (Keycloak + DB rollback). Extract to factory methods on entities and domain services.
-- [ ] **Inconsistent logging** — only `ApiExceptionHandlerLogs.cs` and `UnitOfWorkLogs.cs` use source-generated `[LoggerMessage]` with event IDs. All other modules use inline `logger.LogXxx()`. Adopt source-generated logging with a per-module event ID range allocation strategy.
-- [x] **Incomplete health checks** — only PostgreSQL and Keycloak are covered. Missing: Redis/Dragonfly, MongoDB (used by ProductCatalog), Wolverine messaging. Add `AddDragonflyHealthCheck()`, `AddMongoDbHealthCheck()` using the existing helper extension pattern.
-- [ ] **Soft delete cascade via three mechanisms** — the same business rule (cascade deletes on soft-delete) is implemented via database cascade rules, infrastructure `SoftDeleteProcessor`, and Wolverine event handlers simultaneously. Consolidate to event-driven approach only.
-- [ ] **`ClearCategoryAsync` bypasses EF Core change tracker** — `ExecuteUpdateAsync` is a bulk SQL operation that skips the DbContext tracker. If products are tracked in the same session (e.g. loaded during validation), their in-memory `CategoryId` stays non-null while the DB has `null`; a subsequent `SaveChanges` would overwrite the DB back. Verify no tracked products overlap with the bulk update, or invalidate affected entries after the call.
-- [ ] **Missing `CategorySoftDeletedNotification`** — category soft-delete (both `DeleteCategoriesCommand` and `TenantCascadeDeleteHandler`) publishes no notification. Product soft-delete publishes `ProductSoftDeletedNotification` which Reviews consumes. Any future module needing to react to category deletion has no hook. Add a `CategorySoftDeletedNotification` and publish it from both delete paths.
+- [ ] **Business logic in handlers** — `CreateProductsCommand` creates entities and relationships directly in the
+  handler. `CreateUserCommand` contains compensating transaction logic (Keycloak + DB rollback). Extract to factory
+  methods on entities and domain services.
+- [ ] **Inconsistent logging** — only `ApiExceptionHandlerLogs.cs` and `UnitOfWorkLogs.cs` use source-generated
+  `[LoggerMessage]` with event IDs. All other modules use inline `logger.LogXxx()`. Adopt source-generated logging with
+  a per-module event ID range allocation strategy.
+- [x] **Incomplete health checks** — only PostgreSQL and Keycloak are covered. Missing: Redis/Dragonfly, MongoDB (used
+  by ProductCatalog), Wolverine messaging. Add `AddDragonflyHealthCheck()`, `AddMongoDbHealthCheck()` using the existing
+  helper extension pattern.
+- [ ] **Soft delete cascade via three mechanisms** — the same business rule (cascade deletes on soft-delete) is
+  implemented via database cascade rules, infrastructure `SoftDeleteProcessor`, and Wolverine event handlers
+  simultaneously. Consolidate to event-driven approach only.
+- [ ] **`ClearCategoryAsync` bypasses EF Core change tracker** — `ExecuteUpdateAsync` is a bulk SQL operation that skips
+  the DbContext tracker. If products are tracked in the same session (e.g. loaded during validation), their in-memory
+  `CategoryId` stays non-null while the DB has `null`; a subsequent `SaveChanges` would overwrite the DB back. Verify no
+  tracked products overlap with the bulk update, or invalidate affected entries after the call.
+- [ ] **Missing `CategorySoftDeletedNotification`** — category soft-delete (both `DeleteCategoriesCommand` and
+  `TenantCascadeDeleteHandler`) publishes no notification. Product soft-delete publishes
+  `ProductSoftDeletedNotification` which Reviews consumes. Any future module needing to react to category deletion has
+  no hook. Add a `CategorySoftDeletedNotification` and publish it from both delete paths.
 
 ### Low Priority
 
-- [ ] **Aggregate boundary violation** — `Product` entity has `Category? Category` navigation property — a direct reference to another aggregate root. Replace with `CategoryId`-only reference; load via query when needed.
-- [ ] **Missing value objects** — `Email` (string with no RFC validation), `Rating` (int with no range enforcement), `Price` (no currency/precision semantics), `TenantCode` (string with implicit format rules) should be strong value objects enforcing their invariants.
-- [ ] **Duplicate repository interfaces** — `IProductRepository` is defined in both `ProductCatalog.Domain/Interfaces/` and `ProductCatalog.Application/Features/Product/Repositories/`. Keep one definition in the Domain layer.
-- [ ] **Integration test gap — `ProductDataLinks` cascade not verified** — `PostgresTenantSoftDeleteCascadeTests` verifies products and categories are soft-deleted but does not assert `ProductDataLinks` are also soft-deleted in the same cascade. Add assertion to guard against silent regression.
-- [ ] **`ProductDataLink` unique constraint** — `Product.SyncProductDataLinks` was previously guarded with `GroupBy().First()` to survive duplicate `ProductDataId` entries; simplified to `ToDictionary()` which throws on duplicates. Verify a unique constraint on `(ProductId, ProductDataId)` exists in the schema; add the migration if missing.
+- [ ] **Aggregate boundary violation** — `Product` entity has `Category? Category` navigation property — a direct
+  reference to another aggregate root. Replace with `CategoryId`-only reference; load via query when needed.
+- [ ] **Missing value objects** — `Email` (string with no RFC validation), `Rating` (int with no range enforcement),
+  `Price` (no currency/precision semantics), `TenantCode` (string with implicit format rules) should be strong value
+  objects enforcing their invariants.
+- [ ] **Duplicate repository interfaces** — `IProductRepository` is defined in both `ProductCatalog.Domain/Interfaces/`
+  and `ProductCatalog.Application/Features/Product/Repositories/`. Keep one definition in the Domain layer.
+- [ ] **Integration test gap — `ProductDataLinks` cascade not verified** — `PostgresTenantSoftDeleteCascadeTests`
+  verifies products and categories are soft-deleted but does not assert `ProductDataLinks` are also soft-deleted in the
+  same cascade. Add assertion to guard against silent regression.
+- [ ] **`ProductDataLink` unique constraint** — `Product.SyncProductDataLinks` was previously guarded with
+  `GroupBy().First()` to survive duplicate `ProductDataId` entries; simplified to `ToDictionary()` which throws on
+  duplicates. Verify a unique constraint on `(ProductId, ProductDataId)` exists in the schema; add the migration if
+  missing.
 
 ---
 
 ## Wolverine Outbox & Durable Messaging
 
-- [ ] Enable `UseDurableOutboxOnAllSendingEndpoints()` and `UseDurableInboxOnAllListeners()` for reliable eventual consistency across modules.
+- [ ] Enable `UseDurableOutboxOnAllSendingEndpoints()` and `UseDurableInboxOnAllListeners()` for reliable eventual
+  consistency across modules.
 - [x] Configure `PersistMessagesWithPostgresql()` for durable message persistence in PostgreSQL.
 - [ ] Apply `DurabilityMode.Balanced` via shared Wolverine conventions (`ApplySharedConventions()`).
-- [x] Migrate handler return types to `(ErrorOr<T>, OutgoingMessages)` tuples for transactional cascade messages instead of manual `bus.PublishAsync()`.
-- [ ] Extract `CacheInvalidationCascades` helper (`.ForTag()`, `.ForTags()`, `.None`) to eliminate cache invalidation boilerplate.
+- [x] Migrate handler return types to `(ErrorOr<T>, OutgoingMessages)` tuples for transactional cascade messages instead
+  of manual `bus.PublishAsync()`.
+- [ ] Extract `CacheInvalidationCascades` helper (`.ForTag()`, `.ForTags()`, `.None`) to eliminate cache invalidation
+  boilerplate.
 
 ## Wolverine Validation Middleware
 
-- [x] Implement `ErrorOrValidationMiddleware` as Wolverine `Before` middleware — automatic FluentValidation for all commands without manual validation in handlers.
-- [x] Add `FluentValidationActionFilter` for MVC controller endpoints (validates action parameters via DI-resolved validators, returns 400 with `ValidationProblemDetails`).
+- [x] Implement `ErrorOrValidationMiddleware` as Wolverine `Before` middleware — automatic FluentValidation for all
+  commands without manual validation in handlers.
+- [x] Add `FluentValidationActionFilter` for MVC controller endpoints (validates action parameters via DI-resolved
+  validators, returns 400 with `ValidationProblemDetails`).
 
 ## Integration Events
 
-- [x] Define typed integration event contracts in `Contracts` project (e.g. `ProductCreatedIntegrationEvent`, `TenantDeactivatedIntegrationEvent`).
+- [x] Define typed integration event contracts in `Contracts` project (e.g. `ProductCreatedIntegrationEvent`,
+  `TenantDeactivatedIntegrationEvent`).
 - [x] Add integration event handlers per module for cross-module cascade operations (soft-delete propagation, cleanup).
 
 ## Request Context & Observability Enhancements
 
-- [x] Enhance `RequestContextMiddleware` with tenant ID extraction from claims and Activity tag enrichment for distributed tracing.
+- [x] Enhance `RequestContextMiddleware` with tenant ID extraction from claims and Activity tag enrichment for
+  distributed tracing.
 - [x] Add `IHttpMetricsTagsFeature` enrichment (api_surface, authenticated) for custom telemetry dimensions.
 - [x] Return `X-Trace-Id` response header alongside existing `X-Correlation-Id` and `X-Elapsed-Ms`.
-- [x] Enhance Serilog request logging with intelligent log levels (499 client abort vs 5xx server error vs 4xx validation).
+- [x] Enhance Serilog request logging with intelligent log levels (499 client abort vs 5xx server error vs 4xx
+  validation).
 - [x] Enrich Serilog diagnostic context with `RequestHost` and `RequestScheme`.
 
 ## Logging Redaction
@@ -67,52 +109,65 @@
 
 - [x] Add tenant claim validation in JWT bearer configuration — require valid tenant claim or service account prefix.
 - [x] Add `KeycloakClaimsPrincipalMapper.MapClaims()` for Keycloak claim transformation.
-- [x] Add `AuthorizationResponsesOperationTransformer` for OpenAPI — automatically document 401/403 on `[Authorize]` endpoints.
+- [x] Add `AuthorizationResponsesOperationTransformer` for OpenAPI — automatically document 401/403 on `[Authorize]`
+  endpoints.
 - [x] Add `BearerSecuritySchemeDocumentTransformer` — dynamic Keycloak OAuth2 authorization code flow in OpenAPI.
 
 ## Exception Handling Enhancements
 
-- [x] Enhance `ApiExceptionHandler` with structured error metadata preservation in `ProblemDetails.Extensions["metadata"]`.
-- [x] Add error code fallback logic (check `exception.ErrorCode` then `metadata["errorCode"]` then `ErrorCatalog.General.Unknown`).
+- [x] Enhance `ApiExceptionHandler` with structured error metadata preservation in
+  `ProblemDetails.Extensions["metadata"]`.
+- [x] Add error code fallback logic (check `exception.ErrorCode` then `metadata["errorCode"]` then
+  `ErrorCatalog.General.Unknown`).
 - [x] Differentiate logging by status code (LogError for 5xx, LogWarning for handled exceptions).
 
 ## Output Caching Enhancements
 
 - [x] Add `TenantAwareOutputCachePolicy` — cache key isolation per tenant to prevent cross-tenant data leaks.
-- [x] Expand cache policies to cover all cacheable resources (Tenants, TenantInvitations, Users, Files alongside existing Products, Categories, Reviews, ProductData).
+- [x] Expand cache policies to cover all cacheable resources (Tenants, TenantInvitations, Users, Files alongside
+  existing Products, Categories, Reviews, ProductData).
 
 ## Controller Base Enhancements
 
-- [ ] Add helper methods to `ApiControllerBase`: `InvokeToActionResultAsync<T>()`, `InvokeToBatchResultAsync()`, `InvokeToNoContentResultAsync()`, `InvokeToOkResultAsync()`, `InvokeToCreatedResultAsync()`.
+- [ ] Add helper methods to `ApiControllerBase`: `InvokeToActionResultAsync<T>()`, `InvokeToBatchResultAsync()`,
+  `InvokeToNoContentResultAsync()`, `InvokeToOkResultAsync()`, `InvokeToCreatedResultAsync()`.
 - [ ] Add `ErrorOrHttpExtensions` for minimal API ErrorOr-to-ProblemDetails mapping.
 
 ## Configuration Validation
 
-- [x] Implement `AddValidatedOptions<TOptions>()` extension — automatic DataAnnotations validation with early startup failure on invalid configuration.
+- [x] Implement `AddValidatedOptions<TOptions>()` extension — automatic DataAnnotations validation with early startup
+  failure on invalid configuration.
 
 ## Idempotency
 
-- [x] Implement `IdempotencyActionFilter` — at-most-once semantics via `Idempotency-Key` header with cached responses, configurable TTL, lock timeouts, and 409 Conflict on concurrent processing.
+- [x] Implement `IdempotencyActionFilter` — at-most-once semantics via `Idempotency-Key` header with cached responses,
+  configurable TTL, lock timeouts, and 409 Conflict on concurrent processing.
 
 ## Health Check Helpers
 
-- [x] Extract health check helper extensions: `AddPostgreSqlHealthCheck()`, `AddDragonflyHealthCheck()` with standardized tags and naming.
+- [x] Extract health check helper extensions: `AddPostgreSqlHealthCheck()`, `AddDragonflyHealthCheck()` with
+  standardized tags and naming.
 
 ## Infrastructure Generics
 
-- [x] Make `UnitOfWork` generic over `DbContext` instead of hardcoded to `AppDbContext` — enables reuse across per-module contexts.
+- [x] Make `UnitOfWork` generic over `DbContext` instead of hardcoded to `AppDbContext` — enables reuse across
+  per-module contexts.
 - [x] Make `RepositoryBase<T>` accept generic `DbContext` parameter instead of casting to `AppDbContext`.
-- [x] Extract `TenantAuditableDbContext` as abstract reusable base class with `TenantAuditableDbContextDependencies` record for dependency encapsulation. (ModuleDbContext already serves this role)
+- [x] Extract `TenantAuditableDbContext` as abstract reusable base class with `TenantAuditableDbContextDependencies`
+  record for dependency encapsulation. (ModuleDbContext already serves this role)
 - [ ] Make `IEntityNormalizationService` optional (nullable) in DbContext — not all modules need normalization.
-- [ ] Improve `DesignTimeConnectionStringResolver` with dynamic path resolution (walk up directory tree) and environment-specific appsettings loading.
+- [ ] Improve `DesignTimeConnectionStringResolver` with dynamic path resolution (walk up directory tree) and
+  environment-specific appsettings loading.
 
 ## Entity Navigation Properties
 
-- [ ] Add explicit bidirectional navigation properties on aggregate roots (e.g. `Tenant.Users`, `AppUser.Tenant`) for better DDD modeling and EF Core relationship configuration.
+- [ ] Add explicit bidirectional navigation properties on aggregate roots (e.g. `Tenant.Users`, `AppUser.Tenant`) for
+  better DDD modeling and EF Core relationship configuration.
 
 ## Validation Metrics
 
-- [ ] Add `IValidationMetrics` interface for recording validation failures with telemetry (source, argument type, failure list) — separates observability from application logic.
+- [ ] Add `IValidationMetrics` interface for recording validation failures with telemetry (source, argument type,
+  failure list) — separates observability from application logic.
 
 ---
 
@@ -149,12 +204,14 @@
 Implement real-time notifications and chat using ASP.NET Core SignalR.
 
 **Architecture:**
+
 - NotificationHub: job status, data updates, user status
 - ChatHub: 1:1, groups, channels
 - Redis backplane for multi-instance
 - Optional persistence (flexible, add later if needed)
 
 **Implementation:**
+
 - [ ] Setup SignalR infrastructure (Hubs, backplane, middleware)
 - [ ] NotificationHub: job/product/user status updates
 - [ ] ChatHub: 1:1 messaging
@@ -180,8 +237,10 @@ Implement real-time notifications and chat using ASP.NET Core SignalR.
 - [x] Add retry jobs for failed notifications.
 - [x] Add periodic synchronization tasks for external integrations.
 - [x] Cursor-based pagination for orphaned ProductData cleanup to bound memory usage at scale.
-- [x] Distributed locking (`SELECT ... FOR UPDATE SKIP LOCKED` or claim column) for email retry to prevent duplicate sends in multi-instance deployments.
-- [x] Migrate from `PeriodicTimer` to Quartz.NET (or TickerQ) for CRON scheduling, persistent job state, and distributed locking.
+- [x] Distributed locking (`SELECT ... FOR UPDATE SKIP LOCKED` or claim column) for email retry to prevent duplicate
+  sends in multi-instance deployments.
+- [x] Migrate from `PeriodicTimer` to Quartz.NET (or TickerQ) for CRON scheduling, persistent job state, and distributed
+  locking.
 
 ## Permissions
 
@@ -194,15 +253,17 @@ Implement real-time notifications and chat using ASP.NET Core SignalR.
 - [ ] Add storage abstraction for local and S3-compatible backends.
 - [ ] Add cleanup workflow for orphaned files.
 
-
 ## Soft delete and Data Retention
+
 - [x] Hard delete for soft-deleted products after a configurable retention period.
 - [x] Add workflow for permanently deleting soft-deleted products after retention period.
-- [ ] Wolverine durable outbox or CAP for reliable messaging and eventual consistency in data deletion across related entities. (WolverineFx is now integrated as the in-process mediator; durable outbox mode can be enabled when needed.)
+- [ ] Wolverine durable outbox or CAP for reliable messaging and eventual consistency in data deletion across related
+  entities. (WolverineFx is now integrated as the in-process mediator; durable outbox mode can be enabled when needed.)
 
 ## Result Pattern
 
-- [x] Introduce `Result<T>` pattern (e.g. via `OneOf` or custom type) for expected failures instead of exceptions as flow control.
+- [x] Introduce `Result<T>` pattern (e.g. via `OneOf` or custom type) for expected failures instead of exceptions as
+  flow control.
 - [x] Migrate validation, not-found, and conflict scenarios from exceptions to explicit return types.
 
 ## Testing Improvements
@@ -210,12 +271,15 @@ Implement real-time notifications and chat using ASP.NET Core SignalR.
 - [x] Migrate key integration tests from in-memory EF Core to Testcontainers PostgreSQL for realistic database behavior.
 - [x] Add tests covering PostgreSQL-specific behavior: migrations, `xmin` concurrency tokens, full-text search queries.
 - [ ] Add infrastructure smoke tests (startup validation, OpenAPI parity across modules).
-- [ ] Extract shared test utilities into `Tests.Common` library (`AsyncPoll` for eventual consistency, `TestDatabaseLifecycle`, `TestDataHelper`).
-- [ ] Implement abstract `ServiceFactoryBase<TProgram>` for consistent `WebApplicationFactory` configuration across module tests.
+- [ ] Extract shared test utilities into `Tests.Common` library (`AsyncPoll` for eventual consistency,
+  `TestDatabaseLifecycle`, `TestDataHelper`).
+- [ ] Implement abstract `ServiceFactoryBase<TProgram>` for consistent `WebApplicationFactory` configuration across
+  module tests.
 
 ## Modularization (Phase 1)
 
-- [x] Split `AppDbContext` into per-module contexts (ProductCatalogDbContext, ReviewsDbContext, IdentityDbContext, etc.).
+- [x] Split `AppDbContext` into per-module contexts (ProductCatalogDbContext, ReviewsDbContext, IdentityDbContext,
+  etc.).
 - [x] Replace direct cross-module calls (soft-delete cascade rules) with Wolverine integration events.
 - [ ] Add ArchUnitNET or NetArchTest architecture tests to enforce module boundaries.
 - [ ] See `TODO-Architecture.md` for full modular monolith plan.
@@ -224,40 +288,70 @@ Implement real-time notifications and chat using ASP.NET Core SignalR.
 
 ### High Priority
 
-**Tenant Management** — Tenant creation and removal workflows are core functionality for a multi-tenant system. Without them, tenants cannot be fully managed — currently only a bootstrap tenant exists via configuration. Includes tenant creation, admin assignment, deactivation, and complete removal with cascading cleanup of all related data (users, products, categories).
+**Tenant Management** — Tenant creation and removal workflows are core functionality for a multi-tenant system. Without
+them, tenants cannot be fully managed — currently only a bootstrap tenant exists via configuration. Includes tenant
+creation, admin assignment, deactivation, and complete removal with cascading cleanup of all related data (users,
+products, categories).
 
-**Notifications** — Email infrastructure is fully in place (SMTP client, FailedEmail entity, retry jobs with distributed locking). Only business logic is missing — email templates and handlers for registration, tenant invitation, password reset, and role changes. Minimal effort with high UX impact.
+**Notifications** — Email infrastructure is fully in place (SMTP client, FailedEmail entity, retry jobs with distributed
+locking). Only business logic is missing — email templates and handlers for registration, tenant invitation, password
+reset, and role changes. Minimal effort with high UX impact.
 
-**Wolverine Outbox & Handler Tuples** — Enable durable outbox with PostgreSQL persistence and migrate handlers to `(ErrorOr<T>, OutgoingMessages)` return types. Provides transactional message delivery guarantees without external message broker. Foundation for reliable cross-module communication.
+**Wolverine Outbox & Handler Tuples** — Enable durable outbox with PostgreSQL persistence and migrate handlers to
+`(ErrorOr<T>, OutgoingMessages)` return types. Provides transactional message delivery guarantees without external
+message broker. Foundation for reliable cross-module communication.
 
-**Wolverine Validation Middleware** — `ErrorOrValidationMiddleware` eliminates manual FluentValidation calls in every handler. Automatic, consistent validation across all commands with proper ErrorOr integration. Low effort, high consistency impact.
+**Wolverine Validation Middleware** — `ErrorOrValidationMiddleware` eliminates manual FluentValidation calls in every
+handler. Automatic, consistent validation across all commands with proper ErrorOr integration. Low effort, high
+consistency impact.
 
 ### Medium Priority
 
-**Modularization (Phase 1)** — Split the monolith into isolated modules (ProductCatalog, Reviews, Identity, Notifications, FileStorage, BackgroundJobs, Webhooks). Includes splitting `AppDbContext` into per-module contexts, replacing direct cross-module calls with Wolverine integration events, and adding architecture tests to enforce boundaries. Prepares the project for future extraction without changing business logic. See `TODO-Architecture.md` for the full plan.
+**Modularization (Phase 1)** — Split the monolith into isolated modules (ProductCatalog, Reviews, Identity,
+Notifications, FileStorage, BackgroundJobs, Webhooks). Includes splitting `AppDbContext` into per-module contexts,
+replacing direct cross-module calls with Wolverine integration events, and adding architecture tests to enforce
+boundaries. Prepares the project for future extraction without changing business logic. See `TODO-Architecture.md` for
+the full plan.
 
-**Request Context & Observability** — Enhance middleware with tenant tracing, metrics enrichment, and intelligent Serilog log levels. Improves debugging, monitoring, and distributed trace correlation with minimal code changes.
+**Request Context & Observability** — Enhance middleware with tenant tracing, metrics enrichment, and intelligent
+Serilog log levels. Improves debugging, monitoring, and distributed trace correlation with minimal code changes.
 
-**Exception Handling & Logging Redaction** — Structured error metadata in ProblemDetails, differentiated log levels by status code, and data classification for log redaction (HMAC for sensitive, erase for personal). Security and observability improvement.
+**Exception Handling & Logging Redaction** — Structured error metadata in ProblemDetails, differentiated log levels by
+status code, and data classification for log redaction (HMAC for sensitive, erase for personal). Security and
+observability improvement.
 
-**Authentication Enhancements** — Tenant claim validation in JWT, Keycloak claims mapping, and OpenAPI security transformers. Strengthens multi-tenant security and improves API documentation accuracy.
+**Authentication Enhancements** — Tenant claim validation in JWT, Keycloak claims mapping, and OpenAPI security
+transformers. Strengthens multi-tenant security and improves API documentation accuracy.
 
-**Testing Improvements** — Migrate key integration tests from in-memory EF Core to Testcontainers PostgreSQL for realistic database behavior. The in-memory provider does not capture PostgreSQL-specific behavior — `xmin` concurrency tokens, full-text search, migrations, JSON operators. Testcontainers setup already exists in the project and needs to be extended to critical test suites.
+**Testing Improvements** — Migrate key integration tests from in-memory EF Core to Testcontainers PostgreSQL for
+realistic database behavior. The in-memory provider does not capture PostgreSQL-specific behavior — `xmin` concurrency
+tokens, full-text search, migrations, JSON operators. Testcontainers setup already exists in the project and needs to be
+extended to critical test suites.
 
-**Infrastructure Generics** — Make `UnitOfWork` and `RepositoryBase` generic over `DbContext`. Required for per-module context split (Modularization Phase 1) and eliminates tight coupling to `AppDbContext`.
+**Infrastructure Generics** — Make `UnitOfWork` and `RepositoryBase` generic over `DbContext`. Required for per-module
+context split (Modularization Phase 1) and eliminates tight coupling to `AppDbContext`.
 
 ### Lower Priority
 
-**Controller Base Helpers** — Reduce controller boilerplate with `InvokeToActionResultAsync<T>()` and similar methods. Quality-of-life improvement.
+**Controller Base Helpers** — Reduce controller boilerplate with `InvokeToActionResultAsync<T>()` and similar methods.
+Quality-of-life improvement.
 
-**Configuration Validation** — `AddValidatedOptions<TOptions>()` catches invalid configuration at startup instead of runtime. Prevents production configuration bugs.
+**Configuration Validation** — `AddValidatedOptions<TOptions>()` catches invalid configuration at startup instead of
+runtime. Prevents production configuration bugs.
 
-**Output Caching** — Tenant-aware cache policy and expanded coverage. Prevents cross-tenant data leaks and improves cache hit rates.
+**Output Caching** — Tenant-aware cache policy and expanded coverage. Prevents cross-tenant data leaks and improves
+cache hit rates.
 
-**Idempotency** — `IdempotencyActionFilter` for at-most-once semantics on mutation endpoints. Important for webhook receivers and external API integrations.
+**Idempotency** — `IdempotencyActionFilter` for at-most-once semantics on mutation endpoints. Important for webhook
+receivers and external API integrations.
 
-**Result<T> Pattern** — Gradually migrate from exceptions (`ValidationException`, `NotFoundException`) to explicit return types for expected failures. Removes exception throwing overhead in common scenarios and makes method signatures more transparent. Best introduced incrementally, starting with new features.
+**Result<T> Pattern** — Gradually migrate from exceptions (`ValidationException`, `NotFoundException`) to explicit
+return types for expected failures. Removes exception throwing overhead in common scenarios and makes method signatures
+more transparent. Best introduced incrementally, starting with new features.
 
-**Contracts NuGet Package** — Extract request/response DTOs into a standalone package. Allows clients to reference only contracts without depending on the Application layer. Essential for sharing types with frontend clients.
+**Contracts NuGet Package** — Extract request/response DTOs into a standalone package. Allows clients to reference only
+contracts without depending on the Application layer. Essential for sharing types with frontend clients.
 
-**Permissions** — Extend the 3-tier role model (PlatformAdmin, TenantAdmin, User) with finer-grained policy-based access control. Per-action and per-resource permissions enable more granular access control without needing to create new roles for every combination of privileges.
+**Permissions** — Extend the 3-tier role model (PlatformAdmin, TenantAdmin, User) with finer-grained policy-based access
+control. Per-action and per-resource permissions enable more granular access control without needing to create new roles
+for every combination of privileges.

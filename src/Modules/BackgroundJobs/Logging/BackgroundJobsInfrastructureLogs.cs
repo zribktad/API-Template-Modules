@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 namespace BackgroundJobs.Logging;
 
 /// <summary>
-/// Source-generated logger extension methods for BackgroundJobs infrastructure diagnostics.
+///     Source-generated logger extension methods for BackgroundJobs infrastructure diagnostics.
 /// </summary>
 internal static partial class BackgroundJobsInfrastructureLogs
 {

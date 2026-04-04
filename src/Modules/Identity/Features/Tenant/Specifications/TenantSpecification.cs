@@ -1,17 +1,18 @@
-using Identity.Features.Tenant.DTOs;
-using Identity.Features.Tenant.Mappings;
 using Ardalis.Specification;
+using Identity.Features.Tenant.Mappings;
 using TenantEntity = Identity.Entities.Tenant;
 
 namespace Identity.Features.Tenant.Specifications;
 
 /// <summary>
-/// Ardalis specification that retrieves a filtered and sorted list of tenants projected to <see cref="TenantResponse"/>.
+///     Ardalis specification that retrieves a filtered and sorted list of tenants projected to
+///     <see cref="TenantResponse" />.
 /// </summary>
 public sealed class TenantSpecification : Specification<TenantEntity, TenantResponse>
 {
     /// <summary>
-    /// Initialises the specification by applying filter criteria, sort order, and projection from the given <paramref name="filter"/>.
+    ///     Initialises the specification by applying filter criteria, sort order, and projection from the given
+    ///     <paramref name="filter" />.
     /// </summary>
     public TenantSpecification(TenantFilter filter)
     {
@@ -21,4 +22,3 @@ public sealed class TenantSpecification : Specification<TenantEntity, TenantResp
         Query.Select(TenantMappings.Projection);
     }
 }
-

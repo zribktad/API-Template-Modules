@@ -1,13 +1,12 @@
 using ErrorOr;
 using HotChocolate.Authorization;
-using SharedKernel.Contracts.Security;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Mutations;
 
 /// <summary>
-/// Hot Chocolate mutation type extension that adds product-review write operations
-/// (create and delete) to the <see cref="ProductMutations"/> root type.
+///     Hot Chocolate mutation type extension that adds product-review write operations
+///     (create and delete) to the <see cref="ProductMutations" /> root type.
 /// </summary>
 [Authorize]
 [ExtendObjectType(typeof(ProductMutations))]
@@ -27,7 +26,7 @@ public class ProductReviewMutations
         return result.ToGraphQLResult();
     }
 
-    /// <summary>Deletes a product review by its ID and returns <see langword="true"/> on success.</summary>
+    /// <summary>Deletes a product review by its ID and returns <see langword="true" /> on success.</summary>
     [Authorize(Policy = Permission.ProductReviews.Delete)]
     public async Task<bool> DeleteProductReview(
         Guid id,
@@ -43,4 +42,3 @@ public class ProductReviewMutations
         return true;
     }
 }
-

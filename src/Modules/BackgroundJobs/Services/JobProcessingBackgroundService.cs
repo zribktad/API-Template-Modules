@@ -9,8 +9,8 @@ using Wolverine;
 namespace BackgroundJobs.Services;
 
 /// <summary>
-/// Hosted background service that dequeues job IDs from <see cref="IJobQueueReader"/>, simulates
-/// multi-step processing with progress updates, and dispatches webhook callbacks on completion or failure.
+///     Hosted background service that dequeues job IDs from <see cref="IJobQueueReader" />, simulates
+///     multi-step processing with progress updates, and dispatches webhook callbacks on completion or failure.
 /// </summary>
 public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundService<Guid>
 {
@@ -18,9 +18,9 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
     private const int SimulatedStepDelayMs = 200;
     private const int ProgressPerStep = 20;
     private const string CompletedResultSummary = "Job completed successfully";
+    private readonly ILogger<JobProcessingBackgroundService> _logger;
 
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<JobProcessingBackgroundService> _logger;
     private readonly TimeProvider _timeProvider;
 
     public JobProcessingBackgroundService(

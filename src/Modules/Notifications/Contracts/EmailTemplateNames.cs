@@ -1,8 +1,8 @@
 namespace Notifications.Contracts;
 
 /// <summary>
-/// Central registry of email template identifiers used by <see cref="IEmailTemplateRenderer"/>.
-/// Centralising these strings prevents magic-string duplication across notification handlers.
+///     Central registry of email template identifiers used by <see cref="IEmailTemplateRenderer" />.
+///     Centralising these strings prevents magic-string duplication across notification handlers.
 /// </summary>
 public static class EmailTemplateNames
 {

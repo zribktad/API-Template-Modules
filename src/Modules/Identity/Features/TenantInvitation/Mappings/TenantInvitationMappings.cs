@@ -4,12 +4,14 @@ using TenantInvitationEntity = Identity.Entities.TenantInvitation;
 namespace Identity.Features.TenantInvitation.Mappings;
 
 /// <summary>
-/// Provides LINQ-compatible projection expressions and in-process mapping helpers for <c>TenantInvitation</c> entities.
+///     Provides LINQ-compatible projection expressions and in-process mapping helpers for <c>TenantInvitation</c>
+///     entities.
 /// </summary>
 public static class TenantInvitationMappings
 {
     /// <summary>
-    /// Expression tree used by EF Core to project a <c>TenantInvitation</c> entity directly to a <see cref="TenantInvitationResponse"/> in the database query.
+    ///     Expression tree used by EF Core to project a <c>TenantInvitation</c> entity directly to a
+    ///     <see cref="TenantInvitationResponse" /> in the database query.
     /// </summary>
     public static readonly Expression<
         Func<TenantInvitationEntity, TenantInvitationResponse>
@@ -27,9 +29,11 @@ public static class TenantInvitationMappings
     > CompiledProjection = Projection.Compile();
 
     /// <summary>
-    /// Maps a <c>TenantInvitation</c> entity to a <see cref="TenantInvitationResponse"/> using the pre-compiled projection.
+    ///     Maps a <c>TenantInvitation</c> entity to a <see cref="TenantInvitationResponse" /> using the pre-compiled
+    ///     projection.
     /// </summary>
-    public static TenantInvitationResponse ToResponse(this TenantInvitationEntity invitation) =>
-        CompiledProjection(invitation);
+    public static TenantInvitationResponse ToResponse(this TenantInvitationEntity invitation)
+    {
+        return CompiledProjection(invitation);
+    }
 }
-

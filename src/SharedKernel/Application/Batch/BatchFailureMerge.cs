@@ -3,7 +3,7 @@ using SharedKernel.Application.DTOs;
 namespace SharedKernel.Application.Batch;
 
 /// <summary>
-/// Merges per-item batch failures that share the same index (e.g. missing category and missing product data).
+///     Merges per-item batch failures that share the same index (e.g. missing category and missing product data).
 /// </summary>
 public static class BatchFailureMerge
 {
@@ -12,8 +12,8 @@ public static class BatchFailureMerge
         IEnumerable<BatchResultItem> second
     )
     {
-        var errorsByIndex = new Dictionary<int, List<string>>();
-        var idByIndex = new Dictionary<int, Guid?>();
+        Dictionary<int, List<string>> errorsByIndex = new();
+        Dictionary<int, Guid?> idByIndex = new();
 
         void Accumulate(BatchResultItem item)
         {

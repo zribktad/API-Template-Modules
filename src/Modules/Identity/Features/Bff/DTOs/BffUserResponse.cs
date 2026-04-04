@@ -1,7 +1,8 @@
 namespace Identity.Features.Bff.DTOs;
 
 /// <summary>
-/// Represents the authenticated user's identity and role information returned by the Backend-for-Frontend (BFF) user endpoint.
+///     Represents the authenticated user's identity and role information returned by the Backend-for-Frontend (BFF) user
+///     endpoint.
 /// </summary>
 public sealed record BffUserResponse(
     string? UserId,
@@ -10,4 +11,3 @@ public sealed record BffUserResponse(
     string? TenantId,
     string[] Roles
 );
-

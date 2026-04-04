@@ -1,30 +1,31 @@
-using ProductCatalog.Entities;
-using ProductCatalog.Entities.ProductData;
-
 namespace ProductCatalog.Interfaces;
 
 /// <summary>
-/// Repository contract for <see cref="ProductCatalog.Entities.ProductData.ProductData"/> documents stored in MongoDB.
-/// Provides CRUD and soft-delete operations scoped to the current tenant.
+///     Repository contract for <see cref="ProductCatalog.Entities.ProductData.ProductData" /> documents stored in MongoDB.
+///     Provides CRUD and soft-delete operations scoped to the current tenant.
 /// </summary>
 public interface IProductDataRepository
 {
     /// <summary>Returns the product-data document with the given ID, or <c>null</c> if not found or soft-deleted.</summary>
-    Task<ProductData?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    public Task<ProductData?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>Returns all non-deleted product-data documents whose IDs are in the provided collection.</summary>
-    Task<List<ProductData>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
+    public Task<List<ProductData>> GetByIdsAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken ct = default
+    );
 
     /// <summary>
-    /// Returns all non-deleted product-data documents, optionally filtered by discriminator <paramref name="type"/> (e.g. "image" or "video").
+    ///     Returns all non-deleted product-data documents, optionally filtered by discriminator <paramref name="type" /> (e.g.
+    ///     "image" or "video").
     /// </summary>
-    Task<List<ProductData>> GetAllAsync(string? type = null, CancellationToken ct = default);
+    public Task<List<ProductData>> GetAllAsync(string? type = null, CancellationToken ct = default);
 
     /// <summary>Inserts a new product-data document and returns the persisted instance.</summary>
-    Task<ProductData> CreateAsync(ProductData productData, CancellationToken ct = default);
+    public Task<ProductData> CreateAsync(ProductData productData, CancellationToken ct = default);
 
     /// <summary>Soft-deletes the product-data document with the given ID, recording the actor and timestamp.</summary>
-    Task SoftDeleteAsync(
+    public Task SoftDeleteAsync(
         Guid id,
         Guid actorId,
         DateTime deletedAtUtc,
@@ -32,15 +33,13 @@ public interface IProductDataRepository
     );
 
     /// <summary>
-    /// Soft-deletes all product-data documents belonging to the specified tenant and returns the count of affected documents.
+    ///     Soft-deletes all product-data documents belonging to the specified tenant and returns the count of affected
+    ///     documents.
     /// </summary>
-    Task<long> SoftDeleteByTenantAsync(
+    public Task<long> SoftDeleteByTenantAsync(
         Guid tenantId,
         Guid actorId,
         DateTime deletedAtUtc,
         CancellationToken ct = default
     );
 }
-
-
-

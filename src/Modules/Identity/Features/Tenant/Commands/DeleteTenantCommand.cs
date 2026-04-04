@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity;
 using Wolverine;
 using TenantEntity = Identity.Entities.Tenant;
 
@@ -46,4 +45,3 @@ public sealed class DeleteTenantCommandHandler
         return (Result.Success, messages);
     }
 }
-

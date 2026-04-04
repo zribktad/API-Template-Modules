@@ -6,8 +6,8 @@ namespace ProductCatalog.Persistence;
 
 public sealed class MongoDbHealthCheck : IHealthCheck
 {
-    private readonly MongoDbContext _mongoDbContext;
     private readonly ILogger<MongoDbHealthCheck> _logger;
+    private readonly MongoDbContext _mongoDbContext;
 
     public MongoDbHealthCheck(MongoDbContext mongoDbContext, ILogger<MongoDbHealthCheck> logger)
     {
@@ -32,4 +32,3 @@ public sealed class MongoDbHealthCheck : IHealthCheck
         }
     }
 }
-

@@ -2,7 +2,6 @@ using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,15 +19,16 @@ public class ApiExceptionHandlerTests
 
     public ApiExceptionHandlerTests()
     {
-        var services = new ServiceCollection();
+        ServiceCollection services = new();
         services.AddOptions();
         services.AddProblemDetails(options =>
         {
             options.CustomizeProblemDetails = context =>
             {
                 IDictionary<string, object?> extensions = context.ProblemDetails.Extensions;
-                var errorCode =
-                    extensions.TryGetValue("errorCode", out var code) && code is string existingCode
+                string errorCode =
+                    extensions.TryGetValue("errorCode", out object? code)
+                    && code is string existingCode
                         ? existingCode
                         : ErrorCatalog.General.Unknown;
 
@@ -74,8 +74,8 @@ public class ApiExceptionHandlerTests
     {
         DefaultHttpContext context = CreateHttpContext();
 
-        var handler = new ApiExceptionHandler(_loggerMock.Object, _problemDetailsService);
-        var handled = await handler.TryHandleAsync(
+        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService);
+        bool handled = await handler.TryHandleAsync(
             context,
             exception,
             TestContext.Current.CancellationToken
@@ -102,8 +102,8 @@ public class ApiExceptionHandlerTests
         DefaultHttpContext context = CreateHttpContext();
         context.Request.Path = "/graphql";
 
-        var handler = new ApiExceptionHandler(_loggerMock.Object, _problemDetailsService);
-        var handled = await handler.TryHandleAsync(
+        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService);
+        bool handled = await handler.TryHandleAsync(
             context,
             new InvalidOperationException("boom"),
             TestContext.Current.CancellationToken
@@ -115,13 +115,13 @@ public class ApiExceptionHandlerTests
     [Fact]
     public async Task TryHandleAsync_WhenRequestIsAborted_ReturnsTrueWithoutProblemDetailsBody()
     {
-        using var cts = new CancellationTokenSource();
+        using CancellationTokenSource cts = new();
         DefaultHttpContext context = CreateHttpContext();
         context.RequestAborted = cts.Token;
         cts.Cancel();
 
-        var handler = new ApiExceptionHandler(_loggerMock.Object, _problemDetailsService);
-        var handled = await handler.TryHandleAsync(
+        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService);
+        bool handled = await handler.TryHandleAsync(
             context,
             new OperationCanceledException(cts.Token),
             cts.Token
@@ -134,7 +134,7 @@ public class ApiExceptionHandlerTests
 
     private static DefaultHttpContext CreateHttpContext()
     {
-        var context = new DefaultHttpContext();
+        DefaultHttpContext context = new();
         context.Request.Path = "/api/v1/test";
         context.Response.Body = new MemoryStream();
         return context;

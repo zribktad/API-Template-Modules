@@ -4,9 +4,9 @@ using System.Reflection;
 namespace SharedKernel.Infrastructure.Repositories.Pagination;
 
 /// <summary>
-/// Composes an existing projection expression with a scalar COUNT sub-query
-/// so that EF Core can retrieve both the projected items and the total count
-/// in a single SQL round-trip.
+///     Composes an existing projection expression with a scalar COUNT sub-query
+///     so that EF Core can retrieve both the projected items and the total count
+///     in a single SQL round-trip.
 /// </summary>
 internal static class PagedProjectionBuilder
 {

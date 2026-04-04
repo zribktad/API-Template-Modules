@@ -1,14 +1,11 @@
-using SharedKernel.Application.Context;
-using ProductCatalog.Entities;
-using ProductCatalog.Interfaces;
 using ProductCatalog.Persistence;
 using ProductCatalog.StoredProcedures;
 
 namespace ProductCatalog.Repositories;
 
 /// <summary>
-/// EF Core repository for <see cref="Category"/> that extends the base repository with
-/// stored-procedure-based stats retrieval.
+///     EF Core repository for <see cref="Category" /> that extends the base repository with
+///     stored-procedure-based stats retrieval.
 /// </summary>
 public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepository
 {
@@ -27,8 +24,8 @@ public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepo
     }
 
     /// <summary>
-    /// Retrieves aggregate product statistics for the given category via a stored procedure,
-    /// passing the current tenant ID explicitly to enforce data isolation at the DB level.
+    ///     Retrieves aggregate product statistics for the given category via a stored procedure,
+    ///     passing the current tenant ID explicitly to enforce data isolation at the DB level.
     /// </summary>
     public Task<ProductCategoryStats?> GetStatsByIdAsync(
         Guid categoryId,
@@ -42,6 +39,3 @@ public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepo
         );
     }
 }
-
-
-

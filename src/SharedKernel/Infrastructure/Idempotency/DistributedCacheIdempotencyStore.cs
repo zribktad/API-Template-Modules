@@ -5,9 +5,9 @@ using StackExchange.Redis;
 namespace SharedKernel.Infrastructure.Idempotency;
 
 /// <summary>
-/// Redis/Dragonfly-backed implementation of <see cref="IIdempotencyStore"/> that stores
-/// idempotency cache entries and distributed locks using atomic Lua scripts.
-/// Suitable for multi-instance deployments where in-process state would cause duplicate processing.
+///     Redis/Dragonfly-backed implementation of <see cref="IIdempotencyStore" /> that stores
+///     idempotency cache entries and distributed locks using atomic Lua scripts.
+///     Suitable for multi-instance deployments where in-process state would cause duplicate processing.
 /// </summary>
 public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
 {
@@ -29,7 +29,10 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
         _database = connectionMultiplexer.GetDatabase();
     }
 
-    /// <summary>Returns the cached entry for <paramref name="key"/> if it exists in Redis, or <see langword="null"/> if absent or expired.</summary>
+    /// <summary>
+    ///     Returns the cached entry for <paramref name="key" /> if it exists in Redis, or <see langword="null" /> if
+    ///     absent or expired.
+    /// </summary>
     public async Task<IdempotencyCacheEntry?> TryGetAsync(
         string key,
         CancellationToken ct = default
@@ -42,8 +45,8 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
     }
 
     /// <summary>
-    /// Attempts to set a lock key in Redis using SET NX with the given <paramref name="ttl"/>.
-    /// Returns <see langword="true"/> if the lock was acquired; the lock value is stored locally for later release.
+    ///     Attempts to set a lock key in Redis using SET NX with the given <paramref name="ttl" />.
+    ///     Returns <see langword="true" /> if the lock was acquired; the lock value is stored locally for later release.
     /// </summary>
     public async Task<string?> TryAcquireAsync(
         string key,
@@ -70,7 +73,10 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
         return result.IsNull ? null : lockValue;
     }
 
-    /// <summary>Serialises <paramref name="entry"/> and stores it under <paramref name="key"/> in Redis with the specified <paramref name="ttl"/>.</summary>
+    /// <summary>
+    ///     Serialises <paramref name="entry" /> and stores it under <paramref name="key" /> in Redis with the specified
+    ///     <paramref name="ttl" />.
+    /// </summary>
     public async Task SetAsync(
         string key,
         IdempotencyCacheEntry entry,
@@ -82,7 +88,10 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
         await _database.StringSetAsync(KeyPrefix + key, json, ttl);
     }
 
-    /// <summary>Releases the lock for <paramref name="key"/> using an atomic Lua compare-and-delete script to prevent releasing a lock owned by another instance.</summary>
+    /// <summary>
+    ///     Releases the lock for <paramref name="key" /> using an atomic Lua compare-and-delete script to prevent
+    ///     releasing a lock owned by another instance.
+    /// </summary>
     public async Task ReleaseAsync(string key, string lockToken, CancellationToken ct = default)
     {
         string lockKey = KeyPrefix + key + IdempotencyStoreConstants.LockSuffix;

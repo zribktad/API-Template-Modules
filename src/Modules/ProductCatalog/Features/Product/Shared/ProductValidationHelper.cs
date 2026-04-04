@@ -1,13 +1,11 @@
-using SharedKernel.Application.Batch;
-
 namespace ProductCatalog.Features.Product.Shared;
 
 /// <summary>Shared validation methods for product commands.</summary>
 internal static class ProductValidationHelper
 {
     /// <summary>
-    /// Checks all product references (category and product data) in a single call, merging
-    /// per-item failures from both checks. Items in <paramref name="failedIndices"/> are skipped.
+    ///     Checks all product references (category and product data) in a single call, merging
+    ///     per-item failures from both checks. Items in <paramref name="failedIndices" /> are skipped.
     /// </summary>
     internal static async Task<List<BatchResultItem>> CheckProductReferencesAsync<T>(
         IReadOnlyList<T> items,
@@ -39,8 +37,8 @@ internal static class ProductValidationHelper
     }
 
     /// <summary>
-    /// Checks that all referenced category IDs exist and returns per-item failures for items
-    /// that reference a missing category. Items in <paramref name="failedIndices"/> are skipped.
+    ///     Checks that all referenced category IDs exist and returns per-item failures for items
+    ///     that reference a missing category. Items in <paramref name="failedIndices" /> are skipped.
     /// </summary>
     internal static async Task<List<BatchResultItem>> CheckCategoryReferencesAsync<T>(
         IReadOnlyList<T> items,
@@ -50,7 +48,7 @@ internal static class ProductValidationHelper
         CancellationToken ct
     )
     {
-        var allCategoryIds = items
+        HashSet<Guid> allCategoryIds = items
             .Where(item => categoryIdSelector(item).HasValue)
             .Select(item => categoryIdSelector(item)!.Value)
             .ToHashSet();
@@ -67,9 +65,9 @@ internal static class ProductValidationHelper
         if (allCategoryIds.Count == 0)
             return [];
 
-        var failures = new List<BatchResultItem>();
+        List<BatchResultItem> failures = new();
 
-        for (var i = 0; i < items.Count; i++)
+        for (int i = 0; i < items.Count; i++)
         {
             if (failedIndices.Contains(i))
                 continue;
@@ -92,8 +90,8 @@ internal static class ProductValidationHelper
     }
 
     /// <summary>
-    /// Checks that all referenced product-data IDs exist and returns per-item failures for items
-    /// that reference missing product data. Items in <paramref name="failedIndices"/> are skipped.
+    ///     Checks that all referenced product-data IDs exist and returns per-item failures for items
+    ///     that reference missing product data. Items in <paramref name="failedIndices" /> are skipped.
     /// </summary>
     internal static async Task<List<BatchResultItem>> CheckProductDataReferencesAsync<T>(
         IReadOnlyList<T> items,
@@ -112,18 +110,22 @@ internal static class ProductValidationHelper
         if (allProductDataIds.Length == 0)
             return [];
 
-        var existingIds = (await productDataRepository.GetByIdsAsync(allProductDataIds, ct))
+        HashSet<Guid> existingIds = (
+            await productDataRepository.GetByIdsAsync(allProductDataIds, ct)
+        )
             .Select(pd => pd.Id)
             .ToHashSet();
 
-        var missingIds = allProductDataIds.Where(id => !existingIds.Contains(id)).ToHashSet();
+        HashSet<Guid> missingIds = allProductDataIds
+            .Where(id => !existingIds.Contains(id))
+            .ToHashSet();
 
         if (missingIds.Count == 0)
             return [];
 
-        var failures = new List<BatchResultItem>();
+        List<BatchResultItem> failures = new();
 
-        for (var i = 0; i < items.Count; i++)
+        for (int i = 0; i < items.Count; i++)
         {
             if (failedIndices.Contains(i))
                 continue;

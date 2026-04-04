@@ -1,5 +1,3 @@
-using BackgroundJobs.Domain;
-
 namespace BackgroundJobs.Features;
 
 public sealed record SubmitJobCommand(SubmitJobRequest Request);
@@ -49,8 +47,8 @@ public sealed class SubmitJobCommandHandler
             );
 
             return Error.Failure(
-                code: SharedKernel.Application.Errors.ErrorCatalog.General.Unknown,
-                description: "Failed to enqueue job for processing."
+                ErrorCatalog.General.Unknown,
+                "Failed to enqueue job for processing."
             );
         }
 

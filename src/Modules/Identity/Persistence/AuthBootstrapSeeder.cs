@@ -1,14 +1,13 @@
 using Identity.Options;
 using Identity.ValueObjects;
-using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Identity.Persistence;
 
 /// <summary>
-/// Seeds the bootstrap tenant on application startup, creating it if absent or restoring it
-/// if it was previously soft-deleted or deactivated.
+///     Seeds the bootstrap tenant on application startup, creating it if absent or restoring it
+///     if it was previously soft-deleted or deactivated.
 /// </summary>
 public sealed class AuthBootstrapSeeder
 {
@@ -36,16 +35,20 @@ public sealed class AuthBootstrapSeeder
         await SaveIfChangedAsync(hasChanges, ct);
     }
 
-    private TenantIdentity GetTenantIdentity() =>
-        new(_tenantOptions.Code.Trim(), _tenantOptions.Name.Trim());
+    private TenantIdentity GetTenantIdentity()
+    {
+        return new TenantIdentity(_tenantOptions.Code.Trim(), _tenantOptions.Name.Trim());
+    }
 
-    private Task<Tenant?> FindTenantAsync(string tenantCode, CancellationToken ct) =>
-        _dbContext
+    private Task<Tenant?> FindTenantAsync(string tenantCode, CancellationToken ct)
+    {
+        return _dbContext
             .Tenants.IgnoreQueryFilters([
                 GlobalQueryFilterNames.SoftDelete,
                 GlobalQueryFilterNames.Tenant,
             ])
             .FirstOrDefaultAsync(t => t.Code.Value == tenantCode, ct);
+    }
 
     private bool CreateTenant(TenantIdentity tenantIdentity)
     {
@@ -84,9 +87,10 @@ public sealed class AuthBootstrapSeeder
         return true;
     }
 
-    private Task SaveIfChangedAsync(bool hasChanges, CancellationToken ct) =>
-        hasChanges ? _dbContext.SaveChangesAsync(ct) : Task.CompletedTask;
+    private Task SaveIfChangedAsync(bool hasChanges, CancellationToken ct)
+    {
+        return hasChanges ? _dbContext.SaveChangesAsync(ct) : Task.CompletedTask;
+    }
 
     private readonly record struct TenantIdentity(string Code, string Name);
 }
-

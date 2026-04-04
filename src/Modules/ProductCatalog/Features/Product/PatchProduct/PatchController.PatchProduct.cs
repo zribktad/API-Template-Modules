@@ -1,9 +1,6 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Contracts.Security;
 using SystemTextJsonPatch;
-using Wolverine;
 
 namespace ProductCatalog.Features.Product.PatchProduct;
 

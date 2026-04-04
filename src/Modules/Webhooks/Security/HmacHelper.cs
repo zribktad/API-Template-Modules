@@ -4,11 +4,14 @@ using System.Text;
 namespace Webhooks.Security;
 
 /// <summary>
-/// Internal helper that computes the HMAC-SHA256 signature over a timestamp-prefixed payload.
+///     Internal helper that computes the HMAC-SHA256 signature over a timestamp-prefixed payload.
 /// </summary>
 internal static class HmacHelper
 {
-    public static byte[] GetKeyBytes(string secret) => Encoding.UTF8.GetBytes(secret);
+    public static byte[] GetKeyBytes(string secret)
+    {
+        return Encoding.UTF8.GetBytes(secret);
+    }
 
     public static byte[] ComputeHash(byte[] keyBytes, string timestamp, string payload)
     {
@@ -17,7 +20,3 @@ internal static class HmacHelper
         return HMACSHA256.HashData(keyBytes, contentBytes);
     }
 }
-
-
-
-

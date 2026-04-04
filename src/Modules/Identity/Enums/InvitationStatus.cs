@@ -1,7 +1,7 @@
 namespace Identity.Enums;
 
 /// <summary>
-/// Represents the lifecycle state of a <see cref="Entities.TenantInvitation"/>.
+///     Represents the lifecycle state of a <see cref="Entities.TenantInvitation" />.
 /// </summary>
 public enum InvitationStatus
 {
@@ -17,4 +17,3 @@ public enum InvitationStatus
     /// <summary>The invitation was revoked by a tenant administrator before it could be accepted.</summary>
     Revoked = 3,
 }
-

@@ -6,18 +6,19 @@ using Notifications.Contracts;
 namespace Notifications.Services;
 
 /// <summary>
-/// Renders Liquid email templates embedded as assembly resources using the Fluid library.
-/// Parsed templates are cached in a <see cref="ConcurrentDictionary{TKey,TValue}"/> to avoid
-/// repeated parsing across requests.
+///     Renders Liquid email templates embedded as assembly resources using the Fluid library.
+///     Parsed templates are cached in a <see cref="ConcurrentDictionary{TKey,TValue}" /> to avoid
+///     repeated parsing across requests.
 /// </summary>
 public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
 {
     private static readonly FluidParser Parser = new();
     private static readonly Assembly ResourceAssembly = typeof(FluidEmailTemplateRenderer).Assembly;
+
     private static readonly ConcurrentDictionary<string, Lazy<Task<IFluidTemplate>>> TemplateCache =
         new(StringComparer.Ordinal);
 
-    /// <summary>Retrieves (or parses and caches) the named template and renders it against <paramref name="model"/>.</summary>
+    /// <summary>Retrieves (or parses and caches) the named template and renders it against <paramref name="model" />.</summary>
     public async Task<string> RenderAsync(
         string templateName,
         object model,
@@ -25,7 +26,7 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
     )
     {
         IFluidTemplate template = await GetOrParseTemplateAsync(templateName);
-        var context = new TemplateContext(model);
+        TemplateContext context = new(model);
         return await template.RenderAsync(context);
     }
 
@@ -65,16 +66,18 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
         string templateContent = await LoadTemplateAsync(templateName);
 
         if (!Parser.TryParse(templateContent, out IFluidTemplate? template, out string? error))
+        {
             throw new InvalidOperationException(
                 $"Failed to parse email template '{templateName}': {error}"
             );
+        }
 
         return template;
     }
 
     private static async Task<string> LoadTemplateAsync(string templateName)
     {
-        var resourceName = $"{ResourceAssembly.GetName().Name}.{templateName}.liquid";
+        string resourceName = $"{ResourceAssembly.GetName().Name}.{templateName}.liquid";
 
         await using Stream stream =
             ResourceAssembly.GetManifestResourceStream(resourceName)
@@ -82,7 +85,7 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
                 $"Email template '{templateName}' not found as embedded resource '{resourceName}'."
             );
 
-        using var reader = new StreamReader(stream);
+        using StreamReader reader = new(stream);
         return await reader.ReadToEndAsync();
     }
 }

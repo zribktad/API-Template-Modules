@@ -1,8 +1,5 @@
-using Identity.Features.User.DTOs;
-using SharedKernel.Domain.Entities.Contracts;
-using Identity.Features.User.Specifications;
-using Identity.Interfaces;
 using ErrorOr;
+using Identity.Features.User.Specifications;
 
 namespace Identity.Features.User;
 
@@ -26,4 +23,3 @@ public sealed class GetUserByIdQueryHandler
         return result;
     }
 }
-

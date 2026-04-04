@@ -20,10 +20,9 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        ErrorOr<PagedResponse<UserResponse>> result = await bus.InvokeAsync<ErrorOr<PagedResponse<UserResponse>>>(
-            new GetUsersQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<UserResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<UserResponse>>
+        >(new GetUsersQuery(filter), ct);
         return result.ToActionResult(this);
     }
 
@@ -59,18 +58,29 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
 
     [HttpPost]
     [RequirePermission(Permission.Users.Create)]
-    public async Task<ActionResult<UserResponse>> Create(CreateUserRequest request, CancellationToken ct)
+    public async Task<ActionResult<UserResponse>> Create(
+        CreateUserRequest request,
+        CancellationToken ct
+    )
     {
         ErrorOr<UserResponse> result = await bus.InvokeAsync<ErrorOr<UserResponse>>(
             new CreateUserCommand(request),
             ct
         );
-        return result.ToCreatedResult(this, v => new { id = v.Id, version = this.GetApiVersion() });
+        return result.ToCreatedResult(
+            this,
+            nameof(GetById),
+            v => new { id = v.Id, version = this.GetApiVersion() }
+        );
     }
 
     [HttpPut("{id:guid}")]
     [RequirePermission(Permission.Users.Update)]
-    public async Task<IActionResult> Update(Guid id, UpdateUserRequest request, CancellationToken ct)
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdateUserRequest request,
+        CancellationToken ct
+    )
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
             new UpdateUserCommand(id, request),
@@ -84,7 +94,7 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
     public async Task<IActionResult> Activate(Guid id, CancellationToken ct)
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
-            new SetUserActiveCommand(id, IsActive: true),
+            new SetUserActiveCommand(id, true),
             ct
         );
         return result.ToNoContentResult(this);
@@ -95,7 +105,7 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken ct)
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
-            new SetUserActiveCommand(id, IsActive: false),
+            new SetUserActiveCommand(id, false),
             ct
         );
         return result.ToNoContentResult(this);
@@ -103,7 +113,11 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
 
     [HttpPatch("{id:guid}/role")]
     [RequirePermission(Permission.Users.Update)]
-    public async Task<IActionResult> ChangeRole(Guid id, ChangeUserRoleRequest request, CancellationToken ct)
+    public async Task<IActionResult> ChangeRole(
+        Guid id,
+        ChangeUserRoleRequest request,
+        CancellationToken ct
+    )
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
             new ChangeUserRoleCommand(id, request),
@@ -125,7 +139,10 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
 
     [HttpPost("password-reset")]
     [AllowAnonymous]
-    public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetRequest request, CancellationToken ct)
+    public async Task<IActionResult> RequestPasswordReset(
+        RequestPasswordResetRequest request,
+        CancellationToken ct
+    )
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
             new KeycloakPasswordResetCommand(request),
@@ -134,4 +151,3 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
         return result.ToOkResult(this);
     }
 }
-

@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace ProductCatalog.Features.Product.UpdateProducts;
 
 /// <summary>
-/// Carries the replacement data for an existing product, subject to the same validation constraints as <see cref="CreateProductRequest"/>.
+///     Carries the replacement data for an existing product, subject to the same validation constraints as
+///     <see cref="CreateProductRequest" />.
 /// </summary>
 public sealed record UpdateProductRequest(
     [NotEmpty(ErrorMessage = "Product name is required.")]

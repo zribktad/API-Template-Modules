@@ -8,7 +8,9 @@ public static class WolverineHandlerChainExtensions
     public static bool ShouldApplyErrorOrValidation(
         this HandlerChain chain,
         params Assembly[] validatorAssemblies
-    ) =>
-        validatorAssemblies.Any(chain.MessageType.HasValidatorIn)
-        && chain.Handlers.Any(handler => handler.Method.ReturnType.IsErrorOrReturnType());
+    )
+    {
+        return validatorAssemblies.Any(chain.MessageType.HasValidatorIn)
+            && chain.Handlers.Any(handler => handler.Method.ReturnType.IsErrorOrReturnType());
+    }
 }

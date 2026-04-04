@@ -1,10 +1,7 @@
-using Identity.Entities;
-using SharedKernel.Application.Sorting;
-
 namespace Identity.Features.User;
 
 /// <summary>
-/// Defines the sortable fields available for user queries and maps them to entity property expressions.
+///     Defines the sortable fields available for user queries and maps them to entity property expressions.
 /// </summary>
 public static class UserSortFields
 {
@@ -18,4 +15,3 @@ public static class UserSortFields
         .Add(CreatedAt, u => u.Audit.CreatedAtUtc)
         .Default(u => u.Audit.CreatedAtUtc);
 }
-

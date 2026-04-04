@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ProductCatalog.Features.Category.CreateCategories;
 
 /// <summary>
-/// Carries a list of category items to be created in a single batch operation; accepts between 1 and 100 items.
+///     Carries a list of category items to be created in a single batch operation; accepts between 1 and 100 items.
 /// </summary>
 public sealed record CreateCategoriesRequest(
     [MinLength(1, ErrorMessage = "At least one item is required.")]

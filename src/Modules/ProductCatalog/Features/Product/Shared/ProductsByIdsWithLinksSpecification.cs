@@ -4,8 +4,8 @@ using ProductEntity = ProductCatalog.Entities.Product;
 namespace ProductCatalog.Features.Product.Shared;
 
 /// <summary>
-/// Ardalis specification that loads multiple products by their IDs and eagerly includes
-/// their <c>ProductDataLinks</c> collections, used for batch update and delete operations.
+///     Ardalis specification that loads multiple products by their IDs and eagerly includes
+///     their <c>ProductDataLinks</c> collections, used for batch update and delete operations.
 /// </summary>
 public sealed class ProductsByIdsWithLinksSpecification : Specification<ProductEntity>
 {

@@ -8,9 +8,9 @@ using Microsoft.Extensions.Logging;
 namespace BackgroundJobs.Services;
 
 /// <summary>
-/// Infrastructure implementation of <see cref="IReindexService"/> that rebuilds bloated
-/// PostgreSQL full-text search indexes using <c>REINDEX INDEX CONCURRENTLY</c>.
-/// Only indexes exceeding the configured bloat threshold are reindexed to minimise disruption.
+///     Infrastructure implementation of <see cref="IReindexService" /> that rebuilds bloated
+///     PostgreSQL full-text search indexes using <c>REINDEX INDEX CONCURRENTLY</c>.
+///     Only indexes exceeding the configured bloat threshold are reindexed to minimise disruption.
 /// </summary>
 public sealed partial class ReindexService : IReindexService
 {

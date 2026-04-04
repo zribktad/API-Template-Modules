@@ -4,9 +4,9 @@ using System.Text.Json;
 namespace Identity.Security.Keycloak;
 
 /// <summary>
-/// Maps Keycloak-specific JWT claims into standard .NET claim types expected by
-/// ASP.NET Core authorization policies (preferred_username → <see cref="ClaimTypes.Name"/>,
-/// realm_access.roles → <see cref="ClaimTypes.Role"/>).
+///     Maps Keycloak-specific JWT claims into standard .NET claim types expected by
+///     ASP.NET Core authorization policies (preferred_username → <see cref="ClaimTypes.Name" />,
+///     realm_access.roles → <see cref="ClaimTypes.Role" />).
 /// </summary>
 public static class KeycloakClaimMapper
 {
@@ -39,7 +39,7 @@ public static class KeycloakClaimMapper
 
         foreach (JsonElement role in roles.EnumerateArray())
         {
-            var value = role.GetString();
+            string? value = role.GetString();
             if (!string.IsNullOrEmpty(value))
                 identity.AddClaim(new Claim(ClaimTypes.Role, value));
         }

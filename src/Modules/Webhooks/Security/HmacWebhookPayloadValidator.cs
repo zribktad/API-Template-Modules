@@ -1,16 +1,14 @@
 using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
 using Webhooks.Contracts;
-using Webhooks.Services;
-using Webhooks.Security;
 
 namespace Webhooks.Security;
 
 public sealed class HmacWebhookPayloadValidator : IWebhookPayloadValidator
 {
     private readonly byte[] _keyBytes;
-    private readonly int _toleranceSeconds;
     private readonly TimeProvider _timeProvider;
+    private readonly int _toleranceSeconds;
 
     public HmacWebhookPayloadValidator(IOptions<WebhookOptions> options, TimeProvider timeProvider)
     {
@@ -44,7 +42,3 @@ public sealed class HmacWebhookPayloadValidator : IWebhookPayloadValidator
         return CryptographicOperations.FixedTimeEquals(hashBytes, signatureBytes);
     }
 }
-
-
-
-

@@ -5,17 +5,18 @@ using VideoProductDataEntity = ProductCatalog.Entities.ProductData.VideoProductD
 namespace ProductCatalog.Features.ProductData.Shared;
 
 /// <summary>
-/// Provides mapping utilities from product data domain entities to their polymorphic response DTOs.
-/// Dispatches to a type-specific mapping method based on the concrete entity type.
+///     Provides mapping utilities from product data domain entities to their polymorphic response DTOs.
+///     Dispatches to a type-specific mapping method based on the concrete entity type.
 /// </summary>
 public static class ProductDataMappings
 {
     /// <summary>
-    /// Maps a <see cref="ProductDataEntity"/> to the appropriate <see cref="ProductDataResponse"/> subtype.
-    /// Throws <see cref="InvalidOperationException"/> for unrecognised entity types.
+    ///     Maps a <see cref="ProductDataEntity" /> to the appropriate <see cref="ProductDataResponse" /> subtype.
+    ///     Throws <see cref="InvalidOperationException" /> for unrecognised entity types.
     /// </summary>
-    public static ProductDataResponse ToResponse(this ProductDataEntity data) =>
-        data switch
+    public static ProductDataResponse ToResponse(this ProductDataEntity data)
+    {
+        return data switch
         {
             ImageProductDataEntity image => image.ToImageResponse(),
             VideoProductDataEntity video => video.ToVideoResponse(),
@@ -23,11 +24,13 @@ public static class ProductDataMappings
                 $"Unknown ProductData type: {data.GetType().Name}"
             ),
         };
+    }
 
     /// <summary>Copies shared fields from the base entity onto an already-populated response record.</summary>
     private static T MapCommon<T>(this ProductDataEntity data, T response, string type)
-        where T : ProductDataResponse =>
-        response with
+        where T : ProductDataResponse
+    {
+        return response with
         {
             Id = data.Id,
             Title = data.Title,
@@ -35,10 +38,12 @@ public static class ProductDataMappings
             CreatedAt = data.CreatedAt,
             Type = type,
         };
+    }
 
-    /// <summary>Maps an <see cref="ImageProductDataEntity"/> to an <see cref="ImageProductDataResponse"/>.</summary>
-    private static ImageProductDataResponse ToImageResponse(this ImageProductDataEntity image) =>
-        image.MapCommon(
+    /// <summary>Maps an <see cref="ImageProductDataEntity" /> to an <see cref="ImageProductDataResponse" />.</summary>
+    private static ImageProductDataResponse ToImageResponse(this ImageProductDataEntity image)
+    {
+        return image.MapCommon(
             new ImageProductDataResponse
             {
                 Width = image.Width,
@@ -48,10 +53,12 @@ public static class ProductDataMappings
             },
             "image"
         );
+    }
 
-    /// <summary>Maps a <see cref="VideoProductDataEntity"/> to a <see cref="VideoProductDataResponse"/>.</summary>
-    private static VideoProductDataResponse ToVideoResponse(this VideoProductDataEntity video) =>
-        video.MapCommon(
+    /// <summary>Maps a <see cref="VideoProductDataEntity" /> to a <see cref="VideoProductDataResponse" />.</summary>
+    private static VideoProductDataResponse ToVideoResponse(this VideoProductDataEntity video)
+    {
+        return video.MapCommon(
             new VideoProductDataResponse
             {
                 DurationSeconds = video.DurationSeconds,
@@ -61,4 +68,5 @@ public static class ProductDataMappings
             },
             "video"
         );
+    }
 }

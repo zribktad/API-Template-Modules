@@ -6,7 +6,7 @@ using SharedKernel.Domain.Options;
 namespace SharedKernel.Infrastructure.UnitOfWork;
 
 /// <summary>
-/// Selects the appropriate EF Core execution strategy based on provider type and transaction options.
+///     Selects the appropriate EF Core execution strategy based on provider type and transaction options.
 /// </summary>
 internal static class UnitOfWorkExecutionStrategyFactory
 {
@@ -25,7 +25,7 @@ internal static class UnitOfWorkExecutionStrategyFactory
             dbContext,
             effectiveOptions.RetryCount ?? 3,
             TimeSpan.FromSeconds(effectiveOptions.RetryDelaySeconds ?? 5),
-            errorCodesToAdd: null
+            null
         );
     }
 }

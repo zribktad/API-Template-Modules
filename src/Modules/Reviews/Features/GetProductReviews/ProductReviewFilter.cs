@@ -1,10 +1,8 @@
-using SharedKernel.Application.Contracts;
-using SharedKernel.Application.DTOs;
-
 namespace Reviews.Features;
 
 /// <summary>
-/// Filter parameters for querying product reviews, supporting filtering by product, user, rating range, date range, sorting, and pagination.
+///     Filter parameters for querying product reviews, supporting filtering by product, user, rating range, date range,
+///     sorting, and pagination.
 /// </summary>
 public sealed record ProductReviewFilter(
     Guid? ProductId = null,

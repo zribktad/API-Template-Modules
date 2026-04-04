@@ -1,8 +1,4 @@
 using ErrorOr;
-using ProductCatalog.Entities;
-using ProductCatalog.Interfaces;
-using SharedKernel.Application.Context;
-using SharedKernel.Contracts.Events;
 using Wolverine;
 
 namespace ProductCatalog.Features.ProductData.CreateVideoProductData;
@@ -19,7 +15,7 @@ public sealed class CreateVideoProductDataCommandHandler
         CancellationToken ct
     )
     {
-        var entity = new VideoProductData
+        VideoProductData entity = new()
         {
             TenantId = tenantProvider.TenantId,
             Title = command.Request.Title,

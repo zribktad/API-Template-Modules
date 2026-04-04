@@ -4,7 +4,8 @@ using ProductEntity = ProductCatalog.Entities.Product;
 namespace ProductCatalog.Features.Product.GetProductById;
 
 /// <summary>
-/// Ardalis specification that fetches a single product by its ID and projects it directly to a <see cref="ProductResponse"/> DTO.
+///     Ardalis specification that fetches a single product by its ID and projects it directly to a
+///     <see cref="ProductResponse" /> DTO.
 /// </summary>
 public sealed class ProductByIdSpecification : Specification<ProductEntity, ProductResponse>
 {

@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace FileStorage.Contracts;
 
 /// <summary>
-/// Configuration for the local file-storage provider, including the base directory, upload size limit,
-/// and allowed file extensions.
+///     Configuration for the local file-storage provider, including the base directory, upload size limit,
+///     and allowed file extensions.
 /// </summary>
 public sealed class FileStorageOptions
 {
@@ -24,7 +24,3 @@ public sealed class FileStorageOptions
     public string[] AllowedExtensions { get; set; } =
     [".jpg", ".png", ".gif", ".pdf", ".csv", ".txt"];
 }
-
-
-
-

@@ -1,7 +1,7 @@
 namespace ProductCatalog.Features.Category.GetCategoryStats;
 
 /// <summary>
-/// Aggregated statistics for a single category, including product count, average price, and total review count.
+///     Aggregated statistics for a single category, including product count, average price, and total review count.
 /// </summary>
 public sealed record ProductCategoryStatsResponse(
     Guid CategoryId,

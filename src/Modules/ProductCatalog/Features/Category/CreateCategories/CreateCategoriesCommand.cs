@@ -1,7 +1,4 @@
 using ErrorOr;
-using ProductCatalog;
-using SharedKernel.Application.Batch;
-using SharedKernel.Contracts.Events;
 using Wolverine;
 using CategoryEntity = ProductCatalog.Entities.Category;
 
@@ -10,7 +7,7 @@ namespace ProductCatalog.Features.Category.CreateCategories;
 /// <summary>Creates multiple categories in a single batch operation.</summary>
 public sealed record CreateCategoriesCommand(CreateCategoriesRequest Request);
 
-/// <summary>Handles <see cref="CreateCategoriesCommand"/> by validating all items and persisting in a single transaction.</summary>
+/// <summary>Handles <see cref="CreateCategoriesCommand" /> by validating all items and persisting in a single transaction.</summary>
 public sealed class CreateCategoriesCommandHandler
 {
     public static async Task<(

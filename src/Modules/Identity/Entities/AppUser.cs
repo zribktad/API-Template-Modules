@@ -3,16 +3,14 @@ using Identity.ValueObjects;
 namespace Identity.Entities;
 
 /// <summary>
-/// Domain entity representing an application user belonging to a tenant.
-/// Tracks identity information, Keycloak linkage, role, and soft-delete state.
+///     Domain entity representing an application user belonging to a tenant.
+///     Tracks identity information, Keycloak linkage, role, and soft-delete state.
 /// </summary>
 public sealed class AppUser : IAuditableTenantEntity, IHasId
 {
-    public Guid Id { get; set; }
-
     /// <summary>
-    /// Original username exactly as entered by the user (preserves casing and formatting).
-    /// Setting this property also updates <see cref="NormalizedUsername"/>.
+    ///     Original username exactly as entered by the user (preserves casing and formatting).
+    ///     Setting this property also updates <see cref="NormalizedUsername" />.
     /// </summary>
     public required string Username
     {
@@ -27,14 +25,14 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     }
 
     /// <summary>
-    /// Uppercase, trimmed version of the username.
-    /// Used for fast database indexing, case-insensitive uniqueness checks, and reliable logins.
+    ///     Uppercase, trimmed version of the username.
+    ///     Used for fast database indexing, case-insensitive uniqueness checks, and reliable logins.
     /// </summary>
     public string NormalizedUsername { get; set; } = string.Empty;
 
     /// <summary>
-    /// Original email exactly as entered by the user. Required for correct email delivery (RFC compliance).
-    /// Setting this property also updates <see cref="NormalizedEmail"/>.
+    ///     Original email exactly as entered by the user. Required for correct email delivery (RFC compliance).
+    ///     Setting this property also updates <see cref="NormalizedEmail" />.
     /// </summary>
     public required Email Email
     {
@@ -47,13 +45,13 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     }
 
     /// <summary>
-    /// Uppercase, trimmed version of the email.
-    /// Used for fast database indexing, case-insensitive uniqueness checks, and reliable logins.
+    ///     Uppercase, trimmed version of the email.
+    ///     Used for fast database indexing, case-insensitive uniqueness checks, and reliable logins.
     /// </summary>
     public string NormalizedEmail { get; set; } = string.Empty;
 
     /// <summary>
-    /// The user's subject ID in Keycloak. Nullable — existing users may not have one yet.
+    ///     The user's subject ID in Keycloak. Nullable — existing users may not have one yet.
     /// </summary>
     public string? KeycloakUserId { get; set; }
 
@@ -65,8 +63,11 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
+    public Guid Id { get; set; }
 
     /// <summary>Returns the canonical form of a username: trimmed and converted to uppercase invariant.</summary>
-    public static string NormalizeUsername(string username) => username.Trim().ToUpperInvariant();
+    public static string NormalizeUsername(string username)
+    {
+        return username.Trim().ToUpperInvariant();
+    }
 }
-

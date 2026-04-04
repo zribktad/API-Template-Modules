@@ -1,6 +1,4 @@
 using ErrorOr;
-using Reviews;
-using Reviews.Domain;
 using SharedKernel.Contracts.Queries.ProductCatalog;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.ProductReview;
@@ -10,16 +8,9 @@ namespace Reviews.Features;
 /// <summary>Creates a new product review for the authenticated user and returns the persisted representation.</summary>
 public sealed record CreateProductReviewCommand(CreateProductReviewRequest Request);
 
-/// <summary>Handles <see cref="CreateProductReviewCommand"/>.</summary>
+/// <summary>Handles <see cref="CreateProductReviewCommand" />.</summary>
 public sealed class CreateProductReviewCommandHandler
 {
-    public sealed record CreateProductReviewState(
-        Guid ProductId,
-        Guid UserId,
-        string? Comment,
-        Rating Rating
-    );
-
     public static async Task<(
         HandlerContinuation,
         CreateProductReviewState?,
@@ -95,4 +86,11 @@ public sealed class CreateProductReviewCommandHandler
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
         return (review.ToResponse(), messages);
     }
+
+    public sealed record CreateProductReviewState(
+        Guid ProductId,
+        Guid UserId,
+        string? Comment,
+        Rating Rating
+    );
 }

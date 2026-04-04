@@ -1,4 +1,3 @@
-using SharedKernel.Application.Search;
 using Ardalis.Specification;
 using Microsoft.EntityFrameworkCore;
 using CategoryEntity = ProductCatalog.Entities.Category;
@@ -6,14 +5,15 @@ using CategoryEntity = ProductCatalog.Entities.Category;
 namespace ProductCatalog.Features.Category.GetCategories;
 
 /// <summary>
-/// Extension methods that apply <see cref="CategoryFilter"/> search criteria to an Ardalis specification builder.
-/// Uses PostgreSQL full-text search (<c>to_tsvector</c> / <c>websearch_to_tsquery</c>) when a query term is present.
+///     Extension methods that apply <see cref="CategoryFilter" /> search criteria to an Ardalis specification builder.
+///     Uses PostgreSQL full-text search (<c>to_tsvector</c> / <c>websearch_to_tsquery</c>) when a query term is present.
 /// </summary>
 internal static class CategoryFilterCriteria
 {
     /// <summary>
-    /// Appends a full-text search predicate to <paramref name="query"/> when <see cref="CategoryFilter.Query"/> is non-empty.
-    /// Searches across the category name and description columns.
+    ///     Appends a full-text search predicate to <paramref name="query" /> when <see cref="CategoryFilter.Query" /> is
+    ///     non-empty.
+    ///     Searches across the category name and description columns.
     /// </summary>
     internal static void ApplyFilter(
         this ISpecificationBuilder<CategoryEntity> query,

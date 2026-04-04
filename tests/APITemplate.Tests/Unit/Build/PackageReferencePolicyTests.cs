@@ -8,7 +8,7 @@ public sealed class PackageReferencePolicyTests
     [Fact]
     public void APITemplateCsproj_CompliesWithPackageFamilyVersionPolicy()
     {
-        var repoRoot = PackagePolicyTestFiles.GetRepoRoot();
+        string repoRoot = PackagePolicyTestFiles.GetRepoRoot();
         PolicyEvaluationResult result = PackageReferencePolicy.Evaluate(
             PackagePolicyTestFiles.ReadProjectXml(repoRoot),
             PackagePolicyTestFiles.ReadCentralPackageXml(repoRoot)

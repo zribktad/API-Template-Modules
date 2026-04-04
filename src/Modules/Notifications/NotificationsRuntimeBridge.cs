@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Notifications;
 using Notifications.Contracts;
 using Notifications.Domain;
 using Notifications.Persistence;
 using Notifications.Repositories;
 using Notifications.Services;
 using Polly;
+using Polly.Retry;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
@@ -55,7 +55,7 @@ public static class NotificationsRuntimeBridge
             builder =>
             {
                 builder.AddRetry(
-                    new()
+                    new RetryStrategyOptions
                     {
                         MaxRetryAttempts = emailOptions.MaxRetryAttempts,
                         BackoffType = DelayBackoffType.Exponential,

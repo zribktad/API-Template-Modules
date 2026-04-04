@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ProductCatalog.Entities;
 using ProductCatalog.ValueObjects;
 
 namespace ProductCatalog.Configurations;
 
-/// <summary>EF Core configuration for the <see cref="Product"/> entity, including price precision and a full-text search GIN index.</summary>
+/// <summary>
+///     EF Core configuration for the <see cref="Product" /> entity, including price precision and a full-text search
+///     GIN index.
+/// </summary>
 public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
@@ -35,4 +37,3 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsTsVectorExpressionIndex("english");
     }
 }
-

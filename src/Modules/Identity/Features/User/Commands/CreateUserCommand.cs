@@ -1,7 +1,6 @@
 using ErrorOr;
 using Identity.Features.User.Mappings;
 using Identity.Logging;
-using Identity;
 using Identity.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Wolverine;
@@ -76,8 +75,8 @@ public sealed class CreateUserCommandHandler
             {
                 logger.CreateUserCompensatingDeleteFailed(compensationEx, keycloakUserId);
             }
+
             throw;
         }
     }
 }
-

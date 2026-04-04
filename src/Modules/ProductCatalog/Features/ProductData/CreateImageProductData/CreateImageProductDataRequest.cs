@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.ProductData.CreateImageProductData;
 
 /// <summary>
-/// Payload for uploading image product data, including dimensions, format, and file size.
-/// Validation constraints are expressed via data annotations and enforced by <c>CreateImageProductDataRequestValidator</c>.
+///     Payload for uploading image product data, including dimensions, format, and file size.
+///     Validation constraints are expressed via data annotations and enforced by
+///     <c>CreateImageProductDataRequestValidator</c>.
 /// </summary>
 public sealed record CreateImageProductDataRequest(
     [NotEmpty(ErrorMessage = "Title is required.")]

@@ -1,5 +1,4 @@
 using ErrorOr;
-using SharedKernel.Application.Context;
 
 namespace ProductCatalog.Features.ProductData.GetProductDataById;
 

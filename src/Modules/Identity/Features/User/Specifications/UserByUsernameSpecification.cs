@@ -1,19 +1,17 @@
 using Ardalis.Specification;
-using Identity.Entities;
 
 namespace Identity.Features.User.Specifications;
 
 /// <summary>
-/// Ardalis specification that filters users by their pre-normalised username.
+///     Ardalis specification that filters users by their pre-normalised username.
 /// </summary>
 public sealed class UserByUsernameSpecification : Specification<AppUser>
 {
     /// <summary>
-    /// Initialises the specification to match the user with the given <paramref name="normalizedUsername"/>.
+    ///     Initialises the specification to match the user with the given <paramref name="normalizedUsername" />.
     /// </summary>
     public UserByUsernameSpecification(string normalizedUsername)
     {
         Query.Where(u => u.NormalizedUsername == normalizedUsername).AsNoTracking();
     }
 }
-

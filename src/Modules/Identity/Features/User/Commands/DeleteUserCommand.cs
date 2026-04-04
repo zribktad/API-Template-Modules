@@ -1,6 +1,5 @@
 using ErrorOr;
 using Identity.Logging;
-using Identity;
 using Microsoft.Extensions.Logging;
 using Wolverine;
 
@@ -47,4 +46,3 @@ public sealed class DeleteUserCommandHandler
         return (Result.Success, messages);
     }
 }
-

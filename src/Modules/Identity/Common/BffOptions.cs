@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Identity.Options;
 
 /// <summary>
-/// Configuration for the Backend-for-Frontend (BFF) session layer, including cookie settings,
-/// requested OIDC scopes, and token refresh thresholds.
+///     Configuration for the Backend-for-Frontend (BFF) session layer, including cookie settings,
+///     requested OIDC scopes, and token refresh thresholds.
 /// </summary>
 public sealed class BffOptions
 {

@@ -1,12 +1,12 @@
 namespace Webhooks.Contracts;
 
 /// <summary>
-/// Represents a pending outgoing webhook delivery, pairing the destination URL with the pre-serialised JSON payload.
+///     Represents a pending outgoing webhook delivery, pairing the destination URL with the pre-serialised JSON payload.
 /// </summary>
 public sealed record OutgoingWebhookItem(string CallbackUrl, string SerializedPayload);
 
 /// <summary>
-/// The strongly-typed payload delivered to a webhook callback URL upon job completion.
+///     The strongly-typed payload delivered to a webhook callback URL upon job completion.
 /// </summary>
 public sealed record OutgoingJobWebhookPayload(
     Guid JobId,
@@ -16,6 +16,3 @@ public sealed record OutgoingJobWebhookPayload(
     string? ErrorMessage,
     DateTime CompletedAtUtc
 );
-
-
-

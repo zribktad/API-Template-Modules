@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.Category.CreateCategories;
 
 /// <summary>
-/// Payload for creating a new category, carrying the name and optional description.
+///     Payload for creating a new category, carrying the name and optional description.
 /// </summary>
 public sealed record CreateCategoryRequest(
     [NotEmpty(ErrorMessage = "Category name is required.")]

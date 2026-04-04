@@ -1,7 +1,7 @@
 namespace SharedKernel.Infrastructure.Resilience;
 
 /// <summary>
-/// Shared retry defaults used when registering resilience pipelines.
+///     Shared retry defaults used when registering resilience pipelines.
 /// </summary>
 public static class ResilienceDefaults
 {

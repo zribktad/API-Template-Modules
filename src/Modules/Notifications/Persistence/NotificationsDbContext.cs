@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Notifications.Contracts;
 using Notifications.Domain;
-using Notifications.Services;
 using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.EntityNormalization;

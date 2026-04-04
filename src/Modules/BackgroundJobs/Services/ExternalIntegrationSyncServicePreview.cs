@@ -4,8 +4,8 @@ using Microsoft.Extensions.Logging;
 namespace BackgroundJobs.Services;
 
 /// <summary>
-/// Placeholder implementation of <see cref="IExternalIntegrationSyncService"/> used until
-/// a real provider-specific synchronization workflow is registered.
+///     Placeholder implementation of <see cref="IExternalIntegrationSyncService" /> used until
+///     a real provider-specific synchronization workflow is registered.
 /// </summary>
 public sealed class ExternalIntegrationSyncServicePreview : IExternalIntegrationSyncService
 {

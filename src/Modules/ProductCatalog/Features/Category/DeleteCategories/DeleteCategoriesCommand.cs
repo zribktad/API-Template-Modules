@@ -1,5 +1,4 @@
 using ErrorOr;
-using ProductCatalog;
 using Wolverine;
 
 namespace ProductCatalog.Features.Category.DeleteCategories;
@@ -7,12 +6,12 @@ namespace ProductCatalog.Features.Category.DeleteCategories;
 /// <summary>Soft-deletes multiple categories in a single batch operation.</summary>
 public sealed record DeleteCategoriesCommand(BatchDeleteRequest Request);
 
-/// <summary>Handles <see cref="DeleteCategoriesCommand"/> by loading all categories and deleting in a single transaction.</summary>
+/// <summary>Handles <see cref="DeleteCategoriesCommand" /> by loading all categories and deleting in a single transaction.</summary>
 public sealed class DeleteCategoriesCommandHandler
 {
     public static async Task<(
         HandlerContinuation,
-        IReadOnlyList<ProductCatalog.Entities.Category>?,
+        IReadOnlyList<Entities.Category>?,
         OutgoingMessages
     )> LoadAsync(
         DeleteCategoriesCommand command,
@@ -24,8 +23,10 @@ public sealed class DeleteCategoriesCommandHandler
         BatchFailureContext<Guid> context = new(ids);
 
         // Load all target categories and mark missing ones as failed
-        IReadOnlyList<ProductCatalog.Entities.Category> categories =
-            await repository.ListAsync(new CategoriesByIdsSpecification(ids.ToHashSet()), ct);
+        IReadOnlyList<Entities.Category> categories = await repository.ListAsync(
+            new CategoriesByIdsSpecification(ids.ToHashSet()),
+            ct
+        );
 
         await context.ApplyRulesAsync(
             ct,
@@ -48,7 +49,7 @@ public sealed class DeleteCategoriesCommandHandler
 
     public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(
         DeleteCategoriesCommand command,
-        IReadOnlyList<ProductCatalog.Entities.Category> categories,
+        IReadOnlyList<Entities.Category> categories,
         ICategoryRepository repository,
         IProductRepository productRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,

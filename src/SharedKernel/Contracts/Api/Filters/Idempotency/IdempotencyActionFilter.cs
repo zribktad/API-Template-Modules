@@ -2,28 +2,26 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using SharedKernel.Application.Contracts;
 
 namespace SharedKernel.Contracts.Api.Filters.Idempotency;
 
 /// <summary>
-/// Filter that enforces idempotency for endpoints decorated with <see cref="IdempotentAttribute"/>.
-/// On the first call the response is stored in <see cref="IIdempotencyStore"/>; subsequent calls with
-/// the same <c>Idempotency-Key</c> header replay the cached response without re-executing the action.
-/// Implements both <see cref="IAsyncActionFilter"/> (key validation, lock acquisition) and
-/// <see cref="IAsyncResultFilter"/> (post-execution caching with accurate headers).
+///     Filter that enforces idempotency for endpoints decorated with <see cref="IdempotentAttribute" />.
+///     On the first call the response is stored in <see cref="IIdempotencyStore" />; subsequent calls with
+///     the same <c>Idempotency-Key</c> header replay the cached response without re-executing the action.
+///     Implements both <see cref="IAsyncActionFilter" /> (key validation, lock acquisition) and
+///     <see cref="IAsyncResultFilter" /> (post-execution caching with accurate headers).
 /// </summary>
 public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFilter
 {
     private const string ContextKey = "__IdempotencyContext";
-
-    private readonly IIdempotencyStore _store;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public IdempotencyActionFilter(
-        IIdempotencyStore store,
-        IOptions<Microsoft.AspNetCore.Mvc.JsonOptions> jsonOptions
-    )
+    private readonly IIdempotencyStore _store;
+
+    public IdempotencyActionFilter(IIdempotencyStore store, IOptions<JsonOptions> jsonOptions)
     {
         _store = store;
         _jsonOptions = jsonOptions.Value.JsonSerializerOptions;
@@ -47,7 +45,7 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
         if (
             !context.HttpContext.Request.Headers.TryGetValue(
                 IdempotencyConstants.HeaderName,
-                out Microsoft.Extensions.Primitives.StringValues keyValues
+                out StringValues keyValues
             ) || string.IsNullOrWhiteSpace(keyValues)
         )
         {
@@ -128,9 +126,7 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
             );
         }
         else
-        {
             await _store.ReleaseAsync(key, lockToken, ct);
-        }
     }
 
     public async Task OnResultExecutionAsync(
@@ -154,9 +150,7 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
 
             string? responseBody = null;
             if (ctx.Result is ObjectResult objectResult && objectResult.Value is not null)
-            {
                 responseBody = JsonSerializer.Serialize(objectResult.Value, _jsonOptions);
-            }
 
             string? contentType = context.HttpContext.Response.ContentType;
             string? locationHeader = context.HttpContext.Response.Headers.Location;

@@ -1,12 +1,8 @@
-using Notifications.Contracts;
-using Notifications.Domain;
-using Notifications.Services;
-
 namespace Notifications.Domain;
 
 /// <summary>
-/// Repository contract for <see cref="FailedEmail"/> records, providing pessimistic-claim operations
-/// used by the email retry background service to prevent duplicate processing.
+///     Repository contract for <see cref="FailedEmail" /> records, providing pessimistic-claim operations
+///     used by the email retry background service to prevent duplicate processing.
 /// </summary>
 public interface IFailedEmailRepository
 {
@@ -14,8 +10,8 @@ public interface IFailedEmailRepository
     Task AddAsync(FailedEmail failedEmail, CancellationToken ct = default);
 
     /// <summary>
-    /// Atomically claims a batch of unclaimed, retryable emails (those below <paramref name="maxRetryAttempts"/>)
-    /// and returns them for processing.
+    ///     Atomically claims a batch of unclaimed, retryable emails (those below <paramref name="maxRetryAttempts" />)
+    ///     and returns them for processing.
     /// </summary>
     Task<List<FailedEmail>> ClaimRetryableBatchAsync(
         int maxRetryAttempts,
@@ -27,8 +23,8 @@ public interface IFailedEmailRepository
     );
 
     /// <summary>
-    /// Atomically claims a batch of emails whose claim lock has expired past <paramref name="cutoff"/>,
-    /// allowing stale claims to be retried.
+    ///     Atomically claims a batch of emails whose claim lock has expired past <paramref name="cutoff" />,
+    ///     allowing stale claims to be retried.
     /// </summary>
     Task<List<FailedEmail>> ClaimExpiredBatchAsync(
         DateTime cutoff,
@@ -45,8 +41,3 @@ public interface IFailedEmailRepository
     /// <summary>Permanently removes a successfully processed failed-email record from the store.</summary>
     Task DeleteAsync(FailedEmail failedEmail, CancellationToken ct = default);
 }
-
-
-
-
-

@@ -1,7 +1,8 @@
 namespace FileStorage.Contracts;
 
 /// <summary>
-/// Carries all data needed to store an uploaded file, including the raw stream, original file name, content type, size, and optional description.
+///     Carries all data needed to store an uploaded file, including the raw stream, original file name, content type,
+///     size, and optional description.
 /// </summary>
 public sealed record UploadFileRequest(
     Stream FileStream,
@@ -10,7 +11,3 @@ public sealed record UploadFileRequest(
     long SizeBytes,
     string? Description
 );
-
-
-
-

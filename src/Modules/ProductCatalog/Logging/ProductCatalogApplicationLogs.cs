@@ -1,10 +1,9 @@
 using Microsoft.Extensions.Logging;
-using SharedKernel.Infrastructure.Logging;
 
 namespace ProductCatalog.Logging;
 
 /// <summary>
-/// Source-generated logger extension methods for ProductCatalog application diagnostics.
+///     Source-generated logger extension methods for ProductCatalog application diagnostics.
 /// </summary>
 internal static partial class ProductCatalogApplicationLogs
 {
@@ -44,4 +43,3 @@ internal static partial class ProductCatalogApplicationLogs
         Guid tenantId
     );
 }
-

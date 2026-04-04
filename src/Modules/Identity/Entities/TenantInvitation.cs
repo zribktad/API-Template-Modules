@@ -1,17 +1,15 @@
 using ErrorOr;
-using Identity.Errors;
 using Identity.ValueObjects;
 
 namespace Identity.Entities;
 
 /// <summary>
-/// Domain entity representing an email invitation for a user to join a tenant.
-/// Holds a hashed token used for secure acceptance and tracks the invitation lifecycle via <see cref="InvitationStatus"/>.
+///     Domain entity representing an email invitation for a user to join a tenant.
+///     Holds a hashed token used for secure acceptance and tracks the invitation lifecycle via
+///     <see cref="InvitationStatus" />.
 /// </summary>
 public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
-    public Guid Id { get; set; }
-
     public Email Email
     {
         get => field;
@@ -32,6 +30,7 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
+    public Guid Id { get; set; }
 
     public static TenantInvitation Create(
         Email email,
@@ -48,8 +47,10 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
         return invitation;
     }
 
-    public bool IsExpired(TimeProvider timeProvider) =>
-        ExpiresAtUtc < timeProvider.GetUtcNow().UtcDateTime;
+    public bool IsExpired(TimeProvider timeProvider)
+    {
+        return ExpiresAtUtc < timeProvider.GetUtcNow().UtcDateTime;
+    }
 
     public ErrorOr<Success> Accept(TimeProvider timeProvider)
     {
@@ -61,8 +62,13 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
         return Result.Success;
     }
 
-    public void Revoke() => Status = InvitationStatus.Revoked;
+    public void Revoke()
+    {
+        Status = InvitationStatus.Revoked;
+    }
 
-    public void RefreshToken(string tokenHash) => TokenHash = tokenHash;
+    public void RefreshToken(string tokenHash)
+    {
+        TokenHash = tokenHash;
+    }
 }
-

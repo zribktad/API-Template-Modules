@@ -16,22 +16,24 @@ public static class ObservabilityServiceCollectionExtensions
         services.AddValidatedOptions<AppOptions>(configuration);
         services.AddValidatedOptions<ObservabilityOptions>(configuration);
 
-        AppOptions appOptions = configuration.SectionFor<AppOptions>().Get<AppOptions>() ?? new();
+        AppOptions appOptions =
+            configuration.SectionFor<AppOptions>().Get<AppOptions>() ?? new AppOptions();
         ObservabilityOptions observabilityOptions =
-            configuration.SectionFor<ObservabilityOptions>().Get<ObservabilityOptions>() ?? new();
+            configuration.SectionFor<ObservabilityOptions>().Get<ObservabilityOptions>()
+            ?? new ObservabilityOptions();
 
-        var serviceName = string.IsNullOrWhiteSpace(appOptions.ServiceName)
+        string serviceName = string.IsNullOrWhiteSpace(appOptions.ServiceName)
             ? "APITemplate"
             : appOptions.ServiceName;
-        var serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString();
-        var enableConsoleExporter =
+        string? serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString();
+        bool enableConsoleExporter =
             observabilityOptions.Exporters.Console.Enabled ?? environment.IsDevelopment();
         Uri? otlpEndpoint = ResolveOtlpEndpoint(observabilityOptions, environment);
 
         OpenTelemetryBuilder openTelemetryBuilder = services
             .AddOpenTelemetry()
             .ConfigureResource(resource =>
-                resource.AddService(serviceName: serviceName, serviceVersion: serviceVersion)
+                resource.AddService(serviceName, serviceVersion: serviceVersion)
             );
 
         openTelemetryBuilder.WithTracing(builder =>
@@ -64,16 +66,14 @@ public static class ObservabilityServiceCollectionExtensions
         IHostEnvironment environment
     )
     {
-        var explicitOtlpEnabled = observabilityOptions.Exporters.Otlp.Enabled == true;
+        bool explicitOtlpEnabled = observabilityOptions.Exporters.Otlp.Enabled == true;
         if (
             explicitOtlpEnabled
             && Uri.TryCreate(observabilityOptions.Otlp.Endpoint, UriKind.Absolute, out Uri? otlpUri)
         )
-        {
             return otlpUri;
-        }
 
-        var aspireEnabled =
+        bool aspireEnabled =
             observabilityOptions.Exporters.Aspire.Enabled ?? environment.IsDevelopment();
         if (
             aspireEnabled
@@ -83,9 +83,7 @@ public static class ObservabilityServiceCollectionExtensions
                 out Uri? aspireUri
             )
         )
-        {
             return aspireUri;
-        }
 
         return null;
     }

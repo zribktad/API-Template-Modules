@@ -3,11 +3,45 @@ using System.Reflection;
 namespace SharedKernel.Contracts.Security;
 
 /// <summary>
-/// Centralised registry of all fine-grained permission string constants used throughout the application.
-/// Nested classes group permissions by domain resource; <see cref="All"/> enumerates every declared permission via reflection.
+///     Centralised registry of all fine-grained permission string constants used throughout the application.
+///     Nested classes group permissions by domain resource; <see cref="All" /> enumerates every declared permission via
+///     reflection.
 /// </summary>
 public static class Permission
 {
+    private static readonly Lazy<IReadOnlySet<string>> LazyAll = new(() =>
+    {
+        HashSet<string> permissions = new(StringComparer.Ordinal);
+        foreach (
+            Type nestedType in typeof(Permission).GetNestedTypes(
+                BindingFlags.Public | BindingFlags.Static
+            )
+        )
+        {
+            foreach (
+                FieldInfo field in nestedType.GetFields(
+                    BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy
+                )
+            )
+            {
+                if (
+                    field.IsLiteral
+                    && field.FieldType == typeof(string)
+                    && field.GetRawConstantValue() is string value
+                )
+                    permissions.Add(value);
+            }
+        }
+
+        return permissions;
+    });
+
+    /// <summary>
+    ///     Returns a lazily-initialised, read-only set containing every permission constant declared
+    ///     across all nested resource classes, discovered via reflection.
+    /// </summary>
+    public static IReadOnlySet<string> All => LazyAll.Value;
+
     /// <summary>Permissions governing product resource access.</summary>
     public static class Products
     {
@@ -77,38 +111,4 @@ public static class Permission
         public const string Upload = "Examples.Upload";
         public const string Download = "Examples.Download";
     }
-
-    private static readonly Lazy<IReadOnlySet<string>> LazyAll = new(() =>
-    {
-        HashSet<string> permissions = new(StringComparer.Ordinal);
-        foreach (
-            Type nestedType in typeof(Permission).GetNestedTypes(
-                BindingFlags.Public | BindingFlags.Static
-            )
-        )
-        {
-            foreach (
-                FieldInfo field in nestedType.GetFields(
-                    BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy
-                )
-            )
-            {
-                if (
-                    field.IsLiteral
-                    && field.FieldType == typeof(string)
-                    && field.GetRawConstantValue() is string value
-                )
-                {
-                    permissions.Add(value);
-                }
-            }
-        }
-        return permissions;
-    });
-
-    /// <summary>
-    /// Returns a lazily-initialised, read-only set containing every permission constant declared
-    /// across all nested resource classes, discovered via reflection.
-    /// </summary>
-    public static IReadOnlySet<string> All => LazyAll.Value;
 }

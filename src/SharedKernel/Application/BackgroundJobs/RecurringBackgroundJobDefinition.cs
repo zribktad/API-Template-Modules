@@ -3,9 +3,9 @@ using SharedKernel.Domain.Entities.Contracts;
 namespace SharedKernel.Application.BackgroundJobs;
 
 /// <summary>
-/// Immutable descriptor for a recurring background job passed from the Application layer to the
-/// Infrastructure scheduler (e.g. Hangfire). Each <see cref="IRecurringBackgroundJobRegistration"/>
-/// produces one instance of this record.
+///     Immutable descriptor for a recurring background job passed from the Application layer to the
+///     Infrastructure scheduler (e.g. Hangfire). Each <see cref="IRecurringBackgroundJobRegistration" />
+///     produces one instance of this record.
 /// </summary>
 /// <param name="Id">Stable identifier for the job, used to upsert the schedule in the scheduler.</param>
 /// <param name="FunctionName">The scheduler entry-point function name (e.g. Hangfire job method name).</param>

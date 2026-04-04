@@ -17,10 +17,9 @@ public sealed class TenantsController(IMessageBus bus) : ApiControllerBase
         CancellationToken ct
     )
     {
-        ErrorOr<PagedResponse<TenantResponse>> result = await bus.InvokeAsync<ErrorOr<PagedResponse<TenantResponse>>>(
-            new GetTenantsQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<TenantResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<TenantResponse>>
+        >(new GetTenantsQuery(filter), ct);
         return result.ToActionResult(this);
     }
 
@@ -38,13 +37,20 @@ public sealed class TenantsController(IMessageBus bus) : ApiControllerBase
 
     [HttpPost]
     [RequirePermission(Permission.Tenants.Create)]
-    public async Task<ActionResult<TenantResponse>> Create(CreateTenantRequest request, CancellationToken ct)
+    public async Task<ActionResult<TenantResponse>> Create(
+        CreateTenantRequest request,
+        CancellationToken ct
+    )
     {
         ErrorOr<TenantResponse> result = await bus.InvokeAsync<ErrorOr<TenantResponse>>(
             new CreateTenantCommand(request),
             ct
         );
-        return result.ToCreatedResult(this, v => new { id = v.Id, version = this.GetApiVersion() });
+        return result.ToCreatedResult(
+            this,
+            nameof(GetById),
+            v => new { id = v.Id, version = this.GetApiVersion() }
+        );
     }
 
     [HttpDelete("{id:guid}")]
@@ -58,4 +64,3 @@ public sealed class TenantsController(IMessageBus bus) : ApiControllerBase
         return result.ToNoContentResult(this);
     }
 }
-

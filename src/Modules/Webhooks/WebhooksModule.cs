@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Webhooks.Contracts;
 using Webhooks.Features;
 using Webhooks.Security;
-using Webhooks.Services;
 
 namespace Webhooks;
 
