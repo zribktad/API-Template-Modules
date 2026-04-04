@@ -1,7 +1,7 @@
-using APITemplate.Infrastructure.Webhooks;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options;
 using Shouldly;
+using Webhooks.Contracts;
+using Webhooks.Security;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;

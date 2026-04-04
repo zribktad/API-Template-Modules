@@ -1,4 +1,3 @@
-using APITemplate.Tests.Integration.Postgres;
-using Xunit;
+namespace APITemplate.Tests;
 
-[assembly: AssemblyFixture(typeof(SharedPostgresContainer))]
+file static class AssemblyFixtures { }

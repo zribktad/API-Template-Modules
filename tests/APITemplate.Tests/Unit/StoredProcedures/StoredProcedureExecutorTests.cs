@@ -1,11 +1,5 @@
-using APITemplate.Domain.Interfaces;
-using APITemplate.Infrastructure.Persistence;
-using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using APITemplate.Infrastructure.StoredProcedures;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Application.Context;
-using SharedKernel.Infrastructure.SoftDelete;
+using SharedKernel.Infrastructure.StoredProcedures;
 using Shouldly;
 using Xunit;
 
@@ -16,42 +10,23 @@ public sealed class StoredProcedureExecutorTests
     [Fact]
     public async Task ExecuteAsync_WhenProviderDoesNotSupportRawSql_Throws()
     {
-        await using var dbContext = CreateDbContext();
-        var sut = new StoredProcedureExecutor(dbContext);
+        await using TestEfContext dbContext = CreateDbContext();
+        StoredProcedureExecutor sut = new(dbContext);
 
         await Should.ThrowAsync<InvalidOperationException>(() =>
             sut.ExecuteAsync($"select 1", TestContext.Current.CancellationToken)
         );
     }
 
-    private static AppDbContext CreateDbContext()
+    private static TestEfContext CreateDbContext()
     {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
+        DbContextOptions<TestEfContext> options = new DbContextOptionsBuilder<TestEfContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
-        var stateManager = new AuditableEntityStateManager();
-
-        return new AppDbContext(
-            options,
-            new TestTenantProvider(),
-            new TestActorProvider(),
-            TimeProvider.System,
-            [],
-            new AppUserEntityNormalizationService(),
-            stateManager,
-            new SoftDeleteProcessor(stateManager)
-        );
+        return new TestEfContext(options);
     }
 
-    private sealed class TestTenantProvider : ITenantProvider
-    {
-        public Guid TenantId => Guid.Empty;
-        public bool HasTenant => false;
-    }
-
-    private sealed class TestActorProvider : IActorProvider
-    {
-        public Guid ActorId => Guid.Empty;
-    }
+    private sealed class TestEfContext(DbContextOptions<TestEfContext> options)
+        : DbContext(options);
 }

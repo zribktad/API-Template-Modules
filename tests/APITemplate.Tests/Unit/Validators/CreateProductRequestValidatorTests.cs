@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.TestData;
 using ProductCatalog.Features.Product.CreateProducts;
 using Shouldly;
 using Xunit;
@@ -36,8 +37,10 @@ public class CreateProductRequestValidatorTests
     }
 
     [Theory]
-    [InlineData(-1)]
-    [InlineData(-100.50)]
+    [MemberData(
+        nameof(PriceTheoryData.InvalidNegativeAmounts),
+        MemberType = typeof(PriceTheoryData)
+    )]
     public void Annotation_PriceNegative_IsInvalid(decimal price)
     {
         var request = new CreateProductRequest("Valid Name", null, price);

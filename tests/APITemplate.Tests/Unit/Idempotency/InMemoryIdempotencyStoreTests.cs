@@ -5,18 +5,41 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Idempotency;
 
+/// <summary>
+///     Covers in-process idempotency. <see cref="SharedKernel.Infrastructure.Idempotency.DistributedCacheIdempotencyStore" /> depends on Redis Lua scripts;
+///     add container-backed integration tests if multi-instance lock semantics need automated coverage.
+/// </summary>
 public sealed class InMemoryIdempotencyStoreTests
 {
     private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(5);
 
-    [Fact]
-    public async Task TryAcquireAsync_WhenKeyIsNew_ReturnsLockToken()
+    [Theory]
+    [InlineData("key-1")]
+    [InlineData("tenant:scope:123")]
+    [InlineData("")]
+    public async Task TryAcquireAsync_WhenKeyIsNew_ReturnsLockToken(string key)
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         FakeTimeProvider time = new(DateTimeOffset.UtcNow);
         InMemoryIdempotencyStore store = new(time);
 
-        string? token = await store.TryAcquireAsync("key-1", DefaultTtl, ct);
+        string? token = await store.TryAcquireAsync(key, DefaultTtl, ct);
+
+        token.ShouldNotBeNull();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3600000)]
+    public async Task TryAcquireAsync_VariousTtlsStillAcquires(int ttlMs)
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        InMemoryIdempotencyStore store = new(time);
+        string key = Guid.NewGuid().ToString("N");
+
+        string? token = await store.TryAcquireAsync(key, TimeSpan.FromMilliseconds(ttlMs), ct);
 
         token.ShouldNotBeNull();
     }

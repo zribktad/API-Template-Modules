@@ -1,8 +1,8 @@
-using APITemplate.Infrastructure.Webhooks;
-using APITemplate.Tests.Integration.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options;
 using Shouldly;
+using Webhooks.Contracts;
+using Webhooks.Security;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;
@@ -43,6 +43,22 @@ public class HmacWebhookPayloadValidatorTests
         var timestamp = now.ToUnixTimeSeconds().ToString();
 
         validator.IsValid(payload, "wrong-signature", timestamp).ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData("", "sig", "1")]
+    [InlineData("{}", "", "1")]
+    [InlineData("{}", "sig", "")]
+    public void IsValid_WhenTimestampOrSignatureMissing_ReturnsFalse(
+        string payload,
+        string signature,
+        string timestamp
+    )
+    {
+        var now = DateTimeOffset.UtcNow;
+        var validator = CreateValidator(new FakeTimeProvider(now));
+
+        validator.IsValid(payload, signature, timestamp).ShouldBeFalse();
     }
 
     [Fact]
