@@ -20,6 +20,6 @@ public static class SsrfTheoryData
     public static IEnumerable<object[]> ProhibitedPrivateIpv4Addresses() =>
         MapProhibitedIpv4(IPAddress.Parse);
 
-    private static IEnumerable<object[]> MapProhibitedIpv4<T>(Func<string, T> map) =>
-        ProhibitedIpv4List.Select(ip => new object[] { map(ip) });
+    private static IEnumerable<object[]> MapProhibitedIpv4<T>(Func<string, T> map)
+        where T : notnull => ProhibitedIpv4List.Select(ip => new object[] { map(ip) });
 }
