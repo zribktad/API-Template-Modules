@@ -8,5 +8,8 @@ public sealed class CacheInvalidationHandler
         CacheInvalidationNotification @event,
         IOutputCacheInvalidationService outputCacheInvalidationService,
         CancellationToken ct
-    ) => outputCacheInvalidationService.EvictAsync(@event.CacheTag, ct);
+    )
+    {
+        return outputCacheInvalidationService.EvictAsync(@event.CacheTag, ct);
+    }
 }

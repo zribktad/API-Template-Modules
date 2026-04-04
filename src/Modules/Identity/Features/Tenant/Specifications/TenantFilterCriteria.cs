@@ -1,18 +1,17 @@
 using Ardalis.Specification;
-using Identity.Features.Tenant.DTOs;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Application.Search;
 using TenantEntity = Identity.Entities.Tenant;
 
 namespace Identity.Features.Tenant.Specifications;
 
 /// <summary>
-/// Internal extension that applies shared <see cref="TenantFilter"/> criteria to an Ardalis specification builder.
+///     Internal extension that applies shared <see cref="TenantFilter" /> criteria to an Ardalis specification builder.
 /// </summary>
 internal static class TenantFilterCriteria
 {
     /// <summary>
-    /// Adds a PostgreSQL full-text search predicate on <c>Code</c> and <c>Name</c> when <see cref="TenantFilter.Query"/> is provided.
+    ///     Adds a PostgreSQL full-text search predicate on <c>Code</c> and <c>Name</c> when <see cref="TenantFilter.Query" />
+    ///     is provided.
     /// </summary>
     internal static void ApplyFilter(
         this ISpecificationBuilder<TenantEntity> query,
@@ -36,4 +35,3 @@ internal static class TenantFilterCriteria
         );
     }
 }
-

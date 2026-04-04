@@ -1,13 +1,15 @@
 namespace BackgroundJobs.Domain;
 
 /// <summary>
-/// Provides mapping utilities between <see cref="JobExecution"/> domain entities and <see cref="JobStatusResponse"/> DTOs.
+///     Provides mapping utilities between <see cref="JobExecution" /> domain entities and <see cref="JobStatusResponse" />
+///     DTOs.
 /// </summary>
 public static class JobMappings
 {
-    /// <summary>Maps a <see cref="JobExecution"/> to a <see cref="JobStatusResponse"/>.</summary>
-    public static JobStatusResponse ToResponse(this JobExecution entity) =>
-        new(
+    /// <summary>Maps a <see cref="JobExecution" /> to a <see cref="JobStatusResponse" />.</summary>
+    public static JobStatusResponse ToResponse(this JobExecution entity)
+    {
+        return new JobStatusResponse(
             entity.Id,
             entity.JobType,
             entity.Status,
@@ -20,9 +22,5 @@ public static class JobMappings
             entity.CompletedAtUtc,
             entity.CallbackUrl
         );
+    }
 }
-
-
-
-
-

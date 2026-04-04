@@ -58,7 +58,8 @@ public static class ApiServiceCollectionExtensions
     {
         services.AddValidatedOptions<DragonflyOptions>(configuration);
         DragonflyOptions dragonflyOptions =
-            configuration.SectionFor<DragonflyOptions>().Get<DragonflyOptions>() ?? new();
+            configuration.SectionFor<DragonflyOptions>().Get<DragonflyOptions>()
+            ?? new DragonflyOptions();
 
         if (!string.IsNullOrWhiteSpace(dragonflyOptions.ConnectionString))
         {
@@ -80,12 +81,10 @@ public static class ApiServiceCollectionExtensions
 
             services
                 .AddHealthChecks()
-                .AddRedis(dragonflyOptions.ConnectionString, name: HealthCheckNames.Dragonfly);
+                .AddRedis(dragonflyOptions.ConnectionString, HealthCheckNames.Dragonfly);
         }
         else
-        {
             services.AddDistributedMemoryCache();
-        }
 
         return services;
     }
@@ -100,7 +99,8 @@ public static class ApiServiceCollectionExtensions
         services.AddScoped<IOutputCacheInvalidationService, OutputCacheInvalidationService>();
 
         CachingOptions cachingOptions =
-            configuration.SectionFor<CachingOptions>().Get<CachingOptions>() ?? new();
+            configuration.SectionFor<CachingOptions>().Get<CachingOptions>()
+            ?? new CachingOptions();
 
         services.AddOutputCache(options =>
         {

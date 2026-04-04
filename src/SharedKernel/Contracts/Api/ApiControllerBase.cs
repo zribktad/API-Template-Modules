@@ -8,6 +8,8 @@ namespace SharedKernel.Contracts.Api;
 [Route("api/v{version:apiVersion}/[controller]")]
 public abstract class ApiControllerBase : ControllerBase
 {
-    internal ActionResult<BatchResponse> OkOrUnprocessable(BatchResponse response) =>
-        response.FailureCount > 0 ? UnprocessableEntity(response) : Ok(response);
+    internal ActionResult<BatchResponse> OkOrUnprocessable(BatchResponse response)
+    {
+        return response.FailureCount > 0 ? UnprocessableEntity(response) : Ok(response);
+    }
 }

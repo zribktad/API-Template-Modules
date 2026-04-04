@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Asp.Versioning;
 using Chatting.Features.GetNotificationStream;
-
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Security;
@@ -42,6 +41,3 @@ public sealed class SseController(IMessageBus bus) : ApiControllerBase
         }
     }
 }
-
-
-

@@ -1,5 +1,4 @@
 using ErrorOr;
-using ProductCatalog;
 using Wolverine;
 using ProductRepositoryContract = ProductCatalog.Interfaces.IProductRepository;
 
@@ -8,15 +7,12 @@ namespace ProductCatalog.Features.Product.DeleteProducts;
 /// <summary>Soft-deletes multiple products and their associated data links in a single batch operation.</summary>
 public sealed record DeleteProductsCommand(BatchDeleteRequest Request);
 
-/// <summary>Handles <see cref="DeleteProductsCommand"/> by loading all products, soft-deleting links and products in a single transaction.</summary>
+/// <summary>
+///     Handles <see cref="DeleteProductsCommand" /> by loading all products, soft-deleting links and products in a
+///     single transaction.
+/// </summary>
 public sealed class DeleteProductsCommandHandler
 {
-    public sealed record DeleteProductsState(
-        IReadOnlyList<ProductCatalog.Entities.Product> Products,
-        Guid ActorId,
-        DateTime DeletedAtUtc
-    );
-
     public static async Task<(
         HandlerContinuation,
         DeleteProductsState?,
@@ -35,7 +31,7 @@ public sealed class DeleteProductsCommandHandler
         BatchFailureContext<Guid> context = new(ids);
 
         // Load all target products and mark missing ones as failed
-        IReadOnlyList<ProductCatalog.Entities.Product> products = await repository.ListAsync(
+        IReadOnlyList<Entities.Product> products = await repository.ListAsync(
             new ProductsByIdsWithLinksSpecification(ids.ToHashSet()),
             ct
         );
@@ -93,4 +89,10 @@ public sealed class DeleteProductsCommandHandler
 
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
+
+    public sealed record DeleteProductsState(
+        IReadOnlyList<Entities.Product> Products,
+        Guid ActorId,
+        DateTime DeletedAtUtc
+    );
 }

@@ -1,13 +1,11 @@
 namespace ProductCatalog.Entities;
 
 /// <summary>
-/// Domain entity representing a product category within a tenant.
-/// Acts as an aggregate root that groups related <see cref="Product"/> entities.
+///     Domain entity representing a product category within a tenant.
+///     Acts as an aggregate root that groups related <see cref="Product" /> entities.
 /// </summary>
 public sealed class Category : IAuditableTenantEntity, IHasId
 {
-    public Guid Id { get; set; }
-
     public required string Name
     {
         get => field;
@@ -26,7 +24,5 @@ public sealed class Category : IAuditableTenantEntity, IHasId
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
+    public Guid Id { get; set; }
 }
-
-
-

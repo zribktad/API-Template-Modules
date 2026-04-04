@@ -1,10 +1,9 @@
-using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.Repositories;
 
 /// <summary>
-/// EF Core repository for <see cref="TenantInvitation"/> with token hash and pending-invitation lookup methods.
+///     EF Core repository for <see cref="TenantInvitation" /> with token hash and pending-invitation lookup methods.
 /// </summary>
 public sealed class TenantInvitationRepository
     : RepositoryBase<TenantInvitation>,
@@ -21,21 +20,24 @@ public sealed class TenantInvitationRepository
     public Task<TenantInvitation?> GetNonRevokedByTokenHashAsync(
         string tokenHash,
         CancellationToken ct = default
-    ) =>
-        _db.TenantInvitations.FirstOrDefaultAsync(
+    )
+    {
+        return _db.TenantInvitations.FirstOrDefaultAsync(
             i => i.TokenHash == tokenHash && i.Status != InvitationStatus.Revoked,
             ct
         );
+    }
 
     public Task<bool> HasPendingInvitationAsync(
         string normalizedEmail,
         CancellationToken ct = default
-    ) =>
-        _db
+    )
+    {
+        return _db
             .TenantInvitations.AsNoTracking()
             .AnyAsync(
                 i => i.NormalizedEmail == normalizedEmail && i.Status == InvitationStatus.Pending,
                 ct
             );
+    }
 }
-

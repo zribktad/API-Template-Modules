@@ -6,16 +6,16 @@ using Wolverine;
 namespace BackgroundJobs.Services;
 
 /// <summary>
-/// Infrastructure implementation of <see cref="ICleanupService"/> that orchestrates
-/// scheduled data-hygiene tasks. Cross-module operations (invitations, orphaned product data)
-/// are delegated to owning modules via bus commands. Soft-delete cleanup is local.
+///     Infrastructure implementation of <see cref="ICleanupService" /> that orchestrates
+///     scheduled data-hygiene tasks. Cross-module operations (invitations, orphaned product data)
+///     are delegated to owning modules via bus commands. Soft-delete cleanup is local.
 /// </summary>
 public sealed class CleanupService : ICleanupService
 {
-    private readonly IMessageBus _messageBus;
     private readonly IEnumerable<ISoftDeleteCleanupStrategy> _cleanupStrategies;
-    private readonly TimeProvider _timeProvider;
     private readonly ILogger<CleanupService> _logger;
+    private readonly IMessageBus _messageBus;
+    private readonly TimeProvider _timeProvider;
 
     public CleanupService(
         IMessageBus messageBus,

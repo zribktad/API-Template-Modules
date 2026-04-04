@@ -1,15 +1,15 @@
-using Identity.ValueObjects;
 using Identity.Logging;
+using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Identity.Security.Tenant;
 
 /// <summary>
-/// Provisions a new <see cref="AppUser"/> on first login when an accepted
-/// <see cref="TenantInvitation"/> exists for the authenticated email address.
-/// Idempotent: returns the existing user immediately if one is already linked
-/// to the given Keycloak subject ID.
+///     Provisions a new <see cref="AppUser" /> on first login when an accepted
+///     <see cref="TenantInvitation" /> exists for the authenticated email address.
+///     Idempotent: returns the existing user immediately if one is already linked
+///     to the given Keycloak subject ID.
 /// </summary>
 public sealed class UserProvisioningService : IUserProvisioningService
 {
@@ -18,8 +18,8 @@ public sealed class UserProvisioningService : IUserProvisioningService
     // 2. Both reads use global filter bypass; routing through repositories would require
     //    adding filter-bypass methods to the repository interfaces for a single use case
     private readonly IdentityDbContext _db;
-    private readonly IUnitOfWork<IdentityDbContext> _unitOfWork;
     private readonly ILogger<UserProvisioningService> _logger;
+    private readonly IUnitOfWork<IdentityDbContext> _unitOfWork;
 
     public UserProvisioningService(
         IdentityDbContext db,
@@ -107,4 +107,3 @@ public sealed class UserProvisioningService : IUserProvisioningService
         }
     }
 }
-

@@ -1,10 +1,7 @@
-using Identity.Enums;
-using SharedKernel.Domain.Entities.Contracts;
-
 namespace Identity.Features.User.DTOs;
 
 /// <summary>
-/// Read model returned to callers after a user query or creation.
+///     Read model returned to callers after a user query or creation.
 /// </summary>
 public sealed record UserResponse(
     Guid Id,
@@ -14,4 +11,3 @@ public sealed record UserResponse(
     UserRole Role,
     DateTime CreatedAtUtc
 ) : IHasId;
-

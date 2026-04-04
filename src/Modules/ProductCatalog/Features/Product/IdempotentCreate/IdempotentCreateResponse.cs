@@ -1,9 +1,7 @@
-using SharedKernel.Domain.Entities.Contracts;
-
 namespace ProductCatalog.Features.Product.IdempotentCreate;
 
 /// <summary>
-/// Represents the persisted resource returned after a successful idempotent create operation.
+///     Represents the persisted resource returned after a successful idempotent create operation.
 /// </summary>
 public sealed record IdempotentCreateResponse(
     Guid Id,

@@ -1,7 +1,7 @@
 namespace SharedKernel.Contracts.Api.Filters.Idempotency;
 
 /// <summary>
-/// Shared constants for the idempotency feature: header name, key constraints, and default timeouts.
+///     Shared constants for the idempotency feature: header name, key constraints, and default timeouts.
 /// </summary>
 public static class IdempotencyConstants
 {

@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Identity.Options;
 
 /// <summary>
-/// Configuration for tenant invitation flows, including token lifetime and the application base URL
-/// used when generating invitation links.
+///     Configuration for tenant invitation flows, including token lifetime and the application base URL
+///     used when generating invitation links.
 /// </summary>
 public sealed class TenantInvitationOptions
 {
@@ -18,4 +18,3 @@ public sealed class TenantInvitationOptions
     [MinLength(1)]
     public string BaseUrl { get; set; } = string.Empty;
 }
-

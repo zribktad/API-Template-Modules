@@ -1,10 +1,7 @@
-using SharedKernel.Application.Contracts;
-using SharedKernel.Application.DTOs;
-
 namespace ProductCatalog.Features.Category.GetCategories;
 
 /// <summary>
-/// Filter parameters for querying categories, supporting full-text search, sorting, and pagination.
+///     Filter parameters for querying categories, supporting full-text search, sorting, and pagination.
 /// </summary>
 public sealed record CategoryFilter(
     string? Query = null,

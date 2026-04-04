@@ -1,10 +1,9 @@
-using ProductCatalog.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ProductCatalog.Configurations;
 
-/// <summary>EF Core configuration for the <see cref="ProductDataLink"/> join entity with a composite primary key.</summary>
+/// <summary>EF Core configuration for the <see cref="ProductDataLink" /> join entity with a composite primary key.</summary>
 public sealed class ProductDataLinkConfiguration : IEntityTypeConfiguration<ProductDataLink>
 {
     public void Configure(EntityTypeBuilder<ProductDataLink> builder)
@@ -26,6 +25,3 @@ public sealed class ProductDataLinkConfiguration : IEntityTypeConfiguration<Prod
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
-
-
-

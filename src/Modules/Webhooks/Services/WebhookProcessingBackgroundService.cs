@@ -2,8 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Infrastructure.BackgroundJobs.Services;
 using Webhooks.Contracts;
-using Webhooks.Services;
-using Webhooks.Security;
 using Webhooks.Logging;
 
 namespace Webhooks.Services;
@@ -11,8 +9,8 @@ namespace Webhooks.Services;
 public sealed class WebhookProcessingBackgroundService
     : QueueConsumerBackgroundService<WebhookPayload>
 {
-    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<WebhookProcessingBackgroundService> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public WebhookProcessingBackgroundService(
         IWebhookQueueReader queue,
@@ -46,9 +44,7 @@ public sealed class WebhookProcessingBackgroundService
         }
 
         if (!handled)
-        {
             _logger.WebhookNoHandlerRegistered(payload.EventType, payload.EventId);
-        }
     }
 
     protected override Task HandleErrorAsync(
@@ -61,7 +57,3 @@ public sealed class WebhookProcessingBackgroundService
         return Task.CompletedTask;
     }
 }
-
-
-
-

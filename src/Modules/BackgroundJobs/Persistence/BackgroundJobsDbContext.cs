@@ -1,10 +1,8 @@
-using BackgroundJobs.Domain;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.EntityNormalization;
 using SharedKernel.Infrastructure.Persistence;
-using SharedKernel.Infrastructure.SoftDelete;
 
 namespace BackgroundJobs.Persistence;
 

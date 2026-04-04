@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
 
 namespace Reviews.Features;
 
 /// <summary>
-/// Payload for submitting a new product review, including the target product, an optional comment, and a 1–5 star rating.
+///     Payload for submitting a new product review, including the target product, an optional comment, and a 1–5 star
+///     rating.
 /// </summary>
 public sealed record CreateProductReviewRequest(
     [NotEmpty(ErrorMessage = "ProductId is required.")] Guid ProductId,

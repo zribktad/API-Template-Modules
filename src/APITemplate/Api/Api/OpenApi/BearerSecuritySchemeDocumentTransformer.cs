@@ -10,13 +10,13 @@ using Microsoft.OpenApi;
 namespace APITemplate.Api.OpenApi;
 
 /// <summary>
-/// OpenAPI document transformer that registers a Keycloak OAuth2 Authorization Code security scheme
-/// and adds a global security requirement so Swagger UI can authenticate against the configured realm.
+///     OpenAPI document transformer that registers a Keycloak OAuth2 Authorization Code security scheme
+///     and adds a global security requirement so Swagger UI can authenticate against the configured realm.
 /// </summary>
 public sealed class BearerSecuritySchemeDocumentTransformer : IOpenApiDocumentTransformer
 {
-    private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly KeycloakOptions _keycloak;
+    private readonly IAuthenticationSchemeProvider _schemeProvider;
 
     public BearerSecuritySchemeDocumentTransformer(
         IAuthenticationSchemeProvider schemeProvider,
@@ -72,7 +72,7 @@ public sealed class BearerSecuritySchemeDocumentTransformer : IOpenApiDocumentTr
 
         OpenApiSecurityRequirement requirement = new();
         requirement[
-            new OpenApiSecuritySchemeReference(AuthConstants.OpenApi.OAuth2Scheme, document, null)
+            new OpenApiSecuritySchemeReference(AuthConstants.OpenApi.OAuth2Scheme, document)
         ] = [AuthConstants.Scopes.OpenId];
 
         document.Security ??= [];

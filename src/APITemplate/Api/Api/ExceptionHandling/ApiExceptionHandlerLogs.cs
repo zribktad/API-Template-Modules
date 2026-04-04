@@ -3,8 +3,8 @@ using SharedKernel.Infrastructure.Logging;
 namespace APITemplate.Api.ExceptionHandling;
 
 /// <summary>
-/// Source-generated logging contract for <see cref="ApiExceptionHandler"/>.
-/// Keeps log templates and event identifiers centralized, strongly typed, and allocation-friendly.
+///     Source-generated logging contract for <see cref="ApiExceptionHandler" />.
+///     Keeps log templates and event identifiers centralized, strongly typed, and allocation-friendly.
 /// </summary>
 internal static partial class ApiExceptionHandlerLogs
 {

@@ -3,8 +3,11 @@ using System.Data;
 namespace SharedKernel.Domain.Options;
 
 /// <summary>
-/// Per-call overrides for the transaction policy applied by <see cref="Interfaces.IUnitOfWork.ExecuteInTransactionAsync(Func{Task}, CancellationToken, TransactionOptions?)"/>.
-/// Any <c>null</c> property means "inherit the configured default"; non-null values override that default for the outermost transaction only.
+///     Per-call overrides for the transaction policy applied by
+///     <see cref="Interfaces.IUnitOfWork.ExecuteInTransactionAsync(Func{Task}, CancellationToken, TransactionOptions?)" />
+///     .
+///     Any <c>null</c> property means "inherit the configured default"; non-null values override that default for the
+///     outermost transaction only.
 /// </summary>
 public sealed record TransactionOptions
 {
@@ -15,13 +18,15 @@ public sealed record TransactionOptions
     public int? RetryDelaySeconds { get; init; }
 
     /// <summary>
-    /// Returns <c>true</c> when all properties are <c>null</c>, meaning the record carries no overrides
-    /// and the configured defaults apply entirely.
+    ///     Returns <c>true</c> when all properties are <c>null</c>, meaning the record carries no overrides
+    ///     and the configured defaults apply entirely.
     /// </summary>
-    public bool IsEmpty() =>
-        IsolationLevel is null
-        && TimeoutSeconds is null
-        && RetryEnabled is null
-        && RetryCount is null
-        && RetryDelaySeconds is null;
+    public bool IsEmpty()
+    {
+        return IsolationLevel is null
+            && TimeoutSeconds is null
+            && RetryEnabled is null
+            && RetryCount is null
+            && RetryDelaySeconds is null;
+    }
 }

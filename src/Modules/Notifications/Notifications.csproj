@@ -5,21 +5,21 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Features\**\*.liquid" />
+    <EmbeddedResource Include="Features\**\*.liquid"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj"/>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Fluid.Core" />
-    <PackageReference Include="MailKit" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="TickerQ" />
-    <PackageReference Include="TickerQ.EntityFrameworkCore" />
+    <PackageReference Include="Fluid.Core"/>
+    <PackageReference Include="MailKit"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
+    <PackageReference Include="TickerQ"/>
+    <PackageReference Include="TickerQ.EntityFrameworkCore"/>
   </ItemGroup>
 </Project>
 

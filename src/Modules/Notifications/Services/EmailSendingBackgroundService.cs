@@ -1,26 +1,24 @@
 using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
-using Notifications.Domain;
-using Notifications.Services;
 using Notifications.Logging;
 using Polly;
 using Polly.Registry;
 using SharedKernel.Application.Resilience;
+using SharedKernel.Infrastructure.BackgroundJobs.Services;
 
 namespace Notifications.Services;
 
 /// <summary>
-/// Hosted background service that drains <see cref="IEmailQueueReader"/>, sending each
-/// <see cref="EmailMessage"/> through the SMTP resilience pipeline and storing failures
-/// via <see cref="IFailedEmailStore"/> for later retry.
+///     Hosted background service that drains <see cref="IEmailQueueReader" />, sending each
+///     <see cref="EmailMessage" /> through the SMTP resilience pipeline and storing failures
+///     via <see cref="IFailedEmailStore" /> for later retry.
 /// </summary>
-public sealed class EmailSendingBackgroundService
-    : SharedKernel.Infrastructure.BackgroundJobs.Services.QueueConsumerBackgroundService<EmailMessage>
+public sealed class EmailSendingBackgroundService : QueueConsumerBackgroundService<EmailMessage>
 {
-    private readonly IEmailSender _sender;
-    private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
     private readonly IFailedEmailStore _failedEmailStore;
     private readonly ILogger<EmailSendingBackgroundService> _logger;
+    private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
+    private readonly IEmailSender _sender;
 
     public EmailSendingBackgroundService(
         IEmailQueueReader queue,
@@ -37,7 +35,7 @@ public sealed class EmailSendingBackgroundService
         _logger = logger;
     }
 
-    /// <summary>Executes delivery of <paramref name="message"/> through the configured SMTP resilience pipeline.</summary>
+    /// <summary>Executes delivery of <paramref name="message" /> through the configured SMTP resilience pipeline.</summary>
     protected override async Task ProcessItemAsync(EmailMessage message, CancellationToken ct)
     {
         ResiliencePipeline pipeline = _resiliencePipelineProvider.GetPipeline(
@@ -53,7 +51,10 @@ public sealed class EmailSendingBackgroundService
         );
     }
 
-    /// <summary>Logs the final send failure and delegates to <see cref="IFailedEmailStore"/> to persist the message for retry.</summary>
+    /// <summary>
+    ///     Logs the final send failure and delegates to <see cref="IFailedEmailStore" /> to persist the message for
+    ///     retry.
+    /// </summary>
     protected override async Task HandleErrorAsync(
         EmailMessage message,
         Exception ex,
@@ -65,8 +66,3 @@ public sealed class EmailSendingBackgroundService
         await _failedEmailStore.StoreFailedAsync(message, ex.Message, ct);
     }
 }
-
-
-
-
-

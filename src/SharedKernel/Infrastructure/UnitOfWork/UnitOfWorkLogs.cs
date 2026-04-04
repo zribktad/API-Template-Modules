@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace SharedKernel.Infrastructure.UnitOfWork;
 
 /// <summary>
-/// Source-generated logger extension methods for unit-of-work diagnostics.
+///     Source-generated logger extension methods for unit-of-work diagnostics.
 /// </summary>
 internal static partial class UnitOfWorkLogs
 {

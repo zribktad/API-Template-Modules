@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Contracts.Api;
 using Webhooks.Contracts;
-using Webhooks.Services;
 using Webhooks.Security;
 
 namespace Webhooks.Features;
@@ -13,7 +12,10 @@ public sealed class WebhooksController : ApiControllerBase
 {
     private readonly IWebhookProcessingQueue _queue;
 
-    public WebhooksController(IWebhookProcessingQueue queue) => _queue = queue;
+    public WebhooksController(IWebhookProcessingQueue queue)
+    {
+        _queue = queue;
+    }
 
     [HttpPost]
     [AllowAnonymous]
@@ -28,6 +30,3 @@ public sealed class WebhooksController : ApiControllerBase
         return Ok();
     }
 }
-
-
-

@@ -6,4 +6,3 @@ public static class CacheTags
     public const string TenantInvitations = "TenantInvitations";
     public const string Users = "Users";
 }
-

@@ -1,10 +1,13 @@
 using Identity.Security;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 
 namespace APITemplate.Api.Middleware;
 
 /// <summary>
-/// Middleware that enforces CSRF protection for cookie-authenticated requests.
+///     Middleware that enforces CSRF protection for cookie-authenticated requests.
 /// </summary>
 public sealed class CsrfValidationMiddleware(
     RequestDelegate next,
@@ -25,13 +28,13 @@ public sealed class CsrfValidationMiddleware(
 
         if (
             context.Request.Headers.TryGetValue(
-                Microsoft.Net.Http.Headers.HeaderNames.Authorization,
-                out Microsoft.Extensions.Primitives.StringValues authorizationValues
+                HeaderNames.Authorization,
+                out StringValues authorizationValues
             )
             && authorizationValues.Any(static value =>
                 !string.IsNullOrEmpty(value)
                 && value.StartsWith(
-                    $"{Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme} ",
+                    $"{JwtBearerDefaults.AuthenticationScheme} ",
                     StringComparison.OrdinalIgnoreCase
                 )
             )
@@ -62,7 +65,7 @@ public sealed class CsrfValidationMiddleware(
         if (
             context.Request.Headers.TryGetValue(
                 AuthConstants.Csrf.HeaderName,
-                out Microsoft.Extensions.Primitives.StringValues value
+                out StringValues value
             )
             && value.Any(v =>
                 string.Equals(v, AuthConstants.Csrf.HeaderValue, StringComparison.Ordinal)

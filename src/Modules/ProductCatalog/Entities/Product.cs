@@ -3,14 +3,11 @@ using ProductCatalog.ValueObjects;
 namespace ProductCatalog.Entities;
 
 /// <summary>
-/// Core domain entity representing a product in the catalog.
-/// This is the aggregate root - all business rules around products start here.
+///     Core domain entity representing a product in the catalog.
+///     This is the aggregate root - all business rules around products start here.
 /// </summary>
 public sealed class Product : IAuditableTenantEntity, IHasId
 {
-    /// <summary>Unique identifier generated when the product is created.</summary>
-    public Guid Id { get; set; }
-
     /// <summary>Display name of the product. Required, max 200 characters (enforced by EF config + FluentValidation).</summary>
     public required string Name
     {
@@ -29,7 +26,7 @@ public sealed class Product : IAuditableTenantEntity, IHasId
 
     public Guid? CategoryId { get; set; }
 
-    /// <summary>Infrastructure-only navigation for query projections. Domain logic must use <see cref="CategoryId"/> instead.</summary>
+    /// <summary>Infrastructure-only navigation for query projections. Domain logic must use <see cref="CategoryId" /> instead.</summary>
     public Category? Category { get; set; }
 
     public ICollection<ProductDataLink> ProductDataLinks { get; set; } = [];
@@ -40,8 +37,11 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
 
+    /// <summary>Unique identifier generated when the product is created.</summary>
+    public Guid Id { get; set; }
+
     /// <summary>
-    /// Creates a new <see cref="Product"/> with the given fields and optional product-data links.
+    ///     Creates a new <see cref="Product" /> with the given fields and optional product-data links.
     /// </summary>
     public static Product Create(
         string name,
@@ -65,11 +65,12 @@ public sealed class Product : IAuditableTenantEntity, IHasId
             foreach (Guid pdId in productDataIds.Distinct())
                 product.ProductDataLinks.Add(ProductDataLink.Create(id, pdId));
         }
+
         return product;
     }
 
     /// <summary>
-    /// Atomically replaces all mutable product fields in a single call, enforcing property-level invariants.
+    ///     Atomically replaces all mutable product fields in a single call, enforcing property-level invariants.
     /// </summary>
     public void UpdateDetails(string name, string? description, Price price, Guid? categoryId)
     {
@@ -80,8 +81,9 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     }
 
     /// <summary>
-    /// Reconciles the product's <see cref="ProductDataLinks"/> collection against the desired set of <paramref name="targetIds"/>.
-    /// Removes links not in the target set and creates new links as needed.
+    ///     Reconciles the product's <see cref="ProductDataLinks" /> collection against the desired set of
+    ///     <paramref name="targetIds" />.
+    ///     Removes links not in the target set and creates new links as needed.
     /// </summary>
     public void SyncProductDataLinks(IEnumerable<Guid> targetIds)
     {
@@ -111,7 +113,8 @@ public sealed class Product : IAuditableTenantEntity, IHasId
     }
 
     /// <summary>
-    /// Removes all current product data links from the in-memory collection, preparing them for soft-delete by the persistence layer.
+    ///     Removes all current product data links from the in-memory collection, preparing them for soft-delete by the
+    ///     persistence layer.
     /// </summary>
     public void SoftDeleteProductDataLinks()
     {
@@ -119,4 +122,3 @@ public sealed class Product : IAuditableTenantEntity, IHasId
             ProductDataLinks.Remove(link);
     }
 }
-

@@ -1,8 +1,8 @@
 namespace SharedKernel.Application.Resilience;
 
 /// <summary>
-/// String constants that identify the named Polly resilience pipelines registered in the application.
-/// Use these keys when resolving a pipeline from <c>ResiliencePipelineProvider</c>.
+///     String constants that identify the named Polly resilience pipelines registered in the application.
+///     Use these keys when resolving a pipeline from <c>ResiliencePipelineProvider</c>.
 /// </summary>
 public static class ResiliencePipelineKeys
 {

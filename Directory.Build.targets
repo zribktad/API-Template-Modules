@@ -8,11 +8,11 @@
           StandardOutputImportance="Low"
           StandardErrorImportance="High"
           WorkingDirectory="$(MSBuildThisFileDirectory)"
-          ContinueOnError="true" />
+          ContinueOnError="true"/>
     <Exec Command="dotnet husky install"
           StandardOutputImportance="Low"
           StandardErrorImportance="High"
           WorkingDirectory="$(MSBuildThisFileDirectory)"
-          ContinueOnError="true" />
+          ContinueOnError="true"/>
   </Target>
 </Project>

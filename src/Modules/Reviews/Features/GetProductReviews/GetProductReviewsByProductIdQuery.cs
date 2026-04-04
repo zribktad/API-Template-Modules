@@ -1,13 +1,11 @@
 using ErrorOr;
-using Reviews.Domain;
-using Reviews.Features;
 
 namespace Reviews.Features;
 
 /// <summary>Returns all reviews for a specific product, ordered by creation date descending.</summary>
 public sealed record GetProductReviewsByProductIdQuery(Guid ProductId);
 
-/// <summary>Handles <see cref="GetProductReviewsByProductIdQuery"/>.</summary>
+/// <summary>Handles <see cref="GetProductReviewsByProductIdQuery" />.</summary>
 public sealed class GetProductReviewsByProductIdQueryHandler
 {
     public static async Task<ErrorOr<IReadOnlyList<ProductReviewResponse>>> HandleAsync(

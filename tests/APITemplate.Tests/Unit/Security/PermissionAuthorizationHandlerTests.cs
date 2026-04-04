@@ -11,8 +11,8 @@ namespace APITemplate.Tests.Unit.Security;
 
 public class PermissionAuthorizationHandlerTests
 {
-    private readonly IRolePermissionMap _rolePermissionMap = new StaticRolePermissionMap();
     private readonly PermissionAuthorizationHandler _handler;
+    private readonly IRolePermissionMap _rolePermissionMap = new StaticRolePermissionMap();
 
     public PermissionAuthorizationHandlerTests()
     {
@@ -22,9 +22,9 @@ public class PermissionAuthorizationHandlerTests
     [Fact]
     public async Task UserWithCorrectRole_Succeeds()
     {
-        var requirement = new PermissionRequirement(Permission.Products.Read);
+        PermissionRequirement requirement = new(Permission.Products.Read);
         ClaimsPrincipal user = CreatePrincipal(UserRole.User);
-        var context = new AuthorizationHandlerContext([requirement], user, null);
+        AuthorizationHandlerContext context = new([requirement], user, null);
 
         await _handler.HandleAsync(context);
 
@@ -34,9 +34,9 @@ public class PermissionAuthorizationHandlerTests
     [Fact]
     public async Task UserWithoutPermission_Fails()
     {
-        var requirement = new PermissionRequirement(Permission.Products.Create);
+        PermissionRequirement requirement = new(Permission.Products.Create);
         ClaimsPrincipal user = CreatePrincipal(UserRole.User);
-        var context = new AuthorizationHandlerContext([requirement], user, null);
+        AuthorizationHandlerContext context = new([requirement], user, null);
 
         await _handler.HandleAsync(context);
 
@@ -46,9 +46,9 @@ public class PermissionAuthorizationHandlerTests
     [Fact]
     public async Task PlatformAdmin_SucceedsForAnyPermission()
     {
-        var requirement = new PermissionRequirement(Permission.Users.Delete);
+        PermissionRequirement requirement = new(Permission.Users.Delete);
         ClaimsPrincipal user = CreatePrincipal(UserRole.PlatformAdmin);
-        var context = new AuthorizationHandlerContext([requirement], user, null);
+        AuthorizationHandlerContext context = new([requirement], user, null);
 
         await _handler.HandleAsync(context);
 
@@ -58,9 +58,9 @@ public class PermissionAuthorizationHandlerTests
     [Fact]
     public async Task TenantAdmin_SucceedsForProductCreate()
     {
-        var requirement = new PermissionRequirement(Permission.Products.Create);
+        PermissionRequirement requirement = new(Permission.Products.Create);
         ClaimsPrincipal user = CreatePrincipal(UserRole.TenantAdmin);
-        var context = new AuthorizationHandlerContext([requirement], user, null);
+        AuthorizationHandlerContext context = new([requirement], user, null);
 
         await _handler.HandleAsync(context);
 
@@ -70,9 +70,9 @@ public class PermissionAuthorizationHandlerTests
     [Fact]
     public async Task TenantAdmin_FailsForUserCreate()
     {
-        var requirement = new PermissionRequirement(Permission.Users.Create);
+        PermissionRequirement requirement = new(Permission.Users.Create);
         ClaimsPrincipal user = CreatePrincipal(UserRole.TenantAdmin);
-        var context = new AuthorizationHandlerContext([requirement], user, null);
+        AuthorizationHandlerContext context = new([requirement], user, null);
 
         await _handler.HandleAsync(context);
 
@@ -82,9 +82,9 @@ public class PermissionAuthorizationHandlerTests
     [Fact]
     public async Task UnauthenticatedUser_Fails()
     {
-        var requirement = new PermissionRequirement(Permission.Products.Read);
-        var user = new ClaimsPrincipal(new ClaimsIdentity());
-        var context = new AuthorizationHandlerContext([requirement], user, null);
+        PermissionRequirement requirement = new(Permission.Products.Read);
+        ClaimsPrincipal user = new(new ClaimsIdentity());
+        AuthorizationHandlerContext context = new([requirement], user, null);
 
         await _handler.HandleAsync(context);
 

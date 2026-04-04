@@ -1,12 +1,11 @@
 namespace BackgroundJobs.Domain;
 
 /// <summary>
-/// Domain entity that tracks the lifecycle of a background job from submission through completion or failure.
-/// Exposes domain methods to advance the job's <see cref="JobStatus"/> while keeping state transitions encapsulated.
+///     Domain entity that tracks the lifecycle of a background job from submission through completion or failure.
+///     Exposes domain methods to advance the job's <see cref="JobStatus" /> while keeping state transitions encapsulated.
 /// </summary>
 public sealed class JobExecution : IAuditableTenantEntity, IHasId
 {
-    public Guid Id { get; set; }
     public required string JobType { get; init; }
     public JobStatus Status { get; private set; } = JobStatus.Pending;
     public int ProgressPercent { get; private set; }
@@ -22,9 +21,10 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
+    public Guid Id { get; set; }
 
     /// <summary>
-    /// Transitions the job to <see cref="JobStatus.Processing"/> and records the start timestamp.
+    ///     Transitions the job to <see cref="JobStatus.Processing" /> and records the start timestamp.
     /// </summary>
     public void MarkProcessing(TimeProvider timeProvider)
     {
@@ -33,7 +33,8 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     }
 
     /// <summary>
-    /// Transitions the job to <see cref="JobStatus.Completed"/>, sets progress to 100%, stores the optional result payload, and records the completion timestamp.
+    ///     Transitions the job to <see cref="JobStatus.Completed" />, sets progress to 100%, stores the optional result
+    ///     payload, and records the completion timestamp.
     /// </summary>
     public void MarkCompleted(string? resultPayload, TimeProvider timeProvider)
     {
@@ -44,7 +45,8 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     }
 
     /// <summary>
-    /// Transitions the job to <see cref="JobStatus.Failed"/>, stores the error message, and records the completion timestamp.
+    ///     Transitions the job to <see cref="JobStatus.Failed" />, stores the error message, and records the completion
+    ///     timestamp.
     /// </summary>
     public void MarkFailed(string errorMessage, TimeProvider timeProvider)
     {
@@ -54,13 +56,10 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     }
 
     /// <summary>
-    /// Updates the job's progress percentage, clamping the value to the valid range [0, 100].
+    ///     Updates the job's progress percentage, clamping the value to the valid range [0, 100].
     /// </summary>
     public void UpdateProgress(int percent)
     {
         ProgressPercent = Math.Clamp(percent, 0, 100);
     }
 }
-
-
-

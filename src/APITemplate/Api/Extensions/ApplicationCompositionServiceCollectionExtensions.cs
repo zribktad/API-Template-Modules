@@ -51,9 +51,7 @@ public static class ApplicationCompositionServiceCollectionExtensions
                     OnTokenValidated = context =>
                     {
                         if (context.Principal?.Identity is ClaimsIdentity identity)
-                        {
                             MapKeycloakClaims(identity);
-                        }
 
                         return Task.CompletedTask;
                     },
@@ -102,23 +100,17 @@ public static class ApplicationCompositionServiceCollectionExtensions
             identity.FindFirst(ClaimTypes.Name) is null
             && identity.FindFirst(AuthConstants.Claims.PreferredUsername) is Claim preferredUsername
         )
-        {
             identity.AddClaim(new Claim(ClaimTypes.Name, preferredUsername.Value));
-        }
 
         if (identity.FindFirst(AuthConstants.Claims.RealmAccess) is not Claim realmAccess)
-        {
             return;
-        }
 
         using JsonDocument document = JsonDocument.Parse(realmAccess.Value);
         if (
             !document.RootElement.TryGetProperty(AuthConstants.Claims.Roles, out JsonElement roles)
             || roles.ValueKind != JsonValueKind.Array
         )
-        {
             return;
-        }
 
         foreach (JsonElement role in roles.EnumerateArray())
         {
@@ -127,9 +119,7 @@ public static class ApplicationCompositionServiceCollectionExtensions
                 string.IsNullOrWhiteSpace(roleValue)
                 || identity.HasClaim(ClaimTypes.Role, roleValue)
             )
-            {
                 continue;
-            }
 
             identity.AddClaim(new Claim(ClaimTypes.Role, roleValue));
         }

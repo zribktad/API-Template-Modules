@@ -19,9 +19,9 @@ public sealed class RequestContextMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var correlationId = ResolveCorrelationId(context);
-        var stopwatch = Stopwatch.StartNew();
-        var traceId = Activity.Current?.TraceId.ToHexString() ?? context.TraceIdentifier;
+        string correlationId = ResolveCorrelationId(context);
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        string traceId = Activity.Current?.TraceId.ToHexString() ?? context.TraceIdentifier;
 
         string tenantId =
             context.User.FindFirstValue(AuthConstants.Claims.TenantId) ?? string.Empty;
@@ -56,9 +56,7 @@ public sealed class RequestContextMiddleware
                         tenantId
                     )
             )
-            {
                 await _next(context);
-            }
         }
         finally
         {
@@ -67,13 +65,13 @@ public sealed class RequestContextMiddleware
             if (metricsTagsFeature is not null)
             {
                 metricsTagsFeature.Tags.Add(
-                    new(
+                    new KeyValuePair<string, object?>(
                         TelemetryTagKeys.ApiSurface,
                         TelemetryApiSurfaceResolver.Resolve(context.Request.Path)
                     )
                 );
                 metricsTagsFeature.Tags.Add(
-                    new(
+                    new KeyValuePair<string, object?>(
                         TelemetryTagKeys.Authenticated,
                         context.User.Identity?.IsAuthenticated == true
                     )
@@ -84,7 +82,7 @@ public sealed class RequestContextMiddleware
 
     private static string ResolveCorrelationId(HttpContext context)
     {
-        var incoming = context
+        string incoming = context
             .Request.Headers[RequestContextConstants.Headers.CorrelationId]
             .ToString();
         return string.IsNullOrWhiteSpace(incoming) ? context.TraceIdentifier : incoming;

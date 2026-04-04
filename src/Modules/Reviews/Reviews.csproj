@@ -6,28 +6,28 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="APITemplate.Tests" />
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <InternalsVisibleTo Include="APITemplate.Tests"/>
+    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Mvc" />
-    <PackageReference Include="Ardalis.Specification" />
-    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" />
-    <PackageReference Include="ErrorOr" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Asp.Versioning.Mvc"/>
+    <PackageReference Include="Ardalis.Specification"/>
+    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore"/>
+    <PackageReference Include="ErrorOr"/>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="WolverineFx" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
+    <PackageReference Include="WolverineFx"/>
   </ItemGroup>
 </Project>
 

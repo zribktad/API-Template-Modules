@@ -1,10 +1,8 @@
-using SharedKernel.Application.Contracts;
-using SharedKernel.Application.DTOs;
-
 namespace ProductCatalog.Features.Product.GetProducts;
 
 /// <summary>
-/// Encapsulates all criteria available for querying and paging the product list, including text search, price range, date range, category filtering, and sorting.
+///     Encapsulates all criteria available for querying and paging the product list, including text search, price range,
+///     date range, category filtering, and sorting.
 /// </summary>
 public sealed record ProductFilter(
     string? Name = null,
