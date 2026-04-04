@@ -1,4 +1,5 @@
 using APITemplate.Tests.Integration.Helpers;
+using JasperFx.CommandLine;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -20,6 +21,9 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     public async ValueTask InitializeAsync()
     {
+        // Required so Program.cs can complete RunJasperFxCommands under WebApplicationFactory (see JasperFx docs).
+        JasperFxEnvironment.AutoStartHost = true;
+
         _postgres = new PostgreSqlBuilder("postgres:16-alpine")
             .WithUsername("postgres")
             .WithPassword("postgres")
