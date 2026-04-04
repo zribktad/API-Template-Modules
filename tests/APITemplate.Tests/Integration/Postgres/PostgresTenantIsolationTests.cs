@@ -283,13 +283,13 @@ public sealed class PostgresTenantIsolationTests(SharedPostgresContainer postgre
 
         // Ensure soft-deleted review is hidden from tenant-scoped query path.
         var reviewById = await _client.GetAsync(
-            $"/api/v1/productreviews/{reviewToSoftDeleteId}",
+            $"/api/v1/product-reviews/{reviewToSoftDeleteId}",
             ct
         );
         reviewById.StatusCode.ShouldBe(HttpStatusCode.NotFound);
 
         var reviewsByProduct = await _client.GetAsync(
-            $"/api/v1/productreviews/by-product/{productAId}",
+            $"/api/v1/product-reviews/by-product/{productAId}",
             ct
         );
         reviewsByProduct.StatusCode.ShouldBe(HttpStatusCode.OK);

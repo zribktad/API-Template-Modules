@@ -94,7 +94,7 @@ public sealed class PostgresSoftDeleteTests(SharedPostgresContainer postgres)
         productId = await ResolveProductIdAsync(productName, 88m, categoryId, ct);
 
         var createReview1 = await _client.PostAsJsonAsync(
-            "/api/v1/productreviews",
+            "/api/v1/product-reviews",
             new { ProductId = productId, Rating = 5 },
             ct
         );
@@ -107,7 +107,7 @@ public sealed class PostgresSoftDeleteTests(SharedPostgresContainer postgres)
         review1Id = createdReview1!.Id;
 
         var createReview2 = await _client.PostAsJsonAsync(
-            "/api/v1/productreviews",
+            "/api/v1/product-reviews",
             new { ProductId = productId, Rating = 4 },
             ct
         );
@@ -127,7 +127,7 @@ public sealed class PostgresSoftDeleteTests(SharedPostgresContainer postgres)
         deleteResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var reviewsResponse = await _client.GetAsync(
-            $"/api/v1/productreviews/by-product/{productId}",
+            $"/api/v1/product-reviews/by-product/{productId}",
             ct
         );
         reviewsResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -388,7 +388,7 @@ public sealed class PostgresSoftDeleteTests(SharedPostgresContainer postgres)
         }
 
         IntegrationAuthHelper.Authenticate(_client, tenantId: tenantId);
-        var response = await _client.DeleteAsync($"/api/v1/ProductData/{productDataId}", ct);
+        var response = await _client.DeleteAsync($"/api/v1/product-data/{productDataId}", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
         await using var verifyContext = await CreateDbContextAsync(false, Guid.Empty, actorId, ct);

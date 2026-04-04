@@ -37,7 +37,7 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
 
         // 2. Create a review for the product
         var createReviewResponse = await _client.PostAsJsonAsync(
-            "/api/v1/productreviews",
+            "/api/v1/product-reviews",
             new
             {
                 ProductId = productId,
@@ -59,7 +59,7 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
         created.ProductId.ShouldBe(productId);
 
         // 3. Get review by id
-        var getByIdResponse = await _client.GetAsync($"/api/v1/productreviews/{reviewId}", ct);
+        var getByIdResponse = await _client.GetAsync($"/api/v1/product-reviews/{reviewId}", ct);
         getByIdResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
         var fetched = await getByIdResponse.Content.ReadFromJsonAsync<ProductReviewResponse>(
             TestJsonOptions.CaseInsensitive,
@@ -70,7 +70,7 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
 
         // 4. Get reviews by productId
         var byProductResponse = await _client.GetAsync(
-            $"/api/v1/productreviews/by-product/{productId}",
+            $"/api/v1/product-reviews/by-product/{productId}",
             ct
         );
         byProductResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -82,11 +82,11 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
         reviews!.Length.ShouldBeGreaterThanOrEqualTo(1);
 
         // 5. Delete the review
-        var deleteResponse = await _client.DeleteAsync($"/api/v1/productreviews/{reviewId}", ct);
+        var deleteResponse = await _client.DeleteAsync($"/api/v1/product-reviews/{reviewId}", ct);
         deleteResponse.StatusCode.ShouldBe(HttpStatusCode.NoContent);
 
         // 6. Verify deletion
-        var getDeletedResponse = await _client.GetAsync($"/api/v1/productreviews/{reviewId}", ct);
+        var getDeletedResponse = await _client.GetAsync($"/api/v1/product-reviews/{reviewId}", ct);
         getDeletedResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
@@ -96,7 +96,7 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
 
-        var response = await _client.GetAsync($"/api/v1/productreviews/{Guid.NewGuid()}", ct);
+        var response = await _client.GetAsync($"/api/v1/product-reviews/{Guid.NewGuid()}", ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
@@ -108,7 +108,7 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
         IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
 
         var response = await _client.PostAsJsonAsync(
-            "/api/v1/productreviews",
+            "/api/v1/product-reviews",
             new { ProductId = Guid.NewGuid(), Rating = 3 },
             ct
         );
@@ -150,7 +150,10 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
         productResponse.StatusCode.ShouldBe(HttpStatusCode.OK, productBody);
         var productId = await ResolveProductIdAsync(productName, 9.99m, ct);
 
-        var response = await _client.GetAsync($"/api/v1/productreviews/by-product/{productId}", ct);
+        var response = await _client.GetAsync(
+            $"/api/v1/product-reviews/by-product/{productId}",
+            ct
+        );
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var reviews = await response.Content.ReadFromJsonAsync<ProductReviewResponse[]>(
@@ -169,7 +172,7 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
         IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
 
         var response = await _client.PostAsJsonAsync(
-            "/api/v1/productreviews",
+            "/api/v1/product-reviews",
             new { ProductId = Guid.NewGuid(), Rating = 0 },
             ct
         );
@@ -197,7 +200,7 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
         var productId = await ResolveProductIdAsync(productName, 10m, ct);
 
         var createReviewResponse = await _client.PostAsJsonAsync(
-            "/api/v1/productreviews",
+            "/api/v1/product-reviews",
             new { ProductId = productId, Rating = 4 },
             ct
         );
@@ -210,7 +213,7 @@ public class ProductReviewsControllerTests : IClassFixture<CustomWebApplicationF
 
         // Switch to a different user in the same tenant
         IntegrationAuthHelper.AuthenticateAndGetUserId(_client, tenantId: _tenantId);
-        var deleteResponse = await _client.DeleteAsync($"/api/v1/productreviews/{reviewId}", ct);
+        var deleteResponse = await _client.DeleteAsync($"/api/v1/product-reviews/{reviewId}", ct);
 
         deleteResponse.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }

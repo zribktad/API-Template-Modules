@@ -45,7 +45,7 @@ public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
         var productReviewsPath = paths
             .EnumerateObject()
             .FirstOrDefault(p =>
-                p.Name.Contains("productreviews", StringComparison.OrdinalIgnoreCase)
+                p.Name.Contains("product-reviews", StringComparison.OrdinalIgnoreCase)
             )
             .Value;
 

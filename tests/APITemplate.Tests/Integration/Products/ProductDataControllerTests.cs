@@ -32,7 +32,7 @@ public class ProductDataControllerTests : IClassFixture<CustomWebApplicationFact
             .Setup(r => r.GetAllAsync(null, It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        var response = await _client.GetAsync("/api/v1/ProductData", ct);
+        var response = await _client.GetAsync("/api/v1/product-data", ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -56,7 +56,7 @@ public class ProductDataControllerTests : IClassFixture<CustomWebApplicationFact
                 },
             ]);
 
-        var response = await _client.GetAsync("/api/v1/ProductData?type=image", ct);
+        var response = await _client.GetAsync("/api/v1/product-data?type=image", ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var items = await response.Content.ReadFromJsonAsync<ProductDataContractResponse[]>(
@@ -88,7 +88,7 @@ public class ProductDataControllerTests : IClassFixture<CustomWebApplicationFact
             .Setup(r => r.GetByIdAsync(image.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(image);
 
-        var response = await _client.GetAsync($"/api/v1/ProductData/{image.Id}", ct);
+        var response = await _client.GetAsync($"/api/v1/product-data/{image.Id}", ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         var data = await response.Content.ReadFromJsonAsync<ProductDataContractResponse>(
@@ -110,7 +110,7 @@ public class ProductDataControllerTests : IClassFixture<CustomWebApplicationFact
             .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProductData?)null);
 
-        var response = await _client.GetAsync($"/api/v1/ProductData/{Guid.NewGuid()}", ct);
+        var response = await _client.GetAsync($"/api/v1/product-data/{Guid.NewGuid()}", ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
@@ -160,7 +160,7 @@ public class ProductDataControllerTests : IClassFixture<CustomWebApplicationFact
                     FileSizeBytes = 10000000,
                 };
 
-        var response = await _client.PostAsJsonAsync($"/api/v1/ProductData/{type}", payload, ct);
+        var response = await _client.PostAsJsonAsync($"/api/v1/product-data/{type}", payload, ct);
 
         var body = await response.Content.ReadAsStringAsync(ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Created, body);
@@ -199,7 +199,7 @@ public class ProductDataControllerTests : IClassFixture<CustomWebApplicationFact
                     FileSizeBytes = -1,
                 };
 
-        var response = await _client.PostAsJsonAsync($"/api/v1/ProductData/{type}", payload, ct);
+        var response = await _client.PostAsJsonAsync($"/api/v1/product-data/{type}", payload, ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
@@ -223,7 +223,7 @@ public class ProductDataControllerTests : IClassFixture<CustomWebApplicationFact
                 }
             );
 
-        var response = await _client.DeleteAsync($"/api/v1/ProductData/{id}", ct);
+        var response = await _client.DeleteAsync($"/api/v1/product-data/{id}", ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
         _repositoryMock.Verify(
