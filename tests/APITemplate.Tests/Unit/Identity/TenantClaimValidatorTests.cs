@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Security;
 using Shouldly;
 using Xunit;
@@ -13,26 +13,19 @@ public sealed class TenantClaimValidatorTests
     [InlineData("")]
     public void HasValidTenantClaim_WhenMissingOrInvalid_ReturnsFalse(string? tenantValue)
     {
-        Claim[] claims = tenantValue is null
-            ? []
-            : [new Claim(AuthConstants.Claims.TenantId, tenantValue)];
-        ClaimsPrincipal principal = new(new ClaimsIdentity(claims, authenticationType: "Test"));
-
-        TenantClaimValidator.HasValidTenantClaim(principal).ShouldBeFalse();
+        TenantClaimValidator
+            .HasValidTenantClaim(TestClaimsPrincipalFactory.WithOptionalTenantClaim(tenantValue))
+            .ShouldBeFalse();
     }
 
     [Fact]
     public void HasValidTenantClaim_WhenNonEmptyGuid_ReturnsTrue()
     {
         string tenantId = Guid.NewGuid().ToString();
-        ClaimsPrincipal principal = new(
-            new ClaimsIdentity(
-                [new Claim(AuthConstants.Claims.TenantId, tenantId)],
-                authenticationType: "Test"
-            )
-        );
 
-        TenantClaimValidator.HasValidTenantClaim(principal).ShouldBeTrue();
+        TenantClaimValidator
+            .HasValidTenantClaim(TestClaimsPrincipalFactory.WithTenantId(tenantId))
+            .ShouldBeTrue();
     }
 
     [Fact]

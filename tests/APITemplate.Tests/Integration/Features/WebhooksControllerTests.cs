@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using APITemplate.Application.Features.Examples.DTOs;
 using APITemplate.Tests.Integration.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Shouldly;
 using Xunit;
 

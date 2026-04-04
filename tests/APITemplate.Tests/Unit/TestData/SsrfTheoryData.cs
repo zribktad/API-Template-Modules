@@ -15,9 +15,11 @@ public static class SsrfTheoryData
         "169.254.1.1",
     ];
 
-    public static IEnumerable<object[]> PrivateIpv4Cases() =>
-        ProhibitedIpv4List.Select(ip => new object[] { ip });
+    public static IEnumerable<object[]> PrivateIpv4Cases() => MapProhibitedIpv4(ip => ip);
 
     public static IEnumerable<object[]> ProhibitedPrivateIpv4Addresses() =>
-        ProhibitedIpv4List.Select(ip => new object[] { IPAddress.Parse(ip) });
+        MapProhibitedIpv4(IPAddress.Parse);
+
+    private static IEnumerable<object[]> MapProhibitedIpv4<T>(Func<string, T> map) =>
+        ProhibitedIpv4List.Select(ip => new object[] { map(ip) });
 }

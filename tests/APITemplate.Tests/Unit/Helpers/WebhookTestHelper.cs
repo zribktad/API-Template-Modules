@@ -1,5 +1,4 @@
-using System.Security.Cryptography;
-using System.Text;
+using Webhooks.Security;
 
 namespace APITemplate.Tests.Unit.Helpers;
 
@@ -7,10 +6,7 @@ internal static class WebhookTestHelper
 {
     internal static string ComputeHmacSignature(string body, string timestamp, string secret)
     {
-        string signedContent = $"{timestamp}.{body}";
-        byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
-        byte[] contentBytes = Encoding.UTF8.GetBytes(signedContent);
-        byte[] hashBytes = HMACSHA256.HashData(keyBytes, contentBytes);
+        byte[] hashBytes = HmacHelper.ComputeHash(HmacHelper.GetKeyBytes(secret), timestamp, body);
         return Convert.ToHexStringLower(hashBytes);
     }
 }

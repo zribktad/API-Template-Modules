@@ -7,13 +7,20 @@ namespace APITemplate.Tests.Unit.Identity;
 
 public sealed class TenantCodeValueObjectTests
 {
+    [Fact]
+    public void Create_WhenNull_ReturnsError()
+    {
+        ErrorOr<TenantCode> result = TenantCode.Create(null!);
+
+        result.IsError.ShouldBeTrue();
+    }
+
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Create_WhenEmpty_ReturnsError(string? raw)
+    public void Create_WhenEmptyOrWhitespace_ReturnsError(string raw)
     {
-        ErrorOr<TenantCode> result = TenantCode.Create(raw!);
+        ErrorOr<TenantCode> result = TenantCode.Create(raw);
 
         result.IsError.ShouldBeTrue();
     }

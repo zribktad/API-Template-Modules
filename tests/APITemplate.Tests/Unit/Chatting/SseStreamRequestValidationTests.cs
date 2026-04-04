@@ -14,13 +14,7 @@ public sealed class SseStreamRequestValidationTests
     public void Validation_WhenCountOutOfRange_Fails(int count)
     {
         SseStreamRequest request = new() { Count = count };
-        var results = new List<ValidationResult>();
-        bool valid = Validator.TryValidateObject(
-            request,
-            new ValidationContext(request),
-            results,
-            validateAllProperties: true
-        );
+        bool valid = TryValidateAll(request, out List<ValidationResult> results);
 
         valid.ShouldBeFalse();
         results.ShouldNotBeEmpty();
@@ -33,14 +27,19 @@ public sealed class SseStreamRequestValidationTests
     public void Validation_WhenCountInRange_Passes(int count)
     {
         SseStreamRequest request = new() { Count = count };
-        var results = new List<ValidationResult>();
-        bool valid = Validator.TryValidateObject(
-            request,
-            new ValidationContext(request),
+        bool valid = TryValidateAll(request, out _);
+
+        valid.ShouldBeTrue();
+    }
+
+    private static bool TryValidateAll(object instance, out List<ValidationResult> results)
+    {
+        results = [];
+        return Validator.TryValidateObject(
+            instance,
+            new ValidationContext(instance),
             results,
             validateAllProperties: true
         );
-
-        valid.ShouldBeTrue();
     }
 }

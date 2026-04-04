@@ -19,9 +19,7 @@ public sealed class InMemoryIdempotencyStoreTests
     [InlineData("")]
     public async Task TryAcquireAsync_WhenKeyIsNew_ReturnsLockToken(string key)
     {
-        CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
-        InMemoryIdempotencyStore store = new(time);
+        (InMemoryIdempotencyStore store, CancellationToken ct) = CreateStore();
 
         string? token = await store.TryAcquireAsync(key, DefaultTtl, ct);
 
@@ -34,9 +32,7 @@ public sealed class InMemoryIdempotencyStoreTests
     [InlineData(3600000)]
     public async Task TryAcquireAsync_VariousTtlsStillAcquires(int ttlMs)
     {
-        CancellationToken ct = TestContext.Current.CancellationToken;
-        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
-        InMemoryIdempotencyStore store = new(time);
+        (InMemoryIdempotencyStore store, CancellationToken ct) = CreateStore();
         string key = Guid.NewGuid().ToString("N");
 
         string? token = await store.TryAcquireAsync(key, TimeSpan.FromMilliseconds(ttlMs), ct);
@@ -168,6 +164,13 @@ public sealed class InMemoryIdempotencyStoreTests
 
         IdempotencyCacheEntry? cached = await store.TryGetAsync("key-1", ct);
         cached.ShouldBeNull();
+    }
+
+    private static (InMemoryIdempotencyStore Store, CancellationToken Ct) CreateStore()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        FakeTimeProvider time = new(DateTimeOffset.UtcNow);
+        return (new InMemoryIdempotencyStore(time), ct);
     }
 
     private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider

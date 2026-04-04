@@ -16,6 +16,11 @@ public sealed class LocalFileStorageServiceTests : IDisposable
     );
     private bool _disposed;
 
+    public LocalFileStorageServiceTests()
+    {
+        Directory.CreateDirectory(_basePath);
+    }
+
     public void Dispose()
     {
         if (_disposed)
@@ -87,7 +92,6 @@ public sealed class LocalFileStorageServiceTests : IDisposable
 
     private LocalFileStorageService CreateSut(ITenantProvider tenant)
     {
-        Directory.CreateDirectory(_basePath);
         IOptions<FileStorageOptions> options = Options.Create(
             new FileStorageOptions { BasePath = _basePath }
         );

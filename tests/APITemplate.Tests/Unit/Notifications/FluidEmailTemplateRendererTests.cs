@@ -7,6 +7,9 @@ namespace APITemplate.Tests.Unit.Notifications;
 
 public sealed class FluidEmailTemplateRendererTests
 {
+    private static readonly string UnknownTemplateId =
+        $"{EmailTemplateNames.UserRegistration}.fixture-unknown-template";
+
     private readonly FluidEmailTemplateRenderer _sut = new();
 
     [Fact]
@@ -34,11 +37,7 @@ public sealed class FluidEmailTemplateRendererTests
     public async Task RenderAsync_UnknownTemplate_Throws()
     {
         await Should.ThrowAsync<InvalidOperationException>(() =>
-            _sut.RenderAsync(
-                "Does.Not.Exist.Template",
-                new { },
-                TestContext.Current.CancellationToken
-            )
+            _sut.RenderAsync(UnknownTemplateId, new { }, TestContext.Current.CancellationToken)
         );
     }
 }
