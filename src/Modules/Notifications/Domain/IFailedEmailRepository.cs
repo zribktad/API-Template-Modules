@@ -7,13 +7,13 @@ namespace Notifications.Domain;
 public interface IFailedEmailRepository
 {
     /// <summary>Persists a new failed-email record to the store.</summary>
-    public Task AddAsync(FailedEmail failedEmail, CancellationToken ct = default);
+    Task AddAsync(FailedEmail failedEmail, CancellationToken ct = default);
 
     /// <summary>
     ///     Atomically claims a batch of unclaimed, retryable emails (those below <paramref name="maxRetryAttempts" />)
     ///     and returns them for processing.
     /// </summary>
-    public Task<List<FailedEmail>> ClaimRetryableBatchAsync(
+    Task<List<FailedEmail>> ClaimRetryableBatchAsync(
         int maxRetryAttempts,
         int batchSize,
         string claimedBy,
@@ -26,7 +26,7 @@ public interface IFailedEmailRepository
     ///     Atomically claims a batch of emails whose claim lock has expired past <paramref name="cutoff" />,
     ///     allowing stale claims to be retried.
     /// </summary>
-    public Task<List<FailedEmail>> ClaimExpiredBatchAsync(
+    Task<List<FailedEmail>> ClaimExpiredBatchAsync(
         DateTime cutoff,
         int batchSize,
         string claimedBy,
@@ -36,8 +36,8 @@ public interface IFailedEmailRepository
     );
 
     /// <summary>Persists changes to an existing failed-email record (e.g. retry count increment or dead-letter flag).</summary>
-    public Task UpdateAsync(FailedEmail failedEmail, CancellationToken ct = default);
+    Task UpdateAsync(FailedEmail failedEmail, CancellationToken ct = default);
 
     /// <summary>Permanently removes a successfully processed failed-email record from the store.</summary>
-    public Task DeleteAsync(FailedEmail failedEmail, CancellationToken ct = default);
+    Task DeleteAsync(FailedEmail failedEmail, CancellationToken ct = default);
 }

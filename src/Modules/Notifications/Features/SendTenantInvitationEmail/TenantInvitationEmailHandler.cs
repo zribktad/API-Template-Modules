@@ -30,7 +30,7 @@ public sealed class TenantInvitationEmailHandler
                 $"You've been invited to {@event.TenantName}",
                 html,
                 EmailTemplateNames.TenantInvitation,
-                true
+                Retryable: true
             ),
             ct
         );
