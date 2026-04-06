@@ -3,6 +3,7 @@ using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Api.Routing;
 using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;

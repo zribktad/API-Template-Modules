@@ -1,6 +1,8 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SharedKernel.Application.DTOs;
 
 namespace SharedKernel.Contracts.Api;
@@ -109,14 +111,24 @@ public static class ErrorOrExtensions
                 ? string.Join(" ", errors.Select(e => e.Description))
                 : firstError.Description;
 
+        HttpContext httpContext = controller.HttpContext;
+        string errorCode = firstError.Code;
+        string? configuredType = httpContext.RequestServices.GetService<
+            IOptions<ErrorDocumentationOptions>
+        >()
+            is { } docOpts
+            ? ProblemDetailsErrorTypeUri.BuildAbsoluteUri(docOpts.Value.ErrorTypeBaseUri, errorCode)
+            : null;
+
         ProblemDetails problemDetails = new()
         {
             Status = statusCode,
             Title = title,
             Detail = detail,
-            Instance = controller.HttpContext.Request.Path,
+            Instance = httpContext.Request.Path,
             Type =
-                $"{controller.HttpContext.Request.Scheme}://{controller.HttpContext.Request.Host}/errors/{firstError.Code}",
+                configuredType
+                ?? $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/errors/{Uri.EscapeDataString(errorCode)}",
         };
 
         problemDetails.Extensions["errorCode"] = firstError.Code;

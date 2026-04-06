@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Options;
+using SharedKernel.Contracts.Api;
 
 namespace APITemplate.Api.ExceptionHandling;
 
@@ -39,7 +40,8 @@ internal sealed class ProblemDetailsErrorTypeConfigureOptions
                 _errorDocumentation.Value.ErrorTypeBaseUri,
                 errorCode
             );
-            // Do not use ??= : the host may already set a default RFC 9110 "type" for the status code.
+            // When ErrorTypeBaseUri is set, use our documentation URI (overrides host defaults).
+            // When unset, leave Type unchanged so RFC 9110 defaults can apply.
             if (typeUri is not null)
                 context.ProblemDetails.Type = typeUri;
         };
