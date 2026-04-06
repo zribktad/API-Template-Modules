@@ -10,6 +10,9 @@ namespace SharedKernel.Infrastructure.Persistence;
 /// </summary>
 public static class RelationalDatabaseSchemaExtensions
 {
+    /// <summary>PostgreSQL: duplicate_table / relation already exists.</summary>
+    private const string PgDuplicateRelationSqlState = "42P07";
+
     /// <summary>
     ///     Ensures the database exists and creates tables when missing (PostgreSQL), ignoring
     ///     duplicate-relation errors from concurrent startup.
@@ -27,9 +30,9 @@ public static class RelationalDatabaseSchemaExtensions
         {
             await creator.CreateTablesAsync(cancellationToken);
         }
-        catch (PostgresException ex) when (ex.SqlState == "42P07")
+        catch (PostgresException ex) when (ex.SqlState == PgDuplicateRelationSqlState)
         {
-            // 42P07 = relation already exists — safe to ignore
+            // Concurrent startup may race CreateTables — safe to ignore.
         }
     }
 }

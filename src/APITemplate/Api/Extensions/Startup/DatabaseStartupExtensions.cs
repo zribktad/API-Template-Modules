@@ -7,7 +7,10 @@ namespace APITemplate.Api.Extensions.Startup;
 
 public static class DatabaseStartupExtensions
 {
-    public static async Task UseDatabaseAsync(this WebApplication app)
+    public static async Task UseDatabaseAsync(
+        this WebApplication app,
+        CancellationToken cancellationToken = default
+    )
     {
         await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
         IServiceProvider sp = scope.ServiceProvider;
@@ -16,9 +19,9 @@ public static class DatabaseStartupExtensions
             IDatabaseStartupContributor contributor in sp.GetServices<IDatabaseStartupContributor>()
                 .OrderBy(c => c.Order)
         )
-            await contributor.ApplyAsync(sp, CancellationToken.None);
+            await contributor.ApplyAsync(sp, cancellationToken);
 
         AuthBootstrapSeeder seeder = sp.GetRequiredService<AuthBootstrapSeeder>();
-        await seeder.SeedAsync();
+        await seeder.SeedAsync(cancellationToken);
     }
 }

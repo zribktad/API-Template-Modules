@@ -1,3 +1,4 @@
+using System.Reflection;
 using APITemplate.Api;
 using BackgroundJobs;
 using Chatting;
@@ -61,7 +62,7 @@ builder.Host.UseWolverine(options =>
     // between handler commit and message dispatch. UseStrictLocalQueues would additionally
     // guarantee in-order processing per queue — not needed here since handlers are idempotent.
     options.Policies.UseDurableLocalQueues();
-    foreach (System.Reflection.Assembly assembly in WolverineModuleDiscovery.HandlerAssemblies)
+    foreach (Assembly assembly in WolverineModuleDiscovery.HandlerAssemblies)
         options.Discovery.IncludeAssembly(assembly);
 
     options.Policies.AddMiddleware(
@@ -74,7 +75,7 @@ builder.Host.UseWolverine(options =>
 WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
-    await app.UseDatabaseAsync();
+    await app.UseDatabaseAsync(app.Lifetime.ApplicationStopping);
 
 app.UseApiPipeline();
 app.MapApplicationEndpoints();

@@ -12,20 +12,8 @@ internal sealed class ProductCatalogOutputCacheOptionsSetup(IOptions<CachingOpti
     public void Configure(OutputCacheOptions options)
     {
         CachingOptions o = cachingOptions.Value;
-        AddPolicy(options, CacheTags.Products, o.ProductsExpirationSeconds);
-        AddPolicy(options, CacheTags.Categories, o.CategoriesExpirationSeconds);
-        AddPolicy(options, CacheTags.ProductData, o.ProductDataExpirationSeconds);
-    }
-
-    private static void AddPolicy(OutputCacheOptions options, string name, int expirationSeconds)
-    {
-        options.AddPolicy(
-            name,
-            builder =>
-                builder
-                    .AddPolicy<TenantAwareOutputCachePolicy>()
-                    .Expire(TimeSpan.FromSeconds(expirationSeconds))
-                    .Tag(name)
-        );
+        options.AddTenantAwareTaggedPolicy(CacheTags.Products, o.ProductsExpirationSeconds);
+        options.AddTenantAwareTaggedPolicy(CacheTags.Categories, o.CategoriesExpirationSeconds);
+        options.AddTenantAwareTaggedPolicy(CacheTags.ProductData, o.ProductDataExpirationSeconds);
     }
 }

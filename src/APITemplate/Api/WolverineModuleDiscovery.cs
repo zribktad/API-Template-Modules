@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using BackgroundJobs.Features;
 using Chatting.Features.GetNotificationStream;
@@ -17,29 +18,34 @@ namespace APITemplate.Api;
 /// </summary>
 public static class WolverineModuleDiscovery
 {
-    public static IReadOnlyList<Assembly> HandlerAssemblies { get; } =
-    [
-        typeof(CreateUserCommand).Assembly,
-        typeof(CreateProductsCommand).Assembly,
-        typeof(CreateProductReviewCommand).Assembly,
-        typeof(UploadFileCommand).Assembly,
-        typeof(SubmitJobCommand).Assembly,
-        typeof(CleanupExpiredInvitationsHandler).Assembly,
-        typeof(CleanupOrphanedProductDataHandler).Assembly,
-        typeof(SendWebhookCallbackHandler).Assembly,
-        typeof(GetNotificationStreamQuery).Assembly,
-        typeof(UserRegisteredEmailHandler).Assembly,
-    ];
-
     /// <summary>
     ///     Assemblies whose FluentValidation validators should run in <see cref="SharedKernel.Application.Middleware.ErrorOrValidationMiddleware" />.
     /// </summary>
-    public static Assembly[] ErrorOrValidationAssemblies { get; } =
-    [
-        typeof(CreateUserCommand).Assembly,
-        typeof(CreateProductsCommand).Assembly,
-        typeof(CreateProductReviewCommand).Assembly,
-        typeof(UploadFileCommand).Assembly,
-        typeof(SubmitJobCommand).Assembly,
-    ];
+    public static IReadOnlyList<Assembly> ErrorOrValidationAssemblies { get; } =
+        ImmutableArray.Create(
+            typeof(CreateUserCommand).Assembly,
+            typeof(CreateProductsCommand).Assembly,
+            typeof(CreateProductReviewCommand).Assembly,
+            typeof(UploadFileCommand).Assembly,
+            typeof(SubmitJobCommand).Assembly
+        );
+
+    /// <summary>
+    ///     All module assemblies scanned for Wolverine handlers (includes <see cref="ErrorOrValidationAssemblies" /> plus handler-only assemblies).
+    /// </summary>
+    public static IReadOnlyList<Assembly> HandlerAssemblies { get; } = BuildHandlerAssemblies();
+
+    private static ImmutableArray<Assembly> BuildHandlerAssemblies()
+    {
+        Assembly[] supplemental =
+        [
+            typeof(CleanupExpiredInvitationsHandler).Assembly,
+            typeof(CleanupOrphanedProductDataHandler).Assembly,
+            typeof(SendWebhookCallbackHandler).Assembly,
+            typeof(GetNotificationStreamQuery).Assembly,
+            typeof(UserRegisteredEmailHandler).Assembly,
+        ];
+
+        return ErrorOrValidationAssemblies.Concat(supplemental).Distinct().ToImmutableArray();
+    }
 }

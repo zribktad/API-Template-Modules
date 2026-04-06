@@ -12,13 +12,6 @@ internal sealed class ReviewsOutputCacheOptionsSetup(IOptions<CachingOptions> ca
     public void Configure(OutputCacheOptions options)
     {
         CachingOptions o = cachingOptions.Value;
-        options.AddPolicy(
-            CacheTags.Reviews,
-            builder =>
-                builder
-                    .AddPolicy<TenantAwareOutputCachePolicy>()
-                    .Expire(TimeSpan.FromSeconds(o.ReviewsExpirationSeconds))
-                    .Tag(CacheTags.Reviews)
-        );
+        options.AddTenantAwareTaggedPolicy(CacheTags.Reviews, o.ReviewsExpirationSeconds);
     }
 }

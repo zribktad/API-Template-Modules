@@ -12,20 +12,11 @@ internal sealed class IdentityOutputCacheOptionsSetup(IOptions<CachingOptions> c
     public void Configure(OutputCacheOptions options)
     {
         CachingOptions o = cachingOptions.Value;
-        AddPolicy(options, CacheTags.Tenants, o.TenantsExpirationSeconds);
-        AddPolicy(options, CacheTags.TenantInvitations, o.TenantInvitationsExpirationSeconds);
-        AddPolicy(options, CacheTags.Users, o.UsersExpirationSeconds);
-    }
-
-    private static void AddPolicy(OutputCacheOptions options, string name, int expirationSeconds)
-    {
-        options.AddPolicy(
-            name,
-            builder =>
-                builder
-                    .AddPolicy<TenantAwareOutputCachePolicy>()
-                    .Expire(TimeSpan.FromSeconds(expirationSeconds))
-                    .Tag(name)
+        options.AddTenantAwareTaggedPolicy(CacheTags.Tenants, o.TenantsExpirationSeconds);
+        options.AddTenantAwareTaggedPolicy(
+            CacheTags.TenantInvitations,
+            o.TenantInvitationsExpirationSeconds
         );
+        options.AddTenantAwareTaggedPolicy(CacheTags.Users, o.UsersExpirationSeconds);
     }
 }
