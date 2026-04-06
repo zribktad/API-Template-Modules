@@ -41,6 +41,15 @@ public interface IFailedEmailRepository
     /// <summary>Permanently removes a successfully processed failed-email record from the store.</summary>
     Task DeleteAsync(FailedEmail failedEmail, CancellationToken ct = default);
 
+    /// <summary>
+    ///     Hard-deletes the row by primary key without loading the entity (avoids optimistic concurrency on
+    ///     <c>xmin</c>). Use after a normal tracked delete fails on save because of a stale concurrency token.
+    /// </summary>
+    Task<int> DeleteByIdAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>Loads the entity tracked for update (fresh <c>xmin</c> from the database).</summary>
+    Task<FailedEmail?> FindTrackedByIdAsync(Guid id, CancellationToken ct = default);
+
     /// <summary>Whether a row with the given id still exists (ignores change-tracker state).</summary>
     Task<bool> ExistsByIdAsync(Guid id, CancellationToken ct = default);
 

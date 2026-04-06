@@ -117,7 +117,10 @@ public sealed class EmailRetryService : IEmailRetryService
                 if (stagedDeleteAfterSuccessfulSend)
                 {
                     if (await _repository.ExistsByIdAsync(email.Id, ct))
+                    {
                         _logger.EmailRetryDeleteConcurrencyAfterSend(email.To);
+                        await _repository.DeleteByIdAsync(email.Id, ct);
+                    }
                 }
                 else
                 {
@@ -155,10 +158,7 @@ public sealed class EmailRetryService : IEmailRetryService
 
             foreach (FailedEmail email in expired)
             {
-                email.IsDeadLettered = true;
-                email.ClaimedBy = null;
-                email.ClaimedAtUtc = null;
-                email.ClaimedUntilUtc = null;
+                ApplyDeadLetterTransition(email);
                 await _repository.UpdateAsync(email, ct);
 
                 _logger.EmailDeadLettered(email.To, email.Subject, deadLetterAfterHours);
@@ -174,8 +174,35 @@ public sealed class EmailRetryService : IEmailRetryService
                 {
                     _repository.ClearChangeTracker();
                     _logger.EmailDeadLetterCommitConcurrencyConflict();
+                    await ReplayDeadLetterBatchAfterConcurrencyAsync(expired, ct);
                 }
             }
         } while (processed == batchSize);
+    }
+
+    private static void ApplyDeadLetterTransition(FailedEmail email)
+    {
+        email.IsDeadLettered = true;
+        email.ClaimedBy = null;
+        email.ClaimedAtUtc = null;
+        email.ClaimedUntilUtc = null;
+    }
+
+    private async Task ReplayDeadLetterBatchAfterConcurrencyAsync(
+        List<FailedEmail> claimedBatch,
+        CancellationToken ct
+    )
+    {
+        foreach (FailedEmail snapshot in claimedBatch)
+        {
+            FailedEmail? fresh = await _repository.FindTrackedByIdAsync(snapshot.Id, ct);
+            if (fresh is null || fresh.IsDeadLettered)
+                continue;
+
+            ApplyDeadLetterTransition(fresh);
+            await _repository.UpdateAsync(fresh, ct);
+        }
+
+        await _unitOfWork.CommitAsync(ct);
     }
 }

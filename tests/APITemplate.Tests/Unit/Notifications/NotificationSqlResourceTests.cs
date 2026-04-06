@@ -17,4 +17,18 @@ public sealed class NotificationSqlResourceTests
         expired.ShouldContain("\"xmin\"");
         expired.ShouldContain("failed.xmin");
     }
+
+    [Fact]
+    public void Load_initial_migration_down_scripts_exist()
+    {
+        string retryableDown = NotificationSqlResource.Load(
+            "claim_retryable_failed_emails_v1_down.sql"
+        );
+        retryableDown.ShouldContain("DROP FUNCTION");
+
+        string expiredDown = NotificationSqlResource.Load(
+            "claim_expired_failed_emails_v1_down.sql"
+        );
+        expiredDown.ShouldContain("DROP FUNCTION");
+    }
 }

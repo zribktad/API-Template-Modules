@@ -17,10 +17,10 @@ public sealed class NotificationsDbContextDesignTimeFactory
 {
     public NotificationsDbContext CreateDbContext(string[] args)
     {
+        string configurationBasePath = ResolveApiConfigurationDirectory();
+
         IConfigurationRoot configuration = new ConfigurationBuilder()
-            .SetBasePath(
-                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "APITemplate", "Api")
-            )
+            .SetBasePath(configurationBasePath)
             .AddJsonFile("appsettings.json", true)
             .AddJsonFile("appsettings.Development.json", true)
             .AddEnvironmentVariables()
@@ -96,5 +96,49 @@ public sealed class NotificationsDbContextDesignTimeFactory
             IReadOnlyCollection<ISoftDeleteCascadeRule> softDeleteCascadeRules,
             CancellationToken cancellationToken
         ) => Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Locates <c>APITemplate/Api/appsettings.json</c> by walking up from the process cwd and from this
+    ///     assembly directory so <c>dotnet ef</c> works from the repo root, module folder, or <c>bin/</c> output.
+    /// </summary>
+    private static string ResolveApiConfigurationDirectory()
+    {
+        foreach (string root in GetDesignTimeSearchRoots())
+        {
+            DirectoryInfo? dir = new(root);
+            while (dir is not null)
+            {
+                foreach (
+                    string candidate in new[]
+                    {
+                        Path.Combine(dir.FullName, "src", "APITemplate", "Api"),
+                        Path.Combine(dir.FullName, "APITemplate", "Api"),
+                    }
+                )
+                {
+                    if (File.Exists(Path.Combine(candidate, "appsettings.json")))
+                        return candidate;
+                }
+
+                dir = dir.Parent;
+            }
+        }
+
+        throw new InvalidOperationException(
+            "Could not find APITemplate/Api/appsettings.json. "
+                + "Run `dotnet ef` from the repository tree, or set ConnectionStrings__DefaultConnection."
+        );
+    }
+
+    private static IEnumerable<string> GetDesignTimeSearchRoots()
+    {
+        yield return Directory.GetCurrentDirectory();
+
+        string? assemblyDir = Path.GetDirectoryName(
+            typeof(NotificationsDbContextDesignTimeFactory).Assembly.Location
+        );
+        if (!string.IsNullOrEmpty(assemblyDir))
+            yield return assemblyDir;
     }
 }

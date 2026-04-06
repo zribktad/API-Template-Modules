@@ -86,6 +86,10 @@ public partial class InitialNotifications : Migration
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    ///     <c>v1_down</c> scripts drop by argument list only; they remove the functions installed in
+    ///     <see cref="Up" /> (v2 return shape shares the same PostgreSQL routine identity for inputs).
+    /// </remarks>
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql(

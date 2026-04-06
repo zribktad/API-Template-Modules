@@ -7,32 +7,25 @@ namespace Notifications.Persistence;
 /// </summary>
 public static class NotificationSqlResource
 {
+    private const string SqlResourcePrefix = "Notifications.StoredProcedures.Sql.";
+
     private static readonly Assembly Assembly = typeof(NotificationSqlResource).Assembly;
 
     /// <param name="fileName">e.g. <c>claim_retryable_failed_emails_v2_up.sql</c></param>
     public static string Load(string fileName)
     {
-        string? resourceName = Assembly
-            .GetManifestResourceNames()
-            .SingleOrDefault(n =>
-                n.EndsWith(
-                    "." + fileName.Replace('/', '.').Replace('\\', '.'),
-                    StringComparison.Ordinal
-                ) || n.EndsWith(fileName, StringComparison.Ordinal)
-            );
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        if (fileName.Contains("..", StringComparison.Ordinal))
+            throw new ArgumentException("Invalid file name.", nameof(fileName));
 
-        if (resourceName is null)
-        {
-            throw new InvalidOperationException(
-                $"Embedded SQL resource ending with '{fileName}' not found. "
-                    + $"Available: {string.Join(", ", Assembly.GetManifestResourceNames())}"
-            );
-        }
+        string suffix = fileName.Replace('/', '.').Replace('\\', '.');
+        string resourceName = SqlResourcePrefix + suffix;
 
         using Stream? stream = Assembly.GetManifestResourceStream(resourceName);
         if (stream is null)
             throw new InvalidOperationException(
-                $"Could not open manifest resource stream '{resourceName}'."
+                $"Embedded SQL resource '{resourceName}' not found. "
+                    + $"Available: {string.Join(", ", Assembly.GetManifestResourceNames())}"
             );
 
         using var reader = new StreamReader(stream);
