@@ -40,4 +40,12 @@ public interface IFailedEmailRepository
 
     /// <summary>Permanently removes a successfully processed failed-email record from the store.</summary>
     Task DeleteAsync(FailedEmail failedEmail, CancellationToken ct = default);
+
+    /// <summary>Whether a row with the given id still exists (ignores change-tracker state).</summary>
+    Task<bool> ExistsByIdAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    ///     Clears the EF change tracker after a failed save (for example an optimistic concurrency conflict).
+    /// </summary>
+    void ClearChangeTracker();
 }

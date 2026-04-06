@@ -50,11 +50,7 @@ public static class TenantAuditableEntityConfigurationExtensions
         builder.Property(e => e.DeletedAtUtc).HasColumnType("timestamp with time zone");
         builder.Property(e => e.DeletedBy);
 
-        builder
-            .Property<uint>("xmin")
-            .HasColumnType("xid")
-            .ValueGeneratedOnAddOrUpdate()
-            .IsConcurrencyToken();
+        builder.ConfigurePostgresXminConcurrency();
 
         builder.HasIndex(e => e.TenantId);
         builder.HasIndex(e => new { e.TenantId, e.IsDeleted });

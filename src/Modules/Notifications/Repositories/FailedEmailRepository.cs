@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Notifications.Domain;
 using Notifications.Persistence;
 using Notifications.StoredProcedures;
@@ -91,4 +92,9 @@ public sealed class FailedEmailRepository : IFailedEmailRepository
         _dbContext.FailedEmails.Remove(failedEmail);
         return Task.CompletedTask;
     }
+
+    public Task<bool> ExistsByIdAsync(Guid id, CancellationToken ct = default) =>
+        _dbContext.FailedEmails.AsNoTracking().AnyAsync(e => e.Id == id, ct);
+
+    public void ClearChangeTracker() => _dbContext.ChangeTracker.Clear();
 }
