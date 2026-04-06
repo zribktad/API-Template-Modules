@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
-using Notifications.Persistence;
 
 #nullable disable
 
@@ -78,27 +77,11 @@ public partial class InitialNotifications : Migration
             table: "FailedEmails",
             columns: new[] { "IsDeadLettered", "RetryCount", "ClaimedUntilUtc", "LastAttemptAtUtc" }
         );
-
-        migrationBuilder.Sql(
-            NotificationSqlResource.Load("claim_retryable_failed_emails_v2_up.sql")
-        );
-        migrationBuilder.Sql(NotificationSqlResource.Load("claim_expired_failed_emails_v2_up.sql"));
     }
 
     /// <inheritdoc />
-    /// <remarks>
-    ///     <c>v1_down</c> scripts drop by argument list only; they remove the functions installed in
-    ///     <see cref="Up" /> (v2 return shape shares the same PostgreSQL routine identity for inputs).
-    /// </remarks>
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.Sql(
-            NotificationSqlResource.Load("claim_retryable_failed_emails_v1_down.sql")
-        );
-        migrationBuilder.Sql(
-            NotificationSqlResource.Load("claim_expired_failed_emails_v1_down.sql")
-        );
-
         migrationBuilder.DropTable(name: "FailedEmails");
     }
 }
