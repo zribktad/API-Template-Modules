@@ -1,7 +1,7 @@
-using APITemplate.Api.Cache;
 using APITemplate.Tests.Unit.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OutputCaching;
+using SharedKernel.Infrastructure.OutputCache;
 using Shouldly;
 using Xunit;
 

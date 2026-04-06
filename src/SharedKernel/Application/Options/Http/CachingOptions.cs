@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace APITemplate.Api.Cache;
+namespace SharedKernel.Application.Options.Http;
 
 public sealed class CachingOptions
 {

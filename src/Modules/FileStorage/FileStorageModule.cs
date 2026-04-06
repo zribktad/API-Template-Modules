@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
+using SharedKernel.Infrastructure.Startup;
 
 namespace FileStorage;
 
@@ -22,6 +23,8 @@ public static class FileStorageModule
         RegisterApplicationServices(services);
         RegisterControllers(services);
 
+        services.AddSingleton<IDatabaseStartupContributor, FileStorageDatabaseStartupContributor>();
+
         return services;
     }
 
@@ -29,7 +32,6 @@ public static class FileStorageModule
         this IEndpointRouteBuilder endpoints
     )
     {
-        endpoints.MapControllers();
         return endpoints;
     }
 

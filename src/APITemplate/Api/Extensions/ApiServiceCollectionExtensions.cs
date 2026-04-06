@@ -3,13 +3,12 @@ using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using SharedKernel.Application.Options.Http;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Api.Routing;
 using SharedKernel.Infrastructure.Health;
+using SharedKernel.Infrastructure.OutputCache;
 using StackExchange.Redis;
-using IdentityCacheTags = Identity.Events.CacheTags;
-using ProductCatalogCacheTags = ProductCatalog.Common.Events.CacheTags;
-using ReviewsCacheTags = Reviews.Common.Events.CacheTags;
 
 namespace APITemplate.Api.Extensions;
 
@@ -109,40 +108,7 @@ public static class ApiServiceCollectionExtensions
         services.AddSingleton<TenantAwareOutputCachePolicy>();
         services.AddScoped<IOutputCacheInvalidationService, OutputCacheInvalidationService>();
 
-        CachingOptions cachingOptions =
-            configuration.SectionFor<CachingOptions>().Get<CachingOptions>()
-            ?? new CachingOptions();
-
-        services.AddOutputCache(options =>
-        {
-            options.AddBasePolicy(builder => builder.NoCache());
-
-            ReadOnlySpan<(string Name, int ExpirationSeconds)> policies =
-            [
-                (ProductCatalogCacheTags.Products, cachingOptions.ProductsExpirationSeconds),
-                (ProductCatalogCacheTags.Categories, cachingOptions.CategoriesExpirationSeconds),
-                (ReviewsCacheTags.Reviews, cachingOptions.ReviewsExpirationSeconds),
-                (ProductCatalogCacheTags.ProductData, cachingOptions.ProductDataExpirationSeconds),
-                (IdentityCacheTags.Tenants, cachingOptions.TenantsExpirationSeconds),
-                (
-                    IdentityCacheTags.TenantInvitations,
-                    cachingOptions.TenantInvitationsExpirationSeconds
-                ),
-                (IdentityCacheTags.Users, cachingOptions.UsersExpirationSeconds),
-            ];
-
-            foreach ((string name, int expirationSeconds) in policies)
-            {
-                options.AddPolicy(
-                    name,
-                    builder =>
-                        builder
-                            .AddPolicy<TenantAwareOutputCachePolicy>()
-                            .Expire(TimeSpan.FromSeconds(expirationSeconds))
-                            .Tag(name)
-                );
-            }
-        });
+        services.AddOutputCache(options => options.AddBasePolicy(builder => builder.NoCache()));
 
         return services;
     }

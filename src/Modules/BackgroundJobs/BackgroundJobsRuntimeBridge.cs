@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
+using SharedKernel.Infrastructure.Startup;
 using TickerQ.DependencyInjection;
 using TickerQ.EntityFrameworkCore.Customizer;
 using TickerQ.EntityFrameworkCore.DependencyInjection;
@@ -62,6 +63,15 @@ public static class BackgroundJobsRuntimeBridge
 
         RegisterSoftDeleteCleanupStrategies(services);
         RegisterTickerQRuntime(services, configuration, options);
+
+        services.AddSingleton<
+            IDatabaseStartupContributor,
+            BackgroundJobsDatabaseStartupContributor
+        >();
+        services.AddSingleton<
+            IDatabaseStartupContributor,
+            TickerQSchedulerDatabaseStartupContributor
+        >();
 
         return services;
     }

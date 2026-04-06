@@ -19,7 +19,6 @@ public static class ChattingModule
 
     public static IEndpointRouteBuilder MapChattingEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllers();
         return endpoints;
     }
 }
