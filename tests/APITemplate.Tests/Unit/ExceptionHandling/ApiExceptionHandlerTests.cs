@@ -14,6 +14,8 @@ namespace APITemplate.Tests.Unit.ExceptionHandling;
 
 public class ApiExceptionHandlerTests
 {
+    private const string TestErrorTypeBaseUri = "https://unit-test.invalid/errors";
+
     private readonly Mock<ILogger<ApiExceptionHandler>> _loggerMock = new();
     private readonly IProblemDetailsService _problemDetailsService;
 
@@ -21,22 +23,11 @@ public class ApiExceptionHandlerTests
     {
         ServiceCollection services = new();
         services.AddOptions();
-        services.AddProblemDetails(options =>
-        {
-            options.CustomizeProblemDetails = context =>
-            {
-                IDictionary<string, object?> extensions = context.ProblemDetails.Extensions;
-                string errorCode =
-                    extensions.TryGetValue("errorCode", out object? code)
-                    && code is string existingCode
-                        ? existingCode
-                        : ErrorCatalog.General.Unknown;
-
-                extensions["traceId"] = context.HttpContext.TraceIdentifier;
-                extensions["errorCode"] = errorCode;
-                context.ProblemDetails.Type ??= $"https://api-template.local/errors/{errorCode}";
-            };
-        });
+        services
+            .AddOptions<ErrorDocumentationOptions>()
+            .Configure(o => o.ErrorTypeBaseUri = TestErrorTypeBaseUri);
+        services.AddProblemDetails();
+        services.ConfigureOptions<ProblemDetailsErrorTypeConfigureOptions>();
         _problemDetailsService = services
             .BuildServiceProvider()
             .GetRequiredService<IProblemDetailsService>();
@@ -90,9 +81,10 @@ public class ApiExceptionHandlerTests
         body.GetProperty("title").GetString().ShouldBe(expectedTitle);
         body.GetProperty("detail").GetString().ShouldBe(expectedDetail);
         body.GetProperty("errorCode").GetString().ShouldBe(expectedErrorCode);
-        body.GetProperty("type")
-            .GetString()
-            .ShouldBe($"https://api-template.local/errors/{expectedErrorCode}");
+        string? type = body.GetProperty("type").GetString();
+        type.ShouldBe(
+            ProblemDetailsErrorTypeUri.BuildAbsoluteUri(TestErrorTypeBaseUri, expectedErrorCode)
+        );
         body.GetProperty("traceId").GetString().ShouldNotBeNullOrWhiteSpace();
     }
 

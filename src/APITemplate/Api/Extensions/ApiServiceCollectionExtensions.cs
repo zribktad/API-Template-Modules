@@ -19,7 +19,17 @@ public static class ApiServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.AddProblemDetails(ApiProblemDetailsOptions.Configure);
+        services
+            .AddValidatedOptions<ErrorDocumentationOptions>(
+                configuration,
+                validateDataAnnotations: false
+            )
+            .Validate(
+                static o => ProblemDetailsErrorTypeUri.IsValidBaseUriWhenSet(o.ErrorTypeBaseUri),
+                "ErrorDocumentation:ErrorTypeBaseUri must be an absolute http or https URI when set."
+            );
+        services.AddProblemDetails();
+        services.ConfigureOptions<ProblemDetailsErrorTypeConfigureOptions>();
         services.AddExceptionHandler<ApiExceptionHandler>();
         services.Configure<MvcOptions>(options =>
         {
