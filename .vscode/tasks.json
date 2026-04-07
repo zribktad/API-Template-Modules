@@ -80,7 +80,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "$ErrorActionPreference = 'Stop'; function Start-Or-Skip([string]$service) { $output = docker compose up -d $service 2>&1; $exitCode = $LASTEXITCODE; if ($exitCode -eq 0) { $output | Out-Host; return }; $msg = ($output | Out-String); if ($msg -match 'port is already allocated' -or $msg -match 'Bind for 0\\.0\\.0\\.0') { Write-Host \"$service port is already allocated. Continuing.\"; return }; throw $msg }; Start-Or-Skip 'postgres'; Start-Or-Skip 'mongodb'; Start-Or-Skip 'keycloak-db'; Start-Or-Skip 'keycloak'; Start-Or-Skip 'dragonfly'; exit 0"
+        "$ErrorActionPreference = 'Stop'; function Start-Or-Skip([string]$service) { $output = docker compose up -d $service 2>&1; $exitCode = $LASTEXITCODE; if ($exitCode -eq 0) { $output | Out-Host; return }; $msg = ($output | Out-String); if ($msg -match 'port is already allocated' -or $msg -match 'Bind for 0\\.0\\.0\\.0') { Write-Host \"$service port is already allocated. Continuing.\"; return }; throw $msg }; Start-Or-Skip 'postgres'; Start-Or-Skip 'mongodb'; Start-Or-Skip 'keycloak'; Start-Or-Skip 'dragonfly'; exit 0"
       ],
       "problemMatcher": []
     },
@@ -96,7 +96,6 @@
         "-d",
         "postgres",
         "mongodb",
-        "keycloak-db",
         "keycloak",
         "dragonfly",
         "aspire-dashboard"
@@ -113,7 +112,6 @@
         "-d",
         "postgres",
         "mongodb",
-        "keycloak-db",
         "keycloak",
         "dragonfly",
         "alloy",
@@ -136,7 +134,6 @@
         "-d",
         "postgres",
         "mongodb",
-        "keycloak-db",
         "keycloak",
         "dragonfly",
         "alloy",
@@ -171,7 +168,6 @@
         "alloy",
         "dragonfly",
         "keycloak",
-        "keycloak-db",
         "mongodb",
         "postgres"
       ],
@@ -187,8 +183,7 @@
         "dragonfly",
         "postgres",
         "mongodb",
-        "keycloak",
-        "keycloak-db"
+        "keycloak"
       ],
       "problemMatcher": []
     },

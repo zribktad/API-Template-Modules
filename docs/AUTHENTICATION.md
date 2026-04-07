@@ -76,6 +76,14 @@ docker compose up -d
 | Keycloak   | 8180  | Identity provider     |
 | DragonFly  | 6379  | Session store + cache |
 
+> **PostgreSQL 18+ volume mount:** The `postgres` service uses `postgres:18.3`. Since PostgreSQL 18, the declared Docker volume moved from `/var/lib/postgresql/data` to `/var/lib/postgresql`, and `PGDATA` defaults to a version-specific subdirectory (`/var/lib/postgresql/18/docker`). The `docker-compose.yml` mounts at `/var/lib/postgresql` intentionally — this is correct for PostgreSQL 18+. Do not change it to `/var/lib/postgresql/data`.
+
+> **Keycloak database — first-time setup:** Keycloak shares the `postgres` service and uses a dedicated `keycloak` database within it. The init script (`infrastructure/postgres/init-keycloak-db.sql`) creates this database automatically on the **first** volume initialization. If the `pgdata` volume already existed before this change, create the database once manually:
+> ```bash
+> docker exec api-template-monolith-postgres-1 psql -U postgres -c "CREATE DATABASE keycloak;"
+> ```
+> After that, restart Keycloak: `docker compose restart keycloak`.
+
 ### 2. Default Credentials
 
 | Service                | Username | Password |
