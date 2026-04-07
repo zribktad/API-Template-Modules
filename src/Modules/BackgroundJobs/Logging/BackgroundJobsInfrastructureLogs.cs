@@ -131,7 +131,7 @@ internal static partial class BackgroundJobsInfrastructureLogs
     )]
     public static partial void CoordinationLeaseLost(this ILogger logger, string jobName);
 
-    // TickerQ recurring jobs (8014, 8015, 8016)
+    // TickerQ recurring jobs (8014, 8015, 8016, 8018)
     [LoggerMessage(
         EventId = 8014,
         Level = LogLevel.Information,
@@ -155,6 +155,13 @@ internal static partial class BackgroundJobsInfrastructureLogs
         Message = "Executing reindex recurring job for ticker {TickerId}."
     )]
     public static partial void ExecutingReindexRecurringJob(this ILogger logger, Guid tickerId);
+
+    [LoggerMessage(
+        EventId = 8018,
+        Level = LogLevel.Information,
+        Message = "Executing email retry recurring job for ticker {TickerId}."
+    )]
+    public static partial void ExecutingEmailRetryRecurringJob(this ILogger logger, Guid tickerId);
 
     // TickerQRecurringJobRegistrar (8017)
     [LoggerMessage(
