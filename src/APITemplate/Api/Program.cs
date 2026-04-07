@@ -1,23 +1,17 @@
+using System.Reflection;
+using APITemplate.Api;
 using BackgroundJobs;
-using BackgroundJobs.Features;
 using Chatting;
-using Chatting.Features.GetNotificationStream;
 using FileStorage;
-using FileStorage.Features.Upload;
 using Identity;
-using Identity.Features.User;
-using Identity.Handlers;
 using JasperFx;
 using JasperFx.Resources;
+using Notifications;
 using ProductCatalog;
-using ProductCatalog.Features.Product.CreateProducts;
-using ProductCatalog.Handlers;
 using Reviews;
-using Reviews.Features;
 using Serilog;
 using SharedKernel.Application.Middleware;
 using Webhooks;
-using Webhooks.Features.SendWebhookCallback;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.Postgresql;
@@ -50,6 +44,7 @@ builder.Services.AddFileStorageModule(builder.Configuration);
 builder.Services.AddBackgroundJobsModule(builder.Configuration);
 builder.Services.AddWebhooksModule(builder.Configuration);
 builder.Services.AddChattingModule(builder.Configuration);
+builder.Services.AddNotificationsModule(builder.Configuration);
 
 // Auto-create Wolverine schema tables (incoming/outgoing/dead-letter) on startup.
 // Scoped to Development only — in other environments run `db-apply` as a pre-deployment step.
@@ -67,32 +62,20 @@ builder.Host.UseWolverine(options =>
     // between handler commit and message dispatch. UseStrictLocalQueues would additionally
     // guarantee in-order processing per queue — not needed here since handlers are idempotent.
     options.Policies.UseDurableLocalQueues();
-    options.Discovery.IncludeAssembly(typeof(CreateUserCommand).Assembly);
-    options.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly);
-    options.Discovery.IncludeAssembly(typeof(CreateProductReviewCommand).Assembly);
-    options.Discovery.IncludeAssembly(typeof(UploadFileCommand).Assembly);
-    options.Discovery.IncludeAssembly(typeof(SubmitJobCommand).Assembly);
-    options.Discovery.IncludeAssembly(typeof(CleanupExpiredInvitationsHandler).Assembly);
-    options.Discovery.IncludeAssembly(typeof(CleanupOrphanedProductDataHandler).Assembly);
-    options.Discovery.IncludeAssembly(typeof(SendWebhookCallbackHandler).Assembly);
-    options.Discovery.IncludeAssembly(typeof(GetNotificationStreamQuery).Assembly);
+    foreach (Assembly assembly in WolverineModuleDiscovery.HandlerAssemblies)
+        options.Discovery.IncludeAssembly(assembly);
+
     options.Policies.AddMiddleware(
         typeof(ErrorOrValidationMiddleware),
         chain =>
-            chain.ShouldApplyErrorOrValidation(
-                typeof(CreateUserCommand).Assembly,
-                typeof(CreateProductsCommand).Assembly,
-                typeof(CreateProductReviewCommand).Assembly,
-                typeof(UploadFileCommand).Assembly,
-                typeof(SubmitJobCommand).Assembly
-            )
+            chain.ShouldApplyErrorOrValidation(WolverineModuleDiscovery.ErrorOrValidationAssemblies)
     );
 });
 
 WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
-    await app.UseDatabaseAsync();
+    await app.UseDatabaseAsync(app.Lifetime.ApplicationStopping);
 
 app.UseApiPipeline();
 app.MapApplicationEndpoints();

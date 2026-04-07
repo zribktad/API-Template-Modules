@@ -4,6 +4,7 @@ using FileStorage;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using Notifications;
 using ProductCatalog;
 using Scalar.AspNetCore;
 using Serilog;
@@ -77,9 +78,12 @@ public static class ApplicationBuilderExtensions
             )
             .WithTags("Health")
             .AllowAnonymous();
+
+        app.MapControllers();
         app.MapProductCatalogEndpoints();
         app.MapFileStorageEndpoints();
         app.MapChattingEndpoints();
+        app.MapNotificationsEndpoints();
 
         return app;
     }

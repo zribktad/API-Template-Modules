@@ -7,7 +7,7 @@ public static class WolverineHandlerChainExtensions
 {
     public static bool ShouldApplyErrorOrValidation(
         this HandlerChain chain,
-        params Assembly[] validatorAssemblies
+        IReadOnlyList<Assembly> validatorAssemblies
     )
     {
         return validatorAssemblies.Any(chain.MessageType.HasValidatorIn)

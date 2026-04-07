@@ -22,7 +22,6 @@ public static class BackgroundJobsModule
         this IEndpointRouteBuilder endpoints
     )
     {
-        endpoints.MapControllers();
         return endpoints;
     }
 }

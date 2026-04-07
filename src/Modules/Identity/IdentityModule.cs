@@ -1,8 +1,10 @@
 using FluentValidation;
 using Identity.Common.Email;
+using Identity.Configuration;
 using Identity.Controllers.V1;
 using Identity.Features.User.Validation;
 using Identity.Options;
+using Identity.Persistence;
 using Identity.Persistence.EntityNormalization;
 using Identity.Repositories;
 using Identity.Security.Keycloak;
@@ -15,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +30,7 @@ using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
 using SharedKernel.Infrastructure.Resilience;
+using SharedKernel.Infrastructure.Startup;
 
 namespace Identity;
 
@@ -46,12 +50,17 @@ public static class IdentityModule
         RegisterValidators(services);
         RegisterControllers(services);
 
+        services.AddSingleton<IDatabaseStartupContributor, IdentityDatabaseStartupContributor>();
+        services.AddSingleton<
+            IConfigureOptions<OutputCacheOptions>,
+            IdentityOutputCacheOptionsSetup
+        >();
+
         return services;
     }
 
     public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllers();
         return endpoints;
     }
 

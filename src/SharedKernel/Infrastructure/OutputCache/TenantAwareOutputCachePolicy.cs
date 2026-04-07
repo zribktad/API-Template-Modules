@@ -1,8 +1,9 @@
 using System.Security.Claims;
-using Identity.Security;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OutputCaching;
+using SharedKernel.Contracts.Security;
 
-namespace APITemplate.Api.Cache;
+namespace SharedKernel.Infrastructure.OutputCache;
 
 public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
 {
@@ -18,7 +19,7 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
             return ValueTask.CompletedTask;
 
         string tenantId =
-            context.HttpContext.User.FindFirstValue(AuthConstants.Claims.TenantId) ?? string.Empty;
+            context.HttpContext.User.FindFirstValue(TenantSecurityClaims.TenantId) ?? string.Empty;
 
         if (string.IsNullOrEmpty(tenantId))
         {
@@ -31,7 +32,7 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
         context.EnableOutputCaching = true;
         context.AllowCacheLookup = true;
         context.AllowCacheStorage = true;
-        context.CacheVaryByRules.VaryByValues[AuthConstants.Claims.TenantId] = tenantId;
+        context.CacheVaryByRules.VaryByValues[TenantSecurityClaims.TenantId] = tenantId;
 
         List<string> originalTags = context.Tags.ToList();
         context.Tags.Clear();

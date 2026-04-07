@@ -2,12 +2,15 @@ using FluentValidation;
 using Kot.MongoDB.Migrations;
 using Kot.MongoDB.Migrations.DI;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
+using ProductCatalog.Configuration;
 using ProductCatalog.GraphQL.DataLoaders;
 using ProductCatalog.GraphQL.Mutations;
 using ProductCatalog.GraphQL.Queries;
@@ -15,9 +18,11 @@ using ProductCatalog.GraphQL.Types;
 using ProductCatalog.Persistence;
 using ProductCatalog.Repositories;
 using ProductCatalog.SoftDelete;
+using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Health;
 using SharedKernel.Infrastructure.Registration;
+using SharedKernel.Infrastructure.Startup;
 using ProductApplicationRepository = ProductCatalog.Interfaces.IProductRepository;
 
 namespace ProductCatalog;
@@ -108,6 +113,15 @@ public static class ProductCatalogModule
             })
             .AddMaxExecutionDepthRule(5);
 
+        services.AddSingleton<
+            IDatabaseStartupContributor,
+            ProductCatalogDatabaseStartupContributor
+        >();
+        services.AddSingleton<
+            IConfigureOptions<OutputCacheOptions>,
+            ProductCatalogOutputCacheOptionsSetup
+        >();
+
         return services;
     }
 
@@ -115,7 +129,6 @@ public static class ProductCatalogModule
         this IEndpointRouteBuilder endpoints
     )
     {
-        endpoints.MapControllers();
         endpoints.MapGraphQL();
         return endpoints;
     }

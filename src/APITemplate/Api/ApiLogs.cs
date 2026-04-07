@@ -1,13 +1,14 @@
+using Microsoft.Extensions.Logging;
 using SharedKernel.Infrastructure.Logging;
 
-namespace APITemplate.Api.ExceptionHandling;
+namespace APITemplate.Api;
 
 /// <summary>
-///     Source-generated logging contract for <see cref="ApiExceptionHandler" />.
-///     Keeps log templates and event identifiers centralized, strongly typed, and allocation-friendly.
+///     Source-generated logger extension methods for API diagnostics.
 /// </summary>
-internal static partial class ApiExceptionHandlerLogs
+internal static partial class ApiLogs
 {
+    // ApiExceptionHandler (1001-1002)
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Error,
@@ -17,8 +18,8 @@ internal static partial class ApiExceptionHandlerLogs
         this ILogger logger,
         Exception exception,
         int statusCode,
-        [SensitiveData] string errorCode,
-        [PersonalData] string traceId
+        string errorCode,
+        string traceId
     );
 
     [LoggerMessage(
@@ -30,7 +31,19 @@ internal static partial class ApiExceptionHandlerLogs
         this ILogger logger,
         Exception exception,
         int statusCode,
-        [SensitiveData] string errorCode,
-        [PersonalData] string traceId
+        string errorCode,
+        string traceId
+    );
+
+    // OutputCacheInvalidationService (1003)
+    [LoggerMessage(
+        EventId = 1003,
+        Level = LogLevel.Error,
+        Message = "Failed to evict output cache for tag: {Tag}"
+    )]
+    public static partial void EvictOutputCacheFailed(
+        this ILogger logger,
+        Exception exception,
+        string tag
     );
 }

@@ -1,3 +1,5 @@
+using SharedKernel.Contracts.Security;
+
 namespace Identity.Security;
 
 /// <summary>
@@ -76,7 +78,7 @@ public static class AuthConstants
         public const string Roles = "roles";
         public const string PreferredUsername = "preferred_username";
         public const string ServiceAccountUsernamePrefix = "service-account-";
-        public const string TenantId = "tenant_id";
+        public const string TenantId = TenantSecurityClaims.TenantId;
     }
 
     /// <summary>
