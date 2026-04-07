@@ -44,12 +44,12 @@ public sealed class BffController : ApiControllerBase
     [AllowAnonymous]
     public IActionResult LoginWithProvider(string idpHint, [FromQuery] string? returnUrl = null)
     {
-        if (!_identityProviders.ContainsKey(idpHint))
+        if (!_identityProviders.TryGetValue(idpHint, out IExternalIdentityProvider? identityProvider))
             return NotFound();
 
         string redirectUri = Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
         AuthenticationProperties properties = new() { RedirectUri = redirectUri };
-        properties.Items["kc_idp_hint"] = idpHint;
+        properties.Items[AuthConstants.KeycloakAuthProperties.IdpHint] = identityProvider.IdpHint;
 
         return Challenge(properties, AuthConstants.BffSchemes.Oidc);
     }
@@ -58,11 +58,8 @@ public sealed class BffController : ApiControllerBase
     [AllowAnonymous]
     public IActionResult GetExternalProviders()
     {
-        IEnumerable<object> providers = _identityProviders.Values.Select(p => new
-        {
-            idpHint = p.IdpHint,
-            displayName = p.DisplayName,
-        });
+        IEnumerable<ExternalProviderResponse> providers = _identityProviders.Values
+            .Select(p => new ExternalProviderResponse(p.IdpHint, p.DisplayName));
         return Ok(providers);
     }
 

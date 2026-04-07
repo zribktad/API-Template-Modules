@@ -26,19 +26,16 @@ public static class RelationalDatabaseSchemaExtensions
 
         IRelationalDatabaseCreator creator = context.GetService<IRelationalDatabaseCreator>();
 
-        // Skip CreateTables when all tables already exist — avoids noisy ERR log from EF Core
-        // when Postgres rejects the duplicate DDL before the catch block can handle it.
-        // The try/catch below still guards against the rare concurrent-startup race.
-        if (await creator.HasTablesAsync(cancellationToken))
-            return;
-
+        // Always attempt CreateTables — each DbContext creates only its own tables.
+        // HasTablesAsync() is DB-wide and would incorrectly skip this context's tables
+        // when another module has already created theirs. The catch handles duplicates.
         try
         {
             await creator.CreateTablesAsync(cancellationToken);
         }
         catch (PostgresException ex) when (ex.SqlState == PgDuplicateRelationSqlState)
         {
-            // Concurrent startup may race CreateTables — safe to ignore.
+            // Tables already exist (another module ran first, or concurrent startup) — safe to ignore.
         }
     }
 }

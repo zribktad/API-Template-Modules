@@ -1,4 +1,5 @@
 using Identity.Controllers.V1;
+using Identity.Features.Bff.DTOs;
 using Identity.Options;
 using Identity.Security;
 using Identity.Security.ExternalIdentityProviders;
@@ -51,7 +52,7 @@ public sealed class BffExternalProvidersTests
         IActionResult result = controller.GetExternalProviders();
 
         OkObjectResult ok = result.ShouldBeOfType<OkObjectResult>();
-        IEnumerable<object> providers = ok.Value.ShouldBeAssignableTo<IEnumerable<object>>()!;
+        IEnumerable<ExternalProviderResponse> providers = ok.Value.ShouldBeAssignableTo<IEnumerable<ExternalProviderResponse>>()!;
         providers.ShouldNotBeEmpty();
     }
 
@@ -63,7 +64,7 @@ public sealed class BffExternalProvidersTests
         IActionResult result = controller.GetExternalProviders();
 
         OkObjectResult ok = result.ShouldBeOfType<OkObjectResult>();
-        IEnumerable<object> providers = ok.Value.ShouldBeAssignableTo<IEnumerable<object>>()!;
+        IEnumerable<ExternalProviderResponse> providers = ok.Value.ShouldBeAssignableTo<IEnumerable<ExternalProviderResponse>>()!;
         providers.ShouldBeEmpty();
     }
 
@@ -80,7 +81,7 @@ public sealed class BffExternalProvidersTests
         IActionResult result = controller.GetExternalProviders();
 
         OkObjectResult ok = result.ShouldBeOfType<OkObjectResult>();
-        ok.Value.ShouldBeAssignableTo<IEnumerable<object>>()!.Count().ShouldBe(2);
+        ok.Value.ShouldBeAssignableTo<IEnumerable<ExternalProviderResponse>>()!.Count().ShouldBe(2);
     }
 
     // ── LoginWithProvider ────────────────────────────────────────────────────
@@ -158,8 +159,8 @@ public sealed class BffExternalProvidersTests
             .LoginWithProvider("google")
             .ShouldBeOfType<ChallengeResult>();
 
-        result.Properties!.Items.ShouldContainKey("kc_idp_hint");
-        result.Properties.Items["kc_idp_hint"].ShouldBe("google");
+        result.Properties!.Items.ShouldContainKey(AuthConstants.KeycloakAuthProperties.IdpHint);
+        result.Properties.Items[AuthConstants.KeycloakAuthProperties.IdpHint].ShouldBe("google");
     }
 
     // ── GoogleIdentityProvider ───────────────────────────────────────────────

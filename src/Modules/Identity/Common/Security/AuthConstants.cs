@@ -97,6 +97,20 @@ public static class AuthConstants
         public const string HeaderValue = "1";
     }
 
+    /// <summary>
+    ///     Keycloak-specific authentication properties keys used during OIDC challenge construction.
+    /// </summary>
+    public static class KeycloakAuthProperties
+    {
+        /// <summary>
+        ///     Authentication properties key that carries the Keycloak identity provider alias.
+        ///     Keycloak reads this value and immediately redirects the user to the specified IdP
+        ///     (e.g. Google, GitHub), bypassing the Keycloak login page entirely.
+        ///     Must match the <em>Alias</em> configured in Keycloak under Identity Providers.
+        /// </summary>
+        public const string IdpHint = "kc_idp_hint";
+    }
+
     /// <summary>Authentication scheme names registered for the BFF cookie and OIDC flows.</summary>
     public static class BffSchemes
     {
