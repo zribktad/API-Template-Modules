@@ -81,7 +81,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
@@ -107,7 +107,7 @@ services:
       POSTGRES_PASSWORD: keycloak
       POSTGRES_DB: keycloak
     volumes:
-      - keycloak-pgdata:/var/lib/postgresql/data
+      - keycloak-pgdata:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U keycloak" ]
       interval: 10s
@@ -125,6 +125,8 @@ services:
       KC_HTTP_PORT: 8180
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-CHANGE_ME}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-CHANGE_ME}"
     ports:
       - "8180:8180"
     depends_on:

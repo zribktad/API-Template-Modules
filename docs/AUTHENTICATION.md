@@ -20,7 +20,7 @@ graph TB
     end
 
     subgraph APP[ASP.NET Core API]
-        BFF[BffController<br/>/api/v1/bff/login<br/>/api/v1/bff/logout<br/>/api/v1/bff/user<br/>/api/v1/bff/csrf]
+        BFF[BffController<br/>/api/v1/bff/login<br/>/api/v1/bff/login/{idpHint}<br/>/api/v1/bff/external-providers<br/>/api/v1/bff/logout<br/>/api/v1/bff/user<br/>/api/v1/bff/csrf]
         JWT_VAL[JwtBearer Middleware<br/>validates Bearer token]
         COOKIE_VAL[Cookie Middleware<br/>looks up session in DragonFly]
         CSRF[CsrfValidationMiddleware<br/>X-CSRF: 1 required]
@@ -153,9 +153,88 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:5174/api/v1/products
 
 ---
 
-## Flow 2 — BFF Cookie (SPA / browser)
+## Flow 2 — Social Login via Google (BFF + Keycloak IdP brokering)
 
-### 2a. Login
+Users can log in with Google without leaving the BFF cookie flow. Keycloak acts as the broker — it handles the Google OAuth exchange and issues a standard Keycloak token to the app.
+
+### 2a. Direct redirect to Google
+
+```mermaid
+sequenceDiagram
+    participant SPA as Browser / SPA
+    participant BFF as BffController
+    participant OIDC as OIDC Middleware (BffOidc)
+    participant KC as Keycloak
+    participant G as Google OAuth
+
+    SPA->>BFF: GET /api/v1/bff/login/google?returnUrl=/dashboard
+    BFF->>BFF: Lookup "google" in IExternalIdentityProvider registry
+    BFF-->>SPA: 302 → Keycloak auth endpoint<br/>+ kc_idp_hint=google
+    SPA->>KC: Keycloak skips login page, redirects straight to Google
+    KC->>G: OAuth2 Authorization Code flow
+    G-->>KC: id_token + access_token
+    KC->>KC: First Broker Login flow<br/>(link or create Keycloak user)
+    KC-->>OIDC: Authorization code → callback URL
+    OIDC->>KC: Exchange code for tokens
+    KC-->>OIDC: access_token + refresh_token + id_token
+    OIDC->>OIDC: TenantClaimValidator.OnTokenValidated
+    OIDC-->>SPA: Set-Cookie .APITemplate.Auth<br/>302 → /dashboard
+```
+
+**How `kc_idp_hint` is forwarded:**  
+`IdentityModule.ConfigureOidc` registers `OnRedirectToIdentityProvider` — it reads `kc_idp_hint` from `AuthenticationProperties.Items` and appends it as a query parameter to the Keycloak authorization URL. Keycloak uses this hint to bypass its own login page and redirect directly to the named IdP.
+
+### 2b. Discovery endpoint (SPA dynamic UI)
+
+```
+GET /api/v1/bff/external-providers   (AllowAnonymous)
+
+Response:
+[
+  { "idpHint": "google", "displayName": "Google" }
+]
+```
+
+The SPA calls this endpoint on startup to render social login buttons dynamically — no hardcoded provider list in the frontend.
+
+### 2c. Adding a new social provider
+
+1. Implement `IExternalIdentityProvider` in `Identity.Security.ExternalIdentityProviders`
+2. Register as singleton in `IdentityModule.RegisterApplicationServices`
+3. Add the corresponding IdP in Keycloak Admin Console (or realm JSON)
+
+No changes needed in `BffController` or `IdentityModule.ConfigureOidc`.
+
+### 2d. Keycloak Google IdP Setup
+
+**Development (docker compose):**
+
+```bash
+# Set before docker compose up
+export GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+export GOOGLE_CLIENT_SECRET=your-client-secret
+docker compose restart keycloak
+```
+
+The realm JSON imports the Google IdP automatically on first start. The `${GOOGLE_CLIENT_ID:-CHANGE_ME}` placeholder is replaced by Keycloak at runtime.
+
+**Google Cloud Console:**
+
+1. Create OAuth 2.0 Client ID (Web application type)
+2. Authorized redirect URI:
+   ```
+   http://localhost:8180/realms/api-template/broker/google/endpoint
+   ```
+3. Copy Client ID + Secret → set env vars above
+
+**After first Google login:**  
+`TenantClaimValidator.OnTokenValidated` → `UserProvisioningService.ProvisionIfNeededAsync` fires. The user must have an accepted `TenantInvitation` for their Google email to be provisioned into a tenant.
+
+---
+
+## Flow 3 — BFF Cookie (SPA / browser)
+
+### 3a. Login
 
 ```mermaid
 sequenceDiagram
@@ -176,7 +255,7 @@ sequenceDiagram
     OIDC-->>SPA: Set-Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>HttpOnly, SameSite=Lax, Secure<br/>302 → /dashboard
 ```
 
-### 2b. Authenticated Request
+### 3b. Authenticated Request
 
 ```mermaid
 sequenceDiagram
@@ -207,7 +286,7 @@ sequenceDiagram
     AUTHZ-->>SPA: Controller Action → 200 OK
 ```
 
-### 2c. Logout
+### 3c. Logout
 
 ```mermaid
 sequenceDiagram
@@ -224,7 +303,7 @@ sequenceDiagram
     KC-->>SPA: 302 → PostLogoutRedirectUri (/)
 ```
 
-### 2d. CSRF endpoint
+### 3d. CSRF endpoint
 
 SPA should fetch this before making any non-GET request to learn the required header:
 
@@ -238,7 +317,7 @@ Then include `X-CSRF: 1` on every POST / PUT / PATCH / DELETE request.
 
 ---
 
-## Flow 3 — Scalar OAuth2 (development UI)
+## Flow 4 — Scalar OAuth2 (development UI)
 
 ```mermaid
 sequenceDiagram
@@ -261,7 +340,7 @@ sequenceDiagram
 
 ---
 
-## Flow 4 — Client Credentials (machine-to-machine)
+## Flow 5 — Client Credentials (machine-to-machine)
 
 ```mermaid
 sequenceDiagram
@@ -332,12 +411,16 @@ JWT tokens must contain these claims:
 
 All under `/api/v1/bff/`:
 
-| Endpoint          | Auth required | Description                                        |
-| ----------------- | ------------- | -------------------------------------------------- |
-| `GET /bff/login`  | No            | Initiates OIDC login, optional `?returnUrl=`       |
-| `GET /bff/logout` | Cookie        | Clears session in DragonFly, signs out of Keycloak |
-| `GET /bff/user`   | Cookie        | Returns current user claims as JSON                |
-| `GET /bff/csrf`   | No            | Returns CSRF header name/value contract            |
+| Endpoint                        | Auth required | Description                                                      |
+| ------------------------------- | ------------- | ---------------------------------------------------------------- |
+| `GET /bff/login`                | No            | Initiates OIDC login (Keycloak page), optional `?returnUrl=`     |
+| `GET /bff/login/{idpHint}`      | No            | Direct redirect to named IdP (e.g. `google`), skips Keycloak UI |
+| `GET /bff/external-providers`   | No            | Lists registered social providers `[{idpHint, displayName}]`    |
+| `GET /bff/logout`               | Cookie        | Clears session in DragonFly, signs out of Keycloak               |
+| `GET /bff/user`                 | Cookie        | Returns current user claims as JSON                              |
+| `GET /bff/csrf`                 | No            | Returns CSRF header name/value contract                          |
+
+`GET /bff/login/{idpHint}` returns `404` when the hint does not match any registered `IExternalIdentityProvider`.
 
 **`GET /bff/user` response:**
 ```json
@@ -410,6 +493,14 @@ Realm auto-imported on `docker compose up` from `infrastructure/keycloak/realms/
 | audience-mapper | Audience Mapper   | —                | `aud`                |
 | realm-roles     | Realm Role Mapper | realm roles      | `realm_access.roles` |
 
+### Identity Providers
+
+| Provider | Alias    | Status       | Notes                                         |
+| -------- | -------- | ------------ | --------------------------------------------- |
+| Google   | `google` | Configurable | Set `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` env vars |
+
+Credentials use Keycloak env var interpolation (`${GOOGLE_CLIENT_ID:-CHANGE_ME}`) — no real credentials in the repo.
+
 ### Standard Keycloak Endpoints
 
 | Endpoint      | URL                                                |
@@ -465,6 +556,8 @@ When the API sets `options.Authority`, ASP.NET auto-discovers all endpoints via 
 | `Keycloak__resource`            | Client ID                         |
 | `Keycloak__credentials__secret` | Client secret                     |
 | `Dragonfly__ConnectionString`   | DragonFly/Redis connection string |
+| `GOOGLE_CLIENT_ID`              | Google OAuth2 Client ID           |
+| `GOOGLE_CLIENT_SECRET`          | Google OAuth2 Client Secret       |
 
 ---
 
@@ -490,6 +583,12 @@ Test tokens are signed with RSA-256 using an in-memory test key pair and include
 - Set request header `X-Test-Cookie-Auth: 1` to simulate a cookie-authenticated session
 - Non-GET requests without `X-CSRF: 1` return HTTP 403
 
+**External provider unit tests** (`BffExternalProvidersTests`):
+```bash
+dotnet test --filter "FullyQualifiedName~BffExternalProviders"
+```
+Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider` (known hint → ChallengeResult, unknown hint → 404, case-insensitive, `returnUrl` validation, `kc_idp_hint` set in `AuthenticationProperties`), `GoogleIdentityProvider` contract.
+
 ---
 
 ## Key Source Files
@@ -512,6 +611,8 @@ Test tokens are signed with RSA-256 using an in-memory test key pair and include
 | `Infrastructure/Security/KeycloakClaimMapper.cs`          | Maps preferred_username + realm roles to .NET claim types     |
 | `Infrastructure/Security/KeycloakUrlHelper.cs`            | Builds Keycloak authority URL                                 |
 | `Infrastructure/Health/KeycloakHealthCheck.cs`            | Keycloak health check endpoint                                |
-| `infrastructure/keycloak/realms/api-template-realm.json`  | Keycloak realm auto-import                                    |
+| `infrastructure/keycloak/realms/api-template-realm.json`  | Keycloak realm auto-import (includes Google IdP config)       |
+| `Identity/Common/Security/IExternalIdentityProvider.cs`   | Abstraction for external social providers (`IdpHint`, `DisplayName`) |
+| `Identity/Security/ExternalIdentityProviders/GoogleIdentityProvider.cs` | Google IdP implementation (`kc_idp_hint=google`) |
 
 
