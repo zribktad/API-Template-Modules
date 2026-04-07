@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
@@ -74,6 +75,7 @@ public sealed class EmailRetryService : IEmailRetryService
 
         foreach (FailedEmail email in emails)
         {
+            bool stagedDeleteAfterSuccessfulSend = false;
             try
             {
                 EmailMessage message = new(
@@ -88,6 +90,7 @@ public sealed class EmailRetryService : IEmailRetryService
                 );
 
                 await _repository.DeleteAsync(email, ct);
+                stagedDeleteAfterSuccessfulSend = true;
                 _logger.EmailRetrySucceeded(email.To, email.RetryCount + 1);
             }
             catch (Exception ex)
@@ -103,8 +106,27 @@ public sealed class EmailRetryService : IEmailRetryService
                 _logger.EmailRetryAttemptFailed(ex, email.RetryCount, email.To);
             }
 
-            // Commit after each email to ensure durable progress — avoids duplicate sends on crash
-            await _unitOfWork.CommitAsync(ct);
+            try
+            {
+                // Commit after each email to ensure durable progress — avoids duplicate sends on crash
+                await _unitOfWork.CommitAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                _repository.ClearChangeTracker();
+                if (stagedDeleteAfterSuccessfulSend)
+                {
+                    if (await _repository.ExistsByIdAsync(email.Id, ct))
+                    {
+                        _logger.EmailRetryDeleteConcurrencyAfterSend(email.To);
+                        await _repository.DeleteByIdAsync(email.Id, ct);
+                    }
+                }
+                else
+                {
+                    _logger.EmailRetryCommitConcurrencyConflict(email.To);
+                }
+            }
         }
     }
 
@@ -136,17 +158,51 @@ public sealed class EmailRetryService : IEmailRetryService
 
             foreach (FailedEmail email in expired)
             {
-                email.IsDeadLettered = true;
-                email.ClaimedBy = null;
-                email.ClaimedAtUtc = null;
-                email.ClaimedUntilUtc = null;
+                ApplyDeadLetterTransition(email);
                 await _repository.UpdateAsync(email, ct);
 
                 _logger.EmailDeadLettered(email.To, email.Subject, deadLetterAfterHours);
             }
 
             if (processed > 0)
-                await _unitOfWork.CommitAsync(ct);
+            {
+                try
+                {
+                    await _unitOfWork.CommitAsync(ct);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    _repository.ClearChangeTracker();
+                    _logger.EmailDeadLetterCommitConcurrencyConflict();
+                    await ReplayDeadLetterBatchAfterConcurrencyAsync(expired, ct);
+                }
+            }
         } while (processed == batchSize);
+    }
+
+    private static void ApplyDeadLetterTransition(FailedEmail email)
+    {
+        email.IsDeadLettered = true;
+        email.ClaimedBy = null;
+        email.ClaimedAtUtc = null;
+        email.ClaimedUntilUtc = null;
+    }
+
+    private async Task ReplayDeadLetterBatchAfterConcurrencyAsync(
+        List<FailedEmail> claimedBatch,
+        CancellationToken ct
+    )
+    {
+        foreach (FailedEmail snapshot in claimedBatch)
+        {
+            FailedEmail? fresh = await _repository.FindTrackedByIdAsync(snapshot.Id, ct);
+            if (fresh is null || fresh.IsDeadLettered)
+                continue;
+
+            ApplyDeadLetterTransition(fresh);
+            await _repository.UpdateAsync(fresh, ct);
+        }
+
+        await _unitOfWork.CommitAsync(ct);
     }
 }

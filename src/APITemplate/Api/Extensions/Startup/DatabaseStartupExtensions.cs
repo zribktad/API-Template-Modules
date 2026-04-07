@@ -5,6 +5,7 @@ using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Notifications.Persistence;
 using Npgsql;
 using ProductCatalog.Persistence;
 using Reviews.Persistence;
@@ -23,6 +24,7 @@ public static class DatabaseStartupExtensions
         await EnsureSchemaAsync<ReviewsDbContext>(sp);
         await EnsureSchemaAsync<FileStorageDbContext>(sp);
         await EnsureSchemaAsync<BackgroundJobsDbContext>(sp);
+        await MigrateNotificationsAsync(sp);
         await EnsureSchemaIfRegisteredAsync<TickerQSchedulerDbContext>(sp);
 
         AuthBootstrapSeeder seeder = sp.GetRequiredService<AuthBootstrapSeeder>();
@@ -64,5 +66,14 @@ public static class DatabaseStartupExtensions
         {
             // 42P07 = relation already exists — safe to ignore
         }
+    }
+
+    /// <summary>
+    ///     Applies EF Core migrations for the Notifications module (FailedEmails table + claim functions v2).
+    /// </summary>
+    private static async Task MigrateNotificationsAsync(IServiceProvider sp)
+    {
+        NotificationsDbContext context = sp.GetRequiredService<NotificationsDbContext>();
+        await context.Database.MigrateAsync();
     }
 }

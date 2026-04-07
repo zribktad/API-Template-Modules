@@ -52,6 +52,33 @@ internal static partial class NotificationsInfrastructureLogs
         int hours
     );
 
+    [LoggerMessage(
+        EventId = 6009,
+        Level = LogLevel.Warning,
+        Message = "Optimistic concurrency conflict while committing retry progress for email to {Recipient}; another worker may have updated the row."
+    )]
+    public static partial void EmailRetryCommitConcurrencyConflict(
+        this ILogger logger,
+        [PersonalData] string recipient
+    );
+
+    [LoggerMessage(
+        EventId = 6010,
+        Level = LogLevel.Warning,
+        Message = "Optimistic concurrency conflict after successful send while deleting failed-email row for {Recipient}; row still exists — verify for possible duplicate delivery."
+    )]
+    public static partial void EmailRetryDeleteConcurrencyAfterSend(
+        this ILogger logger,
+        [PersonalData] string recipient
+    );
+
+    [LoggerMessage(
+        EventId = 6011,
+        Level = LogLevel.Warning,
+        Message = "Optimistic concurrency conflict while committing dead-letter batch; another worker may have updated one or more rows."
+    )]
+    public static partial void EmailDeadLetterCommitConcurrencyConflict(this ILogger logger);
+
     // EmailSendingBackgroundService (6005)
     [LoggerMessage(
         EventId = 6005,

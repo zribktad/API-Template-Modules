@@ -3,6 +3,7 @@ using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Api.Routing;
 using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;
@@ -19,7 +20,17 @@ public static class ApiServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.AddProblemDetails(ApiProblemDetailsOptions.Configure);
+        services
+            .AddValidatedOptions<ErrorDocumentationOptions>(
+                configuration,
+                validateDataAnnotations: false
+            )
+            .Validate(
+                static o => ProblemDetailsErrorTypeUri.IsValidBaseUriWhenSet(o.ErrorTypeBaseUri),
+                "ErrorDocumentation:ErrorTypeBaseUri must be an absolute http or https URI when set."
+            );
+        services.AddProblemDetails();
+        services.ConfigureOptions<ProblemDetailsErrorTypeConfigureOptions>();
         services.AddExceptionHandler<ApiExceptionHandler>();
         services.Configure<MvcOptions>(options =>
         {

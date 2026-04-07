@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Notifications.Domain;
+using SharedKernel.Infrastructure.Configurations;
 
 namespace Notifications.Persistence;
 
@@ -29,6 +30,8 @@ public sealed class FailedEmailConfiguration : IEntityTypeConfiguration<FailedEm
         builder.Property(e => e.ClaimedBy).HasMaxLength(200);
         builder.Property(e => e.ClaimedAtUtc).HasColumnType("timestamp with time zone");
         builder.Property(e => e.ClaimedUntilUtc).HasColumnType("timestamp with time zone");
+
+        builder.ConfigurePostgresXminConcurrency();
 
         // Covers claim-based retry selection.
         builder.HasIndex(e => new

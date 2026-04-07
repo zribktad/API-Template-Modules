@@ -43,7 +43,6 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             Title = title,
             Detail = detail,
             Instance = context.Request.Path,
-            Type = $"https://api-template.local/errors/{errorCode}",
         };
 
         problemDetails.Extensions["errorCode"] = errorCode;
