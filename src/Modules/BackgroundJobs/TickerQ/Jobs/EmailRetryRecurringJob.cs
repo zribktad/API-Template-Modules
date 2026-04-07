@@ -1,18 +1,11 @@
+using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
-using Notifications.Logging;
-using SharedKernel.Application.BackgroundJobs;
-using SharedKernel.Application.Options;
 using TickerQ.Utilities.Base;
 
-namespace Notifications.Services;
+namespace BackgroundJobs.TickerQ.Jobs;
 
-/// <summary>
-///     TickerQ recurring job that retries previously failed emails and dead-letters those that have
-///     exceeded the configured retry window, delegating to <see cref="IEmailRetryService" />.
-///     Execution is gated by <see cref="IDistributedJobCoordinator" /> to prevent multi-node duplication.
-/// </summary>
 public sealed class EmailRetryRecurringJob
 {
     private readonly IDistributedJobCoordinator _coordinator;
@@ -23,20 +16,16 @@ public sealed class EmailRetryRecurringJob
     public EmailRetryRecurringJob(
         IEmailRetryService emailRetryService,
         IDistributedJobCoordinator coordinator,
-        IOptions<EmailRetryJobOptions> options,
+        IOptions<BackgroundJobsOptions> options,
         ILogger<EmailRetryRecurringJob> logger
     )
     {
         _emailRetryService = emailRetryService;
         _coordinator = coordinator;
-        _options = options.Value;
+        _options = options.Value.EmailRetry;
         _logger = logger;
     }
 
-    /// <summary>
-    ///     TickerQ entry-point that acquires the distributed leader lease and runs retry and
-    ///     dead-letter operations using settings from <see cref="EmailRetryJobOptions" />.
-    /// </summary>
     [TickerFunction("email-retry-recurring-job")]
     public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct)
     {
@@ -49,11 +38,13 @@ public sealed class EmailRetryRecurringJob
                 await _emailRetryService.RetryFailedEmailsAsync(
                     _options.MaxRetryAttempts,
                     _options.BatchSize,
+                    _options.ClaimLeaseMinutes,
                     token
                 );
                 await _emailRetryService.DeadLetterExpiredAsync(
                     _options.DeadLetterAfterHours,
                     _options.BatchSize,
+                    _options.ClaimLeaseMinutes,
                     token
                 );
             },

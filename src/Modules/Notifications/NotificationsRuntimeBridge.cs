@@ -8,7 +8,6 @@ using Notifications.Repositories;
 using Notifications.Services;
 using Polly;
 using Polly.Retry;
-using SharedKernel.Application.BackgroundJobs;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
@@ -39,23 +38,12 @@ public static class NotificationsRuntimeBridge
         EmailOptions emailOptions = emailSection.Get<EmailOptions>() ?? new EmailOptions();
         services.AddValidatedOptions<EmailOptions>(configuration);
 
-        services.AddQueueWithConsumer<
-            ChannelEmailQueue,
-            IEmailQueue,
-            IEmailQueueReader,
-            EmailSendingBackgroundService
-        >();
-
         services.AddSingleton<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
         services.AddSingleton<IEmailSender, MailKitEmailSender>();
         services.AddSingleton<IFailedEmailStore, FailedEmailStore>();
+        services.AddSingleton<ISmtpSendPipelineProvider, SmtpSendPipelineProvider>();
 
         services.AddTransient<IEmailRetryService, EmailRetryService>();
-
-        services.AddSingleton<
-            IRecurringBackgroundJobRegistration,
-            EmailRetryRecurringJobRegistration
-        >();
 
         services.AddSingleton<
             IDatabaseStartupContributor,

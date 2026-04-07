@@ -17,8 +17,11 @@ using ProductCatalog.GraphQL.Queries;
 using ProductCatalog.GraphQL.Types;
 using ProductCatalog.Persistence;
 using ProductCatalog.Repositories;
+using ProductCatalog.Services;
+using ProductCatalog.SoftDelete;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
+using SharedKernel.Infrastructure.Health;
 using SharedKernel.Infrastructure.Registration;
 using SharedKernel.Infrastructure.Startup;
 using ProductApplicationRepository = ProductCatalog.Interfaces.IProductRepository;
@@ -45,7 +48,8 @@ public static class ProductCatalogModule
             .AddRepository<ProductApplicationRepository, ProductRepository>()
             .AddRepository<ICategoryRepository, CategoryRepository>()
             .AddRepository<IProductDataLinkRepository, ProductDataLinkRepository>()
-            .AddRepository<IProductDataRepository, ProductDataRepository>();
+            .AddRepository<IProductDataRepository, ProductDataRepository>()
+            .AddCascadeRule<ProductSoftDeleteCascadeRule>();
 
         services.AddValidatorsFromAssemblyContaining<ProductCatalogDbMarker>(filter: registration =>
             !registration.ValidatorType.IsGenericTypeDefinition
@@ -70,6 +74,7 @@ public static class ProductCatalogModule
                 new MigrationOptions(mongoSettings.DatabaseName),
                 config => config.LoadMigrationsFromAssembly(typeof(ProductCatalogModule).Assembly)
             );
+            services.AddHealthChecks().AddCheck<MongoDbHealthCheck>(HealthCheckNames.MongoDb);
         }
 
         services.AddResiliencePipeline(
@@ -87,6 +92,7 @@ public static class ProductCatalogModule
                 );
             }
         );
+        services.AddSingleton<IMongoProductDataDeletePipelineProvider, MongoProductDataDeletePipelineProvider>();
 
         services.AddControllers().AddApplicationPart(typeof(ProductCatalogModule).Assembly);
 

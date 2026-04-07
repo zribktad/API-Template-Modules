@@ -117,6 +117,7 @@ public static class BackgroundJobsRuntimeBridge
         >();
         services.AddScoped<IRecurringBackgroundJobRegistration, CleanupRecurringJobRegistration>();
         services.AddScoped<IRecurringBackgroundJobRegistration, ReindexRecurringJobRegistration>();
+        services.AddScoped<IRecurringBackgroundJobRegistration, EmailRetryRecurringJobRegistration>();
 
         services.AddTickerQ(tickerOptions =>
         {

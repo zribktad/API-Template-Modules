@@ -1,13 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Notifications.Contracts;
 using Notifications.Domain;
 using Notifications.Logging;
 using Polly;
-using Polly.Registry;
-using SharedKernel.Application.Options;
-using SharedKernel.Application.Resilience;
 using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.Services;
@@ -21,9 +17,8 @@ public sealed class EmailRetryService : IEmailRetryService
 {
     private readonly string _claimOwner;
     private readonly ILogger<EmailRetryService> _logger;
-    private readonly EmailRetryJobOptions _options;
     private readonly IFailedEmailRepository _repository;
-    private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
+    private readonly ISmtpSendPipelineProvider _smtpSendPipelineProvider;
     private readonly IEmailSender _sender;
     private readonly TimeProvider _timeProvider;
     private readonly IUnitOfWork _unitOfWork;
@@ -33,8 +28,7 @@ public sealed class EmailRetryService : IEmailRetryService
         IEmailSender sender,
         IUnitOfWork<NotificationsDbMarker> unitOfWork,
         TimeProvider timeProvider,
-        IOptions<EmailRetryJobOptions> options,
-        ResiliencePipelineProvider<string> resiliencePipelineProvider,
+        ISmtpSendPipelineProvider smtpSendPipelineProvider,
         ILogger<EmailRetryService> logger
     )
     {
@@ -43,8 +37,7 @@ public sealed class EmailRetryService : IEmailRetryService
         _sender = sender;
         _unitOfWork = unitOfWork;
         _timeProvider = timeProvider;
-        _options = options.Value;
-        _resiliencePipelineProvider = resiliencePipelineProvider;
+        _smtpSendPipelineProvider = smtpSendPipelineProvider;
         _logger = logger;
     }
 
@@ -56,14 +49,13 @@ public sealed class EmailRetryService : IEmailRetryService
     public async Task RetryFailedEmailsAsync(
         int maxRetryAttempts,
         int batchSize,
+        int claimLeaseMinutes,
         CancellationToken ct = default
     )
     {
-        ResiliencePipeline pipeline = _resiliencePipelineProvider.GetPipeline(
-            ResiliencePipelineKeys.SmtpSend
-        );
+        ResiliencePipeline pipeline = _smtpSendPipelineProvider.Get();
         DateTime claimedAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
-        DateTime claimUntilUtc = claimedAtUtc.AddMinutes(_options.ClaimLeaseMinutes);
+        DateTime claimUntilUtc = claimedAtUtc.AddMinutes(claimLeaseMinutes);
         List<FailedEmail> emails = await _repository.ClaimRetryableBatchAsync(
             maxRetryAttempts,
             batchSize,
@@ -137,6 +129,7 @@ public sealed class EmailRetryService : IEmailRetryService
     public async Task DeadLetterExpiredAsync(
         int deadLetterAfterHours,
         int batchSize,
+        int claimLeaseMinutes,
         CancellationToken ct = default
     )
     {
@@ -151,7 +144,7 @@ public sealed class EmailRetryService : IEmailRetryService
                 batchSize,
                 _claimOwner,
                 claimedAtUtc,
-                claimedAtUtc.AddMinutes(_options.ClaimLeaseMinutes),
+                claimedAtUtc.AddMinutes(claimLeaseMinutes),
                 ct
             );
             processed = expired.Count;

@@ -1,14 +1,14 @@
 using Notifications.Contracts;
 using SharedKernel.Contracts.Events;
+using Wolverine;
 
 namespace Notifications.Features;
 
 public sealed class TenantInvitationEmailHandler
 {
-    public static async Task HandleAsync(
+    public static async Task<OutgoingMessages> HandleAsync(
         TenantInvitationCreatedNotification @event,
         IEmailTemplateRenderer templateRenderer,
-        IEmailQueue emailQueue,
         CancellationToken ct
     )
     {
@@ -24,15 +24,17 @@ public sealed class TenantInvitationEmailHandler
             ct
         );
 
-        await emailQueue.EnqueueAsync(
+        OutgoingMessages messages = new();
+        messages.Add(
             new EmailMessage(
                 @event.Email,
                 $"You've been invited to {@event.TenantName}",
                 html,
                 EmailTemplateNames.TenantInvitation,
                 Retryable: true
-            ),
-            ct
+            )
         );
+
+        return messages;
     }
 }
