@@ -23,7 +23,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational"/>
     <PackageReference Include="Microsoft.Extensions.Compliance.Redaction"/>
     <PackageReference Include="Microsoft.Extensions.Resilience"/>
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations"/>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
     <PackageReference Include="StackExchange.Redis"/>
     <PackageReference Include="WolverineFx"/>

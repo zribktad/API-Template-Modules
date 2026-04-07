@@ -1,3 +1,4 @@
+using APITemplate.Api;
 using Microsoft.AspNetCore.OutputCaching;
 using SharedKernel.Application.Context;
 
