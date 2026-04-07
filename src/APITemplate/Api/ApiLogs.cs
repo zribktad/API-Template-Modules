@@ -18,8 +18,8 @@ internal static partial class ApiLogs
         this ILogger logger,
         Exception exception,
         int statusCode,
-        [SensitiveData] string errorCode,
-        [PersonalData] string traceId
+        string errorCode,
+        string traceId
     );
 
     [LoggerMessage(
@@ -31,8 +31,8 @@ internal static partial class ApiLogs
         this ILogger logger,
         Exception exception,
         int statusCode,
-        [SensitiveData] string errorCode,
-        [PersonalData] string traceId
+        string errorCode,
+        string traceId
     );
 
     // OutputCacheInvalidationService (1003)
