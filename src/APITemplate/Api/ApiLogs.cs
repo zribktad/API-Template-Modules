@@ -44,6 +44,6 @@ internal static partial class ApiLogs
     public static partial void EvictOutputCacheFailed(
         this ILogger logger,
         Exception exception,
-        [SensitiveData] string tag
+        string tag
     );
 }
