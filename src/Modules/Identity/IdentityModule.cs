@@ -230,10 +230,10 @@ public static class IdentityModule
             OnTokenValidated = TenantClaimValidator.OnTokenValidated,
             OnRedirectToIdentityProvider = context =>
             {
-                if (context.Properties.Items.TryGetValue("kc_idp_hint", out string? hint)
+                if (context.Properties.Items.TryGetValue(AuthConstants.KeycloakAuthProperties.IdpHint, out string? hint)
                     && !string.IsNullOrEmpty(hint))
                 {
-                    context.ProtocolMessage.SetParameter("kc_idp_hint", hint);
+                    context.ProtocolMessage.SetParameter(AuthConstants.KeycloakAuthProperties.IdpHint, hint);
                 }
                 return Task.CompletedTask;
             },
