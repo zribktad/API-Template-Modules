@@ -5,11 +5,6 @@ namespace SharedKernel.Infrastructure.Health;
 
 public static class HealthCheckModuleExtensions
 {
-    /// <summary>
-    ///     Registers health checks by instantiating each <see cref="IHealthCheckModule" /> type from
-    ///     <paramref name="moduleTypes" /> using <see cref="Activator.CreateInstance" /> with
-    ///     <paramref name="configuration" /> as the sole constructor argument.
-    /// </summary>
     public static IServiceCollection AddModuleHealthChecks(
         this IServiceCollection services,
         IConfiguration configuration,
