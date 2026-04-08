@@ -15,19 +15,19 @@
   `NotFoundException`, `ConflictException`, `ValidationException`, `AppException` hierarchy) removed.
   `ApiExceptionHandler` is now a safety net for `DbUpdateConcurrencyException` (409) and unhandled exceptions (500)
   only. Validation is centralized via Wolverine middleware and MVC `FluentValidationActionFilter`.
-- [ ] **Options classes split between SharedKernel and modules** — `BffOptions`, `KeycloakOptions`, `CorsOptions`,
+- [x] **Options classes split between SharedKernel and modules** — `BffOptions`, `KeycloakOptions`, `CorsOptions`,
   `EmailOptions`, `SystemIdentityOptions` exist in both places. Module-specific options (`BackgroundJobsOptions`,
   `FileStorageOptions`) are in SharedKernel where they don't belong. Each module should own its options; SharedKernel
   should contain only truly shared types.
-- [ ] **Anemic domain models** — `Tenant`, `StoredFile` and others are pure data containers. Business logic (
-  activate/deactivate, status transitions) leaks into application handlers. Add domain methods and enforce invariants in
-  entity constructors.
+- [x] **Anemic domain models** — `Tenant` enriched with `Activate()`/`Deactivate()` and name validation. `StoredFile`
+  is intentionally a metadata record (no business logic exists — validation depends on config, not entity state); anemic
+  model is correct here.
 
 ### Medium Priority
 
-- [ ] **Business logic in handlers** — `CreateProductsCommand` creates entities and relationships directly in the
-  handler. `CreateUserCommand` contains compensating transaction logic (Keycloak + DB rollback). Extract to factory
-  methods on entities and domain services.
+- [x] **Business logic in handlers** — Added `Create()` factory methods to `AppUser`, `Category`, `ProductReview`, and
+  `JobExecution`. All handlers updated to use factory methods. Compensating transaction in `CreateUserCommand` kept in
+  handler (infra coordination, not domain logic — YAGNI).
 - [ ] **Inconsistent logging** — source-generated `[LoggerMessage]` with event IDs is already used across modules, but
   inline `logger.LogWarning()` remains in `TenantClaimValidator` and `CookieSessionRefresher`. Finish migration to
   source-generated logging for these remaining paths.

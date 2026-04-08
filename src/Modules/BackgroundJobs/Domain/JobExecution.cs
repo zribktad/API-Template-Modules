@@ -23,6 +23,23 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     public Guid? DeletedBy { get; set; }
     public Guid Id { get; set; }
 
+    public static JobExecution Create(
+        string jobType,
+        TimeProvider timeProvider,
+        string? parameters = null,
+        string? callbackUrl = null
+    )
+    {
+        return new JobExecution
+        {
+            Id = Guid.NewGuid(),
+            JobType = jobType,
+            Parameters = parameters,
+            CallbackUrl = callbackUrl,
+            SubmittedAtUtc = timeProvider.GetUtcNow().UtcDateTime,
+        };
+    }
+
     /// <summary>
     ///     Transitions the job to <see cref="JobStatus.Processing" /> and records the start timestamp.
     /// </summary>

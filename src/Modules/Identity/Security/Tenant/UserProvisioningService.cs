@@ -71,19 +71,16 @@ public sealed class UserProvisioningService : IUserProvisioningService
 
         // 3. Provision a new user from the invitation data.
         // The email comes from Keycloak (trusted identity provider), so no re-validation is needed.
-        AppUser user = new()
-        {
-            Username = username,
-            Email = Email.FromPersistence(email),
-            KeycloakUserId = keycloakUserId,
-            // TenantId must be set explicitly here. During OnTokenValidated, no tenant context
-            // is active (ITenantProvider.HasTenant == false), so AuditableEntityStateManager
-            // will NOT auto-assign TenantId from the tenant provider. This explicit assignment
-            // is load-bearing and must not be removed.
-            TenantId = invitation.TenantId,
-            IsActive = true,
-            Role = UserRole.User,
-        };
+        // TenantId must be set explicitly here. During OnTokenValidated, no tenant context
+        // is active (ITenantProvider.HasTenant == false), so AuditableEntityStateManager
+        // will NOT auto-assign TenantId from the tenant provider. This explicit assignment
+        // is load-bearing and must not be removed.
+        AppUser user = AppUser.Create(
+            username,
+            Email.FromPersistence(email),
+            keycloakUserId,
+            tenantId: invitation.TenantId
+        );
 
         try
         {

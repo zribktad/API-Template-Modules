@@ -9,12 +9,7 @@ public sealed class JobExecutionTests
 {
     private static JobExecution CreatePendingJob()
     {
-        return new JobExecution
-        {
-            Id = Guid.NewGuid(),
-            JobType = "test-job",
-            SubmittedAtUtc = DateTime.UtcNow,
-        };
+        return JobExecution.Create("test-job", TimeProvider.System);
     }
 
     private static TimeProvider MockTimeAt(DateTime utcNow)

@@ -49,13 +49,7 @@ public sealed class CreateUserCommandHandler
 
         try
         {
-            AppUser user = new()
-            {
-                Id = Guid.NewGuid(),
-                Username = command.Request.Username,
-                Email = email,
-                KeycloakUserId = keycloakUserId,
-            };
+            AppUser user = AppUser.Create(command.Request.Username, email, keycloakUserId);
 
             await repository.AddAsync(user, ct);
             await unitOfWork.CommitAsync(ct);

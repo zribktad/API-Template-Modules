@@ -65,6 +65,25 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     public Guid? DeletedBy { get; set; }
     public Guid Id { get; set; }
 
+    public static AppUser Create(
+        string username,
+        Email email,
+        string? keycloakUserId,
+        Guid? tenantId = null,
+        UserRole role = UserRole.User
+    )
+    {
+        return new AppUser
+        {
+            Id = Guid.NewGuid(),
+            Username = username,
+            Email = email,
+            KeycloakUserId = keycloakUserId,
+            TenantId = tenantId ?? Guid.Empty,
+            Role = role,
+        };
+    }
+
     /// <summary>Returns the canonical form of a username: trimmed and converted to uppercase invariant.</summary>
     public static string NormalizeUsername(string username)
     {
