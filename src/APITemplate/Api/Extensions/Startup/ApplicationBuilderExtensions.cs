@@ -10,6 +10,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 using SharedKernel.Application.Http;
+using SharedKernel.Infrastructure.Health;
 
 namespace APITemplate.Api.Extensions.Startup;
 
@@ -69,15 +70,20 @@ public static class ApplicationBuilderExtensions
             .WithName("HostStatus")
             .WithTags("Host");
 
-        app.MapHealthChecks(
-                "/health",
-                new HealthCheckOptions
-                {
-                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
-                }
-            )
-            .WithTags("Health")
-            .AllowAnonymous();
+        foreach (
+            HealthCheckEndpointDefinition endpoint in HealthCheckEndpointConfiguration.Endpoints
+        )
+        {
+            HealthCheckOptions options = new()
+            {
+                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+                Predicate = endpoint.Predicate,
+            };
+
+            app.MapHealthChecks(endpoint.Path, options)
+                .WithTags(HealthCheckTags.OpenApiTag)
+                .AllowAnonymous();
+        }
 
         app.MapControllers();
         app.MapProductCatalogEndpoints();

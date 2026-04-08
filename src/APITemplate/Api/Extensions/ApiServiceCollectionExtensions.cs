@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Api.Routing;
-using SharedKernel.Infrastructure.Health;
 using SharedKernel.Infrastructure.OutputCache;
 using StackExchange.Redis;
 
@@ -37,17 +36,6 @@ public static class ApiServiceCollectionExtensions
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
         });
-        services.AddValidatedOptions<KeycloakHealthCheckOptions>(configuration);
-        services
-            .AddHealthChecks()
-            .AddNpgSql(
-                configuration.GetConnectionString(ConfigurationSections.DefaultConnection)
-                    ?? throw new InvalidOperationException(
-                        $"Connection string '{ConfigurationSections.DefaultConnection}' is not configured."
-                    ),
-                name: HealthCheckNames.PostgreSql
-            )
-            .AddCheck<KeycloakHealthCheck>(HealthCheckNames.Keycloak);
         services.AddDragonflyInfrastructure(configuration);
         services.AddCaching(configuration);
         services.AddOpenApi(options =>
@@ -88,10 +76,6 @@ public static class ApiServiceCollectionExtensions
             {
                 opts.ConfigurationOptions = redisConfig;
             });
-
-            services
-                .AddHealthChecks()
-                .AddRedis(dragonflyOptions.ConnectionString, HealthCheckNames.Dragonfly);
         }
         else
             services.AddDistributedMemoryCache();
