@@ -1,6 +1,4 @@
 using ErrorOr;
-using Identity.Logging;
-using Microsoft.Extensions.Logging;
 using Wolverine;
 
 namespace Identity.Features.User;
@@ -13,19 +11,12 @@ public sealed class DeleteUserCommandHandler
         DeleteUserCommand command,
         IUserRepository repository,
         CancellationToken ct
-    ) =>
-        await repository.GetByIdOrError(
-            command.Id,
-            DomainErrors.Users.NotFound(command.Id),
-            ct
-        );
+    ) => await repository.GetByIdOrError(command.Id, DomainErrors.Users.NotFound(command.Id), ct);
 
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         DeleteUserCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        IKeycloakAdminService keycloakAdmin,
-        ILogger<DeleteUserCommandHandler> logger,
         ErrorOr<AppUser> userResult,
         CancellationToken ct
     )
@@ -34,21 +25,12 @@ public sealed class DeleteUserCommandHandler
             return (userResult.Errors, OutgoingMessagesHelper.Empty);
         AppUser user = userResult.Value;
 
-        if (user.KeycloakUserId is not null)
-            await keycloakAdmin.DeleteUserAsync(user.KeycloakUserId, ct);
-
-        try
-        {
-            await repository.DeleteAsync(user, ct);
-            await unitOfWork.CommitAsync(ct);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.DeleteUserDbDeleteFailed(ex, user.KeycloakUserId);
-            throw;
-        }
+        await repository.DeleteAsync(user, ct);
+        await unitOfWork.CommitAsync(ct);
 
         OutgoingMessages messages = new();
+        if (user.KeycloakUserId is not null)
+            messages.Add(new DeleteKeycloakUserEvent(user.KeycloakUserId));
         messages.Add(new CacheInvalidationNotification(CacheTags.Users));
         return (Result.Success, messages);
     }

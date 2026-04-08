@@ -11,18 +11,12 @@ public sealed class SetUserActiveCommandHandler
         SetUserActiveCommand command,
         IUserRepository repository,
         CancellationToken ct
-    ) =>
-        await repository.GetByIdOrError(
-            command.Id,
-            DomainErrors.Users.NotFound(command.Id),
-            ct
-        );
+    ) => await repository.GetByIdOrError(command.Id, DomainErrors.Users.NotFound(command.Id), ct);
 
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         SetUserActiveCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        IKeycloakAdminService keycloakAdmin,
         ErrorOr<AppUser> userResult,
         CancellationToken ct
     )
@@ -31,14 +25,13 @@ public sealed class SetUserActiveCommandHandler
             return (userResult.Errors, OutgoingMessagesHelper.Empty);
         AppUser user = userResult.Value;
 
-        if (user.KeycloakUserId is not null)
-            await keycloakAdmin.SetUserEnabledAsync(user.KeycloakUserId, command.IsActive, ct);
-
         user.IsActive = command.IsActive;
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);
 
         OutgoingMessages messages = new();
+        if (user.KeycloakUserId is not null)
+            messages.Add(new SyncKeycloakUserActiveEvent(user.KeycloakUserId, command.IsActive));
         messages.Add(new CacheInvalidationNotification(CacheTags.Users));
         return (Result.Success, messages);
     }

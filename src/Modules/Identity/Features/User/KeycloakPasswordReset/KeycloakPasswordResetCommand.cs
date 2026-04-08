@@ -1,6 +1,5 @@
 using ErrorOr;
-using Identity.Logging;
-using Microsoft.Extensions.Logging;
+using Wolverine;
 
 namespace Identity.Features.User;
 
@@ -8,28 +7,19 @@ public sealed record KeycloakPasswordResetCommand(RequestPasswordResetRequest Re
 
 public sealed class KeycloakPasswordResetCommandHandler
 {
-    public static async Task<ErrorOr<Success>> HandleAsync(
+    public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         KeycloakPasswordResetCommand command,
         IUserRepository repository,
-        IKeycloakAdminService keycloakAdmin,
-        ILogger<KeycloakPasswordResetCommandHandler> logger,
         CancellationToken ct
     )
     {
         AppUser? user = await repository.FindByEmailAsync(command.Request.Email, ct);
 
         if (user is null || user.KeycloakUserId is null)
-            return Result.Success;
+            return (Result.Success, OutgoingMessagesHelper.Empty);
 
-        try
-        {
-            await keycloakAdmin.SendPasswordResetEmailAsync(user.KeycloakUserId, ct);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.PasswordResetEmailFailed(ex, user.Id);
-        }
-
-        return Result.Success;
+        OutgoingMessages messages = new();
+        messages.Add(new PasswordResetRequestedEvent(user.KeycloakUserId));
+        return (Result.Success, messages);
     }
 }

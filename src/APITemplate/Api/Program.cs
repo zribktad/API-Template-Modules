@@ -7,6 +7,7 @@ using Identity;
 using Identity.Security;
 using JasperFx;
 using JasperFx.Resources;
+using MongoDB.Driver;
 using Notifications;
 using ProductCatalog;
 using Reviews;
@@ -81,6 +82,11 @@ builder.Host.UseWolverine(options =>
     // After all retries are exhausted the message moves to wolverine_dead_letters in PostgreSQL.
     options
         .OnException<HttpRequestException>()
+        .ScheduleRetry(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5))
+        .Then.MoveToErrorQueue();
+
+    options
+        .OnException<MongoException>()
         .ScheduleRetry(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5))
         .Then.MoveToErrorQueue();
 });

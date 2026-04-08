@@ -49,8 +49,7 @@ public sealed class CleanupOrphanedProductDataHandler
                 break;
 
             List<Guid> linkedIds = await dbContext
-                .ProductDataLinks.IgnoreQueryFilters()
-                .Where(l => page.Contains(l.ProductDataId))
+                .ProductDataLinks.Where(l => page.Contains(l.ProductDataId))
                 .Select(l => l.ProductDataId)
                 .Distinct()
                 .ToListAsync(ct);
