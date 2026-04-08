@@ -28,4 +28,9 @@ public sealed class BackgroundJobsOptions
     [Required]
     [ValidateObjectMembers]
     public ReindexJobOptions Reindex { get; set; } = new();
+
+    [Description("Configuration for the recurring failed-email retry job.")]
+    [Required]
+    [ValidateObjectMembers]
+    public EmailRetryJobOptions EmailRetry { get; set; } = new();
 }
