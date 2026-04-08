@@ -4,6 +4,7 @@ using BackgroundJobs;
 using Chatting;
 using FileStorage;
 using Identity;
+using Identity.Security;
 using JasperFx;
 using JasperFx.Resources;
 using Notifications;
@@ -16,6 +17,7 @@ using Webhooks;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.ErrorHandling;
+using Wolverine.Http;
 using Wolverine.Postgresql;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -90,6 +92,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseApiPipeline();
 app.MapApplicationEndpoints();
+app.MapDeadLettersEndpoints().RequireAuthorization(AuthConstants.Policies.PlatformAdmin);
 
 await app.RunJasperFxCommands(args);
 
