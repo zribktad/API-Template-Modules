@@ -1,5 +1,70 @@
 # TODO
 
+## Distributed Consistency — Identified Issues
+
+### Critical
+
+- [ ] **`CleanupOrphanedProductDataHandler` — `IgnoreQueryFilters()` data leak** — soft-deleted
+  `ProductDataLink` rows are included in the "linked IDs" query (`IgnoreQueryFilters()` bypasses the
+  soft-delete filter), so MongoDB `ProductData` documents whose only references are soft-deleted links
+  are never considered orphaned. After `TenantCascadeDeleteHandler` soft-deletes all
+  `ProductDataLinks` for a tenant, the corresponding MongoDB documents are protected from cleanup
+  forever. Data accumulates permanently with no eviction path.
+  **Fix:** Remove `IgnoreQueryFilters()` from the linked-IDs query in `CleanupOrphanedProductDataHandler`
+  so only active links protect documents.
+
+### High Priority
+
+- [ ] **`DeleteProductDataCommand` — dual-commit inconsistency** — the SQL transaction (soft-delete
+  `ProductDataLinks`) commits atomically, but the subsequent MongoDB `SoftDeleteAsync` call is a
+  separate operation protected only by a Polly retry pipeline. If MongoDB remains unreachable after
+  all Polly retries, the links are gone while the `ProductData` document stays active. The cleanup
+  job cannot recover this because of the `IgnoreQueryFilters` bug above.
+  **Fix:** Convert to outbox-first pattern — emit `ProductDataSoftDeletedEvent` in the same SQL
+  transaction; a background handler performs the MongoDB soft-delete with full Wolverine retry/dead-letter.
+
+- [ ] **`TenantCascadeDeleteHandler` — MongoDB `ProductData` documents never cleaned** — the handler
+  cascades soft-delete to `Products`, `Categories`, and `ProductDataLinks` in PostgreSQL but never
+  touches MongoDB. All `ProductData` documents belonging to the deleted tenant become permanent
+  zombies (compounded by the `IgnoreQueryFilters` bug that prevents the cleanup job from removing them).
+  **Fix:** After the SQL transaction, emit a `TenantProductDataCleanupEvent`; a new handler deletes
+  all MongoDB `ProductData` documents for the tenant.
+
+- [ ] **`DeleteUserCommandHandler` / `SetUserActiveCommandHandler` — Keycloak-first creates reverse
+  inconsistency** — both handlers mutate Keycloak before committing the DB change. If the PostgreSQL
+  commit fails after Keycloak succeeds, the systems diverge: the user is deleted in Keycloak but
+  still exists in the DB (`DeleteUser`), or the enabled/disabled state differs (`SetUserActive`). The
+  `catch` block in `DeleteUserCommandHandler` only logs and rethrows — no compensation is attempted.
+  **Fix:** Either reverse the order to DB-commit-first (idempotent Keycloak retry on re-run), or
+  convert Keycloak calls to the outbox-first pattern used by `ProvisionKeycloakUserHandler`.
+
+- [ ] **`ProvisionKeycloakUserHandler` — zombie user after permanent Keycloak failure** — after
+  Wolverine exhausts all retries (`ScheduleRetry 5 s / 30 s / 5 min`) the message moves to the
+  dead-letter queue. The `AppUser` record remains in PostgreSQL with `KeycloakUserId = null`; the
+  user sees a successful registration but can never log in. No compensating action, no alert.
+  **Fix (recommended):** Add `ProvisioningStatus` (`Pending`/`Completed`) to `AppUser`; expose status
+  via the admin API. On dead-letter, notify ops via a structured log alert or a
+  `UserProvisioningFailedEvent` so the record can be retried or deleted manually via the dead-letter REST API.
+
+### Medium Priority
+
+- [ ] **`CleanupOrphanedProductDataHandler` — race condition** — between the MongoDB page query and
+  the PostgreSQL linked-IDs query, a new `ProductDataLink` could be inserted for a document in the
+  current page. The handler then deletes a MongoDB document that now has an active reference, leaving
+  a dangling foreign key in PostgreSQL.
+  **Fix:** Use a MongoDB client session (`IClientSessionHandle`) to make the `Find` + `DeleteMany`
+  atomic within a single MongoDB transaction, or add a `PendingDeletion` status to `ProductData`
+  documents as a soft-lock before cross-checking links.
+
+- [ ] **`KeycloakPasswordResetCommandHandler` — silent Keycloak failure** — all exceptions are caught
+  and swallowed; the handler unconditionally returns `Result.Success`. Users receive a success
+  response even when the Keycloak action email was never queued or sent.
+  **Fix:** Either propagate the error as `ErrorOr<Success>` so the caller can surface a 502/503, or
+  emit a `PasswordResetRequestedEvent` via the durable outbox so the Keycloak call is retried
+  automatically.
+
+---
+
 ## Architecture Review — Identified Issues
 
 ### Critical
