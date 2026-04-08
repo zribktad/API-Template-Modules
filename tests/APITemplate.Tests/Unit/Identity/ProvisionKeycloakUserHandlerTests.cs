@@ -1,6 +1,5 @@
 using Identity.Entities;
-using Identity.Features.User.Events;
-using Identity.Handlers;
+using Identity.Features.User;
 using Identity.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;

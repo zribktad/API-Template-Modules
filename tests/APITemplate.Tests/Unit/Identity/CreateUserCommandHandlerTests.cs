@@ -1,6 +1,6 @@
 using ErrorOr;
 using Identity.Entities;
-using Identity.Features.User.Events;
+using Identity.Features.User;
 using Moq;
 using SharedKernel.Contracts.Events;
 using Shouldly;
@@ -9,11 +9,11 @@ using Xunit;
 using CacheTags = Identity.Events.CacheTags;
 using CreateUserCommand = Identity.Features.User.CreateUserCommand;
 using CreateUserCommandHandler = Identity.Features.User.CreateUserCommandHandler;
-using CreateUserRequest = Identity.Features.User.DTOs.CreateUserRequest;
+using CreateUserRequest = Identity.Features.User.CreateUserRequest;
 using ErrorCatalog = Identity.Errors.ErrorCatalog;
 using IdentityUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
 using IUserRepository = Identity.Interfaces.IUserRepository;
-using UserResponse = Identity.Features.User.DTOs.UserResponse;
+using UserResponse = Identity.Features.User.UserResponse;
 
 namespace APITemplate.Tests.Unit.Identity;
 
@@ -27,6 +27,7 @@ public sealed class CreateUserCommandHandlerTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         CreateUserRequest request = new("alice", "alice@example.com");
+        CreateUserCommand command = new(request);
 
         _repository.Setup(r => r.ExistsByEmailAsync(request.Email, ct)).ReturnsAsync(false);
         _repository
@@ -39,11 +40,17 @@ public sealed class CreateUserCommandHandlerTests
             .Callback<AppUser, CancellationToken>((u, _) => addedUser = u)
             .ReturnsAsync((AppUser u, CancellationToken _) => u);
 
+        ErrorOr<Success> validation = await CreateUserCommandHandler.ValidateAsync(
+            command,
+            _repository.Object,
+            ct
+        );
         (ErrorOr<UserResponse> response, OutgoingMessages messages) =
             await CreateUserCommandHandler.HandleAsync(
-                new CreateUserCommand(request),
+                command,
                 _repository.Object,
                 _unitOfWork.Object,
+                validation,
                 ct
             );
 
@@ -73,35 +80,26 @@ public sealed class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenEmailAlreadyExists_ReturnsConflictError()
+    public async Task ValidateAsync_WhenEmailAlreadyExists_ReturnsConflictError()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         CreateUserRequest request = new("bob", "taken@example.com");
 
         _repository.Setup(r => r.ExistsByEmailAsync(request.Email, ct)).ReturnsAsync(true);
 
-        (ErrorOr<UserResponse> response, OutgoingMessages messages) =
-            await CreateUserCommandHandler.HandleAsync(
-                new CreateUserCommand(request),
-                _repository.Object,
-                _unitOfWork.Object,
-                ct
-            );
-
-        response.IsError.ShouldBeTrue();
-        response.FirstError.Type.ShouldBe(ErrorType.Conflict);
-        response.FirstError.Code.ShouldBe(ErrorCatalog.Users.EmailAlreadyExists);
-
-        _repository.Verify(
-            r => r.AddAsync(It.IsAny<AppUser>(), It.IsAny<CancellationToken>()),
-            Times.Never
+        ErrorOr<Success> result = await CreateUserCommandHandler.ValidateAsync(
+            new CreateUserCommand(request),
+            _repository.Object,
+            ct
         );
-        _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        messages.OfType<ProvisionKeycloakUserEvent>().ShouldBeEmpty();
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Conflict);
+        result.FirstError.Code.ShouldBe(ErrorCatalog.Users.EmailAlreadyExists);
     }
 
     [Fact]
-    public async Task HandleAsync_WhenUsernameAlreadyExists_ReturnsConflictError()
+    public async Task ValidateAsync_WhenUsernameAlreadyExists_ReturnsConflictError()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         CreateUserRequest request = new("existinguser", "new@example.com");
@@ -111,24 +109,15 @@ public sealed class CreateUserCommandHandlerTests
             .Setup(r => r.ExistsByUsernameAsync(AppUser.NormalizeUsername(request.Username), ct))
             .ReturnsAsync(true);
 
-        (ErrorOr<UserResponse> response, OutgoingMessages messages) =
-            await CreateUserCommandHandler.HandleAsync(
-                new CreateUserCommand(request),
-                _repository.Object,
-                _unitOfWork.Object,
-                ct
-            );
-
-        response.IsError.ShouldBeTrue();
-        response.FirstError.Type.ShouldBe(ErrorType.Conflict);
-        response.FirstError.Code.ShouldBe(ErrorCatalog.Users.UsernameAlreadyExists);
-
-        _repository.Verify(
-            r => r.AddAsync(It.IsAny<AppUser>(), It.IsAny<CancellationToken>()),
-            Times.Never
+        ErrorOr<Success> result = await CreateUserCommandHandler.ValidateAsync(
+            new CreateUserCommand(request),
+            _repository.Object,
+            ct
         );
-        _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        messages.OfType<ProvisionKeycloakUserEvent>().ShouldBeEmpty();
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Conflict);
+        result.FirstError.Code.ShouldBe(ErrorCatalog.Users.UsernameAlreadyExists);
     }
 
     [Fact]
@@ -142,16 +131,13 @@ public sealed class CreateUserCommandHandlerTests
                 new CreateUserCommand(request),
                 _repository.Object,
                 _unitOfWork.Object,
+                Result.Success,
                 ct
             );
 
         response.IsError.ShouldBeTrue();
         response.FirstError.Type.ShouldBe(ErrorType.Validation);
 
-        _repository.Verify(
-            r => r.ExistsByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
         _repository.Verify(
             r => r.AddAsync(It.IsAny<AppUser>(), It.IsAny<CancellationToken>()),
             Times.Never
