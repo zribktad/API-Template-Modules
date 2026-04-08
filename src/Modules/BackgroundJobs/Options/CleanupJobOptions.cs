@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SharedKernel.Application.Options.BackgroundJobs;
+namespace BackgroundJobs.Options;
 
 /// <summary>
 ///     Configuration for the periodic cleanup job that purges expired invitations, soft-deleted records,

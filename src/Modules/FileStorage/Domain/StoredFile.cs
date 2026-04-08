@@ -14,6 +14,26 @@ public sealed class StoredFile : IAuditableTenantEntity, IHasId
     public required string ContentType { get; init; }
     public long SizeBytes { get; init; }
     public string? Description { get; init; }
+
+    public static StoredFile Create(
+        string originalFileName,
+        string storagePath,
+        string contentType,
+        long sizeBytes,
+        string? description
+    )
+    {
+        return new StoredFile
+        {
+            Id = Guid.NewGuid(),
+            OriginalFileName = originalFileName,
+            StoragePath = storagePath,
+            ContentType = contentType,
+            SizeBytes = sizeBytes,
+            Description = description,
+        };
+    }
+
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();
     public bool IsDeleted { get; set; }

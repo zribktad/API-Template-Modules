@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Notifications.Contracts;
 using Notifications.Logging;
 using SharedKernel.Application.BackgroundJobs;
-using SharedKernel.Application.Options.BackgroundJobs;
+using SharedKernel.Application.Options;
 using TickerQ.Utilities.Base;
 
 namespace Notifications.Services;
@@ -23,13 +23,13 @@ public sealed class EmailRetryRecurringJob
     public EmailRetryRecurringJob(
         IEmailRetryService emailRetryService,
         IDistributedJobCoordinator coordinator,
-        IOptions<BackgroundJobsOptions> options,
+        IOptions<EmailRetryJobOptions> options,
         ILogger<EmailRetryRecurringJob> logger
     )
     {
         _emailRetryService = emailRetryService;
         _coordinator = coordinator;
-        _options = options.Value.EmailRetry;
+        _options = options.Value;
         _logger = logger;
     }
 
