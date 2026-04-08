@@ -1,6 +1,7 @@
 using ErrorOr;
 using Identity.Entities;
 using Identity.Features.User;
+using Identity.ValueObjects;
 using Moq;
 using SharedKernel.Contracts.Events;
 using Shouldly;
@@ -40,7 +41,7 @@ public sealed class CreateUserCommandHandlerTests
             .Callback<AppUser, CancellationToken>((u, _) => addedUser = u)
             .ReturnsAsync((AppUser u, CancellationToken _) => u);
 
-        ErrorOr<Success> validation = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Email> validation = await CreateUserCommandHandler.ValidateAsync(
             command,
             _repository.Object,
             ct
@@ -87,7 +88,7 @@ public sealed class CreateUserCommandHandlerTests
 
         _repository.Setup(r => r.ExistsByEmailAsync(request.Email, ct)).ReturnsAsync(true);
 
-        ErrorOr<Success> result = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
             new CreateUserCommand(request),
             _repository.Object,
             ct
@@ -109,7 +110,7 @@ public sealed class CreateUserCommandHandlerTests
             .Setup(r => r.ExistsByUsernameAsync(AppUser.NormalizeUsername(request.Username), ct))
             .ReturnsAsync(true);
 
-        ErrorOr<Success> result = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
             new CreateUserCommand(request),
             _repository.Object,
             ct
@@ -121,28 +122,24 @@ public sealed class CreateUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenInvalidEmail_ReturnsValidationError()
+    public async Task ValidateAsync_WhenInvalidEmail_ReturnsValidationError()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         CreateUserRequest request = new("charlie", "not-an-email");
 
-        (ErrorOr<UserResponse> response, OutgoingMessages messages) =
-            await CreateUserCommandHandler.HandleAsync(
-                new CreateUserCommand(request),
-                _repository.Object,
-                _unitOfWork.Object,
-                Result.Success,
-                ct
-            );
+        ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
+            new CreateUserCommand(request),
+            _repository.Object,
+            ct
+        );
 
-        response.IsError.ShouldBeTrue();
-        response.FirstError.Type.ShouldBe(ErrorType.Validation);
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Validation);
 
         _repository.Verify(
             r => r.AddAsync(It.IsAny<AppUser>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
         _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
-        messages.OfType<ProvisionKeycloakUserEvent>().ShouldBeEmpty();
     }
 }

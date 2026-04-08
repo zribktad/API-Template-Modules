@@ -76,6 +76,7 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
                 $"AppUser {Id} is already linked to Keycloak account '{KeycloakUserId}'."
             );
         KeycloakUserId = keycloakUserId;
+        ProvisioningStatus = ProvisioningStatus.Completed;
     }
 
     public static AppUser Create(
@@ -86,7 +87,7 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
         UserRole role = UserRole.User
     )
     {
-        return new AppUser
+        AppUser user = new()
         {
             Id = Guid.NewGuid(),
             Username = username,
@@ -95,6 +96,11 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
             TenantId = tenantId ?? Guid.Empty,
             Role = role,
         };
+
+        if (keycloakUserId is not null)
+            user.ProvisioningStatus = ProvisioningStatus.Completed;
+
+        return user;
     }
 
     /// <summary>Returns the canonical form of a username: trimmed and converted to uppercase invariant.</summary>

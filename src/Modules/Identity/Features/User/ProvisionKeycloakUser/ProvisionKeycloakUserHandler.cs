@@ -14,9 +14,10 @@ namespace Identity.Features.User;
 public sealed class ProvisionKeycloakUserHandler
 {
     /// <summary>
-    ///     Wolverine convention: configures handler-specific error handling.
-    ///     After the global retry policy exhausts all attempts, logs a structured alert
-    ///     before the message moves to the dead-letter queue.
+    ///     Overrides the global <c>HttpRequestException</c> retry policy for this handler
+    ///     to log a structured alert before dead-lettering. The retry schedule intentionally
+    ///     mirrors the global one — Wolverine handler-level rules take full precedence,
+    ///     so the global <c>MoveToErrorQueue</c> action would never fire for this handler.
     /// </summary>
     public static void Configure(HandlerChain chain)
     {
@@ -67,7 +68,6 @@ public sealed class ProvisionKeycloakUserHandler
         );
 
         user.LinkKeycloak(keycloakUserId);
-        user.ProvisioningStatus = ProvisioningStatus.Completed;
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);
 

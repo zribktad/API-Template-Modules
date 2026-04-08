@@ -67,10 +67,12 @@ public sealed class UpdateUserCommandHandler
             return (userResult.Errors, OutgoingMessagesHelper.Empty);
         AppUser user = userResult.Value;
 
-        Email newEmail = Email.Create(command.Request.Email).Value;
+        ErrorOr<Email> emailResult = Email.Create(command.Request.Email);
+        if (emailResult.IsError)
+            return (emailResult.Errors, OutgoingMessagesHelper.Empty);
 
         user.Username = command.Request.Username;
-        user.Email = newEmail;
+        user.Email = emailResult.Value;
 
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);

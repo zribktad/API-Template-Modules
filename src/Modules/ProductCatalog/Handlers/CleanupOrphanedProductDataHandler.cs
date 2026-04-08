@@ -82,22 +82,37 @@ public sealed class CleanupOrphanedProductDataHandler
         }
 
         // ── Phase 2: Sweep previously-marked documents ───────────────────────────
-        List<Guid> pendingIds = await mongoCollection
-            .Find(Builders<ProductData>.Filter.Eq(d => d.PendingDeletion, true))
-            .Project(d => d.Id)
-            .ToListAsync(ct);
+        lastSeenId = null;
 
-        if (pendingIds.Count > 0)
+        while (true)
         {
+            FilterDefinition<ProductData> pendingFilter = Builders<ProductData>.Filter.Eq(
+                d => d.PendingDeletion,
+                true
+            );
+
+            if (lastSeenId.HasValue)
+                pendingFilter &= Builders<ProductData>.Filter.Gt(d => d.Id, lastSeenId.Value);
+
+            List<Guid> pendingPage = await mongoCollection
+                .Find(pendingFilter)
+                .SortBy(d => d.Id)
+                .Limit(command.BatchSize)
+                .Project(d => d.Id)
+                .ToListAsync(ct);
+
+            if (pendingPage.Count == 0)
+                break;
+
             List<Guid> stillLinked = await dbContext
-                .ProductDataLinks.Where(l => pendingIds.Contains(l.ProductDataId))
+                .ProductDataLinks.Where(l => pendingPage.Contains(l.ProductDataId))
                 .Select(l => l.ProductDataId)
                 .Distinct()
                 .ToListAsync(ct);
 
             HashSet<Guid> stillLinkedSet = stillLinked.ToHashSet();
-            Guid[] safeToDelete = pendingIds.Where(id => !stillLinkedSet.Contains(id)).ToArray();
-            Guid[] falsePending = pendingIds.Where(id => stillLinkedSet.Contains(id)).ToArray();
+            Guid[] safeToDelete = pendingPage.Where(id => !stillLinkedSet.Contains(id)).ToArray();
+            Guid[] falsePending = pendingPage.Where(id => stillLinkedSet.Contains(id)).ToArray();
 
             if (safeToDelete.Length > 0)
             {
@@ -117,6 +132,8 @@ public sealed class CleanupOrphanedProductDataHandler
                 );
                 totalCleared += falsePending.Length;
             }
+
+            lastSeenId = pendingPage[^1];
         }
 
         if (totalMarked > 0)
