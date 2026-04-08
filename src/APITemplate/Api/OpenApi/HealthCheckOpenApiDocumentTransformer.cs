@@ -1,17 +1,15 @@
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using SharedKernel.Infrastructure.Health;
 
 namespace APITemplate.Api.OpenApi;
 
 /// <summary>
-///     OpenAPI document transformer that manually registers the <c>/health</c> endpoint in the
+///     OpenAPI document transformer that manually registers health check endpoints in the
 ///     generated specification, since health-check endpoints are not discovered automatically by ASP.NET Core OpenAPI.
 /// </summary>
 public sealed class HealthCheckOpenApiDocumentTransformer : IOpenApiDocumentTransformer
 {
-    /// <summary>
-    ///     Adds a <c>GET /health</c> path item with 200 and 503 response descriptions to the document.
-    /// </summary>
     public Task TransformAsync(
         OpenApiDocument document,
         OpenApiDocumentTransformerContext context,
@@ -20,29 +18,35 @@ public sealed class HealthCheckOpenApiDocumentTransformer : IOpenApiDocumentTran
     {
         document.Paths ??= new OpenApiPaths();
 
-        OpenApiPathItem pathItem = new();
-        pathItem.AddOperation(
-            HttpMethod.Get,
-            new OpenApiOperation
-            {
-                Tags = new HashSet<OpenApiTagReference> { new("Health", document) },
-                Summary = "Health check",
-                Description = "Returns the health status of all registered services.",
-                Responses = new OpenApiResponses
-                {
-                    [StatusCodes.Status200OK.ToString()] = new OpenApiResponse
-                    {
-                        Description = "Healthy - all services are running",
-                    },
-                    [StatusCodes.Status503ServiceUnavailable.ToString()] = new OpenApiResponse
-                    {
-                        Description = "Unhealthy - one or more services are down",
-                    },
-                },
-            }
-        );
+        HashSet<OpenApiTagReference> healthTag = [new("Health", document)];
 
-        document.Paths["/health"] = pathItem;
+        foreach (
+            HealthCheckEndpointDefinition endpoint in HealthCheckEndpointConfiguration.Endpoints
+        )
+        {
+            OpenApiPathItem pathItem = new();
+            pathItem.AddOperation(
+                HttpMethod.Get,
+                new OpenApiOperation
+                {
+                    Tags = healthTag,
+                    Summary = endpoint.Summary,
+                    Description = endpoint.Description,
+                    Responses = new OpenApiResponses
+                    {
+                        [StatusCodes.Status200OK.ToString()] = new OpenApiResponse
+                        {
+                            Description = "Healthy",
+                        },
+                        [StatusCodes.Status503ServiceUnavailable.ToString()] = new OpenApiResponse
+                        {
+                            Description = "Unhealthy - one or more services are down",
+                        },
+                    },
+                }
+            );
+            document.Paths[endpoint.Path] = pathItem;
+        }
 
         return Task.CompletedTask;
     }

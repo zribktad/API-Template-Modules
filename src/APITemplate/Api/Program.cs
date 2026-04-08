@@ -8,9 +8,11 @@ using JasperFx;
 using JasperFx.Resources;
 using Notifications;
 using ProductCatalog;
+using ProductCatalog.Infrastructure.Health;
 using Reviews;
 using Serilog;
 using SharedKernel.Application.Middleware;
+using SharedKernel.Infrastructure.Health;
 using Webhooks;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
@@ -35,6 +37,10 @@ builder.Host.UseSerilog(
 );
 
 builder.Services.AddApiFoundation(builder.Configuration);
+builder.Services.AddModuleHealthChecks(
+    new SharedKernelHealthChecks(builder.Configuration),
+    new ProductCatalogHealthChecks(builder.Configuration)
+);
 builder.Services.AddApplicationComposition(builder.Configuration);
 builder.Services.AddObservability(builder.Configuration, builder.Environment);
 builder.Services.AddIdentityModule(builder.Configuration);

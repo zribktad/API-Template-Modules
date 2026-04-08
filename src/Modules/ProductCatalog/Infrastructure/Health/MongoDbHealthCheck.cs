@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using ProductCatalog.Logging;
+using ProductCatalog.Persistence;
 
-namespace ProductCatalog.Persistence;
+namespace ProductCatalog.Infrastructure.Health;
 
 public sealed class MongoDbHealthCheck : IHealthCheck
 {

@@ -24,6 +24,8 @@
     <PackageReference Include="Microsoft.Extensions.Compliance.Redaction"/>
     <PackageReference Include="Microsoft.Extensions.Resilience"/>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql"/>
+    <PackageReference Include="AspNetCore.HealthChecks.Redis"/>
     <PackageReference Include="StackExchange.Redis"/>
     <PackageReference Include="WolverineFx"/>
     <PackageReference Include="WolverineFx.EntityFrameworkCore"/>
