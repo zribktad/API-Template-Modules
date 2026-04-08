@@ -160,6 +160,22 @@
       ]
     }
   ],
+  "identityProviders": [
+    {
+      "alias": "google",
+      "providerId": "google",
+      "enabled": true,
+      "trustEmail": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${GOOGLE_CLIENT_ID:-CHANGE_ME}",
+        "clientSecret": "${GOOGLE_CLIENT_SECRET:-CHANGE_ME}",
+        "defaultScope": "openid profile email",
+        "syncMode": "IMPORT",
+        "useJwksUrl": "true"
+      }
+    }
+  ],
   "users": [
     {
       "username": "admin",

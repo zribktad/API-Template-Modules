@@ -81,7 +81,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
+      - ./infrastructure/postgres/init-keycloak-db.sql:/docker-entrypoint-initdb.d/init-keycloak-db.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
@@ -100,35 +101,23 @@ services:
       timeout: 5s
       retries: 5
 
-  keycloak-db:
-    image: postgres:18.3
-    environment:
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
-      POSTGRES_DB: keycloak
-    volumes:
-      - keycloak-pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U keycloak" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   keycloak:
     image: quay.io/keycloak/keycloak:26.5
     command: start-dev --import-realm
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
       KC_HTTP_PORT: 8180
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-CHANGE_ME}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-CHANGE_ME}"
     ports:
       - "8180:8180"
     depends_on:
-      keycloak-db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./infrastructure/keycloak/realms:/opt/keycloak/data/import
@@ -211,7 +200,6 @@ volumes:
   grafanadata:
   pgdata:
   mongodata:
-  keycloak-pgdata:
   dragonflydata:
 
 

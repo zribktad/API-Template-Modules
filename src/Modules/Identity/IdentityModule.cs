@@ -7,6 +7,7 @@ using Identity.Options;
 using Identity.Persistence;
 using Identity.Persistence.EntityNormalization;
 using Identity.Repositories;
+using Identity.Security.ExternalIdentityProviders;
 using Identity.Security.Keycloak;
 using Identity.Security.Tenant;
 using Identity.SoftDelete;
@@ -227,6 +228,15 @@ public static class IdentityModule
         options.Events = new OpenIdConnectEvents
         {
             OnTokenValidated = TenantClaimValidator.OnTokenValidated,
+            OnRedirectToIdentityProvider = context =>
+            {
+                if (context.Properties.Items.TryGetValue(AuthConstants.KeycloakAuthProperties.IdpHint, out string? hint)
+                    && !string.IsNullOrEmpty(hint))
+                {
+                    context.ProtocolMessage.SetParameter(AuthConstants.KeycloakAuthProperties.IdpHint, hint);
+                }
+                return Task.CompletedTask;
+            },
         };
     }
 
@@ -264,6 +274,7 @@ public static class IdentityModule
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
         services.AddSingleton<ITenantCodeConflictDetector, PostgresTenantCodeConflictDetector>();
+        services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
     }
 
     // ── Keycloak Admin ────────────────────────────────────────────────────────

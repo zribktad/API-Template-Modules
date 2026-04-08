@@ -14,10 +14,19 @@ namespace Identity.Controllers.V1;
 public sealed class BffController : ApiControllerBase
 {
     private readonly BffOptions _bffOptions;
+    private readonly IReadOnlyDictionary<string, IExternalIdentityProvider> _identityProviders;
 
-    public BffController(IOptions<BffOptions> bffOptions)
+    public BffController(
+        IOptions<BffOptions> bffOptions,
+        IEnumerable<IExternalIdentityProvider> identityProviders
+    )
     {
         _bffOptions = bffOptions.Value;
+        _identityProviders = identityProviders.ToDictionary(
+            p => p.IdpHint,
+            p => p,
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
     [HttpGet("login")]
@@ -29,6 +38,29 @@ public sealed class BffController : ApiControllerBase
             new AuthenticationProperties { RedirectUri = redirectUri },
             AuthConstants.BffSchemes.Oidc
         );
+    }
+
+    [HttpGet("login/{idpHint}")]
+    [AllowAnonymous]
+    public IActionResult LoginWithProvider(string idpHint, [FromQuery] string? returnUrl = null)
+    {
+        if (!_identityProviders.TryGetValue(idpHint, out IExternalIdentityProvider? identityProvider))
+            return NotFound();
+
+        string redirectUri = Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
+        AuthenticationProperties properties = new() { RedirectUri = redirectUri };
+        properties.Items[AuthConstants.KeycloakAuthProperties.IdpHint] = identityProvider.IdpHint;
+
+        return Challenge(properties, AuthConstants.BffSchemes.Oidc);
+    }
+
+    [HttpGet("external-providers")]
+    [AllowAnonymous]
+    public IActionResult GetExternalProviders()
+    {
+        IEnumerable<ExternalProviderResponse> providers = _identityProviders.Values
+            .Select(p => new ExternalProviderResponse(p.IdpHint, p.DisplayName));
+        return Ok(providers);
     }
 
     [HttpGet("logout")]
