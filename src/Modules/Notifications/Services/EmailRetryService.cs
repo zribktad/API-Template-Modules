@@ -6,7 +6,7 @@ using Notifications.Domain;
 using Notifications.Logging;
 using Polly;
 using Polly.Registry;
-using SharedKernel.Application.Options.BackgroundJobs;
+using SharedKernel.Application.Options;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Domain.Interfaces;
 
@@ -33,7 +33,7 @@ public sealed class EmailRetryService : IEmailRetryService
         IEmailSender sender,
         IUnitOfWork<NotificationsDbMarker> unitOfWork,
         TimeProvider timeProvider,
-        IOptions<BackgroundJobsOptions> options,
+        IOptions<EmailRetryJobOptions> options,
         ResiliencePipelineProvider<string> resiliencePipelineProvider,
         ILogger<EmailRetryService> logger
     )
@@ -43,7 +43,7 @@ public sealed class EmailRetryService : IEmailRetryService
         _sender = sender;
         _unitOfWork = unitOfWork;
         _timeProvider = timeProvider;
-        _options = options.Value.EmailRetry;
+        _options = options.Value;
         _resiliencePipelineProvider = resiliencePipelineProvider;
         _logger = logger;
     }

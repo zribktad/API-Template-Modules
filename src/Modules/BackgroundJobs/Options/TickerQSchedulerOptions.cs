@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SharedKernel.Application.Options.BackgroundJobs;
+namespace BackgroundJobs.Options;
 
 /// <summary>
 ///     Configuration for the TickerQ scheduler, including distributed coordination and fail-safe behaviour.

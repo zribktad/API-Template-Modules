@@ -79,6 +79,7 @@ public static class IdentityModule
                 "Bootstrap tenant code/name is required"
             );
         services.AddValidatedOptions<TenantInvitationOptions>(configuration);
+        services.AddValidatedOptions<SystemIdentityOptions>(configuration);
     }
 
     // ── CORS ─────────────────────────────────────────────────────────────────
@@ -230,10 +231,17 @@ public static class IdentityModule
             OnTokenValidated = TenantClaimValidator.OnTokenValidated,
             OnRedirectToIdentityProvider = context =>
             {
-                if (context.Properties.Items.TryGetValue(AuthConstants.KeycloakAuthProperties.IdpHint, out string? hint)
-                    && !string.IsNullOrEmpty(hint))
+                if (
+                    context.Properties.Items.TryGetValue(
+                        AuthConstants.KeycloakAuthProperties.IdpHint,
+                        out string? hint
+                    ) && !string.IsNullOrEmpty(hint)
+                )
                 {
-                    context.ProtocolMessage.SetParameter(AuthConstants.KeycloakAuthProperties.IdpHint, hint);
+                    context.ProtocolMessage.SetParameter(
+                        AuthConstants.KeycloakAuthProperties.IdpHint,
+                        hint
+                    );
                 }
                 return Task.CompletedTask;
             },

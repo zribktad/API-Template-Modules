@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Options;
 
-namespace SharedKernel.Application.Options.BackgroundJobs;
+namespace BackgroundJobs.Options;
 
 /// <summary>
 ///     Aggregates per-job configuration options for all registered background jobs in the application.

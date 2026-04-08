@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Notifications.Contracts;
 using Notifications.Domain;
 using Notifications.Logging;
-using SharedKernel.Application.Options.BackgroundJobs;
+using SharedKernel.Application.Options;
 using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.Services;
@@ -22,12 +22,12 @@ public sealed class FailedEmailStore : IFailedEmailStore
 
     public FailedEmailStore(
         IServiceScopeFactory scopeFactory,
-        IOptions<BackgroundJobsOptions> options,
+        IOptions<EmailRetryJobOptions> options,
         ILogger<FailedEmailStore> logger
     )
     {
         _scopeFactory = scopeFactory;
-        _enabled = options.Value.EmailRetry.Enabled;
+        _enabled = options.Value.Enabled;
         _logger = logger;
     }
 

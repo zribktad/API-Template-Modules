@@ -28,15 +28,13 @@ public sealed class UploadFileCommandHandler
 
         try
         {
-            StoredFile entity = new()
-            {
-                Id = Guid.NewGuid(),
-                OriginalFileName = req.FileName,
-                StoragePath = storageResult.StoragePath,
-                ContentType = req.ContentType,
-                SizeBytes = storageResult.SizeBytes,
-                Description = req.Description,
-            };
+            StoredFile entity = StoredFile.Create(
+                req.FileName,
+                storageResult.StoragePath,
+                req.ContentType,
+                storageResult.SizeBytes,
+                req.Description
+            );
 
             await unitOfWork.ExecuteInTransactionAsync(
                 async () =>

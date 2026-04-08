@@ -30,7 +30,6 @@ global using SharedKernel.Application.Errors;
 global using SharedKernel.Application.Events;
 global using SharedKernel.Application.Extensions;
 global using SharedKernel.Application.Options;
-global using SharedKernel.Application.Options.BackgroundJobs;
 global using SharedKernel.Application.Options.Infrastructure;
 global using SharedKernel.Application.Options.Security;
 global using SharedKernel.Domain.Common;

@@ -8,7 +8,7 @@ namespace Identity.Entities;
 /// </summary>
 public sealed class Tenant : IAuditableTenantEntity, IHasId
 {
-    public required TenantCode Code { get; set; }
+    public required TenantCode Code { get; init; }
 
     public required string Name
     {
