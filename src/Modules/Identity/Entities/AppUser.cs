@@ -65,6 +65,18 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     public Guid? DeletedBy { get; set; }
     public Guid Id { get; set; }
 
+    /// <summary>
+    ///     Links this user to their Keycloak account. Can only be called once — throws if already linked.
+    /// </summary>
+    public void LinkKeycloak(string keycloakUserId)
+    {
+        if (KeycloakUserId is not null)
+            throw new InvalidOperationException(
+                $"AppUser {Id} is already linked to Keycloak account '{KeycloakUserId}'."
+            );
+        KeycloakUserId = keycloakUserId;
+    }
+
     public static AppUser Create(
         string username,
         Email email,

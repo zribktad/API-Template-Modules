@@ -8,28 +8,24 @@ namespace Identity.Logging;
 /// </summary>
 internal static partial class IdentityLogs
 {
-    // CreateUserCommandHandler (2001-2002)
+    // ProvisionKeycloakUserHandler (2001-2002)
     [LoggerMessage(
         EventId = 2001,
-        Level = LogLevel.Error,
-        Message = "DB save failed after creating Keycloak user {KeycloakUserId}. Attempting compensating delete."
+        Level = LogLevel.Information,
+        Message = "Provisioned Keycloak account for AppUser {UserId} — KeycloakUserId={KeycloakUserId}"
     )]
-    public static partial void CreateUserDbSaveFailed(
+    public static partial void KeycloakUserProvisioned(
         this ILogger logger,
-        Exception exception,
-        [SensitiveData] string keycloakUserId
+        Guid userId,
+        string keycloakUserId
     );
 
     [LoggerMessage(
         EventId = 2002,
-        Level = LogLevel.Error,
-        Message = "Compensating Keycloak delete failed for user {KeycloakUserId}. Manual cleanup required."
+        Level = LogLevel.Warning,
+        Message = "ProvisionKeycloakUserEvent for AppUser {UserId} skipped — user not found or already provisioned."
     )]
-    public static partial void CreateUserCompensatingDeleteFailed(
-        this ILogger logger,
-        Exception exception,
-        [SensitiveData] string keycloakUserId
-    );
+    public static partial void ProvisionKeycloakUserSkipped(this ILogger logger, Guid userId);
 
     // DeleteUserCommandHandler (2010)
     [LoggerMessage(

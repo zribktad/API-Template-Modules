@@ -1,8 +1,7 @@
 using ErrorOr;
+using Identity.Features.User.Events;
 using Identity.Features.User.Mappings;
-using Identity.Logging;
 using Identity.ValueObjects;
-using Microsoft.Extensions.Logging;
 using Wolverine;
 
 namespace Identity.Features.User;
@@ -15,8 +14,6 @@ public sealed class CreateUserCommandHandler
         CreateUserCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        ILogger<CreateUserCommandHandler> logger,
-        IKeycloakAdminService keycloakAdmin,
         CancellationToken ct
     )
     {
@@ -41,36 +38,14 @@ public sealed class CreateUserCommandHandler
         if (usernameResult.IsError)
             return (usernameResult.Errors, OutgoingMessagesHelper.Empty);
 
-        string keycloakUserId = await keycloakAdmin.CreateUserAsync(
-            command.Request.Username,
-            command.Request.Email,
-            ct
-        );
+        AppUser user = AppUser.Create(command.Request.Username, email, keycloakUserId: null);
 
-        try
-        {
-            AppUser user = AppUser.Create(command.Request.Username, email, keycloakUserId);
+        await repository.AddAsync(user, ct);
+        await unitOfWork.CommitAsync(ct);
 
-            await repository.AddAsync(user, ct);
-            await unitOfWork.CommitAsync(ct);
-            OutgoingMessages messages = new();
-            messages.Add(new UserRegisteredNotification(user.Id, user.Email.Value, user.Username));
-            messages.Add(new CacheInvalidationNotification(CacheTags.Users));
-            return (user.ToResponse(), messages);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.CreateUserDbSaveFailed(ex, keycloakUserId);
-            try
-            {
-                await keycloakAdmin.DeleteUserAsync(keycloakUserId, CancellationToken.None);
-            }
-            catch (Exception compensationEx)
-            {
-                logger.CreateUserCompensatingDeleteFailed(compensationEx, keycloakUserId);
-            }
-
-            throw;
-        }
+        OutgoingMessages messages = new();
+        messages.Add(new ProvisionKeycloakUserEvent(user.Id, user.Username, user.Email.Value));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Users));
+        return (user.ToResponse(), messages);
     }
 }

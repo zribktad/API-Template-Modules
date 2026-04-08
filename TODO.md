@@ -26,8 +26,10 @@
 ### Medium Priority
 
 - [x] **Business logic in handlers** — Added `Create()` factory methods to `AppUser`, `Category`, `ProductReview`, and
-  `JobExecution`. All handlers updated to use factory methods. Compensating transaction in `CreateUserCommand` kept in
-  handler (infra coordination, not domain logic — YAGNI).
+  `JobExecution`. All handlers updated to use factory methods. `CreateUserCommand` refactored to outbox-reversed order:
+  user saved to DB first (KeycloakUserId=null), then `ProvisionKeycloakUserEvent` delivered via Wolverine durable outbox
+  to `ProvisionKeycloakUserHandler` which creates the Keycloak account and links it back. Eliminates orphaned Keycloak
+  users. `KeycloakAdminService.CreateUserAsync` made idempotent (handles 409 Conflict via username lookup).
 - [ ] **Inconsistent logging** — source-generated `[LoggerMessage]` with event IDs is already used across modules, but
   inline `logger.LogWarning()` remains in `TenantClaimValidator` and `CookieSessionRefresher`. Finish migration to
   source-generated logging for these remaining paths.
