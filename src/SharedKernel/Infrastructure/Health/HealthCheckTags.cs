@@ -7,4 +7,5 @@ public static class HealthCheckTags
     public const string Database = "db";
     public const string Cache = "cache";
     public const string External = "external";
+    public const string OpenApiTag = "Health";
 }

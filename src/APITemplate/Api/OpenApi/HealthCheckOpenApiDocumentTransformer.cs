@@ -29,7 +29,7 @@ public sealed class HealthCheckOpenApiDocumentTransformer : IOpenApiDocumentTran
                 {
                     Tags = new HashSet<OpenApiTagReference>
                     {
-                        new(HealthCheckEndpointConfiguration.OpenApiTag, document),
+                        new(HealthCheckTags.OpenApiTag, document),
                     },
                     Summary = endpoint.Summary,
                     Description = endpoint.Description,
