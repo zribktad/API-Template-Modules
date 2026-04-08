@@ -12,7 +12,15 @@ public static class UserMappings
     ///     <see cref="UserResponse" /> in the database query.
     /// </summary>
     public static readonly Expression<Func<AppUser, UserResponse>> Projection =
-        u => new UserResponse(u.Id, u.Username, u.Email, u.IsActive, u.Role, u.Audit.CreatedAtUtc);
+        u => new UserResponse(
+            u.Id,
+            u.Username,
+            u.Email,
+            u.IsActive,
+            u.Role,
+            u.ProvisioningStatus,
+            u.Audit.CreatedAtUtc
+        );
 
     private static readonly Func<AppUser, UserResponse> CompiledProjection = Projection.Compile();
 

@@ -38,7 +38,7 @@
   **Fix:** Either reverse the order to DB-commit-first (idempotent Keycloak retry on re-run), or
   convert Keycloak calls to the outbox-first pattern used by `ProvisionKeycloakUserHandler`.
 
-- [ ] **`ProvisionKeycloakUserHandler` — zombie user after permanent Keycloak failure** — after
+- [x] **`ProvisionKeycloakUserHandler` — zombie user after permanent Keycloak failure** — after
   Wolverine exhausts all retries (`ScheduleRetry 5 s / 30 s / 5 min`) the message moves to the
   dead-letter queue. The `AppUser` record remains in PostgreSQL with `KeycloakUserId = null`; the
   user sees a successful registration but can never log in. No compensating action, no alert.
@@ -48,7 +48,7 @@
 
 ### Medium Priority
 
-- [ ] **`CleanupOrphanedProductDataHandler` — race condition** — between the MongoDB page query and
+- [x] **`CleanupOrphanedProductDataHandler` — race condition** — between the MongoDB page query and
   the PostgreSQL linked-IDs query, a new `ProductDataLink` could be inserted for a document in the
   current page. The handler then deletes a MongoDB document that now has an active reference, leaving
   a dangling foreign key in PostgreSQL.

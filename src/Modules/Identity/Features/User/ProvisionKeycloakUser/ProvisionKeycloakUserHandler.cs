@@ -1,6 +1,8 @@
 using Identity.Logging;
 using Microsoft.Extensions.Logging;
 using Wolverine;
+using Wolverine.ErrorHandling;
+using Wolverine.Runtime.Handlers;
 
 namespace Identity.Features.User;
 
@@ -11,6 +13,36 @@ namespace Identity.Features.User;
 /// </summary>
 public sealed class ProvisionKeycloakUserHandler
 {
+    /// <summary>
+    ///     Wolverine convention: configures handler-specific error handling.
+    ///     After the global retry policy exhausts all attempts, logs a structured alert
+    ///     before the message moves to the dead-letter queue.
+    /// </summary>
+    public static void Configure(HandlerChain chain)
+    {
+        chain
+            .OnException<HttpRequestException>()
+            .ScheduleRetry(
+                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(30),
+                TimeSpan.FromMinutes(5)
+            )
+            .Then.CustomAction(
+                async (runtime, lifecycle, exception) =>
+                {
+                    if (lifecycle.Envelope?.Message is ProvisionKeycloakUserEvent message)
+                    {
+                        ILogger logger =
+                            runtime.LoggerFactory.CreateLogger<ProvisionKeycloakUserHandler>();
+                        logger.KeycloakProvisioningPermanentlyFailed(message.UserId);
+                    }
+
+                    await lifecycle.MoveToDeadLetterQueueAsync(exception);
+                },
+                "Log permanent provisioning failure before dead-lettering"
+            );
+    }
+
     public static async Task<OutgoingMessages> HandleAsync(
         ProvisionKeycloakUserEvent @event,
         IUserRepository repository,
@@ -35,6 +67,7 @@ public sealed class ProvisionKeycloakUserHandler
         );
 
         user.LinkKeycloak(keycloakUserId);
+        user.ProvisioningStatus = ProvisioningStatus.Completed;
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);
 

@@ -8,7 +8,17 @@ namespace Identity.Logging;
 /// </summary>
 internal static partial class IdentityLogs
 {
-    // ProvisionKeycloakUserHandler (2001-2002)
+    // ProvisionKeycloakUserHandler (2001-2003)
+    [LoggerMessage(
+        EventId = 2003,
+        Level = LogLevel.Error,
+        Message = "Keycloak provisioning permanently failed for AppUser {UserId}. User has ProvisioningStatus=Pending and cannot log in. Check dead-letter queue."
+    )]
+    public static partial void KeycloakProvisioningPermanentlyFailed(
+        this ILogger logger,
+        Guid userId
+    );
+
     [LoggerMessage(
         EventId = 2001,
         Level = LogLevel.Information,

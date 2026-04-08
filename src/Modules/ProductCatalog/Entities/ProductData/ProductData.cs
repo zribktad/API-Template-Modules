@@ -19,6 +19,8 @@ public abstract class ProductData : IHasId
 
     public DateTime CreatedAt { get; set; }
 
+    public bool PendingDeletion { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAtUtc { get; set; }

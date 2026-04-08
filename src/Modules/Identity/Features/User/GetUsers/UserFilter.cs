@@ -9,6 +9,7 @@ public sealed record UserFilter(
     string? Email = null,
     bool? IsActive = null,
     UserRole? Role = null,
+    ProvisioningStatus? ProvisioningStatus = null,
     string? SortBy = null,
     string? SortDirection = null,
     int PageNumber = 1,

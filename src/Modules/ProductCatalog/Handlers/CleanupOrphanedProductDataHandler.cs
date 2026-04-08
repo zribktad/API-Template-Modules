@@ -9,8 +9,16 @@ namespace ProductCatalog.Handlers;
 
 /// <summary>
 ///     Wolverine handler that processes <see cref="CleanupOrphanedProductDataCommand" /> dispatched by the
-///     BackgroundJobs module. Identifies MongoDB ProductData documents that have no corresponding
-///     ProductDataLink in PostgreSQL and deletes them in paginated batches.
+///     BackgroundJobs module. Uses a two-phase mark-and-sweep approach to safely identify and delete
+///     MongoDB ProductData documents that have no corresponding ProductDataLink in PostgreSQL.
+///     <para>
+///         <b>Phase 1 (Mark):</b> Identifies orphan candidates and sets <c>PendingDeletion = true</c>.
+///         Does NOT delete — gives concurrent link-creation operations time to complete.
+///     </para>
+///     <para>
+///         <b>Phase 2 (Sweep):</b> Deletes documents that were marked on a <em>previous</em> run and
+///         still have no links. Clears <c>PendingDeletion</c> on documents that acquired links since marking.
+///     </para>
 /// </summary>
 public sealed class CleanupOrphanedProductDataHandler
 {
@@ -25,15 +33,18 @@ public sealed class CleanupOrphanedProductDataHandler
     {
         IMongoCollection<ProductData> mongoCollection = mongoDbContext.ProductData;
         DateTime cutoff = timeProvider.GetUtcNow().UtcDateTime.AddDays(-command.RetentionDays);
+        int totalMarked = 0;
         int totalDeleted = 0;
+        int totalCleared = 0;
         Guid? lastSeenId = null;
 
+        // ── Phase 1: Mark orphan candidates ──────────────────────────────────────
         while (true)
         {
-            FilterDefinition<ProductData> pageFilter = Builders<ProductData>.Filter.Lt(
-                d => d.CreatedAt,
-                cutoff
-            );
+            FilterDefinition<ProductData> pageFilter =
+                Builders<ProductData>.Filter.Lt(d => d.CreatedAt, cutoff)
+                & Builders<ProductData>.Filter.Eq(d => d.PendingDeletion, false)
+                & Builders<ProductData>.Filter.Eq(d => d.IsDeleted, false);
 
             if (lastSeenId.HasValue)
                 pageFilter &= Builders<ProductData>.Filter.Gt(d => d.Id, lastSeenId.Value);
@@ -55,22 +66,63 @@ public sealed class CleanupOrphanedProductDataHandler
                 .ToListAsync(ct);
 
             HashSet<Guid> linkedIdSet = linkedIds.ToHashSet();
-            Guid[] orphanedIds = page.Where(id => !linkedIdSet.Contains(id)).ToArray();
+            Guid[] orphanCandidates = page.Where(id => !linkedIdSet.Contains(id)).ToArray();
 
-            if (orphanedIds.Length > 0)
+            if (orphanCandidates.Length > 0)
             {
-                FilterDefinition<ProductData> deleteFilter = Builders<ProductData>.Filter.In(
-                    d => d.Id,
-                    orphanedIds
+                await mongoCollection.UpdateManyAsync(
+                    Builders<ProductData>.Filter.In(d => d.Id, orphanCandidates),
+                    Builders<ProductData>.Update.Set(d => d.PendingDeletion, true),
+                    cancellationToken: ct
                 );
-                await mongoCollection.DeleteManyAsync(deleteFilter, ct);
-                totalDeleted += orphanedIds.Length;
+                totalMarked += orphanCandidates.Length;
             }
 
             lastSeenId = page[^1];
         }
 
-        if (totalDeleted > 0)
-            logger.OrphanedProductDataCleanedUp(totalDeleted);
+        // ── Phase 2: Sweep previously-marked documents ───────────────────────────
+        List<Guid> pendingIds = await mongoCollection
+            .Find(Builders<ProductData>.Filter.Eq(d => d.PendingDeletion, true))
+            .Project(d => d.Id)
+            .ToListAsync(ct);
+
+        if (pendingIds.Count > 0)
+        {
+            List<Guid> stillLinked = await dbContext
+                .ProductDataLinks.Where(l => pendingIds.Contains(l.ProductDataId))
+                .Select(l => l.ProductDataId)
+                .Distinct()
+                .ToListAsync(ct);
+
+            HashSet<Guid> stillLinkedSet = stillLinked.ToHashSet();
+            Guid[] safeToDelete = pendingIds.Where(id => !stillLinkedSet.Contains(id)).ToArray();
+            Guid[] falsePending = pendingIds.Where(id => stillLinkedSet.Contains(id)).ToArray();
+
+            if (safeToDelete.Length > 0)
+            {
+                await mongoCollection.DeleteManyAsync(
+                    Builders<ProductData>.Filter.In(d => d.Id, safeToDelete),
+                    ct
+                );
+                totalDeleted += safeToDelete.Length;
+            }
+
+            if (falsePending.Length > 0)
+            {
+                await mongoCollection.UpdateManyAsync(
+                    Builders<ProductData>.Filter.In(d => d.Id, falsePending),
+                    Builders<ProductData>.Update.Set(d => d.PendingDeletion, false),
+                    cancellationToken: ct
+                );
+                totalCleared += falsePending.Length;
+            }
+        }
+
+        if (totalMarked > 0)
+            logger.OrphanedProductDataMarked(totalMarked);
+
+        if (totalDeleted > 0 || totalCleared > 0)
+            logger.OrphanedProductDataSwept(totalDeleted, totalCleared);
     }
 }

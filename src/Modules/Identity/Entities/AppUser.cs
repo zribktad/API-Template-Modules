@@ -57,6 +57,7 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
 
     public bool IsActive { get; set; } = true;
     public UserRole Role { get; set; } = UserRole.User;
+    public ProvisioningStatus ProvisioningStatus { get; set; } = ProvisioningStatus.Pending;
 
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();

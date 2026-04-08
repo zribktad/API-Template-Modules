@@ -9,5 +9,6 @@ public sealed record UserResponse(
     string Email,
     bool IsActive,
     UserRole Role,
+    ProvisioningStatus ProvisioningStatus,
     DateTime CreatedAtUtc
 ) : IHasId;
