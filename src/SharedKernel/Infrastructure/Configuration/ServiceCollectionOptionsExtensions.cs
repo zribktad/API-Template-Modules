@@ -28,4 +28,23 @@ public static class ServiceCollectionOptionsExtensions
         builder.ValidateOnStart();
         return builder;
     }
+
+    /// <summary>
+    ///     Binds <typeparamref name="TOptions" /> to an explicit configuration section,
+    ///     optionally validates data annotations, and validates eagerly on application start.
+    ///     Use when the section path does not follow the convention-based naming derived from the type name.
+    /// </summary>
+    public static OptionsBuilder<TOptions> AddValidatedOptions<TOptions>(
+        this IServiceCollection services,
+        IConfigurationSection section,
+        bool validateDataAnnotations = true
+    )
+        where TOptions : class
+    {
+        OptionsBuilder<TOptions> builder = services.AddOptions<TOptions>().Bind(section);
+        if (validateDataAnnotations)
+            builder.ValidateDataAnnotations();
+        builder.ValidateOnStart();
+        return builder;
+    }
 }
