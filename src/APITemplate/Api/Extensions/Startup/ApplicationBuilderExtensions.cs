@@ -80,7 +80,9 @@ public static class ApplicationBuilderExtensions
                 Predicate = endpoint.Predicate,
             };
 
-            app.MapHealthChecks(endpoint.Path, options).WithTags("Health").AllowAnonymous();
+            app.MapHealthChecks(endpoint.Path, options)
+                .WithTags(HealthCheckTags.OpenApiTag)
+                .AllowAnonymous();
         }
 
         app.MapControllers();
