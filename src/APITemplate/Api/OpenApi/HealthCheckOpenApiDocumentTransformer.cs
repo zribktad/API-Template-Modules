@@ -18,8 +18,6 @@ public sealed class HealthCheckOpenApiDocumentTransformer : IOpenApiDocumentTran
     {
         document.Paths ??= new OpenApiPaths();
 
-        HashSet<OpenApiTagReference> healthTag = [new("Health", document)];
-
         foreach (
             HealthCheckEndpointDefinition endpoint in HealthCheckEndpointConfiguration.Endpoints
         )
@@ -29,7 +27,10 @@ public sealed class HealthCheckOpenApiDocumentTransformer : IOpenApiDocumentTran
                 HttpMethod.Get,
                 new OpenApiOperation
                 {
-                    Tags = healthTag,
+                    Tags = new HashSet<OpenApiTagReference>
+                    {
+                        new(HealthCheckEndpointConfiguration.OpenApiTag, document),
+                    },
                     Summary = endpoint.Summary,
                     Description = endpoint.Description,
                     Responses = new OpenApiResponses

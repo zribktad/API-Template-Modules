@@ -4,6 +4,8 @@ namespace SharedKernel.Infrastructure.Health;
 
 public static class HealthCheckEndpointConfiguration
 {
+    public const string OpenApiTag = "Health";
+
     public static IReadOnlyList<HealthCheckEndpointDefinition> Endpoints { get; } =
     [
         new(

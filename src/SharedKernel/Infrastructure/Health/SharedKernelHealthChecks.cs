@@ -32,7 +32,7 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
         builder.AddNpgSql(
             connectionString,
             name: HealthCheckNames.PostgreSql,
-            tags: [HealthCheckTags.Live, HealthCheckTags.Ready, HealthCheckTags.Database]
+            tags: [HealthCheckTags.Ready, HealthCheckTags.Database]
         );
     }
 
