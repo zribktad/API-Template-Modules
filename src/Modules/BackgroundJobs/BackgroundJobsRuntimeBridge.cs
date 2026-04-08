@@ -44,7 +44,9 @@ public static class BackgroundJobsRuntimeBridge
         >();
         services.AddValidatedOptions<BackgroundJobsOptions>(configuration, false);
         services.AddValidatedOptions<EmailRetryJobOptions>(
-            configuration.GetSection("BackgroundJobs:EmailRetry")
+            configuration
+                .SectionFor<BackgroundJobsOptions>()
+                .GetSection(nameof(BackgroundJobsOptions.EmailRetry))
         );
         BackgroundJobsOptions options =
             configuration.SectionFor<BackgroundJobsOptions>().Get<BackgroundJobsOptions>()

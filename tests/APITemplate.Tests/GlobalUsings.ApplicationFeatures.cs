@@ -22,7 +22,6 @@ global using APITemplate.Tests.Integration.Features;
 global using APITemplate.Tests.Integration.GraphQL;
 global using APITemplate.Tests.Integration.Infrastructure;
 global using APITemplate.Tests.Integration.Products;
-global using BackgroundJobs.Options;
 global using SharedKernel.Application.Batch;
 global using SharedKernel.Application.Batch.Rules;
 global using SharedKernel.Application.Contracts;
