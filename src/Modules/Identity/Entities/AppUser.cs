@@ -84,7 +84,8 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
         Email email,
         string? keycloakUserId,
         Guid? tenantId = null,
-        UserRole role = UserRole.User
+        UserRole role = UserRole.User,
+        bool isActive = true
     )
     {
         AppUser user = new()
@@ -95,6 +96,7 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
             KeycloakUserId = keycloakUserId,
             TenantId = tenantId ?? Guid.Empty,
             Role = role,
+            IsActive = isActive,
         };
 
         if (keycloakUserId is not null)
