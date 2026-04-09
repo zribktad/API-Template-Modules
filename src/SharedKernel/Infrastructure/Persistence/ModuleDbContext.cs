@@ -6,7 +6,6 @@ using SharedKernel.Application.Context;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 
 namespace SharedKernel.Infrastructure.Persistence;
 
@@ -18,8 +17,6 @@ public abstract class ModuleDbContext : DbContext
     private readonly IActorProvider _actorProvider;
     private readonly IEntityNormalizationService _entityNormalizationService;
     private readonly IAuditableEntityStateManager _entityStateManager;
-    private readonly IReadOnlyCollection<ISoftDeleteCascadeRule> _softDeleteCascadeRules;
-    private readonly ISoftDeleteProcessor _softDeleteProcessor;
     private readonly ITenantProvider _tenantProvider;
     private readonly TimeProvider _timeProvider;
 
@@ -28,20 +25,16 @@ public abstract class ModuleDbContext : DbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IEnumerable<ISoftDeleteCascadeRule> softDeleteCascadeRules,
         IEntityNormalizationService entityNormalizationService,
-        IAuditableEntityStateManager entityStateManager,
-        ISoftDeleteProcessor softDeleteProcessor
+        IAuditableEntityStateManager entityStateManager
     )
         : base(options)
     {
         _tenantProvider = tenantProvider;
         _actorProvider = actorProvider;
         _timeProvider = timeProvider;
-        _softDeleteCascadeRules = softDeleteCascadeRules.ToList();
         _entityNormalizationService = entityNormalizationService;
         _entityStateManager = entityStateManager;
-        _softDeleteProcessor = softDeleteProcessor;
     }
 
     protected Guid CurrentTenantId => _tenantProvider.TenantId;
@@ -50,18 +43,17 @@ public abstract class ModuleDbContext : DbContext
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         throw new NotSupportedException(
-            "Use SaveChangesAsync to avoid deadlocks from async soft-delete cascade rules. "
-                + "All application paths should go through IUnitOfWork.CommitAsync()."
+            "All application paths should go through IUnitOfWork.CommitAsync()."
         );
     }
 
-    public override async Task<int> SaveChangesAsync(
+    public override Task<int> SaveChangesAsync(
         bool acceptAllChangesOnSuccess,
         CancellationToken cancellationToken = default
     )
     {
-        await ApplyEntityAuditingAsync(cancellationToken);
-        return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        ApplyEntityAuditing();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
     protected void ApplyGlobalFilters(ModelBuilder modelBuilder)
@@ -94,7 +86,7 @@ public abstract class ModuleDbContext : DbContext
             );
     }
 
-    private async Task ApplyEntityAuditingAsync(CancellationToken cancellationToken)
+    private void ApplyEntityAuditing()
     {
         DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
         Guid actor = _actorProvider.ActorId;
@@ -125,15 +117,7 @@ public abstract class ModuleDbContext : DbContext
                     _entityStateManager.StampModified(entity, now, actor);
                     break;
                 case EntityState.Deleted:
-                    await _softDeleteProcessor.ProcessAsync(
-                        this,
-                        entry,
-                        entity,
-                        now,
-                        actor,
-                        _softDeleteCascadeRules,
-                        cancellationToken
-                    );
+                    _entityStateManager.MarkSoftDeleted(entry, entity, now, actor);
                     break;
             }
         }

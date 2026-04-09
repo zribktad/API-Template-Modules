@@ -13,20 +13,16 @@ public sealed class BackgroundJobsDbContext : ModuleDbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IEnumerable<ISoftDeleteCascadeRule> softDeleteCascadeRules,
         IEntityNormalizationService entityNormalizationService,
-        IAuditableEntityStateManager entityStateManager,
-        ISoftDeleteProcessor softDeleteProcessor
+        IAuditableEntityStateManager entityStateManager
     )
         : base(
             options,
             tenantProvider,
             actorProvider,
             timeProvider,
-            softDeleteCascadeRules,
             entityNormalizationService,
-            entityStateManager,
-            softDeleteProcessor
+            entityStateManager
         ) { }
 
     public DbSet<JobExecution> JobExecutions => Set<JobExecution>();

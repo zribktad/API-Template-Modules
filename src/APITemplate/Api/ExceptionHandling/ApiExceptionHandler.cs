@@ -1,4 +1,3 @@
-using APITemplate.Api;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +36,13 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             return true;
         }
 
-        (int statusCode, string title, string detail, string errorCode) = Resolve(exception);
+        (
+            int statusCode,
+            string title,
+            string detail,
+            string errorCode,
+            IReadOnlyDictionary<string, object>? metadata
+        ) = Resolve(exception);
         ProblemDetails problemDetails = new()
         {
             Status = statusCode,
@@ -47,6 +52,9 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         };
 
         problemDetails.Extensions["errorCode"] = errorCode;
+
+        if (metadata is { Count: > 0 })
+            problemDetails.Extensions["metadata"] = metadata;
 
         if (statusCode >= StatusCodes.Status500InternalServerError)
             _logger.UnhandledException(exception, statusCode, errorCode, context.TraceIdentifier);
@@ -85,9 +93,13 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             );
     }
 
-    private static (int StatusCode, string Title, string Detail, string ErrorCode) Resolve(
-        Exception exception
-    )
+    private static (
+        int StatusCode,
+        string Title,
+        string Detail,
+        string ErrorCode,
+        IReadOnlyDictionary<string, object>? Metadata
+    ) Resolve(Exception exception)
     {
         if (exception is DbUpdateConcurrencyException)
         {
@@ -95,15 +107,25 @@ public sealed class ApiExceptionHandler : IExceptionHandler
                 StatusCodes.Status409Conflict,
                 "Conflict",
                 "The resource was modified by another request. Please retrieve the latest version and retry.",
-                ErrorCatalog.General.ConcurrencyConflict
+                ErrorCatalog.General.ConcurrencyConflict,
+                null
             );
         }
+
+        IReadOnlyDictionary<string, object>? metadata = exception is IHasErrorMetadata hasMetadata
+            ? hasMetadata.Metadata
+            : null;
+
+        string errorCode = exception is IHasErrorCode hasErrorCode
+            ? hasErrorCode.ErrorCode
+            : ErrorCatalog.General.Unknown;
 
         return (
             StatusCodes.Status500InternalServerError,
             "Internal Server Error",
             "An unexpected error occurred.",
-            ErrorCatalog.General.Unknown
+            errorCode,
+            metadata
         );
     }
 }

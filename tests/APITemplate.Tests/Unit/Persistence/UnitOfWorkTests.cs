@@ -12,7 +12,6 @@ using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Domain.Options;
-using SharedKernel.Infrastructure.SoftDelete;
 using SharedKernel.Infrastructure.UnitOfWork;
 using Shouldly;
 using Xunit;
@@ -427,10 +426,8 @@ public class UnitOfWorkTests
             new TestTenantProvider(),
             new TestActorProvider(),
             TimeProvider.System,
-            [],
             new AppUserEntityNormalizationService(),
-            stateManager,
-            new SoftDeleteProcessor(stateManager)
+            stateManager
         );
     }
 

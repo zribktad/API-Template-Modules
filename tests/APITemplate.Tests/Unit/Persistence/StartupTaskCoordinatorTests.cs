@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Startup;
-using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
@@ -60,10 +59,8 @@ public sealed class StartupTaskCoordinatorTests
             new TestTenantProvider(),
             new TestActorProvider(),
             TimeProvider.System,
-            [],
             new AppUserEntityNormalizationService(),
-            stateManager,
-            new SoftDeleteProcessor(stateManager)
+            stateManager
         );
     }
 

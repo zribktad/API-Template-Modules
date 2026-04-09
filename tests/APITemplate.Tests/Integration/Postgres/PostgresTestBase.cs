@@ -3,7 +3,6 @@ using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using APITemplate.Infrastructure.Persistence.SoftDelete;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -11,7 +10,6 @@ using Npgsql;
 using Respawn;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Infrastructure.SoftDelete;
 using SharedKernel.Infrastructure.UnitOfWork;
 using Xunit;
 
@@ -84,10 +82,8 @@ public abstract class PostgresTestBase : IAsyncLifetime
             new TestTenantProvider(tenantId, hasTenant),
             new TestActorProvider(actorId),
             TimeProvider.System,
-            [new ProductSoftDeleteCascadeRule()],
             new AppUserEntityNormalizationService(),
-            stateManager,
-            new SoftDeleteProcessor(stateManager)
+            stateManager
         );
 
         await context.Database.OpenConnectionAsync(ct);

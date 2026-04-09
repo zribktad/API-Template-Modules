@@ -5,7 +5,6 @@ using SharedKernel.Application.Context;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 
 namespace Notifications.Persistence;
 
@@ -41,10 +40,8 @@ public sealed class NotificationsDbContextDesignTimeFactory
             new DesignTimeTenantProvider(),
             new DesignTimeActorProvider(),
             TimeProvider.System,
-            [],
             new DesignTimeEntityNormalizationService(),
-            new DesignTimeAuditableEntityStateManager(),
-            new DesignTimeSoftDeleteProcessor()
+            new DesignTimeAuditableEntityStateManager()
         );
     }
 
@@ -83,19 +80,6 @@ public sealed class NotificationsDbContextDesignTimeFactory
             DateTime now,
             Guid actor
         ) { }
-    }
-
-    private sealed class DesignTimeSoftDeleteProcessor : ISoftDeleteProcessor
-    {
-        public Task ProcessAsync(
-            DbContext dbContext,
-            Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry,
-            IAuditableTenantEntity entity,
-            DateTime now,
-            Guid actor,
-            IReadOnlyCollection<ISoftDeleteCascadeRule> softDeleteCascadeRules,
-            CancellationToken cancellationToken
-        ) => Task.CompletedTask;
     }
 
     /// <summary>

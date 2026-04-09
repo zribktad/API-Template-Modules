@@ -39,4 +39,10 @@ public interface IProductDataLinkRepository
         Guid productDataId,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Stages the given already-tracked links for removal so they are soft-deleted
+    ///     when the unit of work commits.
+    /// </summary>
+    public void DeleteRange(IReadOnlyCollection<ProductDataLink> links);
 }
