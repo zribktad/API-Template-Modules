@@ -2,7 +2,6 @@ using FluentValidation;
 using Identity.Common.Email;
 using Identity.Configuration;
 using Identity.Controllers.V1;
-using Identity.Features.User.Validation;
 using Identity.Options;
 using Identity.Persistence;
 using Identity.Persistence.EntityNormalization;

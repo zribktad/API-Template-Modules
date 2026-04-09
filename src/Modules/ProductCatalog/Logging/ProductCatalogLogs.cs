@@ -43,15 +43,26 @@ internal static partial class ProductCatalogLogs
         Guid tenantId
     );
 
-    // CleanupOrphanedProductDataHandler (4050)
+    // CleanupOrphanedProductDataHandler (4050-4052)
     [LoggerMessage(
         EventId = 4050,
         Level = LogLevel.Information,
-        Message = "Cleaned up {Count} orphaned product data documents."
+        Message = "Marked {Count} orphan candidate product data documents for pending deletion."
     )]
-    public static partial void OrphanedProductDataCleanedUp(this ILogger logger, int count);
+    public static partial void OrphanedProductDataMarked(this ILogger logger, int count);
 
-    // MongoDbHealthCheck (4051)
-    [LoggerMessage(EventId = 4051, Level = LogLevel.Error, Message = "MongoDB health check failed")]
+    [LoggerMessage(
+        EventId = 4052,
+        Level = LogLevel.Information,
+        Message = "Swept {DeletedCount} orphaned product data documents. Cleared {ClearedCount} false-positive pending deletions."
+    )]
+    public static partial void OrphanedProductDataSwept(
+        this ILogger logger,
+        int deletedCount,
+        int clearedCount
+    );
+
+    // MongoDbHealthCheck (4060)
+    [LoggerMessage(EventId = 4060, Level = LogLevel.Error, Message = "MongoDB health check failed")]
     public static partial void MongoDbHealthCheckFailed(this ILogger logger, Exception exception);
 }

@@ -1,8 +1,4 @@
 using ErrorOr;
-using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Registry;
-using ProductCatalog.Logging;
 using Wolverine;
 
 namespace ProductCatalog.Features.ProductData.DeleteProductData;
@@ -50,11 +46,8 @@ public sealed class DeleteProductDataCommandHandler
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         DeleteProductDataCommand command,
         DeleteProductDataState state,
-        IProductDataRepository repository,
         IProductDataLinkRepository productDataLinkRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
-        ResiliencePipelineProvider<string> resiliencePipelineProvider,
-        ILogger<DeleteProductDataCommandHandler> logger,
         CancellationToken ct
     )
     {
@@ -69,30 +62,10 @@ public sealed class DeleteProductDataCommandHandler
             ct
         );
 
-        ResiliencePipeline pipeline = resiliencePipelineProvider.GetPipeline(
-            ResiliencePipelineKeys.MongoProductDataDelete
-        );
-
-        try
-        {
-            await pipeline.ExecuteAsync(
-                async token =>
-                    await repository.SoftDeleteAsync(
-                        state.Data.Id,
-                        state.ActorId,
-                        state.DeletedAtUtc,
-                        token
-                    ),
-                ct
-            );
-        }
-        catch (Exception ex)
-        {
-            logger.ProductDataSoftDeleteFailed(ex, state.Data.Id, state.TenantId);
-            throw;
-        }
-
         OutgoingMessages messages = new();
+        messages.Add(
+            new SoftDeleteProductDataMongoEvent(state.Data.Id, state.ActorId, state.DeletedAtUtc)
+        );
         messages.Add(new CacheInvalidationNotification(CacheTags.ProductData));
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
         return (Result.Success, messages);

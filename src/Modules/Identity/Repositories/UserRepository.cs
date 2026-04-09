@@ -1,5 +1,3 @@
-using Identity.Features.User.Specifications;
-
 namespace Identity.Repositories;
 
 /// <summary>EF Core repository for <see cref="AppUser" /> with specification-based lookup by email and username.</summary>

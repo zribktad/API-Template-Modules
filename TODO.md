@@ -1,5 +1,114 @@
 # TODO
 
+## Distributed Consistency — Identified Issues
+
+### Critical
+
+- [x] **`CleanupOrphanedProductDataHandler` — `IgnoreQueryFilters()` data leak** — soft-deleted
+  `ProductDataLink` rows are included in the "linked IDs" query (`IgnoreQueryFilters()` bypasses the
+  soft-delete filter), so MongoDB `ProductData` documents whose only references are soft-deleted links
+  are never considered orphaned. After `TenantCascadeDeleteHandler` soft-deletes all
+  `ProductDataLinks` for a tenant, the corresponding MongoDB documents are protected from cleanup
+  forever. Data accumulates permanently with no eviction path.
+  **Fix:** Remove `IgnoreQueryFilters()` from the linked-IDs query in `CleanupOrphanedProductDataHandler`
+  so only active links protect documents.
+
+### High Priority
+
+- [x] **`DeleteProductDataCommand` — dual-commit inconsistency** — the SQL transaction (soft-delete
+  `ProductDataLinks`) commits atomically, but the subsequent MongoDB `SoftDeleteAsync` call is a
+  separate operation protected only by a Polly retry pipeline. If MongoDB remains unreachable after
+  all Polly retries, the links are gone while the `ProductData` document stays active. The cleanup
+  job cannot recover this because of the `IgnoreQueryFilters` bug above.
+  **Fix:** Convert to outbox-first pattern — emit `ProductDataSoftDeletedEvent` in the same SQL
+  transaction; a background handler performs the MongoDB soft-delete with full Wolverine retry/dead-letter.
+
+- [x] **`TenantCascadeDeleteHandler` — MongoDB `ProductData` documents never cleaned** — the handler
+  cascades soft-delete to `Products`, `Categories`, and `ProductDataLinks` in PostgreSQL but never
+  touches MongoDB. All `ProductData` documents belonging to the deleted tenant become permanent
+  zombies (compounded by the `IgnoreQueryFilters` bug that prevents the cleanup job from removing them).
+  **Fix:** After the SQL transaction, emit a `TenantProductDataCleanupEvent`; a new handler deletes
+  all MongoDB `ProductData` documents for the tenant.
+
+- [x] **`DeleteUserCommandHandler` / `SetUserActiveCommandHandler` — Keycloak-first creates reverse
+  inconsistency** — both handlers mutate Keycloak before committing the DB change. If the PostgreSQL
+  commit fails after Keycloak succeeds, the systems diverge: the user is deleted in Keycloak but
+  still exists in the DB (`DeleteUser`), or the enabled/disabled state differs (`SetUserActive`). The
+  `catch` block in `DeleteUserCommandHandler` only logs and rethrows — no compensation is attempted.
+  **Fix:** Either reverse the order to DB-commit-first (idempotent Keycloak retry on re-run), or
+  convert Keycloak calls to the outbox-first pattern used by `ProvisionKeycloakUserHandler`.
+
+- [x] **`ProvisionKeycloakUserHandler` — zombie user after permanent Keycloak failure** — after
+  Wolverine exhausts all retries (`ScheduleRetry 5 s / 30 s / 5 min`) the message moves to the
+  dead-letter queue. The `AppUser` record remains in PostgreSQL with `KeycloakUserId = null`; the
+  user sees a successful registration but can never log in. No compensating action, no alert.
+  **Fix (recommended):** Add `ProvisioningStatus` (`Pending`/`Completed`) to `AppUser`; expose status
+  via the admin API. On dead-letter, notify ops via a structured log alert or a
+  `UserProvisioningFailedEvent` so the record can be retried or deleted manually via the dead-letter REST API.
+
+### Medium Priority
+
+- [x] **`CleanupOrphanedProductDataHandler` — race condition** — between the MongoDB page query and
+  the PostgreSQL linked-IDs query, a new `ProductDataLink` could be inserted for a document in the
+  current page. The handler then deletes a MongoDB document that now has an active reference, leaving
+  a dangling foreign key in PostgreSQL.
+  **Fix:** Use a MongoDB client session (`IClientSessionHandle`) to make the `Find` + `DeleteMany`
+  atomic within a single MongoDB transaction, or add a `PendingDeletion` status to `ProductData`
+  documents as a soft-lock before cross-checking links.
+
+- [x] **`KeycloakPasswordResetCommandHandler` — silent Keycloak failure** — all exceptions are caught
+  and swallowed; the handler unconditionally returns `Result.Success`. Users receive a success
+  response even when the Keycloak action email was never queued or sent.
+  **Fix:** Either propagate the error as `ErrorOr<Success>` so the caller can surface a 502/503, or
+  emit a `PasswordResetRequestedEvent` via the durable outbox so the Keycloak call is retried
+  automatically.
+
+### Resolution Strategy — Layered Defense
+
+All cross-system consistency issues above should be resolved using a **layered defense-in-depth
+strategy** combining four complementary patterns. Each layer catches failures that the previous layer
+missed:
+
+```
+Request → Layer 1: Idempotent Handler
+              ↓
+          Layer 2: Transactional Outbox (DB + event in one ACID transaction)
+              ↓ (background worker)
+          Handler → external system (Keycloak / MongoDB)
+              ↓ (if all retries exhausted)
+          Layer 3: Dead-Letter Compensation (auto-compensate on permanent failure)
+              ↓ (if compensation fails, or unknown edge case)
+          Layer 4: Reconciliation Job (periodic state comparison & repair)
+```
+
+**Layer 1 — Idempotent Handlers** `[FOUNDATION]`
+All handlers interacting with external systems must be safely re-runnable. `KeycloakAdminService`
+already handles this (409 Conflict on create, 404 on delete). Extend to all MongoDB handlers.
+
+**Layer 2 — Transactional Outbox (DB-first)** `[MUST HAVE]`
+Convert ALL cross-system writes to the outbox pattern already used by `ProvisionKeycloakUserHandler`:
+write to primary DB + emit event in one ACID transaction; background handler calls the external
+system with full Wolverine retry/dead-letter support. Applies to: `DeleteUser`, `SetUserActive`,
+`PasswordReset` (Keycloak), `DeleteProductData`, `TenantCascadeDelete` (MongoDB).
+
+**Layer 3 — Dead-Letter Auto-Compensation** `[SHOULD HAVE]`
+When a message exhausts all retries and lands in `wolverine_dead_letters`, a compensating handler
+automatically reverses the primary DB change. Implementation: either Wolverine's `HandleFailureAsync`
+convention per handler, or a centralized `DeadLetterCompensationJob` that maps message types to
+compensation commands (e.g., `ProvisionKeycloakUserEvent` → delete orphaned user from DB).
+
+**Layer 4 — Reconciliation Job** `[NICE TO HAVE]`
+Periodic background job that compares state between systems and repairs drift regardless of cause.
+Fix the existing `CleanupOrphanedProductDataHandler` (`IgnoreQueryFilters` bug). Add a Keycloak
+reconciliation job that detects: users with `KeycloakUserId = null` older than threshold, Keycloak
+accounts without matching DB records, `IsActive` state mismatches.
+
+**Saga pattern** is deferred until a workflow grows beyond 2 steps (e.g., registration + Keycloak +
+tenant assignment + welcome email + subscription). For current 2-step operations, Outbox +
+Dead-Letter Compensation provides equivalent guarantees with significantly less overhead.
+
+---
+
 ## Architecture Review — Identified Issues
 
 ### Critical
@@ -26,8 +135,10 @@
 ### Medium Priority
 
 - [x] **Business logic in handlers** — Added `Create()` factory methods to `AppUser`, `Category`, `ProductReview`, and
-  `JobExecution`. All handlers updated to use factory methods. Compensating transaction in `CreateUserCommand` kept in
-  handler (infra coordination, not domain logic — YAGNI).
+  `JobExecution`. All handlers updated to use factory methods. `CreateUserCommand` refactored to outbox-reversed order:
+  user saved to DB first (KeycloakUserId=null), then `ProvisionKeycloakUserEvent` delivered via Wolverine durable outbox
+  to `ProvisionKeycloakUserHandler` which creates the Keycloak account and links it back. Eliminates orphaned Keycloak
+  users. `KeycloakAdminService.CreateUserAsync` made idempotent (handles 409 Conflict via username lookup).
 - [ ] **Inconsistent logging** — source-generated `[LoggerMessage]` with event IDs is already used across modules, but
   inline `logger.LogWarning()` remains in `TenantClaimValidator` and `CookieSessionRefresher`. Finish migration to
   source-generated logging for these remaining paths.

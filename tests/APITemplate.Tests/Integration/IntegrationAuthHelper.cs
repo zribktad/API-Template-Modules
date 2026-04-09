@@ -124,10 +124,9 @@ internal static class IntegrationAuthHelper
             username,
             emailVo,
             $"kc-{Guid.NewGuid():N}",
-            tenantId: tenantId
+            tenantId: tenantId,
+            isActive: userIsActive
         );
-        if (!userIsActive)
-            user.IsActive = false;
 
         dbContext.Tenants.Add(tenant);
         dbContext.Users.Add(user);
