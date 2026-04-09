@@ -9,16 +9,16 @@ public sealed class IdentityDbContext : ModuleDbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IEntityNormalizationService entityNormalizationService,
-        IAuditableEntityStateManager entityStateManager
+        IAuditableEntityStateManager entityStateManager,
+        IEntityNormalizationService entityNormalizationService
     )
         : base(
             options,
             tenantProvider,
             actorProvider,
             timeProvider,
-            entityNormalizationService,
-            entityStateManager
+            entityStateManager,
+            entityNormalizationService
         ) { }
 
     public DbSet<AppUser> Users => Set<AppUser>();

@@ -21,6 +21,7 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
         AddDragonfly(builder);
         AddWolverineMessageStore(builder);
         AddWolverineDeadLetters(builder);
+        AddOtlpCollector(builder);
     }
 
     private void AddPostgreSql(IHealthChecksBuilder builder)
@@ -81,5 +82,42 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
             HealthCheckNames.WolverineDeadLetters,
             tags: [HealthCheckTags.Ready, HealthCheckTags.Messaging]
         );
+    }
+
+    private void AddOtlpCollector(IHealthChecksBuilder builder)
+    {
+        ObservabilityOptions? observabilityOptions = _configuration
+            .SectionFor<ObservabilityOptions>()
+            .Get<ObservabilityOptions>();
+
+        if (observabilityOptions is null)
+            return;
+
+        string? endpoint = ResolveOtlpEndpoint(observabilityOptions);
+        if (endpoint is null)
+            return;
+
+        builder.Services.Configure<OtlpCollectorHealthCheckOptions>(o => o.Endpoint = endpoint);
+        builder.AddCheck<OtlpCollectorHealthCheck>(
+            HealthCheckNames.OtlpCollector,
+            tags: [HealthCheckTags.Ready, HealthCheckTags.External]
+        );
+    }
+
+    private static string? ResolveOtlpEndpoint(ObservabilityOptions options)
+    {
+        if (
+            options.Exporters.Otlp.Enabled == true
+            && !string.IsNullOrWhiteSpace(options.Otlp.Endpoint)
+        )
+            return options.Otlp.Endpoint;
+
+        if (
+            options.Exporters.Aspire.Enabled == true
+            && !string.IsNullOrWhiteSpace(options.Aspire.Endpoint)
+        )
+            return options.Aspire.Endpoint;
+
+        return null;
     }
 }

@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Notifications.Domain;
 using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
-using SharedKernel.Infrastructure.EntityNormalization;
 using SharedKernel.Infrastructure.Persistence;
 
 namespace Notifications.Persistence;
@@ -14,17 +13,9 @@ public sealed class NotificationsDbContext : ModuleDbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IEntityNormalizationService entityNormalizationService,
         IAuditableEntityStateManager entityStateManager
     )
-        : base(
-            options,
-            tenantProvider,
-            actorProvider,
-            timeProvider,
-            entityNormalizationService,
-            entityStateManager
-        ) { }
+        : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager) { }
 
     public DbSet<FailedEmail> FailedEmails => Set<FailedEmail>();
 

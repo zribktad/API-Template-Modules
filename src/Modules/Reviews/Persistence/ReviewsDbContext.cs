@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Infrastructure.Auditing;
-using SharedKernel.Infrastructure.EntityNormalization;
 
 namespace Reviews.Persistence;
 
@@ -11,17 +10,9 @@ public sealed class ReviewsDbContext : ModuleDbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IEntityNormalizationService entityNormalizationService,
         IAuditableEntityStateManager entityStateManager
     )
-        : base(
-            options,
-            tenantProvider,
-            actorProvider,
-            timeProvider,
-            entityNormalizationService,
-            entityStateManager
-        ) { }
+        : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager) { }
 
     public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
 

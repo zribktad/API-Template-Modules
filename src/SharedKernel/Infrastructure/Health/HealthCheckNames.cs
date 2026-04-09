@@ -8,4 +8,6 @@ public static class HealthCheckNames
     public const string Dragonfly = "dragonfly";
     public const string WolverineMessageStore = "wolverine-message-store";
     public const string WolverineDeadLetters = "wolverine-dead-letters";
+    public const string Smtp = "smtp";
+    public const string OtlpCollector = "otlp-collector";
 }
