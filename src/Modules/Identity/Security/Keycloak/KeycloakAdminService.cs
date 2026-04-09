@@ -61,7 +61,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
             // Idempotent retry: user already exists in Keycloak (e.g. handler ran twice due to
             // outbox retry after a DB commit failure). Fetch the existing user ID by username.
             keycloakUserId = await GetExistingUserIdByUsernameAsync(username, ct);
-            _logger.KeycloakUserCreated(username, keycloakUserId);
+            _logger.KeycloakUserAlreadyExistsResolved(username, keycloakUserId);
             return keycloakUserId;
         }
 

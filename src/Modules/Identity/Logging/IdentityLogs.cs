@@ -27,7 +27,7 @@ internal static partial class IdentityLogs
     public static partial void KeycloakUserProvisioned(
         this ILogger logger,
         Guid userId,
-        string keycloakUserId
+        [SensitiveData] string keycloakUserId
     );
 
     [LoggerMessage(
@@ -70,7 +70,18 @@ internal static partial class IdentityLogs
     public static partial void KeycloakUserCreated(
         this ILogger logger,
         [PersonalData] string username,
-        string keycloakUserId
+        [SensitiveData] string keycloakUserId
+    );
+
+    [LoggerMessage(
+        EventId = 3007,
+        Level = LogLevel.Information,
+        Message = "Keycloak user already exists for {Username}, resolved existing id {KeycloakUserId}"
+    )]
+    public static partial void KeycloakUserAlreadyExistsResolved(
+        this ILogger logger,
+        [PersonalData] string username,
+        [SensitiveData] string keycloakUserId
     );
 
     [LoggerMessage(
