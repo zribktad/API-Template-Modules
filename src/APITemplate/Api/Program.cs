@@ -68,6 +68,14 @@ builder.Host.UseWolverine(options =>
     // between handler commit and message dispatch. UseStrictLocalQueues would additionally
     // guarantee in-order processing per queue — not needed here since handlers are idempotent.
     options.Policies.UseDurableLocalQueues();
+
+    // Persist outgoing messages in PostgreSQL before sending — guarantees at-least-once delivery
+    // even if the process crashes between committing the handler and dispatching the message.
+    options.Policies.UseDurableOutboxOnAllSendingEndpoints();
+
+    // Persist incoming messages from external transports in PostgreSQL before processing —
+    // prevents message loss if the process crashes before the handler completes.
+    options.Policies.UseDurableInboxOnAllListeners();
     foreach (Assembly assembly in WolverineModuleDiscovery.HandlerAssemblies)
         options.Discovery.IncludeAssembly(assembly);
 

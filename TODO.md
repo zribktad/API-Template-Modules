@@ -177,10 +177,10 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
 
 ## Wolverine Outbox & Durable Messaging
 
-- [ ] Enable `UseDurableOutboxOnAllSendingEndpoints()` and `UseDurableInboxOnAllListeners()` for reliable eventual
+- [x] Enable `UseDurableOutboxOnAllSendingEndpoints()` and `UseDurableInboxOnAllListeners()` for reliable eventual
   consistency across modules.
 - [x] Configure `PersistMessagesWithPostgresql()` for durable message persistence in PostgreSQL.
-- [ ] Apply `DurabilityMode.Balanced` via shared Wolverine conventions (`ApplySharedConventions()`).
+- [x] Apply `DurabilityMode.Balanced` — this is the Wolverine default; no explicit setting needed.
 - [x] Migrate handler return types to `(ErrorOr<T>, OutgoingMessages)` tuples for transactional cascade messages instead
   of manual `bus.PublishAsync()`.
 - [ ] Extract `CacheInvalidationCascades` helper (`.ForTag()`, `.ForTags()`, `.None`) to eliminate cache invalidation

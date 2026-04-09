@@ -19,6 +19,8 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
         AddPostgreSql(builder);
         AddKeycloak(builder);
         AddDragonfly(builder);
+        AddWolverineMessageStore(builder);
+        AddWolverineDeadLetters(builder);
     }
 
     private void AddPostgreSql(IHealthChecksBuilder builder)
@@ -62,5 +64,22 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
                 tags: [HealthCheckTags.Ready, HealthCheckTags.Cache]
             );
         }
+    }
+
+    private void AddWolverineMessageStore(IHealthChecksBuilder builder)
+    {
+        builder.Services.AddValidatedOptions<WolverineHealthCheckOptions>(_configuration);
+        builder.AddCheck<WolverineMessageStoreHealthCheck>(
+            HealthCheckNames.WolverineMessageStore,
+            tags: [HealthCheckTags.Ready, HealthCheckTags.Messaging]
+        );
+    }
+
+    private void AddWolverineDeadLetters(IHealthChecksBuilder builder)
+    {
+        builder.AddCheck<WolverineDeadLetterHealthCheck>(
+            HealthCheckNames.WolverineDeadLetters,
+            tags: [HealthCheckTags.Ready, HealthCheckTags.Messaging]
+        );
     }
 }
