@@ -57,6 +57,7 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
 
     public bool IsActive { get; set; } = true;
     public UserRole Role { get; set; } = UserRole.User;
+    public ProvisioningStatus ProvisioningStatus { get; set; } = ProvisioningStatus.Pending;
 
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();
@@ -64,6 +65,45 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
     public Guid Id { get; set; }
+
+    /// <summary>
+    ///     Links this user to their Keycloak account. Can only be called once — throws if already linked.
+    /// </summary>
+    public void LinkKeycloak(string keycloakUserId)
+    {
+        if (KeycloakUserId is not null)
+            throw new InvalidOperationException(
+                $"AppUser {Id} is already linked to Keycloak account '{KeycloakUserId}'."
+            );
+        KeycloakUserId = keycloakUserId;
+        ProvisioningStatus = ProvisioningStatus.Completed;
+    }
+
+    public static AppUser Create(
+        string username,
+        Email email,
+        string? keycloakUserId,
+        Guid? tenantId = null,
+        UserRole role = UserRole.User,
+        bool isActive = true
+    )
+    {
+        AppUser user = new()
+        {
+            Id = Guid.NewGuid(),
+            Username = username,
+            Email = email,
+            KeycloakUserId = keycloakUserId,
+            TenantId = tenantId ?? Guid.Empty,
+            Role = role,
+            IsActive = isActive,
+        };
+
+        if (keycloakUserId is not null)
+            user.ProvisioningStatus = ProvisioningStatus.Completed;
+
+        return user;
+    }
 
     /// <summary>Returns the canonical form of a username: trimmed and converted to uppercase invariant.</summary>
     public static string NormalizeUsername(string username)

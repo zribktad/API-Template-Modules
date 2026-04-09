@@ -33,12 +33,7 @@ public sealed class CreateCategoriesCommandHandler
         }
 
         List<CategoryEntity> entities = items
-            .Select(item => new CategoryEntity
-            {
-                Id = Guid.NewGuid(),
-                Name = item.Name,
-                Description = item.Description,
-            })
+            .Select(item => CategoryEntity.Create(item.Name, item.Description))
             .ToList();
 
         return (HandlerContinuation.Continue, entities, OutgoingMessagesHelper.Empty);

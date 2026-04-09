@@ -66,15 +66,12 @@ public sealed class CreateProductReviewCommandHandler
         ProductReviewEntity review = await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                ProductReviewEntity entity = new()
-                {
-                    Id = Guid.NewGuid(),
-                    ProductId = state.ProductId,
-                    UserId = state.UserId,
-                    Comment = state.Comment,
-                    Rating = state.Rating,
-                };
-
+                ProductReviewEntity entity = ProductReviewEntity.Create(
+                    state.ProductId,
+                    state.UserId,
+                    state.Rating,
+                    state.Comment
+                );
                 await reviewRepository.AddAsync(entity, ct);
                 return entity;
             },

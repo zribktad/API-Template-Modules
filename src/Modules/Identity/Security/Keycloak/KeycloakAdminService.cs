@@ -53,9 +53,20 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
             user,
             ct
         );
-        response.EnsureSuccessStatusCode();
 
-        string keycloakUserId = ExtractUserIdFromLocation(response);
+        string keycloakUserId;
+
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            // Idempotent retry: user already exists in Keycloak (e.g. handler ran twice due to
+            // outbox retry after a DB commit failure). Fetch the existing user ID by username.
+            keycloakUserId = await GetExistingUserIdByUsernameAsync(username, ct);
+            _logger.KeycloakUserAlreadyExistsResolved(username, keycloakUserId);
+            return keycloakUserId;
+        }
+
+        response.EnsureSuccessStatusCode();
+        keycloakUserId = ExtractUserIdFromLocation(response);
 
         _logger.KeycloakUserCreated(username, keycloakUserId);
 
@@ -134,6 +145,30 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         }
 
         _logger.KeycloakUserDeleted(keycloakUserId);
+    }
+
+    private async Task<string> GetExistingUserIdByUsernameAsync(
+        string username,
+        CancellationToken ct
+    )
+    {
+        IEnumerable<UserRepresentation> users = await _userClient.GetUsersAsync(
+            _realm,
+            new GetUsersRequestParameters
+            {
+                Username = username,
+                Exact = true,
+                Max = 1,
+            },
+            ct
+        );
+
+        UserRepresentation? existing = users.FirstOrDefault();
+
+        return existing?.Id
+            ?? throw new InvalidOperationException(
+                $"Keycloak returned 409 Conflict for username '{username}' but the user could not be found by username lookup."
+            );
     }
 
     private static string ExtractUserIdFromLocation(HttpResponseMessage response)

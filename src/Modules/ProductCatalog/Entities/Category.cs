@@ -19,6 +19,16 @@ public sealed class Category : IAuditableTenantEntity, IHasId
 
     public ICollection<Product> Products { get; set; } = [];
 
+    public static Category Create(string name, string? description)
+    {
+        return new Category
+        {
+            Id = Guid.NewGuid(),
+            Name = name,
+            Description = description,
+        };
+    }
+
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();
     public bool IsDeleted { get; set; }

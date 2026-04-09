@@ -120,16 +120,13 @@ internal static class IntegrationAuthHelper
 
         Email emailVo = Email.FromPersistence(email);
 
-        var user = new AppUser
-        {
-            Id = Guid.NewGuid(),
-            TenantId = tenantId,
-            Username = username,
-            Email = emailVo,
-            KeycloakUserId = $"kc-{Guid.NewGuid():N}",
-            IsActive = userIsActive,
-            Role = UserRole.User,
-        };
+        AppUser user = AppUser.Create(
+            username,
+            emailVo,
+            $"kc-{Guid.NewGuid():N}",
+            tenantId: tenantId,
+            isActive: userIsActive
+        );
 
         dbContext.Tenants.Add(tenant);
         dbContext.Users.Add(user);

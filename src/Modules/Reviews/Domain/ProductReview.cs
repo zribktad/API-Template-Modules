@@ -18,4 +18,16 @@ public sealed class ProductReview : IAuditableTenantEntity, IHasId
     public DateTime? DeletedAtUtc { get; set; }
     public Guid? DeletedBy { get; set; }
     public Guid Id { get; set; }
+
+    public static ProductReview Create(Guid productId, Guid userId, Rating rating, string? comment)
+    {
+        return new ProductReview
+        {
+            Id = Guid.NewGuid(),
+            ProductId = productId,
+            UserId = userId,
+            Rating = rating,
+            Comment = comment,
+        };
+    }
 }

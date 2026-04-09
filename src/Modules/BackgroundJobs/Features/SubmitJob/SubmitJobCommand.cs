@@ -13,14 +13,12 @@ public sealed class SubmitJobCommandHandler
         CancellationToken ct
     )
     {
-        JobExecution entity = new()
-        {
-            Id = Guid.NewGuid(),
-            JobType = command.Request.JobType,
-            Parameters = command.Request.Parameters,
-            CallbackUrl = command.Request.CallbackUrl,
-            SubmittedAtUtc = timeProvider.GetUtcNow().UtcDateTime,
-        };
+        JobExecution entity = JobExecution.Create(
+            command.Request.JobType,
+            timeProvider,
+            command.Request.Parameters,
+            command.Request.CallbackUrl
+        );
 
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>

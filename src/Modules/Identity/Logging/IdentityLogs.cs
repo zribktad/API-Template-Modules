@@ -8,28 +8,34 @@ namespace Identity.Logging;
 /// </summary>
 internal static partial class IdentityLogs
 {
-    // CreateUserCommandHandler (2001-2002)
+    // ProvisionKeycloakUserHandler (2001-2003)
+    [LoggerMessage(
+        EventId = 2003,
+        Level = LogLevel.Error,
+        Message = "Keycloak provisioning permanently failed for AppUser {UserId}. User has ProvisioningStatus=Pending and cannot log in. Check dead-letter queue."
+    )]
+    public static partial void KeycloakProvisioningPermanentlyFailed(
+        this ILogger logger,
+        Guid userId
+    );
+
     [LoggerMessage(
         EventId = 2001,
-        Level = LogLevel.Error,
-        Message = "DB save failed after creating Keycloak user {KeycloakUserId}. Attempting compensating delete."
+        Level = LogLevel.Information,
+        Message = "Provisioned Keycloak account for AppUser {UserId} — KeycloakUserId={KeycloakUserId}"
     )]
-    public static partial void CreateUserDbSaveFailed(
+    public static partial void KeycloakUserProvisioned(
         this ILogger logger,
-        Exception exception,
+        Guid userId,
         [SensitiveData] string keycloakUserId
     );
 
     [LoggerMessage(
         EventId = 2002,
-        Level = LogLevel.Error,
-        Message = "Compensating Keycloak delete failed for user {KeycloakUserId}. Manual cleanup required."
+        Level = LogLevel.Warning,
+        Message = "ProvisionKeycloakUserEvent for AppUser {UserId} skipped — user not found or already provisioned."
     )]
-    public static partial void CreateUserCompensatingDeleteFailed(
-        this ILogger logger,
-        Exception exception,
-        [SensitiveData] string keycloakUserId
-    );
+    public static partial void ProvisionKeycloakUserSkipped(this ILogger logger, Guid userId);
 
     // DeleteUserCommandHandler (2010)
     [LoggerMessage(
@@ -64,7 +70,18 @@ internal static partial class IdentityLogs
     public static partial void KeycloakUserCreated(
         this ILogger logger,
         [PersonalData] string username,
-        string keycloakUserId
+        [SensitiveData] string keycloakUserId
+    );
+
+    [LoggerMessage(
+        EventId = 3007,
+        Level = LogLevel.Information,
+        Message = "Keycloak user already exists for {Username}, resolved existing id {KeycloakUserId}"
+    )]
+    public static partial void KeycloakUserAlreadyExistsResolved(
+        this ILogger logger,
+        [PersonalData] string username,
+        [SensitiveData] string keycloakUserId
     );
 
     [LoggerMessage(

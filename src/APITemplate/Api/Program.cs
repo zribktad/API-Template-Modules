@@ -4,8 +4,10 @@ using BackgroundJobs;
 using Chatting;
 using FileStorage;
 using Identity;
+using Identity.Security;
 using JasperFx;
 using JasperFx.Resources;
+using MongoDB.Driver;
 using Notifications;
 using ProductCatalog;
 using Reviews;
@@ -15,6 +17,8 @@ using SharedKernel.Infrastructure.Health;
 using Webhooks;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
+using Wolverine.ErrorHandling;
+using Wolverine.Http;
 using Wolverine.Postgresql;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -72,6 +76,19 @@ builder.Host.UseWolverine(options =>
         chain =>
             chain.ShouldApplyErrorOrValidation(WolverineModuleDiscovery.ErrorOrValidationAssemblies)
     );
+
+    // Retry policy for transient HTTP failures (e.g. Keycloak temporarily unavailable).
+    // Applies only to queue-delivered messages (outbox workers) — NOT to InvokeAsync calls.
+    // After all retries are exhausted the message moves to wolverine_dead_letters in PostgreSQL.
+    options
+        .OnException<HttpRequestException>()
+        .ScheduleRetry(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5))
+        .Then.MoveToErrorQueue();
+
+    options
+        .OnException<MongoException>()
+        .ScheduleRetry(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5))
+        .Then.MoveToErrorQueue();
 });
 
 WebApplication app = builder.Build();
@@ -81,6 +98,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseApiPipeline();
 app.MapApplicationEndpoints();
+app.MapDeadLettersEndpoints().RequireAuthorization(AuthConstants.Policies.PlatformAdmin);
 
 await app.RunJasperFxCommands(args);
 
