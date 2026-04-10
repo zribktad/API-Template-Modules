@@ -120,10 +120,13 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
 
 ### High Priority
 
-- [x] **Mixed error handling patterns** — unified on `ErrorOr<T>` return pattern. Exception-based classes (
-  `NotFoundException`, `ConflictException`, `ValidationException`, `AppException` hierarchy) removed.
-  `ApiExceptionHandler` is now a safety net for `DbUpdateConcurrencyException` (409) and unhandled exceptions (500)
-  only. Validation is centralized via Wolverine middleware and MVC `FluentValidationActionFilter`.
+- [x] **Mixed error handling patterns** — unified on `ErrorOr<T>` return pattern. Concrete exception-based classes
+  (`NotFoundException`, `ConflictException`, `ValidationException`) were removed; `ApiExceptionHandler` is now mainly a
+  safety net for `DbUpdateConcurrencyException` (409) and unhandled exceptions (500). Validation is centralized via
+  Wolverine middleware and MVC `FluentValidationActionFilter`.
+- [ ] **Mixed error handling follow-up** — legacy `AppException` / `IHasErrorCode` / `IHasErrorMetadata` infrastructure
+  still exists for exception-to-`ProblemDetails` fallback. Decide whether to remove it entirely or keep it as the
+  supported escape hatch for exceptional paths.
 - [x] **Options classes split between SharedKernel and modules** — `BffOptions`, `KeycloakOptions`, `CorsOptions`,
   `EmailOptions`, `SystemIdentityOptions` exist in both places. Module-specific options (`BackgroundJobsOptions`,
   `FileStorageOptions`) are in SharedKernel where they don't belong. Each module should own its options; SharedKernel
@@ -139,7 +142,7 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
   user saved to DB first (KeycloakUserId=null), then `ProvisionKeycloakUserEvent` delivered via Wolverine durable outbox
   to `ProvisionKeycloakUserHandler` which creates the Keycloak account and links it back. Eliminates orphaned Keycloak
   users. `KeycloakAdminService.CreateUserAsync` made idempotent (handles 409 Conflict via username lookup).
-- [ ] **Inconsistent logging** — source-generated `[LoggerMessage]` with event IDs is already used across modules, but
+- [x] **Inconsistent logging** — source-generated `[LoggerMessage]` with event IDs is already used across modules, but
   inline `logger.LogWarning()` remains in `TenantClaimValidator` and `CookieSessionRefresher`. Finish migration to
   source-generated logging for these remaining paths.
 - [x] **Incomplete health checks** — Redis/Dragonfly and MongoDB checks are implemented. Wolverine messaging health
@@ -164,7 +167,7 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
   objects enforcing their invariants.
 - [x] **Duplicate repository interfaces** — `IProductRepository` is defined in both `ProductCatalog.Domain/Interfaces/`
   and `ProductCatalog.Application/Features/Product/Repositories/`. Keep one definition in the Domain layer.
-- [ ] **Integration test gap — `ProductDataLinks` cascade not verified** — `PostgresTenantSoftDeleteCascadeTests`
+- [x] **Integration test gap — `ProductDataLinks` cascade not verified** — `PostgresTenantSoftDeleteCascadeTests`
   verifies products and categories are soft-deleted but does not assert `ProductDataLinks` are also soft-deleted in the
   same cascade. Add assertion to guard against silent regression.
 - [x] **`ProductDataLink` unique constraint** — `Product.SyncProductDataLinks` was previously guarded with
@@ -265,7 +268,7 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
 - [x] Extract `TenantAuditableDbContext` as abstract reusable base class with `TenantAuditableDbContextDependencies`
   record for dependency encapsulation. (ModuleDbContext already serves this role)
 - [x] Make `IEntityNormalizationService` optional (nullable) in DbContext — removed entirely (commit `5d327af`); normalization is no longer part of the DbContext lifecycle.
-- [ ] Improve `DesignTimeConnectionStringResolver` with dynamic path resolution (walk up directory tree) and
+- [x] Improve `DesignTimeConnectionStringResolver` with dynamic path resolution (walk up directory tree) and
   environment-specific appsettings loading.
 
 ## Entity Navigation Properties
@@ -366,8 +369,9 @@ Implement real-time notifications and chat using ASP.NET Core SignalR.
 
 - [x] Hard delete for soft-deleted products after a configurable retention period.
 - [x] Add workflow for permanently deleting soft-deleted products after retention period.
-- [ ] Wolverine durable outbox or CAP for reliable messaging and eventual consistency in data deletion across related
-  entities. (WolverineFx is now integrated as the in-process mediator; durable outbox mode can be enabled when needed.)
+- [x] Wolverine durable outbox for reliable messaging and eventual consistency in data deletion across related
+  entities. (`PersistMessagesWithPostgresql()`, durable local queues, durable outbox, and durable inbox are enabled in
+  `Program.cs`.)
 
 ## Result Pattern
 

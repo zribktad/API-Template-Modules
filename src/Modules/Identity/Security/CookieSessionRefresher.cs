@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Identity.Logging;
 using Identity.Options;
 using Identity.Security.Keycloak;
 using Microsoft.AspNetCore.Authentication;
@@ -30,7 +31,7 @@ public static class CookieSessionRefresher
         );
         if (tokenResponse is null)
         {
-            GetLogger(context).LogWarning("BFF session refresh failed — rejecting principal.");
+            GetLogger(context).BffSessionRefreshFailedRejectingPrincipal();
             context.RejectPrincipal();
             return;
         }
@@ -53,7 +54,7 @@ public static class CookieSessionRefresher
 
         if (!TryGetRefreshToken(context, out string refreshToken))
         {
-            GetLogger(context).LogWarning("BFF session refresh skipped — no refresh token found.");
+            GetLogger(context).BffSessionRefreshSkippedNoRefreshToken();
             context.RejectPrincipal();
             return false;
         }
@@ -122,11 +123,9 @@ public static class CookieSessionRefresher
 
             if (!response.IsSuccessStatusCode)
             {
-                GetLogger(context)
-                    .LogWarning(
-                        "Keycloak token endpoint returned {StatusCode} during BFF refresh.",
-                        (int)response.StatusCode
-                    );
+                GetLogger(context).KeycloakTokenEndpointReturnedNonSuccessDuringRefresh(
+                    (int)response.StatusCode
+                );
                 return null;
             }
 
@@ -136,7 +135,7 @@ public static class CookieSessionRefresher
         }
         catch (Exception ex)
         {
-            GetLogger(context).LogWarning(ex, "Token refresh failed, rejecting principal.");
+            GetLogger(context).TokenRefreshFailedRejectingPrincipal(ex);
             return null;
         }
     }
