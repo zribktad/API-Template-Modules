@@ -64,7 +64,7 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
         scope.Setup(x => x.ServiceProvider).Returns(serviceProvider);
 
         Mock<IServiceScopeFactory> scopeFactory = new();
-        scopeFactory.Setup(x => x.CreateAsyncScope()).Returns(new AsyncServiceScope(scope.Object));
+        scopeFactory.Setup(x => x.CreateScope()).Returns(scope.Object);
 
         BffOptions bffOptions = new() { CacheTtlMinutes = 10 };
         IBffSessionTokenProtector tokenProtector = new BffSessionTokenProtector(

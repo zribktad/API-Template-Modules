@@ -88,6 +88,9 @@ internal static class TestServiceHelper
     {
         services.RemoveAll<IOutputCacheStore>();
         services.RemoveAll<IConnectionMultiplexer>();
+        services.AddSingleton<IConnectionMultiplexer>(
+            new Moq.Mock<IConnectionMultiplexer>().Object
+        );
         services.AddOutputCache();
         services.RemoveAll<IOutputCacheStore>();
         services.AddSingleton<IOutputCacheStore, TestOutputCacheStore>();
