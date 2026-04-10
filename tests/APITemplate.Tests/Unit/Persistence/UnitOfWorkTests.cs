@@ -3,7 +3,6 @@ using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -12,7 +11,6 @@ using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Domain.Options;
-using SharedKernel.Infrastructure.SoftDelete;
 using SharedKernel.Infrastructure.UnitOfWork;
 using Shouldly;
 using Xunit;
@@ -427,10 +425,7 @@ public class UnitOfWorkTests
             new TestTenantProvider(),
             new TestActorProvider(),
             TimeProvider.System,
-            [],
-            new AppUserEntityNormalizationService(),
-            stateManager,
-            new SoftDeleteProcessor(stateManager)
+            stateManager
         );
     }
 

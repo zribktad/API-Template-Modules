@@ -23,6 +23,30 @@ public sealed class ObservabilityOptions
     [Required]
     [ValidateObjectMembers]
     public ObservabilityExportersOptions Exporters { get; init; } = new();
+
+    /// <summary>
+    ///     Resolves the active OTLP endpoint based on exporter configuration.
+    ///     Prefers an explicit OTLP endpoint when enabled; falls back to the Aspire endpoint
+    ///     when Aspire is explicitly enabled or when <paramref name="isDevelopment" /> is <c>true</c>
+    ///     and no explicit toggle is set.
+    /// </summary>
+    public Uri? ResolveOtlpEndpoint(bool isDevelopment = false)
+    {
+        if (
+            Exporters.Otlp.Enabled == true
+            && Uri.TryCreate(Otlp.Endpoint, UriKind.Absolute, out Uri? otlpUri)
+        )
+            return otlpUri;
+
+        bool aspireEnabled = Exporters.Aspire.Enabled ?? isDevelopment;
+        if (
+            aspireEnabled
+            && Uri.TryCreate(Aspire.Endpoint, UriKind.Absolute, out Uri? aspireUri)
+        )
+            return aspireUri;
+
+        return null;
+    }
 }
 
 /// <summary>

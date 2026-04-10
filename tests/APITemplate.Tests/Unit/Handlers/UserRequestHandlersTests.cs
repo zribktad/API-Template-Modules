@@ -155,11 +155,8 @@ public class UserRequestHandlersTests
             new UpdateUserRequest("updateduser", "updated@test.com")
         );
 
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
-            command,
-            _repositoryMock.Object,
-            ct
-        );
+        ErrorOr<(AppUser User, Email Email)> validation =
+            await UpdateUserCommandHandler.ValidateAsync(command, _repositoryMock.Object, ct);
         (ErrorOr<Success> result, OutgoingMessages messages) =
             await UpdateUserCommandHandler.HandleAsync(
                 command,
@@ -191,7 +188,7 @@ public class UserRequestHandlersTests
             new UpdateUserRequest(user.Username, user.Email.Value)
         );
 
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+        ErrorOr<(AppUser User, Email Email)> validation = await UpdateUserCommandHandler.ValidateAsync(
             command,
             _repositoryMock.Object,
             TestContext.Current.CancellationToken
@@ -226,7 +223,7 @@ public class UserRequestHandlersTests
 
         UpdateUserCommand command = new(Guid.NewGuid(), new UpdateUserRequest("name", "e@e.com"));
 
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+        ErrorOr<(AppUser User, Email Email)> validation = await UpdateUserCommandHandler.ValidateAsync(
             command,
             _repositoryMock.Object,
             TestContext.Current.CancellationToken
@@ -259,7 +256,7 @@ public class UserRequestHandlersTests
             new UpdateUserRequest(user.Username, "taken@test.com")
         );
 
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+        ErrorOr<(AppUser User, Email Email)> validation = await UpdateUserCommandHandler.ValidateAsync(
             command,
             _repositoryMock.Object,
             TestContext.Current.CancellationToken

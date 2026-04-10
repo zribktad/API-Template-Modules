@@ -1,12 +1,10 @@
 using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Options;
-using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
@@ -78,10 +76,7 @@ public class AuthBootstrapSeederTests
             new TestTenantProvider(),
             new TestActorProvider(),
             TimeProvider.System,
-            [],
-            new AppUserEntityNormalizationService(),
-            stateManager,
-            new SoftDeleteProcessor(stateManager)
+            stateManager
         );
     }
 

@@ -51,7 +51,6 @@
     <Compile Remove="Unit\Integration\**\*.cs" />
     <Compile Remove="Unit\Email\**\*.cs" />
     <Compile Remove="Unit\Observability\HttpRouteResolverTests.cs" />
-    <Compile Remove="Unit\Observability\ObservabilityServiceCollectionExtensionsTests.cs" />
     <Compile Remove="Unit\Validators\CreateProductReviewRequestValidatorTests.cs" />
     <Compile Remove="Unit\Validation\**\*.cs" />
     <Compile Remove="Unit\BackgroundJobs\BackgroundJobsServiceCollectionExtensionsTests.cs" />

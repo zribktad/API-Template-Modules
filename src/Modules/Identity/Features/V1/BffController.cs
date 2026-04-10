@@ -15,6 +15,7 @@ public sealed class BffController : ApiControllerBase
 {
     private readonly BffOptions _bffOptions;
     private readonly IReadOnlyDictionary<string, IExternalIdentityProvider> _identityProviders;
+    private readonly IReadOnlyList<ExternalProviderResponse> _externalProviderResponses;
 
     public BffController(
         IOptions<BffOptions> bffOptions,
@@ -27,6 +28,9 @@ public sealed class BffController : ApiControllerBase
             p => p,
             StringComparer.OrdinalIgnoreCase
         );
+        _externalProviderResponses = _identityProviders.Values
+            .Select(p => new ExternalProviderResponse(p.IdpHint, p.DisplayName))
+            .ToList();
     }
 
     [HttpGet("login")]
@@ -58,9 +62,7 @@ public sealed class BffController : ApiControllerBase
     [AllowAnonymous]
     public IActionResult GetExternalProviders()
     {
-        IEnumerable<ExternalProviderResponse> providers = _identityProviders.Values
-            .Select(p => new ExternalProviderResponse(p.IdpHint, p.DisplayName));
-        return Ok(providers);
+        return Ok(_externalProviderResponses);
     }
 
     [HttpGet("logout")]

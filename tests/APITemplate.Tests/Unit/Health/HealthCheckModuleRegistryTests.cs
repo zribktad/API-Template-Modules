@@ -1,4 +1,5 @@
 using APITemplate.Api;
+using Notifications.Infrastructure.Health;
 using ProductCatalog.Infrastructure.Health;
 using SharedKernel.Infrastructure.Health;
 using Shouldly;
@@ -26,5 +27,11 @@ public sealed class HealthCheckModuleRegistryTests
     public void Modules_ContainsProductCatalogHealthChecks()
     {
         HealthCheckModuleRegistry.Modules.ShouldContain(typeof(ProductCatalogHealthChecks));
+    }
+
+    [Fact]
+    public void Modules_ContainsNotificationsHealthChecks()
+    {
+        HealthCheckModuleRegistry.Modules.ShouldContain(typeof(NotificationsHealthChecks));
     }
 }

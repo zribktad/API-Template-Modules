@@ -63,14 +63,19 @@ public sealed class DeleteProductsCommandHandler
         DeleteProductsCommand command,
         DeleteProductsState state,
         ProductRepositoryContract repository,
+        IProductDataLinkRepository linkRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
-        // Soft-delete product-data links and remove products in a single transaction
+        List<ProductDataLink> allLinks = state
+            .Products.SelectMany(product => product.ProductDataLinks)
+            .ToList();
+
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
+                linkRepository.DeleteRange(allLinks);
                 await repository.DeleteRangeAsync(state.Products, ct);
             },
             ct

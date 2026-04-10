@@ -40,7 +40,7 @@ builder.Host.UseSerilog(
 );
 
 builder.Services.AddApiFoundation(builder.Configuration);
-builder.Services.AddModuleHealthChecks(builder.Configuration, HealthCheckModuleRegistry.Modules);
+builder.Services.AddModuleHealthChecks(builder.Configuration, builder.Environment, HealthCheckModuleRegistry.Modules);
 builder.Services.AddApplicationComposition(builder.Configuration);
 builder.Services.AddObservability(builder.Configuration, builder.Environment);
 builder.Services.AddIdentityModule(builder.Configuration);
@@ -68,6 +68,14 @@ builder.Host.UseWolverine(options =>
     // between handler commit and message dispatch. UseStrictLocalQueues would additionally
     // guarantee in-order processing per queue — not needed here since handlers are idempotent.
     options.Policies.UseDurableLocalQueues();
+
+    // Persist outgoing messages in PostgreSQL before sending — guarantees at-least-once delivery
+    // even if the process crashes between committing the handler and dispatching the message.
+    options.Policies.UseDurableOutboxOnAllSendingEndpoints();
+
+    // Persist incoming messages from external transports in PostgreSQL before processing —
+    // prevents message loss if the process crashes before the handler completes.
+    options.Policies.UseDurableInboxOnAllListeners();
     foreach (Assembly assembly in WolverineModuleDiscovery.HandlerAssemblies)
         options.Discovery.IncludeAssembly(assembly);
 

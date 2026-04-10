@@ -4,12 +4,10 @@ using Identity.Configuration;
 using Identity.Controllers.V1;
 using Identity.Options;
 using Identity.Persistence;
-using Identity.Persistence.EntityNormalization;
 using Identity.Repositories;
 using Identity.Security.ExternalIdentityProviders;
 using Identity.Security.Keycloak;
 using Identity.Security.Tenant;
-using Identity.SoftDelete;
 using Keycloak.AuthServices.Sdk;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -258,9 +256,6 @@ public static class IdentityModule
             ConfigurationSections.DefaultConnection
         )!;
 
-        // Register entity normalization before AddDefaultInfrastructure so TryAdd doesn't override it.
-        services.AddSingleton<IEntityNormalizationService, AppUserEntityNormalizationService>();
-
         services
             .AddModule<IdentityDbContext>(configuration)
             .ConfigureDbContext(opts => opts.UseNpgsql(connectionString))
@@ -268,8 +263,7 @@ public static class IdentityModule
             .ForwardUnitOfWork<IdentityDbMarker>()
             .AddRepository<IUserRepository, UserRepository>()
             .AddRepository<ITenantRepository, TenantRepository>()
-            .AddRepository<ITenantInvitationRepository, TenantInvitationRepository>()
-            .AddCascadeRule<TenantSoftDeleteCascadeRule>();
+            .AddRepository<ITenantInvitationRepository, TenantInvitationRepository>();
 
         services.AddScoped<AuthBootstrapSeeder>();
     }

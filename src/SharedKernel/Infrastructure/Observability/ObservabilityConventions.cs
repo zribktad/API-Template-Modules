@@ -63,7 +63,6 @@ public static class TelemetryPathPrefixes
 /// <summary>Default fallback values used when a tag or setting cannot be resolved.</summary>
 public static class TelemetryDefaults
 {
-    public const string AspireOtlpEndpoint = "http://localhost:4317";
     public const string Default = "default";
     public const string Sql = "sql";
     public const string Unknown = "unknown";

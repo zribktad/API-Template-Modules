@@ -3,13 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Domain.Interfaces;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.EntityNormalization;
 using SharedKernel.Infrastructure.Persistence;
-using SharedKernel.Infrastructure.SoftDelete;
 using SharedKernel.Infrastructure.StoredProcedures;
 using SharedKernel.Infrastructure.UnitOfWork;
 using Wolverine.EntityFrameworkCore;
@@ -78,13 +75,6 @@ public sealed class ModuleRegistrationBuilder<TContext>
         return this;
     }
 
-    public ModuleRegistrationBuilder<TContext> AddCascadeRule<TRule>()
-        where TRule : class, ISoftDeleteCascadeRule
-    {
-        Services.AddScoped<ISoftDeleteCascadeRule, TRule>();
-        return this;
-    }
-
     public ModuleRegistrationBuilder<TContext> AddStoredProcedureSupport()
     {
         Services.AddScoped<IStoredProcedureExecutor>(sp => new StoredProcedureExecutor(
@@ -98,12 +88,7 @@ public sealed class ModuleRegistrationBuilder<TContext>
         Services.AddValidatedOptions<TransactionDefaultsOptions>(Configuration);
 
         Services.TryAddSingleton(TimeProvider.System);
-        Services.TryAddSingleton<
-            IEntityNormalizationService,
-            PassthroughEntityNormalizationService
-        >();
         Services.TryAddSingleton<IAuditableEntityStateManager, AuditableEntityStateManager>();
-        Services.TryAddSingleton<ISoftDeleteProcessor, SoftDeleteProcessor>();
 
         Services.AddScoped<IDbTransactionProvider<TContext>, EfCoreTransactionProvider<TContext>>();
         Services.AddScoped<IUnitOfWork<TContext>, UnitOfWork<TContext>>();
@@ -123,10 +108,5 @@ public sealed class ModuleRegistrationBuilder<TContext>
             sp.GetRequiredService<IUnitOfWork<TContext>>()
         ));
         return this;
-    }
-
-    private sealed class PassthroughEntityNormalizationService : IEntityNormalizationService
-    {
-        public void Normalize(IAuditableTenantEntity entity) { }
     }
 }

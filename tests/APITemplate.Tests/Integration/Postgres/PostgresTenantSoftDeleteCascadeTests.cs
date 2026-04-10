@@ -3,15 +3,12 @@ using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
-using APITemplate.Infrastructure.Persistence.SoftDelete;
 using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Options;
-using SharedKernel.Infrastructure.SoftDelete;
 using Shouldly;
 using Xunit;
 
@@ -232,10 +229,7 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
             new TestTenantProvider(tenantId, hasTenant),
             new TestActorProvider(actorId),
             TimeProvider.System,
-            [new TenantSoftDeleteCascadeRule(), new ProductSoftDeleteCascadeRule()],
-            new AppUserEntityNormalizationService(),
-            stateManager,
-            new SoftDeleteProcessor(stateManager)
+            stateManager
         );
 
         await context.Database.OpenConnectionAsync(ct);

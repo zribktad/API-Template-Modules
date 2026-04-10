@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Infrastructure.Auditing;
-using SharedKernel.Infrastructure.EntityNormalization;
 
 namespace ProductCatalog.Persistence;
 
@@ -11,21 +10,9 @@ public sealed class ProductCatalogDbContext : ModuleDbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IEnumerable<ISoftDeleteCascadeRule> softDeleteCascadeRules,
-        IEntityNormalizationService entityNormalizationService,
-        IAuditableEntityStateManager entityStateManager,
-        ISoftDeleteProcessor softDeleteProcessor
+        IAuditableEntityStateManager entityStateManager
     )
-        : base(
-            options,
-            tenantProvider,
-            actorProvider,
-            timeProvider,
-            softDeleteCascadeRules,
-            entityNormalizationService,
-            entityStateManager,
-            softDeleteProcessor
-        ) { }
+        : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager) { }
 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();

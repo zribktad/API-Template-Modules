@@ -16,6 +16,7 @@ public static class TenantCascadeDeleteHandler
         TenantSoftDeletedNotification notification,
         ICategoryRepository categoryRepository,
         IProductRepository productRepository,
+        IProductDataLinkRepository linkRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
@@ -33,11 +34,17 @@ public static class TenantCascadeDeleteHandler
         if (categories.Count == 0 && products.Count == 0)
             return OutgoingMessagesHelper.Empty;
 
+        List<ProductDataLink> allLinks = products
+            .SelectMany(product => product.ProductDataLinks)
+            .ToList();
+
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
                 if (categories.Count > 0)
                     await categoryRepository.DeleteRangeAsync(categories, ct);
+
+                linkRepository.DeleteRange(allLinks);
 
                 if (products.Count > 0)
                     await productRepository.DeleteRangeAsync(products, ct);

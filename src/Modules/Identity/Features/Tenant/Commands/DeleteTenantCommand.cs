@@ -11,6 +11,8 @@ public sealed class DeleteTenantCommandHandler
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         DeleteTenantCommand command,
         ITenantRepository repository,
+        IUserRepository userRepository,
+        ITenantInvitationRepository invitationRepository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
@@ -28,6 +30,23 @@ public sealed class DeleteTenantCommandHandler
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
+                List<AppUser> users = await userRepository.ListAsync(
+                    new UsersForTenantSoftDeleteSpecification(command.Id),
+                    ct
+                );
+
+                List<Entities.TenantInvitation> invitations =
+                    await invitationRepository.ListAsync(
+                        new InvitationsForTenantSoftDeleteSpecification(command.Id),
+                        ct
+                    );
+
+                if (users.Count > 0)
+                    await userRepository.DeleteRangeAsync(users, ct);
+
+                if (invitations.Count > 0)
+                    await invitationRepository.DeleteRangeAsync(invitations, ct);
+
                 await repository.DeleteAsync(tenantResult.Value, ct);
             },
             ct

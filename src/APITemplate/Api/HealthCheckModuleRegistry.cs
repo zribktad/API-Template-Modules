@@ -1,3 +1,4 @@
+using Notifications.Infrastructure.Health;
 using ProductCatalog.Infrastructure.Health;
 using SharedKernel.Infrastructure.Health;
 
@@ -9,5 +10,9 @@ namespace APITemplate.Api;
 public static class HealthCheckModuleRegistry
 {
     public static IReadOnlyList<Type> Modules { get; } =
-    [typeof(SharedKernelHealthChecks), typeof(ProductCatalogHealthChecks)];
+    [
+        typeof(SharedKernelHealthChecks),
+        typeof(ProductCatalogHealthChecks),
+        typeof(NotificationsHealthChecks),
+    ];
 }

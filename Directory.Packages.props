@@ -48,9 +48,9 @@
     <PackageVersion Include="Testcontainers.MongoDb" Version="4.11.0" />
     <PackageVersion Include="WolverineFx" Version="5.29.0" />
     <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="5.29.0" />
-    <PackageVersion Include="WolverineFx.FluentValidation" Version="5.22.0" />
-    <PackageVersion Include="WolverineFx.Http" Version="5.27.0" />
-    <PackageVersion Include="WolverineFx.Postgresql" Version="5.27.0" />
+    <PackageVersion Include="WolverineFx.FluentValidation" Version="5.29.0" />
+    <PackageVersion Include="WolverineFx.Http" Version="5.29.0" />
+    <PackageVersion Include="WolverineFx.Postgresql" Version="5.29.0" />
     <PackageVersion Include="MimeKit" Version="4.15.1" />
     <PackageVersion Include="MockQueryable.Moq" Version="10.0.5" />
     <PackageVersion Include="MongoDB.Bson" Version="3.7.1" />

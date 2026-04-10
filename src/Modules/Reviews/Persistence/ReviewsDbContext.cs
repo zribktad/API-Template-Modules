@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Infrastructure.Auditing;
-using SharedKernel.Infrastructure.EntityNormalization;
-using SharedKernel.Infrastructure.SoftDelete;
 
 namespace Reviews.Persistence;
 
@@ -12,21 +10,9 @@ public sealed class ReviewsDbContext : ModuleDbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IEnumerable<ISoftDeleteCascadeRule> softDeleteCascadeRules,
-        IEntityNormalizationService entityNormalizationService,
-        IAuditableEntityStateManager entityStateManager,
-        ISoftDeleteProcessor softDeleteProcessor
+        IAuditableEntityStateManager entityStateManager
     )
-        : base(
-            options,
-            tenantProvider,
-            actorProvider,
-            timeProvider,
-            softDeleteCascadeRules,
-            entityNormalizationService,
-            entityStateManager,
-            softDeleteProcessor
-        ) { }
+        : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager) { }
 
     public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
 

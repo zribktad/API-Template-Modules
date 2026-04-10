@@ -98,4 +98,13 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
 
         _dbContext.ProductDataLinks.RemoveRange(links);
     }
+
+    /// <inheritdoc />
+    public void DeleteRange(IReadOnlyCollection<ProductDataLink> links)
+    {
+        if (links.Count == 0)
+            return;
+
+        _dbContext.ProductDataLinks.RemoveRange(links);
+    }
 }

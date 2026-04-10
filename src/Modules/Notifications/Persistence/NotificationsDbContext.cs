@@ -2,9 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Notifications.Domain;
 using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
-using SharedKernel.Infrastructure.EntityNormalization;
 using SharedKernel.Infrastructure.Persistence;
-using SharedKernel.Infrastructure.SoftDelete;
 
 namespace Notifications.Persistence;
 
@@ -15,21 +13,9 @@ public sealed class NotificationsDbContext : ModuleDbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IEnumerable<ISoftDeleteCascadeRule> softDeleteCascadeRules,
-        IEntityNormalizationService entityNormalizationService,
-        IAuditableEntityStateManager entityStateManager,
-        ISoftDeleteProcessor softDeleteProcessor
+        IAuditableEntityStateManager entityStateManager
     )
-        : base(
-            options,
-            tenantProvider,
-            actorProvider,
-            timeProvider,
-            softDeleteCascadeRules,
-            entityNormalizationService,
-            entityStateManager,
-            softDeleteProcessor
-        ) { }
+        : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager) { }
 
     public DbSet<FailedEmail> FailedEmails => Set<FailedEmail>();
 
