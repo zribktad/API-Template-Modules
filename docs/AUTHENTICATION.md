@@ -23,6 +23,7 @@ graph TB
         BFF[BffController<br/>/api/v1/bff/login<br/>/api/v1/bff/login/{idpHint}<br/>/api/v1/bff/external-providers<br/>/api/v1/bff/logout<br/>/api/v1/bff/user<br/>/api/v1/bff/csrf]
         JWT_VAL[JwtBearer Middleware<br/>validates Bearer token]
         COOKIE_VAL[Cookie Middleware<br/>looks up session in DragonFly]
+        REFRESH[CookieSessionRefresher<br/>proactive token refresh<br/>via BffTokenRefreshService]
         CSRF[CsrfValidationMiddleware<br/>X-CSRF: 1 required]
         TENANT[TenantClaimValidator<br/>validates tenant_id claim]
         CLAIM[KeycloakClaimMapper<br/>maps Keycloak → .NET claims]
@@ -30,7 +31,8 @@ graph TB
     end
 
     subgraph SESSION[DragonFly / Redis]
-        STORE[DragonFlyTicketStore<br/>bff:ticket:GUID → AuthenticationTicket]
+        STORE[DragonflyBffSessionStore<br/>bff:session:GUID → BffSessionRecord<br/>tokens encrypted at rest]
+        LOCK[Refresh Coordinator<br/>bff:session:GUID:refresh:lock<br/>bff:session:GUID:refresh:result]
         DP[DataProtection Keys<br/>DataProtection:Keys]
     end
 
@@ -45,7 +47,10 @@ graph TB
     BFF -->|OIDC Code Flow| REALM
     JWT_VAL --> TENANT --> CLAIM --> AUTHZ
     COOKIE_VAL --> STORE
-    COOKIE_VAL --> CSRF --> AUTHZ
+    COOKIE_VAL --> REFRESH
+    REFRESH -->|grant_type=refresh_token| REALM
+    REFRESH --> LOCK
+    REFRESH --> CSRF --> AUTHZ
 ```
 
 ---
@@ -89,7 +94,7 @@ docker compose up -d
 | Service                | Username | Password |
 | ---------------------- | -------- | -------- |
 | Keycloak Admin Console | admin    | admin    |
-| Application User       | admin    | Admin123 |
+| Application User       | admin    | admin    |
 
 Default user has role **PlatformAdmin** and tenant `00000000-0000-0000-0000-000000000001`.
 
@@ -189,8 +194,20 @@ sequenceDiagram
     OIDC-->>SPA: Set-Cookie .APITemplate.Auth<br/>302 → /dashboard
 ```
 
-**How `kc_idp_hint` is forwarded:**  
-`IdentityModule.ConfigureOidc` registers `OnRedirectToIdentityProvider` — it reads `kc_idp_hint` from `AuthenticationProperties.Items` and appends it as a query parameter to the Keycloak authorization URL. Keycloak uses this hint to bypass its own login page and redirect directly to the named IdP.
+**What is `kc_idp_hint`:**  
+`kc_idp_hint` is a Keycloak-specific query parameter added to the OIDC authorization URL. When Keycloak receives this parameter, it **skips its own login page entirely** and redirects the user straight to the specified external identity provider (e.g. Google, GitHub). The value must match the **Alias** configured in Keycloak Admin Console → Identity Providers (e.g. `google`, `github`).
+
+Without `kc_idp_hint`: `User → BFF /login → Keycloak login page → user clicks "Login with Google" → Google`  
+With `kc_idp_hint=google`: `User → BFF /login/google → Keycloak (skipped) → Google directly`
+
+**How it flows through the code:**
+
+1. SPA calls `GET /api/v1/bff/login/google`
+2. `BffController.LoginWithProvider` looks up `"google"` in registered `IExternalIdentityProvider` implementations
+3. Sets `AuthenticationProperties.Items["kc_idp_hint"] = "google"`
+4. Issues OIDC `Challenge` — ASP.NET builds the Keycloak authorization URL
+5. `IdentityModule.ConfigureOidc` → `OnRedirectToIdentityProvider` event reads `kc_idp_hint` from `Properties.Items` and appends it as a query parameter to the authorization URL
+6. Keycloak receives `?kc_idp_hint=google` and immediately redirects to Google OAuth
 
 ### 2b. Discovery endpoint (SPA dynamic UI)
 
@@ -259,11 +276,28 @@ sequenceDiagram
     OIDC->>KC: Exchange code for tokens
     KC-->>OIDC: access_token + refresh_token + id_token
     OIDC->>OIDC: TenantClaimValidator.OnTokenValidated<br/>maps claims, validates tenant_id
-    OIDC->>VK: StoreAsync — bff:ticket:&lt;GUID&gt;<br/>TTL = SessionTimeoutMinutes (60 min)
+    OIDC->>OIDC: DragonflyTicketStore.StoreAsync<br/>→ BffSessionService.CreateSessionAsync
+    Note over VK: BffSessionRecord created:<br/>tokens encrypted via IDataProtector<br/>key = bff:session:&lt;GUID&gt;
+    OIDC->>VK: Store BffSessionRecord (JSON)<br/>TTL = SessionIdleTimeoutMinutes (60 min)
     OIDC-->>SPA: Set-Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>HttpOnly, SameSite=Lax, Secure<br/>302 → /dashboard
 ```
 
-### 3b. Authenticated Request
+**Session record contents** — the cookie carries only the opaque `SessionId` (GUID). The server-side `BffSessionRecord` in DragonFly contains:
+
+| Field | Description |
+|-------|-------------|
+| `SessionId` | Opaque GUID used as cookie value and Redis key |
+| `UserId`, `Subject` | User and IdP subject identifiers |
+| `Provider` | Identity provider type (`Keycloak`) |
+| `TenantId`, `Roles`, `Email`, `DisplayName` | Identity claims projected from the OIDC ticket |
+| `AccessToken`, `RefreshToken`, `IdToken` | **Encrypted at rest** via `IDataProtector` (purpose: `bff:session:tokens`) |
+| `AccessTokenExpiresAtUtc` | When the current access token expires |
+| `CreatedAtUtc`, `LastSeenAtUtc`, `LastRefreshedAtUtc` | Lifecycle timestamps |
+| `Status` | `Active`, `Refreshing`, `Revoked`, or `Expired` |
+| `Version` | Optimistic concurrency counter (incremented on every mutation) |
+| `RevokedAtUtc`, `RevocationReason` | Populated when session is revoked |
+
+### 3b. Authenticated Request (with proactive token refresh)
 
 ```mermaid
 sequenceDiagram
@@ -271,21 +305,42 @@ sequenceDiagram
     participant CM as Cookie Middleware
     participant VK as DragonFly
     participant CSR as CookieSessionRefresher
+    participant TRS as BffTokenRefreshService
+    participant COORD as DragonflyBffRefreshCoordinator
     participant KC as Keycloak
     participant CSRF as CsrfValidationMiddleware
     participant AUTHZ as Authorization Middleware
 
     SPA->>CM: POST /api/v1/products<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>X-CSRF: 1
-    CM->>VK: RetrieveAsync(&lt;GUID&gt;)
-    VK-->>CM: AuthenticationTicket → ClaimsPrincipal
-    CM->>CSR: OnValidatePrincipal
-    alt Token expires within TokenRefreshThresholdMinutes (2 min)
-        CSR->>KC: POST /token (grant_type=refresh_token)
-        KC-->>CSR: new access_token + refresh_token
-        CSR->>VK: Update session (ShouldRenew = true)
-    else Refresh token missing or failed
+    CM->>VK: DragonflyTicketStore.RetrieveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.GetTicketAsync
+    VK-->>CM: BffSessionRecord → AuthenticationTicket
+    CM->>CSR: ValidatePrincipal event
+    CSR->>TRS: RefreshIfRequiredAsync(sessionId)
+    TRS->>VK: Load BffSessionRecord
+
+    alt AccessTokenExpiresAtUtc - now ≤ RefreshThresholdMinutes (2 min)
+        TRS->>COORD: ExecuteAsync(sessionId, leader, follower)
+
+        alt Leader (acquired distributed lock)
+            COORD->>VK: SET bff:session:GUID:refresh:lock NX TTL=5s
+            TRS->>KC: POST /token (grant_type=refresh_token)
+            KC-->>TRS: new access_token + refresh_token (rotated)
+            TRS->>VK: TryUpdateAsync(updatedSession, expectedVersion)<br/>optimistic concurrency check
+            COORD->>VK: Write outcome to bff:session:GUID:refresh:result TTL=5s
+            COORD->>VK: Release lock (compare-and-delete)
+        else Follower (lock already held)
+            COORD->>VK: Poll bff:session:GUID:refresh:result every 100ms<br/>timeout = RefreshWaitTimeoutMilliseconds (2s)
+            COORD->>VK: Reload updated BffSessionRecord
+        end
+
+        CSR->>CSR: Rebuild principal from BffSessionRecord<br/>ShouldRenew = true → new cookie issued
+    else Token still fresh
+        TRS-->>CSR: BffRefreshOutcome.NotRequired
+    else Refresh token missing or Keycloak rejected
+        TRS->>VK: RevokeAsync(sessionId, reason)
         CSR-->>SPA: 401 Unauthorized (RejectPrincipal)
     end
+
     CSR->>CSRF: Validate X-CSRF: 1 header<br/>(GET/HEAD/OPTIONS exempt; JWT Bearer exempt)
     alt Missing X-CSRF header
         CSRF-->>SPA: 403 Forbidden
@@ -293,6 +348,22 @@ sequenceDiagram
     CSRF->>AUTHZ: Bearer OR Cookie authenticated
     AUTHZ-->>SPA: Controller Action → 200 OK
 ```
+
+**Refresh coordination** prevents concurrent requests from all hitting Keycloak when the token expires:
+
+| Role | Behavior |
+|------|----------|
+| **Leader** | Acquires Redis distributed lock (`NX`, TTL = `RefreshLockTimeoutMilliseconds`), calls Keycloak, updates session with `TryUpdateAsync` (optimistic concurrency), writes outcome to result key |
+| **Follower** | Polls the result key every 100ms (up to `RefreshWaitTimeoutMilliseconds`), then reloads the updated session |
+| **Fallback** (Redis unavailable) | In-memory semaphore per session — followers wait on the leader's `Task<BffRefreshOutcome>` |
+
+**Keycloak refresh status mapping:**
+
+| `KeycloakRefreshStatus` | Action |
+|-------------------------|--------|
+| `Success` | Update session with new tokens, set `Status = Active`, bump `Version` |
+| `Rejected` (`invalid_grant`) | Revoke session (`RefreshRejected`) if `RevokeSessionOnRefreshFailure = true` |
+| `ProviderError` (HTTP/network failure) | Revoke session (`ProviderSessionInvalid`) if configured |
 
 ### 3c. Logout
 
@@ -304,14 +375,76 @@ sequenceDiagram
     participant KC as Keycloak
 
     SPA->>BFF: GET /api/v1/bff/logout<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;
-    BFF->>VK: RemoveAsync(&lt;GUID&gt;) — session deleted
+    BFF->>VK: DragonflyTicketStore.RemoveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.RevokeAsync(Logout)
+    Note over VK: Session marked Revoked<br/>(not deleted — RevocationReason = Logout)
     BFF-->>SPA: Clear cookie .APITemplate.Auth
     BFF-->>SPA: 302 → Keycloak end_session_endpoint
     SPA->>KC: End session (SSO invalidated)
     KC-->>SPA: 302 → PostLogoutRedirectUri (/)
 ```
 
-### 3d. CSRF endpoint
+### 3d. Session revocation
+
+Revocation means the session is **marked as `Revoked` in Redis** — it is **not deleted**. The `BffSessionRecord` stays in the store with `Status = Revoked`, `RevokedAtUtc`, and `RevocationReason` populated. Any subsequent request that loads a revoked session gets rejected immediately (`BffSessionService.GetSessionAsync` returns `null` for revoked sessions).
+
+This is intentional — keeping the record allows:
+- **Audit trail**: the reason and timestamp of revocation remain readable until the Redis key expires
+- **No race conditions**: concurrent requests see the revoked status rather than a missing key (which could be confused with a cache eviction)
+- **Consistent behavior**: the session eventually disappears when the Redis TTL expires, but until then it is explicitly marked as dead
+
+**Revocation reasons:**
+
+| `BffSessionRevocationReason` | Trigger |
+|------------------------------|---------|
+| `Logout` | User-initiated sign-out via `/api/v1/bff/logout` |
+| `RefreshRejected` | Keycloak returned `invalid_grant` (e.g. refresh token rotated and old one reused) |
+| `RefreshTokenMissing` | Session record has no refresh token — cannot renew |
+| `RefreshTokenReplaySuspected` | Suspicious refresh token reuse detected (reserved for future use) |
+| `SessionCorrupted` | Session record is malformed — missing `SessionId`, `UserId`, `Subject`, or `AccessToken` |
+| `ProviderSessionInvalid` | Keycloak HTTP/network error during refresh (non-`invalid_grant` failure) |
+| `AbsoluteLifetimeExceeded` | `CreatedAtUtc + SessionAbsoluteLifetimeMinutes` (480 min) has passed |
+
+### 3e. Redis cache keys and TTL behavior
+
+All BFF session state lives in DragonFly/Redis. Three key patterns are used:
+
+| Key pattern | Content | TTL | Set by |
+|-------------|---------|-----|--------|
+| `bff:session:{id}` | `BffSessionRecord` as JSON (tokens encrypted) | `SessionIdleTimeoutMinutes` (60 min), **sliding** | `DragonflyBffSessionStore` |
+| `bff:session:{id}:refresh:lock` | Lock owner identifier (`machine:pid:guid`) | `RefreshLockTimeoutMilliseconds` (5s), fixed | `DragonflyBffRefreshCoordinator` |
+| `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed | `DragonflyBffRefreshCoordinator` |
+
+**Sliding TTL** — every time the session key is read, the TTL is atomically reset via a Lua script (`GET` + `PEXPIRE` in one roundtrip). This means the session stays alive as long as requests keep coming:
+
+```
+Request at 0:00  → TTL reset to 60 min (expires 1:00)
+Request at 0:15  → TTL reset to 60 min (expires 1:15)
+Request at 0:45  → TTL reset to 60 min (expires 1:45)
+No more requests → key expires at 1:45
+```
+
+**Three independent guards** control session lifetime:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Guard 1: Redis TTL (physical)                                   │
+│ Key disappears after SessionIdleTimeoutMinutes of inactivity.   │
+│ GetAsync → null → 401                                           │
+├─────────────────────────────────────────────────────────────────┤
+│ Guard 2: BFF absolute lifetime (logical, in application code)   │
+│ CreatedAtUtc + SessionAbsoluteLifetimeMinutes exceeded.         │
+│ Session revoked with AbsoluteLifetimeExceeded → 401             │
+│ Key still exists in Redis until TTL expires.                    │
+├─────────────────────────────────────────────────────────────────┤
+│ Guard 3: Keycloak client session (external)                     │
+│ clientSessionMaxLifespan (8h) exceeded.                         │
+│ Keycloak rejects refresh_token → RefreshRejected → revoke → 401│
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Optimistic concurrency** — the `Version` field in `BffSessionRecord` is incremented on every mutation. `TryUpdateAsync` uses a Lua compare-and-set script that atomically checks `version == expectedVersion` before writing. If another request updated the session in between, the write fails and the caller retries (up to 3 attempts) or falls back to the follower path.
+
+### 3f. CSRF endpoint
 
 SPA should fetch this before making any non-GET request to learn the required header:
 
@@ -337,7 +470,7 @@ sequenceDiagram
     DEV->>SC: Opens /scalar/v1 → clicks Authorize
     Note over SC: BearerSecuritySchemeDocumentTransformer<br/>registers OAuth2 Authorization Code + PKCE (S256)
     SC->>KC: Redirect → Keycloak login page
-    DEV->>KC: Enters admin / Admin123
+    DEV->>KC: Enters admin / admin
     KC-->>SC: Authorization code → Scalar callback
     SC->>KC: Exchange code → access_token (PKCE S256)
     KC-->>SC: access_token
@@ -370,15 +503,17 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    Browser["Browser<br/>cookie = GUID (HttpOnly)"] -->|lookup| Ticket
+    Browser["Browser<br/>cookie = opaque GUID (HttpOnly)"] -->|lookup| Session
 
     subgraph DragonFly
-        Ticket["bff:ticket:&lt;GUID&gt;<br/>├── access_token<br/>├── refresh_token<br/>├── id_token<br/>├── expires_at<br/>└── ClaimsPrincipal"]
+        Session["bff:session:&lt;GUID&gt;<br/>├── BffSessionRecord (JSON)<br/>│   ├── access_token (encrypted)<br/>│   ├── refresh_token (encrypted)<br/>│   ├── id_token (encrypted)<br/>│   ├── AccessTokenExpiresAtUtc<br/>│   ├── Status, Version<br/>│   └── identity claims<br/>└── TTL = SessionIdleTimeoutMinutes"]
+        Lock["bff:session:&lt;GUID&gt;:refresh:lock<br/>└── distributed mutex (NX, TTL=5s)"]
+        Result["bff:session:&lt;GUID&gt;:refresh:result<br/>└── leader outcome (TTL=5s)"]
         DP["DataProtection:Keys<br/>└── ASP.NET Data Protection key ring"]
     end
 ```
 
-**Security principle:** Tokens never leave the server — the browser only holds an opaque GUID.
+**Security principle:** Tokens never leave the server — the browser only holds an opaque GUID. Token fields (`access_token`, `refresh_token`, `id_token`) are encrypted at rest using `IDataProtector` with purpose `bff:session:tokens`.
 
 ---
 
@@ -447,14 +582,25 @@ Returns `401` (not redirect) when unauthenticated — SPA should redirect to `/a
 
 ## Session & Token Lifecycle
 
-| Setting                    | Default                                | Config key                         |
-| -------------------------- | -------------------------------------- | ---------------------------------- |
-| Session timeout            | 60 min                                 | `Bff:SessionTimeoutMinutes`        |
-| Sliding expiration         | enabled                                | `CookieAuthenticationOptions`      |
-| Token refresh threshold    | 2 min                                  | `Bff:TokenRefreshThresholdMinutes` |
-| Scopes requested from OIDC | openid, profile, email, offline_access | `Bff:Scopes`                       |
+| Setting | Default | Config key |
+| ------- | ------- | ---------- |
+| Cookie timeout (sliding) | 60 min | `Bff:SessionTimeoutMinutes` |
+| Server-side idle timeout | 60 min | `Bff:SessionIdleTimeoutMinutes` |
+| Absolute session lifetime | 480 min (8h) | `Bff:SessionAbsoluteLifetimeMinutes` |
+| Proactive refresh threshold | 2 min before expiry | `Bff:RefreshThresholdMinutes` |
+| Follower wait timeout | 2000 ms | `Bff:RefreshWaitTimeoutMilliseconds` |
+| Distributed lock TTL | 5000 ms | `Bff:RefreshLockTimeoutMilliseconds` |
+| Refresh result cache TTL | 5000 ms | `Bff:RefreshResultTtlMilliseconds` |
+| Revoke on refresh failure | true | `Bff:RevokeSessionOnRefreshFailure` |
+| Scopes requested from OIDC | openid, profile, email, offline_access | `Bff:Scopes` |
 
-**Token refresh trigger:** On every cookie-authenticated request, `CookieSessionRefresher` checks if the access token expires within `TokenRefreshThresholdMinutes`. If so, it silently calls Keycloak `/token` with `grant_type=refresh_token` and updates the session in DragonFly.
+**Token refresh trigger:** On every cookie-authenticated request, `CookieSessionRefresher.ValidatePrincipal` delegates to `BffTokenRefreshService.RefreshIfRequiredAsync`. This checks whether the access token expires within `RefreshThresholdMinutes`. If so, the `DragonflyBffRefreshCoordinator` ensures only one request performs the actual Keycloak `grant_type=refresh_token` call — concurrent requests wait for the leader result via Redis polling or in-memory fallback.
+
+**Session validation on load** (`BffSessionService.GetSessionAsync`):
+1. Check session exists in store
+2. Reject if `Status` is `Revoked` or `Expired`
+3. Reject and revoke if session record is malformed (missing `SessionId`, `UserId`, `Subject`, or `AccessToken`)
+4. Reject and revoke if `CreatedAtUtc + SessionAbsoluteLifetimeMinutes` has passed
 
 ---
 
@@ -469,8 +615,94 @@ Realm auto-imported on `docker compose up` from `infrastructure/keycloak/realms/
 - Email login: Allowed
 - SSL: None (development)
 - Remember Me: Enabled (SSO session up to 15 days)
-- Password policy: min 8 chars, 1 uppercase, 1 digit, expires after 365 days
+- Password policy: min 4 chars, expires after 365 days
 - Refresh token rotation: Enabled (old refresh token revoked on each use)
+
+### Token Lifetimes
+
+| Setting | Value | Keycloak JSON key |
+| ------- | ----- | ----------------- |
+| Access token lifespan | 5 min (300s) | `accessTokenLifespan` |
+| SSO session idle timeout | 30 min (1800s) | `ssoSessionIdleTimeout` |
+| SSO session max lifespan | 10h (36000s) | `ssoSessionMaxLifespan` |
+| SSO session idle (Remember Me) | 7 days (604800s) | `ssoSessionIdleTimeoutRememberMe` |
+| SSO session max (Remember Me) | 15 days (1296000s) | `ssoSessionMaxLifespanRememberMe` |
+| Client session idle timeout | 1h (3600s) | `clientSessionIdleTimeout` |
+| Client session max lifespan | 8h (28800s) | `clientSessionMaxLifespan` |
+| Offline session idle timeout | 30 days (2592000s) | `offlineSessionIdleTimeout` |
+| Offline session max lifespan | 60 days (5184000s) | `offlineSessionMaxLifespan` |
+
+### Timeout synchronization between Keycloak and BFF
+
+The BFF session layer and Keycloak maintain **independent clocks** — neither knows the other's timeouts. They must be configured so the BFF never tries to use a token that Keycloak already considers expired.
+
+**Full timeline for an active user:**
+
+```
+         Keycloak                                          BFF / Redis
+         ────────                                          ──────────
+
+         access_token issued (5 min lifespan)
+         │                                                 BffSessionRecord created
+         │                                                 Redis key: bff:session:{id}
+         │                                                 Redis TTL: 60 min (sliding)
+         │                                                 Cookie TTL: 60 min (sliding)
+         │
+  +3 min │ ← RefreshThresholdMinutes (2 min before expiry)
+         │                                                 BffTokenRefreshService: refresh needed
+         │                                                 POST /token grant_type=refresh_token
+         │
+         │ Keycloak issues new access_token (5 min)
+         │ Keycloak resets client session idle (1h)        Session updated, Version++
+         │ Old refresh_token revoked (rotation)            Redis TTL reset (sliding)
+         │
+  +6 min │                                                 Next refresh cycle...
+         │
+         ... repeats every ~3 minutes ...
+         │
+    +1h  │ If no refresh in 1h:
+  (idle) │ Keycloak client session idle expires             If no request in 1h:
+         │ → refresh_token becomes invalid                  Redis key expires (TTL)
+         │                                                  → GetAsync returns null → 401
+         │
+    +8h  │ Keycloak client session max expires
+  (abs)  │ → refresh_token rejected regardless              BFF absolute lifetime (480 min)
+         │   of activity                                    → session revoked
+         │                                                    (AbsoluteLifetimeExceeded)
+```
+
+**Constraint rules — what must be synchronized:**
+
+| Constraint | Rule | Current values | Why |
+|------------|------|----------------|-----|
+| Refresh before expiry | `RefreshThresholdMinutes` < `accessTokenLifespan` | 2 min < 5 min | Otherwise the access token expires before BFF attempts refresh |
+| Cookie ≈ Redis idle | `SessionTimeoutMinutes` ≈ `SessionIdleTimeoutMinutes` | 60 min = 60 min | If cookie outlives Redis → cookie valid but session gone → 401. If Redis outlives cookie → orphaned session in Redis |
+| Redis idle ≤ Keycloak client idle | `SessionIdleTimeoutMinutes` ≤ `clientSessionIdleTimeout` | 60 min ≤ 60 min | If Redis lives longer → BFF tries to refresh with an expired client session → `invalid_grant` → revocation |
+| BFF absolute ≤ Keycloak client max | `SessionAbsoluteLifetimeMinutes` ≤ `clientSessionMaxLifespan` | 480 min ≤ 480 min (8h) | If BFF lives longer → same as above, Keycloak rejects the refresh |
+| Keycloak client max ≤ SSO max | `clientSessionMaxLifespan` ≤ `ssoSessionMaxLifespan` | 8h ≤ 10h | Client session cannot outlive the SSO session |
+
+**What is independent (does not need synchronization):**
+
+| Setting | Why independent |
+|---------|-----------------|
+| `RefreshLockTimeoutMilliseconds` (5s) | Internal coordination between concurrent requests — Keycloak is not involved |
+| `RefreshResultTtlMilliseconds` (5s) | Internal leader/follower result sharing |
+| `RefreshWaitTimeoutMilliseconds` (2s) | How long followers wait — affects individual request latency, not session validity |
+| `RevokeSessionOnRefreshFailure` | BFF-only policy decision |
+| `offlineSessionIdleTimeout` (30 days) | Only relevant if a separate client uses offline tokens without the BFF layer (e.g. mobile app, background job) |
+| `offlineSessionMaxLifespan` (60 days) | Same as above |
+| `ssoSessionIdleTimeout` (30 min) | Governs Keycloak login page SSO (single sign-on across multiple clients), not the BFF refresh flow |
+| `ssoSessionIdleTimeoutRememberMe` / `ssoSessionMaxLifespanRememberMe` | Only affects the "Remember Me" checkbox on the Keycloak login page |
+
+**What happens when constraints are violated:**
+
+| Violation | Symptom |
+|-----------|---------|
+| `RefreshThresholdMinutes` ≥ `accessTokenLifespan` | Access token always expired before refresh → every request triggers refresh → Keycloak rejects expired token |
+| `SessionIdleTimeoutMinutes` > `clientSessionIdleTimeout` | After Keycloak client idle expires, BFF still has a Redis session but refresh fails → `RefreshRejected` → revocation. User gets surprise 401 before BFF idle timeout |
+| `SessionAbsoluteLifetimeMinutes` > `clientSessionMaxLifespan` | After Keycloak client max, BFF tries to refresh → `invalid_grant` → revocation. Absolute lifetime check in BFF code never fires because Keycloak kills it first |
+| `SessionTimeoutMinutes` ≪ `SessionIdleTimeoutMinutes` | Cookie expires before Redis → user gets 401 even though server-side session is alive. Redis key becomes orphaned until TTL |
+| `SessionTimeoutMinutes` ≫ `SessionIdleTimeoutMinutes` | Redis key expires before cookie → cookie is valid but `RetrieveAsync` returns null → 401. Confusing for the user |
 
 ### Roles
 
@@ -549,8 +781,14 @@ When the API sets `options.Authority`, ASP.NET auto-discovers all endpoints via 
     "CookieName": ".APITemplate.Auth",
     "PostLogoutRedirectUri": "/",
     "SessionTimeoutMinutes": 60,
+    "SessionIdleTimeoutMinutes": 60,
+    "SessionAbsoluteLifetimeMinutes": 480,
     "Scopes": ["openid", "profile", "email", "offline_access"],
-    "TokenRefreshThresholdMinutes": 2
+    "RefreshThresholdMinutes": 2,
+    "RefreshWaitTimeoutMilliseconds": 2000,
+    "RefreshLockTimeoutMilliseconds": 5000,
+    "RefreshResultTtlMilliseconds": 5000,
+    "RevokeSessionOnRefreshFailure": true
   }
 }
 ```
@@ -601,26 +839,46 @@ Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider
 
 ## Key Source Files
 
-| File                                                      | Description                                                   |
-| --------------------------------------------------------- | ------------------------------------------------------------- |
-| `Extensions/AuthenticationServiceCollectionExtensions.cs` | All auth registration: JWT Bearer + Cookie + OIDC + policies  |
-| `Extensions/ApplicationBuilderExtensions.cs`              | Middleware pipeline order                                     |
-| `Api/Controllers/V1/BffController.cs`                     | BFF endpoints: login / logout / user / csrf                   |
-| `Api/Middleware/CsrfValidationMiddleware.cs`              | CSRF header enforcement for cookie-authenticated requests     |
-| `Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs`  | Registers OAuth2 flow in Scalar/OpenAPI spec                  |
-| `Application/Common/Options/BffOptions.cs`                | BFF configuration model                                       |
-| `Application/Common/Options/KeycloakOptions.cs`           | Keycloak configuration model                                  |
-| `Application/Common/Security/BffAuthenticationSchemes.cs` | Auth scheme name constants                                    |
-| `Application/Common/Security/AuthorizationPolicies.cs`    | Policy name constants                                         |
-| `Application/Common/Security/CustomClaimTypes.cs`         | Custom claim type constants (`tenant_id`)                     |
-| `Infrastructure/Security/DragonFlyTicketStore.cs`         | Server-side session store (DragonFly); cookie holds only GUID |
-| `Infrastructure/Security/CookieSessionRefresher.cs`       | Silent token refresh on cookie validation                     |
-| `Infrastructure/Security/TenantClaimValidator.cs`         | Validates tenant_id claim; maps Keycloak claims               |
-| `Infrastructure/Security/KeycloakClaimMapper.cs`          | Maps preferred_username + realm roles to .NET claim types     |
-| `Infrastructure/Security/KeycloakUrlHelper.cs`            | Builds Keycloak authority URL                                 |
-| `Infrastructure/Health/KeycloakHealthCheck.cs`            | Keycloak health check endpoint                                |
-| `infrastructure/keycloak/realms/api-template-realm.json`  | Keycloak realm auto-import (includes Google IdP config)       |
-| `Identity/Common/Security/IExternalIdentityProvider.cs`   | Abstraction for external social providers (`IdpHint`, `DisplayName`) |
+| File | Description |
+| ---- | ----------- |
+| `Extensions/AuthenticationServiceCollectionExtensions.cs` | All auth registration: JWT Bearer + Cookie + OIDC + policies |
+| `Extensions/ApplicationBuilderExtensions.cs` | Middleware pipeline order |
+| `Api/Controllers/V1/BffController.cs` | BFF endpoints: login / logout / user / csrf |
+| `Api/Middleware/CsrfValidationMiddleware.cs` | CSRF header enforcement for cookie-authenticated requests |
+| `Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs` | Registers OAuth2 flow in Scalar/OpenAPI spec |
+| **Identity Module — Common (interfaces & models)** | |
+| `Identity/Common/BffOptions.cs` | BFF configuration model (cookie, session, refresh settings) |
+| `Identity/Common/Security/AuthConstants.cs` | All auth constants (schemes, claims, routes, token names, CSRF) |
+| `Identity/Common/Security/IKeycloakService.cs` | Keycloak token endpoint abstraction |
+| `Identity/Common/Security/Sessions/IBffSessionStore.cs` | Session persistence abstraction (CRUD + optimistic concurrency) |
+| `Identity/Common/Security/Sessions/IBffSessionService.cs` | Session lifecycle service (create, load, validate, update) |
+| `Identity/Common/Security/Sessions/IBffTokenRefreshService.cs` | Token refresh decision + execution |
+| `Identity/Common/Security/Sessions/IBffRefreshCoordinator.cs` | Concurrent refresh coordination (leader/follower) |
+| `Identity/Common/Security/Sessions/IBffSessionRevocationService.cs` | Session revocation with reason tracking |
+| `Identity/Common/Security/Sessions/IBffSessionPrincipalFactory.cs` | Reconstruct `ClaimsPrincipal` / `AuthenticationTicket` from session |
+| `Identity/Common/Security/Sessions/BffSessionRecord.cs` | Server-side session model (identity, tokens, lifecycle, concurrency) |
+| `Identity/Common/Security/Sessions/BffSessionStatus.cs` | `Active`, `Refreshing`, `Revoked`, `Expired` |
+| `Identity/Common/Security/Sessions/BffSessionRevocationReason.cs` | Why a session was revoked (Logout, RefreshRejected, etc.) |
+| `Identity/Common/Security/Sessions/BffRefreshOutcome.cs` | Refresh result (NotRequired, Success, Failed) |
+| `Identity/Common/Security/Sessions/BffProviderType.cs` | Identity provider enum (`Keycloak`) |
+| **Identity Module — Infrastructure (implementations)** | |
+| `Identity/Security/Sessions/DragonflyTicketStore.cs` | `ITicketStore` adapter → delegates to `IBffSessionService` |
+| `Identity/Security/Sessions/DragonflyBffSessionStore.cs` | Redis-backed session store with Lua CAS + token encryption |
+| `Identity/Security/Sessions/BffSessionService.cs` | Session lifecycle + revocation (implements both `IBffSessionService` and `IBffSessionRevocationService`) |
+| `Identity/Security/Sessions/BffTokenRefreshService.cs` | Refresh decision logic + Keycloak call + session update |
+| `Identity/Security/Sessions/DragonflyBffRefreshCoordinator.cs` | Redis distributed lock + in-memory fallback semaphore |
+| `Identity/Security/Sessions/CookieSessionRefresher.cs` | `CookieAuthenticationEvents.ValidatePrincipal` handler |
+| `Identity/Security/Sessions/BffSessionPrincipalFactory.cs` | Rebuilds principals and tickets from `BffSessionRecord` |
+| `Identity/Security/Keycloak/KeycloakService.cs` | Keycloak token endpoint client (`RefreshSessionAsync`) |
+| `Identity/Security/Keycloak/KeycloakRefreshResult.cs` | Refresh call result (status + token response) |
+| `Identity/Security/Keycloak/KeycloakRefreshStatus.cs` | `Success`, `Rejected`, `ProviderError` |
+| **Other** | |
+| `Infrastructure/Security/TenantClaimValidator.cs` | Validates tenant_id claim; maps Keycloak claims |
+| `Infrastructure/Security/KeycloakClaimMapper.cs` | Maps preferred_username + realm roles to .NET claim types |
+| `Infrastructure/Security/KeycloakUrlHelper.cs` | Builds Keycloak authority URL |
+| `Infrastructure/Health/KeycloakHealthCheck.cs` | Keycloak health check endpoint |
+| `infrastructure/keycloak/realms/api-template-realm.json` | Keycloak realm auto-import (includes Google IdP config) |
+| `Identity/Common/Security/IExternalIdentityProvider.cs` | Abstraction for external social providers (`IdpHint`, `DisplayName`) |
 | `Identity/Security/ExternalIdentityProviders/GoogleIdentityProvider.cs` | Google IdP implementation (`kc_idp_hint=google`) |
 
 
