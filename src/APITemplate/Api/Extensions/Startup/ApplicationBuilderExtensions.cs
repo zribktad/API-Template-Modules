@@ -2,6 +2,7 @@ using APITemplate.Api.Middleware;
 using Chatting;
 using FileStorage;
 using HealthChecks.UI.Client;
+using Identity.Security;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Notifications;
@@ -100,7 +101,46 @@ public static class ApplicationBuilderExtensions
             return app;
 
         app.MapOpenApi().AllowAnonymous();
-        app.MapScalarApiReference("/scalar").AllowAnonymous();
+        app.MapScalarApiReference(
+                "/scalar",
+                options =>
+                {
+                    options
+                        .AddPreferredSecuritySchemes(
+                            AuthConstants.OpenApi.OAuth2ScalarScheme,
+                            AuthConstants.OpenApi.OAuth2PublicScheme
+                        )
+                        .AddAuthorizationCodeFlow(
+                            AuthConstants.OpenApi.OAuth2ScalarScheme,
+                            flow =>
+                            {
+                                flow.ClientId = AuthConstants.OpenApi.ScalarClientId;
+                                flow.Pkce = Pkce.Sha256;
+                                flow.SelectedScopes =
+                                [
+                                    AuthConstants.Scopes.OpenId,
+                                    AuthConstants.Scopes.Profile,
+                                    AuthConstants.Scopes.Email,
+                                ];
+                            }
+                        )
+                        .AddAuthorizationCodeFlow(
+                            AuthConstants.OpenApi.OAuth2PublicScheme,
+                            flow =>
+                            {
+                                flow.ClientId = AuthConstants.OpenApi.PublicClientId;
+                                flow.Pkce = Pkce.Sha256;
+                                flow.SelectedScopes =
+                                [
+                                    AuthConstants.Scopes.OpenId,
+                                    AuthConstants.Scopes.Profile,
+                                    AuthConstants.Scopes.Email,
+                                ];
+                            }
+                        );
+                }
+            )
+            .AllowAnonymous();
         return app;
     }
 

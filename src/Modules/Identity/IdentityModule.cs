@@ -8,6 +8,7 @@ using Identity.Repositories;
 using Identity.Security;
 using Identity.Security.ExternalIdentityProviders;
 using Identity.Security.Keycloak;
+using Identity.Security.Sessions;
 using Identity.Security.Tenant;
 using Keycloak.AuthServices.Sdk;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -131,6 +132,14 @@ public static class IdentityModule
             );
 
         services.AddScoped<CookieSessionRefresher>();
+        services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
+        services.AddSingleton<IBffSessionStore, DragonflyBffSessionStore>();
+        services.AddSingleton<IBffSessionService, BffSessionService>();
+        services.AddSingleton<IBffSessionRevocationService>(sp =>
+            (IBffSessionRevocationService)sp.GetRequiredService<IBffSessionService>()
+        );
+        services.AddSingleton<IBffRefreshCoordinator, DragonflyBffRefreshCoordinator>();
+        services.AddScoped<IBffTokenRefreshService, BffTokenRefreshService>();
 
         // Override JWT bearer events to enable tenant claim validation + user provisioning.
         services.PostConfigure<JwtBearerOptions>(
@@ -215,7 +224,9 @@ public static class IdentityModule
         options.Cookie.Name = bff.CookieName;
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(bff.SessionTimeoutMinutes);
+        options.Cookie.Path = "/";
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(bff.GetEffectiveSessionIdleTimeoutMinutes());
         options.SlidingExpiration = true;
         options.Events.OnRedirectToLogin = context =>
         {
@@ -298,7 +309,7 @@ public static class IdentityModule
     {
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
-        services.AddScoped<IKeycloakService, KeycloakService>();
+        services.AddSingleton<IKeycloakService, KeycloakService>();
         services.AddSingleton<ITenantCodeConflictDetector, PostgresTenantCodeConflictDetector>();
         services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
     }

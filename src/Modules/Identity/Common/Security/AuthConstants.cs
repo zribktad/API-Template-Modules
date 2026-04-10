@@ -24,8 +24,10 @@ public static class AuthConstants
     /// <summary>OpenAPI / Scalar UI security scheme and client identifiers.</summary>
     public static class OpenApi
     {
-        public const string OAuth2Scheme = "OAuth2";
+        public const string OAuth2ScalarScheme = "OAuth2-Scalar";
+        public const string OAuth2PublicScheme = "OAuth2-Public";
         public const string ScalarClientId = "api-template-scalar";
+        public const string PublicClientId = "api-template-public";
     }
 
     /// <summary>Standard OAuth2 / OIDC scope names requested during authentication.</summary>
@@ -43,6 +45,7 @@ public static class AuthConstants
     {
         public const string AccessToken = "access_token";
         public const string RefreshToken = "refresh_token";
+        public const string IdToken = "id_token";
         public const string ExpiresAt = "expires_at";
         public const string ExpiresIn = "expires_in";
     }
@@ -109,6 +112,22 @@ public static class AuthConstants
         ///     Must match the <em>Alias</em> configured in Keycloak under Identity Providers.
         /// </summary>
         public const string IdpHint = "kc_idp_hint";
+    }
+
+    /// <summary>Well-known BFF endpoint paths referenced outside the routing layer.</summary>
+    public static class BffRoutes
+    {
+        public const string Logout = "/api/v1/bff/logout";
+    }
+
+    /// <summary>Authentication properties keys used internally by the BFF session layer.</summary>
+    public static class SessionProperties
+    {
+        /// <summary>
+        ///     Properties key that carries the server-side BFF session identifier so downstream
+        ///     event handlers can correlate the cookie with its session record.
+        /// </summary>
+        public const string SessionId = ".bff.sessionId";
     }
 
     /// <summary>Authentication scheme names registered for the BFF cookie and OIDC flows.</summary>

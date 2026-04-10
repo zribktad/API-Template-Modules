@@ -52,29 +52,34 @@ public sealed class KeycloakServiceTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .Returns<HttpRequestMessage, CancellationToken>(async (request, _) =>
-            {
-                requestUri = request.RequestUri;
-                requestBody = await request.Content!.ReadAsStringAsync();
-                return new HttpResponseMessage(HttpStatusCode.OK)
+            .Returns<HttpRequestMessage, CancellationToken>(
+                async (request, _) =>
                 {
-                    Content = new StringContent(
-                        "{\"access_token\":\"new-access\",\"refresh_token\":\"new-refresh\",\"expires_in\":300}",
-                        Encoding.UTF8,
-                        "application/json"
-                    ),
-                };
-            });
+                    requestUri = request.RequestUri;
+                    requestBody = await request.Content!.ReadAsStringAsync();
+                    return new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(
+                            "{\"access_token\":\"new-access\",\"refresh_token\":\"new-refresh\",\"expires_in\":300}",
+                            Encoding.UTF8,
+                            "application/json"
+                        ),
+                    };
+                }
+            );
 
         KeycloakService sut = CreateSut();
-        KeycloakTokenResponse? result = await sut.RefreshSessionAsync("refresh-token", ct);
+        KeycloakRefreshResult result = await sut.RefreshSessionAsync("refresh-token", ct);
 
-        result.ShouldNotBeNull();
-        result.AccessToken.ShouldBe("new-access");
-        result.RefreshToken.ShouldBe("new-refresh");
-        result.ExpiresIn.ShouldBe(300);
+        result.Status.ShouldBe(KeycloakRefreshStatus.Success);
+        result.TokenResponse.ShouldNotBeNull();
+        result.TokenResponse.AccessToken.ShouldBe("new-access");
+        result.TokenResponse.RefreshToken.ShouldBe("new-refresh");
+        result.TokenResponse.ExpiresIn.ShouldBe(300);
         requestUri.ShouldBe(
-            new Uri("https://keycloak.example.com/realms/example-realm/protocol/openid-connect/token")
+            new Uri(
+                "https://keycloak.example.com/realms/example-realm/protocol/openid-connect/token"
+            )
         );
         requestBody.ShouldNotBeNull();
         requestBody.ShouldContain("grant_type=refresh_token");
@@ -84,7 +89,7 @@ public sealed class KeycloakServiceTests
     }
 
     [Fact]
-    public async Task RefreshSessionAsync_WhenStatusIsNonSuccess_ReturnsNull()
+    public async Task RefreshSessionAsync_WhenStatusIsNonSuccess_ReturnsRejected()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         _httpMessageHandler
@@ -97,9 +102,10 @@ public sealed class KeycloakServiceTests
             .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest));
 
         KeycloakService sut = CreateSut();
-        KeycloakTokenResponse? result = await sut.RefreshSessionAsync("refresh-token", ct);
+        KeycloakRefreshResult result = await sut.RefreshSessionAsync("refresh-token", ct);
 
-        result.ShouldBeNull();
+        result.Status.ShouldBe(KeycloakRefreshStatus.ProviderError);
+        result.TokenResponse.ShouldBeNull();
     }
 
     [Fact]
@@ -125,9 +131,10 @@ public sealed class KeycloakServiceTests
             );
 
         KeycloakService sut = CreateSut();
-        KeycloakTokenResponse? result = await sut.RefreshSessionAsync("refresh-token", ct);
+        KeycloakRefreshResult result = await sut.RefreshSessionAsync("refresh-token", ct);
 
-        result.ShouldBeNull();
+        result.Status.ShouldBe(KeycloakRefreshStatus.ProviderError);
+        result.TokenResponse.ShouldBeNull();
     }
 
     [Fact]
@@ -147,8 +154,8 @@ public sealed class KeycloakServiceTests
 
         KeycloakService sut = CreateSut();
 
-        await Should.ThrowAsync<OperationCanceledException>(
-            () => sut.RefreshSessionAsync("refresh-token", cts.Token)
+        await Should.ThrowAsync<OperationCanceledException>(() =>
+            sut.RefreshSessionAsync("refresh-token", cts.Token)
         );
     }
 }

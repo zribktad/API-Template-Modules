@@ -91,6 +91,34 @@ public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFa
         body.ShouldContain("headerName");
         body.ShouldContain("headerValue");
     }
+
+    [Fact]
+    public async Task LogoutWithCookieAuth_WithoutCsrfHeader_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Test-Cookie-Auth", "1");
+
+        var response = await client.GetAsync(AuthConstants.BffRoutes.Logout, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task LogoutWithCookieAuth_WithCsrfHeader_DoesNotReturn403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Test-Cookie-Auth", "1");
+        client.DefaultRequestHeaders.Add(
+            AuthConstants.Csrf.HeaderName,
+            AuthConstants.Csrf.HeaderValue
+        );
+
+        var response = await client.GetAsync(AuthConstants.BffRoutes.Logout, ct);
+
+        response.StatusCode.ShouldNotBe(HttpStatusCode.Forbidden);
+    }
 }
 
 /// <summary>

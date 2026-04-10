@@ -10,10 +10,10 @@ public interface IKeycloakService
 {
     /// <summary>
     ///     Uses the refresh-token grant to obtain a fresh Keycloak token response for the current
-    ///     BFF session. Returns <c>null</c> when Keycloak rejects the refresh or returns an invalid
-    ///     payload.
+    ///     BFF session and returns an explicit outcome so the caller can distinguish a rejected
+    ///     refresh from transport/provider failures.
     /// </summary>
-    public Task<KeycloakTokenResponse?> RefreshSessionAsync(
+    public Task<KeycloakRefreshResult> RefreshSessionAsync(
         string refreshToken,
         CancellationToken ct = default
     );
