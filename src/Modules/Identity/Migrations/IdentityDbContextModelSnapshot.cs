@@ -108,9 +108,136 @@ namespace Identity.Migrations
                     b.HasIndex("TenantId", "NormalizedUsername")
                         .IsUnique();
 
-                    b.ToTable("Users", t =>
+                    b.ToTable("Users", null, t =>
                         {
                             t.HasCheckConstraint("CK_Users_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Identity.Entities.BffPersistedSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("AccessTokenExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("SessionCreatedAtUtc");
+
+                    b.Property<DateTime?>("DeletedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<string>("EncryptedAccessToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedIdToken")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EncryptedRefreshToken")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTimeOffset>("LastRefreshedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("LastSeenAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("Keycloak");
+
+                    b.Property<DateTimeOffset?>("RefreshTokenExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RevocationReason")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset?>("RevokedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.PrimitiveCollection<string>("Roles")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("SessionId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("Active");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("SessionId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Status", "LastSeenAtUtc");
+
+                    b.HasIndex("TenantId", "IsDeleted");
+
+                    b.ToTable("BffSessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BffSessions_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
                         });
                 });
 
@@ -167,7 +294,7 @@ namespace Identity.Migrations
 
                     b.HasIndex("TenantId", "IsDeleted");
 
-                    b.ToTable("Tenants", t =>
+                    b.ToTable("Tenants", null, t =>
                         {
                             t.HasCheckConstraint("CK_Tenants_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
                         });
@@ -234,7 +361,7 @@ namespace Identity.Migrations
 
                     b.HasIndex("TenantId", "NormalizedEmail");
 
-                    b.ToTable("TenantInvitations", t =>
+                    b.ToTable("TenantInvitations", null, t =>
                         {
                             t.HasCheckConstraint("CK_TenantInvitations_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
                         });
@@ -371,10 +498,53 @@ namespace Identity.Migrations
 
                             b1.HasKey("AppUserId");
 
-                            b1.ToTable("Users");
+                            b1.ToTable("Users", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("AppUserId");
+                        });
+
+                    b.Navigation("Audit")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Identity.Entities.BffPersistedSession", b =>
+                {
+                    b.OwnsOne("SharedKernel.Domain.Entities.AuditInfo", "Audit", b1 =>
+                        {
+                            b1.Property<Guid>("BffPersistedSessionId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<DateTime>("CreatedAtUtc")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("CreatedAtUtc")
+                                .HasDefaultValueSql("now()");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uuid")
+                                .HasDefaultValue(new Guid("00000000-0000-0000-0000-000000000000"))
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("UpdatedAtUtc")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("UpdatedAtUtc")
+                                .HasDefaultValueSql("now()");
+
+                            b1.Property<Guid>("UpdatedBy")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("uuid")
+                                .HasDefaultValue(new Guid("00000000-0000-0000-0000-000000000000"))
+                                .HasColumnName("UpdatedBy");
+
+                            b1.HasKey("BffPersistedSessionId");
+
+                            b1.ToTable("BffSessions", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("BffPersistedSessionId");
                         });
 
                     b.Navigation("Audit")
@@ -414,7 +584,7 @@ namespace Identity.Migrations
 
                             b1.HasKey("TenantId");
 
-                            b1.ToTable("Tenants");
+                            b1.ToTable("Tenants", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TenantId");
@@ -463,7 +633,7 @@ namespace Identity.Migrations
 
                             b1.HasKey("TenantInvitationId");
 
-                            b1.ToTable("TenantInvitations");
+                            b1.ToTable("TenantInvitations", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TenantInvitationId");

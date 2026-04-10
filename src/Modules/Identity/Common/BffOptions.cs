@@ -19,9 +19,15 @@ public sealed class BffOptions
     [MinLength(1)]
     public string PostLogoutRedirectUri { get; init; } = "/";
 
-    [Description("Maximum idle session lifetime, in minutes, for the BFF authentication cookie.")]
+    [Description(
+        "Maximum idle session lifetime, in minutes, for both the BFF authentication cookie and the server-side session record."
+    )]
     [Range(1, int.MaxValue)]
-    public int SessionTimeoutMinutes { get; init; } = 60;
+    public int SessionIdleTimeoutMinutes { get; init; } = 60;
+
+    [Description("Maximum absolute session lifetime, in minutes, regardless of activity.")]
+    [Range(1, int.MaxValue)]
+    public int SessionAbsoluteLifetimeMinutes { get; init; } = 480;
 
     [Description("OIDC scopes requested during sign-in.")]
     [Required]
@@ -30,5 +36,44 @@ public sealed class BffOptions
 
     [Description("Minutes before access token expiry when proactive refresh should begin.")]
     [Range(0, int.MaxValue)]
-    public int TokenRefreshThresholdMinutes { get; init; } = 2;
+    public int RefreshThresholdMinutes { get; init; } = 2;
+
+    [Description(
+        "Maximum time, in milliseconds, follower requests wait for an in-flight refresh. "
+            + "Must be >= RefreshLockTimeoutMilliseconds (followers must outlast the lock). "
+            + "Should match or exceed the upstream identity provider HTTP timeout "
+            + "(e.g. Keycloak's default 10 s) so followers do not give up while the leader is still refreshing."
+    )]
+    [Range(100, int.MaxValue)]
+    public int RefreshWaitTimeoutMilliseconds { get; init; } = 10_000;
+
+    [Description(
+        "Distributed refresh lock TTL, in milliseconds. Guards against leader crashes leaving the lock held. "
+            + "Must be < RefreshWaitTimeoutMilliseconds (lock must expire before followers give up). "
+            + "Should be >= upstream provider HTTP timeout so the leader has enough time to complete the refresh."
+    )]
+    [Range(100, int.MaxValue)]
+    public int RefreshLockTimeoutMilliseconds { get; init; } = 10_000;
+
+    [Description(
+        "Refresh coordinator result TTL, in milliseconds. How long the leader's outcome stays in Redis "
+            + "for late followers to read. Must be >= RefreshWaitTimeoutMilliseconds so the result is still "
+            + "available when the slowest follower finishes waiting."
+    )]
+    [Range(100, int.MaxValue)]
+    public int RefreshResultTtlMilliseconds { get; init; } = 15_000;
+
+    [Description(
+        "How long, in hours, terminal sessions (Revoked/Expired) are retained in the database "
+            + "for audit trail purposes before the cleanup handler permanently deletes them."
+    )]
+    [Range(1, int.MaxValue)]
+    public int TerminalSessionRetentionHours { get; init; } = 24;
+
+    [Description("When true, a failed refresh revokes only the current BFF session.")]
+    public bool RevokeSessionOnRefreshFailure { get; init; } = true;
+
+    [Description("Redis cache TTL, in minutes, for the read-through session cache layer.")]
+    [Range(1, int.MaxValue)]
+    public int CacheTtlMinutes { get; init; } = 10;
 }

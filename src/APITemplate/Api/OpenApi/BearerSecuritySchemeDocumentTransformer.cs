@@ -42,40 +42,52 @@ public sealed class BearerSecuritySchemeDocumentTransformer : IOpenApiDocumentTr
             _keycloak.Realm
         );
 
-        OpenApiSecurityScheme securityScheme = new()
+        OpenApiOAuthFlow authCodeFlow = new()
         {
-            Type = SecuritySchemeType.OAuth2,
-            Description = "Keycloak OAuth2 Authorization Code flow",
-            Flows = new OpenApiOAuthFlows
+            AuthorizationUrl = new Uri(
+                $"{authority}/{AuthConstants.OpenIdConnect.AuthorizationEndpointPath}"
+            ),
+            TokenUrl = new Uri($"{authority}/{AuthConstants.OpenIdConnect.TokenEndpointPath}"),
+            Scopes = new Dictionary<string, string>
             {
-                AuthorizationCode = new OpenApiOAuthFlow
-                {
-                    AuthorizationUrl = new Uri(
-                        $"{authority}/{AuthConstants.OpenIdConnect.AuthorizationEndpointPath}"
-                    ),
-                    TokenUrl = new Uri(
-                        $"{authority}/{AuthConstants.OpenIdConnect.TokenEndpointPath}"
-                    ),
-                    Scopes = new Dictionary<string, string>
-                    {
-                        [AuthConstants.Scopes.OpenId] = "OpenID Connect",
-                        [AuthConstants.Scopes.Profile] = "User profile",
-                        [AuthConstants.Scopes.Email] = "Email address",
-                    },
-                },
+                [AuthConstants.Scopes.OpenId] = "OpenID Connect",
+                [AuthConstants.Scopes.Profile] = "User profile",
+                [AuthConstants.Scopes.Email] = "Email address",
             },
         };
 
         OpenApiComponents components = document.Components ??= new OpenApiComponents();
         components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-        components.SecuritySchemes[AuthConstants.OpenApi.OAuth2Scheme] = securityScheme;
 
-        OpenApiSecurityRequirement requirement = new();
-        requirement[
-            new OpenApiSecuritySchemeReference(AuthConstants.OpenApi.OAuth2Scheme, document)
-        ] = [AuthConstants.Scopes.OpenId];
+        components.SecuritySchemes[AuthConstants.OpenApi.OAuth2ScalarScheme] =
+            new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.OAuth2,
+                Description = $"Scalar UI dev client ({AuthConstants.OpenApi.ScalarClientId})",
+                Flows = new OpenApiOAuthFlows { AuthorizationCode = authCodeFlow },
+            };
+
+        components.SecuritySchemes[AuthConstants.OpenApi.OAuth2PublicScheme] =
+            new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.OAuth2,
+                Description =
+                    $"Public client for mobile and desktop ({AuthConstants.OpenApi.PublicClientId})",
+                Flows = new OpenApiOAuthFlows { AuthorizationCode = authCodeFlow },
+            };
 
         document.Security ??= [];
-        document.Security.Add(requirement);
+
+        OpenApiSecurityRequirement scalarRequirement = new();
+        scalarRequirement[
+            new OpenApiSecuritySchemeReference(AuthConstants.OpenApi.OAuth2ScalarScheme, document)
+        ] = [AuthConstants.Scopes.OpenId];
+        document.Security.Add(scalarRequirement);
+
+        OpenApiSecurityRequirement publicRequirement = new();
+        publicRequirement[
+            new OpenApiSecuritySchemeReference(AuthConstants.OpenApi.OAuth2PublicScheme, document)
+        ] = [AuthConstants.Scopes.OpenId];
+        document.Security.Add(publicRequirement);
     }
 }

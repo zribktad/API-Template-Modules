@@ -49,6 +49,7 @@ public sealed class CleanupRecurringJob
                     _options.BatchSize,
                     token
                 );
+                await _cleanupService.CleanupExpiredBffSessionsAsync(_options.BatchSize, token);
             },
             ct
         );

@@ -8,6 +8,7 @@ using Identity.Repositories;
 using Identity.Security;
 using Identity.Security.ExternalIdentityProviders;
 using Identity.Security.Keycloak;
+using Identity.Security.Sessions;
 using Identity.Security.Tenant;
 using Keycloak.AuthServices.Sdk;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -121,7 +122,6 @@ public static class IdentityModule
             configuration.SectionFor<BffOptions>().Get<BffOptions>() ?? new BffOptions();
         string authority = KeycloakUrlHelper.BuildAuthority(keycloak.AuthServerUrl, keycloak.Realm);
 
-        // Augment existing authentication with BFF schemes.
         services
             .AddAuthentication()
             .AddCookie(AuthConstants.BffSchemes.Cookie, options => ConfigureCookie(options, bff))
@@ -131,8 +131,17 @@ public static class IdentityModule
             );
 
         services.AddScoped<CookieSessionRefresher>();
+        services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
+        services.AddSingleton<IBffSessionTokenProtector, BffSessionTokenProtector>();
+        services.AddSingleton<IBffSessionStore, PostgresCachedBffSessionStore>();
+        services.AddSingleton<BffSessionService>();
+        services.AddSingleton<IBffSessionService>(sp => sp.GetRequiredService<BffSessionService>());
+        services.AddSingleton<IBffSessionRevocationService>(sp =>
+            sp.GetRequiredService<BffSessionService>()
+        );
+        services.AddSingleton<IBffRefreshCoordinator, DragonflyBffRefreshCoordinator>();
+        services.AddScoped<IBffTokenRefreshService, BffTokenRefreshService>();
 
-        // Override JWT bearer events to enable tenant claim validation + user provisioning.
         services.PostConfigure<JwtBearerOptions>(
             JwtBearerDefaults.AuthenticationScheme,
             options =>
@@ -142,13 +151,11 @@ public static class IdentityModule
             }
         );
 
-        // Distributed ticket store (DragonFly/Redis) keeps the cookie payload small.
         services.AddSingleton<DragonflyTicketStore>();
         services
             .AddOptions<CookieAuthenticationOptions>(AuthConstants.BffSchemes.Cookie)
             .Configure<DragonflyTicketStore>((opts, store) => opts.SessionStore = store);
 
-        // Fallback policy: require authenticated user via JWT or BFF cookie.
         services
             .AddAuthorizationBuilder()
             .SetFallbackPolicy(
@@ -186,8 +193,6 @@ public static class IdentityModule
                         )
             );
 
-        // Token-endpoint client used by the BFF session refresh flow. Keep calls short and retry
-        // only transient failures so cookie validation does not hang on slow Keycloak responses.
         services
             .AddHttpClient(
                 AuthConstants.HttpClients.KeycloakToken,
@@ -215,7 +220,9 @@ public static class IdentityModule
         options.Cookie.Name = bff.CookieName;
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(bff.SessionTimeoutMinutes);
+        options.Cookie.Path = "/";
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(bff.SessionIdleTimeoutMinutes);
         options.SlidingExpiration = true;
         options.Events.OnRedirectToLogin = context =>
         {
@@ -298,7 +305,7 @@ public static class IdentityModule
     {
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
-        services.AddScoped<IKeycloakService, KeycloakService>();
+        services.AddSingleton<IKeycloakService, KeycloakService>();
         services.AddSingleton<ITenantCodeConflictDetector, PostgresTenantCodeConflictDetector>();
         services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
     }

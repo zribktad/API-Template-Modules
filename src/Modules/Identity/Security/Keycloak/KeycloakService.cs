@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using Identity.Logging;
 using Identity.Options;
 using Microsoft.Extensions.Logging;
@@ -26,7 +27,7 @@ public sealed class KeycloakService : IKeycloakService
         _logger = logger;
     }
 
-    public async Task<KeycloakTokenResponse?> RefreshSessionAsync(
+    public async Task<KeycloakRefreshResult> RefreshSessionAsync(
         string refreshToken,
         CancellationToken ct = default
     )
@@ -36,7 +37,9 @@ public sealed class KeycloakService : IKeycloakService
             _keycloakOptions.Realm
         );
 
-        HttpClient client = _httpClientFactory.CreateClient(AuthConstants.HttpClients.KeycloakToken);
+        HttpClient client = _httpClientFactory.CreateClient(
+            AuthConstants.HttpClients.KeycloakToken
+        );
 
         try
         {
@@ -51,7 +54,11 @@ public sealed class KeycloakService : IKeycloakService
                 _logger.KeycloakTokenEndpointReturnedNonSuccessDuringRefresh(
                     (int)response.StatusCode
                 );
-                return null;
+                string responseBody = await response.Content.ReadAsStringAsync(ct);
+                if (IsRejectedRefresh(responseBody))
+                    return new KeycloakRefreshResult(KeycloakRefreshStatus.Rejected);
+
+                return new KeycloakRefreshResult(KeycloakRefreshStatus.ProviderError);
             }
 
             KeycloakTokenResponse? tokenResponse =
@@ -59,10 +66,10 @@ public sealed class KeycloakService : IKeycloakService
             if (!IsValidTokenResponse(tokenResponse))
             {
                 _logger.KeycloakRefreshResponseInvalidRejectingPrincipal();
-                return null;
+                return new KeycloakRefreshResult(KeycloakRefreshStatus.ProviderError);
             }
 
-            return tokenResponse;
+            return new KeycloakRefreshResult(KeycloakRefreshStatus.Success, tokenResponse);
         }
         catch (OperationCanceledException)
         {
@@ -71,26 +78,30 @@ public sealed class KeycloakService : IKeycloakService
         catch (Exception ex)
         {
             _logger.TokenRefreshFailedRejectingPrincipal(ex);
-            return null;
+            return new KeycloakRefreshResult(KeycloakRefreshStatus.ProviderError);
         }
     }
 
     private FormUrlEncodedContent BuildRefreshContent(string refreshToken)
     {
-        Dictionary<string, string> formParams = new()
-        {
-            [AuthConstants.OAuth2FormParameters.GrantType] = AuthConstants
-                .OAuth2GrantTypes
-                .RefreshToken,
-            [AuthConstants.OAuth2FormParameters.ClientId] = _keycloakOptions.Resource,
-            [AuthConstants.OAuth2FormParameters.RefreshToken] = refreshToken,
-        };
+        List<KeyValuePair<string, string>> formParams =
+        [
+            new(
+                AuthConstants.OAuth2FormParameters.GrantType,
+                AuthConstants.OAuth2GrantTypes.RefreshToken
+            ),
+            new(AuthConstants.OAuth2FormParameters.ClientId, _keycloakOptions.Resource),
+            new(AuthConstants.OAuth2FormParameters.RefreshToken, refreshToken),
+        ];
 
         if (!string.IsNullOrEmpty(_keycloakOptions.Credentials.Secret))
         {
-            formParams[AuthConstants.OAuth2FormParameters.ClientSecret] = _keycloakOptions
-                .Credentials
-                .Secret;
+            formParams.Add(
+                new(
+                    AuthConstants.OAuth2FormParameters.ClientSecret,
+                    _keycloakOptions.Credentials.Secret
+                )
+            );
         }
 
         return new FormUrlEncodedContent(formParams);
@@ -101,5 +112,29 @@ public sealed class KeycloakService : IKeycloakService
         return tokenResponse is not null
             && !string.IsNullOrWhiteSpace(tokenResponse.AccessToken)
             && tokenResponse.ExpiresIn > 0;
+    }
+
+    private static bool IsRejectedRefresh(string responseBody)
+    {
+        if (string.IsNullOrWhiteSpace(responseBody))
+            return false;
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(responseBody);
+            if (!document.RootElement.TryGetProperty("error", out JsonElement errorElement))
+                return false;
+
+            string? error = errorElement.GetString();
+            return string.Equals(
+                error,
+                AuthConstants.OAuth2Errors.InvalidGrant,
+                StringComparison.OrdinalIgnoreCase
+            );
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 }

@@ -1,9 +1,9 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using APITemplate.Application.Common.Security;
-using APITemplate.Domain.Enums;
 using APITemplate.Tests.Integration.Helpers;
+using Identity.Enums;
+using Identity.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -15,6 +15,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Auth;
 
+[Trait("Category", "Integration.Docker")]
 public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFactory>
 {
     private readonly BffSecurityWebApplicationFactory _factory;
@@ -90,6 +91,34 @@ public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFa
         body.ShouldContain("X-CSRF");
         body.ShouldContain("headerName");
         body.ShouldContain("headerValue");
+    }
+
+    [Fact]
+    public async Task LogoutWithCookieAuth_WithoutCsrfHeader_Returns403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Test-Cookie-Auth", "1");
+
+        var response = await client.GetAsync(AuthConstants.BffRoutes.Logout, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task LogoutWithCookieAuth_WithCsrfHeader_DoesNotReturn403()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Test-Cookie-Auth", "1");
+        client.DefaultRequestHeaders.Add(
+            AuthConstants.Csrf.HeaderName,
+            AuthConstants.Csrf.HeaderValue
+        );
+
+        var response = await client.GetAsync(AuthConstants.BffRoutes.Logout, ct);
+
+        response.StatusCode.ShouldNotBe(HttpStatusCode.Forbidden);
     }
 }
 

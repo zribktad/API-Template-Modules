@@ -77,8 +77,11 @@ public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
 
         var components = doc.RootElement.GetProperty("components");
         var securitySchemes = components.GetProperty("securitySchemes");
-        securitySchemes.TryGetProperty("OAuth2", out var oauth2).ShouldBeTrue();
-        oauth2.GetProperty("type").GetString().ShouldBe("oauth2");
+        securitySchemes.TryGetProperty("OAuth2-Scalar", out var oauth2Scalar).ShouldBeTrue();
+        oauth2Scalar.GetProperty("type").GetString().ShouldBe("oauth2");
+
+        securitySchemes.TryGetProperty("OAuth2-Public", out var oauth2Public).ShouldBeTrue();
+        oauth2Public.GetProperty("type").GetString().ShouldBe("oauth2");
     }
 
     [Fact]
@@ -93,9 +96,6 @@ public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
         content.ShouldContain("scalar");
         content.ShouldContain("authorizationUrl");
         content.ShouldContain("tokenUrl");
-        content.ShouldContain("x-scalar-redirect-uri");
-        content.ShouldContain("x-usePkce");
-        content.ShouldContain("api-template-scalar");
     }
 
     [Fact]

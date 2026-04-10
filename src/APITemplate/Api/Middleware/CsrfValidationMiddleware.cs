@@ -16,8 +16,15 @@ public sealed class CsrfValidationMiddleware(
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        if (
+        bool isBffLogoutRequest =
             HttpMethods.IsGet(context.Request.Method)
+            && context.Request.Path.Equals(
+                AuthConstants.BffRoutes.Logout,
+                StringComparison.OrdinalIgnoreCase
+            );
+
+        if (
+            (HttpMethods.IsGet(context.Request.Method) && !isBffLogoutRequest)
             || HttpMethods.IsHead(context.Request.Method)
             || HttpMethods.IsOptions(context.Request.Method)
         )

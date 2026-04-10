@@ -14,7 +14,7 @@ namespace APITemplate.Tests.Integration;
 ///     Hosts the modular API with real PostgreSQL and MongoDB via Testcontainers. Requires a local Docker engine.
 ///     Containers are created in <see cref="InitializeAsync" /> so fixture construction does not probe Docker.
 /// </summary>
-public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private PostgreSqlContainer? _postgres;
     private MongoDbContainer? _mongo;

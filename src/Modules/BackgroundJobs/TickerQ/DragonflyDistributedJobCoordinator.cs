@@ -1,6 +1,7 @@
 using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SharedKernel.Infrastructure.Redis;
 using StackExchange.Redis;
 
 namespace BackgroundJobs.TickerQ;
@@ -17,10 +18,6 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
         end
         return 0
         """
-    );
-
-    private static readonly LuaScript ReleaseLockScript = LuaScript.Prepare(
-        "if redis.call('get', @key) == @value then return redis.call('del', @key) else return 0 end"
     );
 
     private readonly IConnectionMultiplexer _connectionMultiplexer;
@@ -52,7 +49,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
         }
 
         string lockKey = $"TickerQ:Leader:{_options.TickerQ.InstanceNamePrefix}:{jobName}";
-        string lockValue = $"{Environment.MachineName}:{Environment.ProcessId}:{Guid.NewGuid():N}";
+        string lockValue = RedisLuaScripts.GenerateLockOwnerToken();
 
         bool acquired = await database.StringSetAsync(
             lockKey,
@@ -166,6 +163,6 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
 
     private static Task ReleaseAsync(IDatabase database, string key, string value)
     {
-        return database.ScriptEvaluateAsync(ReleaseLockScript, new { key, value });
+        return database.ScriptEvaluateAsync(RedisLuaScripts.ReleaseLock, new { key, value });
     }
 }

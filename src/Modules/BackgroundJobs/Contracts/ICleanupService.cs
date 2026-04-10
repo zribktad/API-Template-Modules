@@ -35,4 +35,10 @@ public interface ICleanupService
         int batchSize,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Permanently deletes BFF sessions that are revoked (past 24h retention), idle-expired,
+    ///     or have exceeded the absolute lifetime, processed in batches of <paramref name="batchSize" />.
+    /// </summary>
+    public Task CleanupExpiredBffSessionsAsync(int batchSize, CancellationToken ct = default);
 }

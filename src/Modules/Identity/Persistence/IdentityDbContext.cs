@@ -11,17 +11,12 @@ public sealed class IdentityDbContext : ModuleDbContext
         TimeProvider timeProvider,
         IAuditableEntityStateManager entityStateManager
     )
-        : base(
-            options,
-            tenantProvider,
-            actorProvider,
-            timeProvider,
-            entityStateManager
-        ) { }
+        : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager) { }
 
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<TenantInvitation> TenantInvitations => Set<TenantInvitation>();
+    public DbSet<BffPersistedSession> BffSessions => Set<BffPersistedSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

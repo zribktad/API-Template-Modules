@@ -1,13 +1,10 @@
 using System.Security.Claims;
-using APITemplate.Tests.Unit.Helpers;
-using Identity.Options;
 using Identity.Security;
-using Identity.Security.Keycloak;
+using Identity.Security.Sessions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -16,18 +13,17 @@ namespace APITemplate.Tests.Unit.Identity;
 
 public sealed class CookieSessionRefresherTests
 {
-    private static readonly DateTimeOffset FixedNow = DateTimeOffset.Parse("2026-04-10T10:00:00Z");
+    private readonly Mock<IBffSessionService> _sessionService = new();
+    private readonly Mock<IBffSessionPrincipalFactory> _principalFactory = new();
+    private readonly Mock<IBffTokenRefreshService> _refreshService = new();
 
-    private readonly Mock<IKeycloakService> _keycloakService = new();
-    private readonly FakeTimeProvider _timeProvider = new(FixedNow);
-
-    private CookieSessionRefresher CreateSut(int refreshThresholdMinutes = 2)
+    private CookieSessionRefresher CreateSut()
     {
         return new CookieSessionRefresher(
-            Options.Create(new BffOptions { TokenRefreshThresholdMinutes = refreshThresholdMinutes }),
-            _keycloakService.Object,
-            NullLogger<CookieSessionRefresher>.Instance,
-            _timeProvider
+            _sessionService.Object,
+            _principalFactory.Object,
+            _refreshService.Object,
+            NullLogger<CookieSessionRefresher>.Instance
         );
     }
 
@@ -35,95 +31,86 @@ public sealed class CookieSessionRefresherTests
     public async Task ValidatePrincipal_WhenRefreshNotRequired_DoesNothing()
     {
         CookieSessionRefresher sut = CreateSut();
-        CookieValidatePrincipalContext context = CreateContext(
-            expiresAt: FixedNow.AddMinutes(10).ToString("o"),
-            refreshToken: "refresh-token"
-        );
+        CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
+        BffSessionRecord session = CreateSession("access-1", "refresh-1");
+
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _refreshService
+            .Setup(x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(BffRefreshOutcome.NotRequired(session));
 
         await sut.ValidatePrincipal(context);
 
         context.ShouldRenew.ShouldBeFalse();
         context.Principal.ShouldNotBeNull();
-        _keycloakService.Verify(
-            x => x.RefreshSessionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
     }
 
     [Fact]
     public async Task ValidatePrincipal_WhenRefreshSucceeds_RenewsCookieAndUpdatesTokens()
     {
         CookieSessionRefresher sut = CreateSut();
-        CookieValidatePrincipalContext context = CreateContext(
-            expiresAt: FixedNow.AddMinutes(1).ToString("o"),
-            refreshToken: "old-refresh",
-            accessToken: "old-access"
+        CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
+        BffSessionRecord session = CreateSession("access-1", "refresh-1");
+        BffSessionRecord refreshedSession = CreateSession("new-access", "new-refresh");
+        ClaimsPrincipal refreshedPrincipal = new(
+            new ClaimsIdentity(
+                [new Claim(ClaimTypes.NameIdentifier, refreshedSession.UserId)],
+                AuthConstants.BffSchemes.Cookie
+            )
         );
-        _keycloakService
-            .Setup(x => x.RefreshSessionAsync("old-refresh", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new KeycloakTokenResponse("new-access", "new-refresh", 300));
+
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _refreshService
+            .Setup(x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(BffRefreshOutcome.Success(refreshedSession));
+        _principalFactory
+            .Setup(x => x.CreatePrincipal(refreshedSession))
+            .Returns(refreshedPrincipal);
 
         await sut.ValidatePrincipal(context);
 
         context.ShouldRenew.ShouldBeTrue();
-        context.Properties.GetTokenValue(AuthConstants.CookieTokenNames.AccessToken).ShouldBe(
-            "new-access"
-        );
-        context.Properties.GetTokenValue(AuthConstants.CookieTokenNames.RefreshToken).ShouldBe(
-            "new-refresh"
-        );
-        context.Properties.GetTokenValue(AuthConstants.CookieTokenNames.ExpiresAt).ShouldBe(
-            FixedNow.AddSeconds(300).ToString("o")
-        );
+        context.Principal.ShouldBe(refreshedPrincipal);
+        context
+            .Properties.GetTokenValue(AuthConstants.CookieTokenNames.AccessToken)
+            .ShouldBe("new-access");
+        context
+            .Properties.GetTokenValue(AuthConstants.CookieTokenNames.RefreshToken)
+            .ShouldBe("new-refresh");
     }
 
     [Fact]
-    public async Task ValidatePrincipal_WhenExpiresAtMissing_RejectsPrincipal()
+    public async Task ValidatePrincipal_WhenRefreshFails_RejectsPrincipal()
     {
         CookieSessionRefresher sut = CreateSut();
-        CookieValidatePrincipalContext context = CreateContext(
-            expiresAt: null,
-            refreshToken: "refresh-token"
-        );
+        CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
+        BffSessionRecord session = CreateSession("access-1", "refresh-1");
 
-        await sut.ValidatePrincipal(context);
-
-        context.Principal.ShouldBeNull();
-        _keycloakService.Verify(
-            x => x.RefreshSessionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-    }
-
-    [Fact]
-    public async Task ValidatePrincipal_WhenRefreshTokenMissing_RejectsPrincipal()
-    {
-        CookieSessionRefresher sut = CreateSut();
-        CookieValidatePrincipalContext context = CreateContext(
-            expiresAt: FixedNow.AddMinutes(1).ToString("o"),
-            refreshToken: null
-        );
-
-        await sut.ValidatePrincipal(context);
-
-        context.Principal.ShouldBeNull();
-        _keycloakService.Verify(
-            x => x.RefreshSessionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-    }
-
-    [Fact]
-    public async Task ValidatePrincipal_WhenRefreshReturnsNull_RejectsPrincipal()
-    {
-        CookieSessionRefresher sut = CreateSut();
-        CookieValidatePrincipalContext context = CreateContext(
-            expiresAt: FixedNow.AddMinutes(1).ToString("o"),
-            refreshToken: "refresh-token"
-        );
-        _keycloakService
-            .Setup(x => x.RefreshSessionAsync("refresh-token", It.IsAny<CancellationToken>()))
-            .ReturnsAsync((KeycloakTokenResponse?)null);
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _refreshService
+            .Setup(x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(BffRefreshOutcome.Failed(BffSessionRevocationReason.RefreshRejected));
 
         await sut.ValidatePrincipal(context);
 
@@ -132,44 +119,62 @@ public sealed class CookieSessionRefresherTests
     }
 
     [Fact]
-    public async Task ValidatePrincipal_WhenRequestIsCanceled_PropagatesOperationCanceled()
+    public async Task ValidatePrincipal_WhenSessionNotFound_RejectsPrincipal()
     {
         CookieSessionRefresher sut = CreateSut();
-        CancellationTokenSource cts = new();
-        CookieValidatePrincipalContext context = CreateContext(
-            expiresAt: FixedNow.AddMinutes(1).ToString("o"),
-            refreshToken: "refresh-token"
-        );
-        context.HttpContext.RequestAborted = cts.Token;
-        cts.Cancel();
-        _keycloakService
-            .Setup(x => x.RefreshSessionAsync("refresh-token", It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new OperationCanceledException(context.HttpContext.RequestAborted));
+        CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
 
-        await Should.ThrowAsync<OperationCanceledException>(() => sut.ValidatePrincipal(context));
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((BffSessionRecord?)null);
+
+        await sut.ValidatePrincipal(context);
+
+        context.Principal.ShouldBeNull();
     }
 
-    private static CookieValidatePrincipalContext CreateContext(
-        string? expiresAt,
-        string? refreshToken,
-        string? accessToken = null
-    )
+    [Fact]
+    public async Task ValidatePrincipal_WhenSessionCookieMissing_RejectsPrincipal()
+    {
+        CookieSessionRefresher sut = CreateSut();
+        CookieValidatePrincipalContext context = CreateContext(sessionId: null);
+
+        await sut.ValidatePrincipal(context);
+
+        context.Principal.ShouldBeNull();
+    }
+
+    private static CookieValidatePrincipalContext CreateContext(string? sessionId)
     {
         DefaultHttpContext httpContext = new();
+
         ClaimsPrincipal principal = new(
-            new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())], "cookie")
+            new ClaimsIdentity(
+                [new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())],
+                "cookie"
+            )
         );
         AuthenticationProperties properties = new();
+        if (sessionId is not null)
+            properties.Items[AuthConstants.SessionProperties.SessionId] = sessionId;
 
-        List<AuthenticationToken> tokens = [];
-        if (expiresAt is not null)
-            tokens.Add(new AuthenticationToken { Name = AuthConstants.CookieTokenNames.ExpiresAt, Value = expiresAt });
-        if (refreshToken is not null)
-            tokens.Add(new AuthenticationToken { Name = AuthConstants.CookieTokenNames.RefreshToken, Value = refreshToken });
-        if (accessToken is not null)
-            tokens.Add(new AuthenticationToken { Name = AuthConstants.CookieTokenNames.AccessToken, Value = accessToken });
-
-        properties.StoreTokens(tokens);
+        properties.StoreTokens([
+            new AuthenticationToken
+            {
+                Name = AuthConstants.CookieTokenNames.AccessToken,
+                Value = "old-access",
+            },
+            new AuthenticationToken
+            {
+                Name = AuthConstants.CookieTokenNames.RefreshToken,
+                Value = "old-refresh",
+            },
+            new AuthenticationToken
+            {
+                Name = AuthConstants.CookieTokenNames.ExpiresAt,
+                Value = "2026-04-10T10:05:00+00:00",
+            },
+        ]);
 
         AuthenticationTicket ticket = new(principal, properties, AuthConstants.BffSchemes.Cookie);
         AuthenticationScheme scheme = new(
@@ -184,5 +189,22 @@ public sealed class CookieSessionRefresherTests
             new CookieAuthenticationOptions(),
             ticket
         );
+    }
+
+    private static BffSessionRecord CreateSession(string accessToken, string refreshToken)
+    {
+        return new BffSessionRecord
+        {
+            SessionId = "session-1",
+            UserId = Guid.NewGuid().ToString(),
+            Subject = Guid.NewGuid().ToString(),
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            AccessTokenExpiresAtUtc = DateTimeOffset.Parse("2026-04-10T10:05:00Z"),
+            CreatedAtUtc = DateTimeOffset.Parse("2026-04-10T10:00:00Z"),
+            LastSeenAtUtc = DateTimeOffset.Parse("2026-04-10T10:00:00Z"),
+            LastRefreshedAtUtc = DateTimeOffset.Parse("2026-04-10T10:00:00Z"),
+            Version = 1,
+        };
     }
 }

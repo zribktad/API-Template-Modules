@@ -41,11 +41,17 @@ jobs:
           HUSKY: '0'
         run: dotnet build APITemplate.slnx --no-restore --configuration Release
 
-      - name: Run tests
+      - name: Run unit tests
         env:
           RESTORE_TOOLS: '0'
           HUSKY: '0'
         run: dotnet test APITemplate.slnx --no-build --no-restore --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: Run integration tests
+        env:
+          RESTORE_TOOLS: '0'
+          HUSKY: '0'
+        run: dotnet test APITemplate.slnx --no-build --no-restore --configuration Release --verbosity normal /p:RunDockerIntegration=true -- RunConfiguration.TestCaseFilter="Category=Integration.Docker"
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
