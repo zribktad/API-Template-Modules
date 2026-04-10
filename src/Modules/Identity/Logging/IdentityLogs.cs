@@ -197,6 +197,14 @@ internal static partial class IdentityLogs
     )]
     public static partial void ExpiredInvitationsCleanedUp(this ILogger logger, int count);
 
+    // CleanupExpiredBffSessionsHandler (3031)
+    [LoggerMessage(
+        EventId = 3031,
+        Level = LogLevel.Information,
+        Message = "Cleaned up {Count} expired BFF sessions."
+    )]
+    public static partial void ExpiredBffSessionsCleanedUp(this ILogger logger, int count);
+
     // TenantClaimValidator / CookieSessionRefresher (3040-3045)
     [LoggerMessage(
         EventId = 3040,
@@ -267,5 +275,42 @@ internal static partial class IdentityLogs
         Level = LogLevel.Warning,
         Message = "Keycloak refresh response was missing a valid access token or expiry. Rejecting principal."
     )]
-    public static partial void KeycloakRefreshResponseInvalidRejectingPrincipal(this ILogger logger);
+    public static partial void KeycloakRefreshResponseInvalidRejectingPrincipal(
+        this ILogger logger
+    );
+
+    // PostgresCachedBffSessionStore (3048-3049)
+    [LoggerMessage(
+        EventId = 3048,
+        Level = LogLevel.Warning,
+        Message = "Failed to unprotect session {SessionId} tokens — possible key rotation."
+    )]
+    public static partial void BffSessionUnprotectFailed(
+        this ILogger logger,
+        Exception exception,
+        string sessionId
+    );
+
+    [LoggerMessage(
+        EventId = 3049,
+        Level = LogLevel.Warning,
+        Message = "Malformed protected payload for session {SessionId}."
+    )]
+    public static partial void BffSessionPayloadMalformed(
+        this ILogger logger,
+        Exception exception,
+        string sessionId
+    );
+
+    // BffSessionService (3050)
+    [LoggerMessage(
+        EventId = 3050,
+        Level = LogLevel.Warning,
+        Message = "Failed to mutate session {SessionId} after {MaxAttempts} optimistic concurrency attempts."
+    )]
+    public static partial void BffSessionMutationFailed(
+        this ILogger logger,
+        string sessionId,
+        int maxAttempts
+    );
 }

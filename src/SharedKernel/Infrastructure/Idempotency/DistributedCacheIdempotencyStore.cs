@@ -1,5 +1,6 @@
 using System.Text.Json;
 using SharedKernel.Application.Contracts;
+using SharedKernel.Infrastructure.Redis;
 using StackExchange.Redis;
 
 namespace SharedKernel.Infrastructure.Idempotency;
@@ -12,10 +13,6 @@ namespace SharedKernel.Infrastructure.Idempotency;
 public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
 {
     private const string KeyPrefix = "idempotency:";
-
-    private static readonly LuaScript ReleaseLockScript = LuaScript.Prepare(
-        "if redis.call('get', @key) == @value then return redis.call('del', @key) else return 0 end"
-    );
 
     private static readonly LuaScript AcquireLockScript = LuaScript.Prepare(
         "if redis.call('exists', @resultKey) == 1 then return nil end "
@@ -96,7 +93,7 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
     {
         string lockKey = KeyPrefix + key + IdempotencyStoreConstants.LockSuffix;
         await _database.ScriptEvaluateAsync(
-            ReleaseLockScript,
+            RedisLuaScripts.ReleaseLock,
             new { key = (RedisKey)lockKey, value = (RedisValue)lockToken }
         );
     }

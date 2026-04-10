@@ -59,6 +59,12 @@ public static class AuthConstants
         public const string RefreshToken = "refresh_token";
     }
 
+    /// <summary>OAuth2 error codes returned in token endpoint responses.</summary>
+    public static class OAuth2Errors
+    {
+        public const string InvalidGrant = "invalid_grant";
+    }
+
     /// <summary>OAuth2 grant type string values used in token requests.</summary>
     public static class OAuth2GrantTypes
     {

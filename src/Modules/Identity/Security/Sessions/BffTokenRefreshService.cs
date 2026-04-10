@@ -65,8 +65,8 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
 
         return await _refreshCoordinator.ExecuteAsync(
             sessionId,
-            async leaderCt => await RefreshAsLeaderAsync(sessionId, leaderCt),
-            async followerCt => await ReloadFollowerOutcomeAsync(sessionId, followerCt),
+            leaderCt => RefreshAsLeaderAsync(session, leaderCt),
+            followerCt => ReloadFollowerOutcomeAsync(sessionId, followerCt),
             ct
         );
     }
@@ -78,14 +78,11 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
     }
 
     private async Task<BffRefreshOutcome> RefreshAsLeaderAsync(
-        string sessionId,
+        BffSessionRecord currentSession,
         CancellationToken ct
     )
     {
-        BffSessionRecord? currentSession = await _sessionStore.GetAsync(sessionId, ct);
-        if (currentSession is null)
-            return BffRefreshOutcome.Failed(BffSessionRevocationReason.SessionCorrupted);
-
+        // Re-check after acquiring the lock — another leader may have refreshed already.
         if (!IsRefreshRequired(currentSession))
             return BffRefreshOutcome.NotRequired(currentSession);
 
@@ -105,7 +102,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
                     : BffSessionRevocationReason.ProviderSessionInvalid;
 
             if (_options.RevokeSessionOnRefreshFailure)
-                await _revocationService.RevokeAsync(sessionId, reason, ct);
+                await _revocationService.RevokeAsync(currentSession.SessionId, reason, ct);
 
             return BffRefreshOutcome.Failed(reason);
         }
@@ -128,7 +125,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
             ct
         );
         if (!updated)
-            return await ReloadFollowerOutcomeAsync(sessionId, ct);
+            return await ReloadFollowerOutcomeAsync(currentSession.SessionId, ct);
 
         return BffRefreshOutcome.Success(updatedSession);
     }

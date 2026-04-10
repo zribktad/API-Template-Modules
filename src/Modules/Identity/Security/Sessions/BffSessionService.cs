@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Identity.Logging;
 using Identity.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
@@ -171,11 +172,7 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
                 return;
         }
 
-        _logger.LogWarning(
-            "Failed to mutate session {SessionId} after {MaxAttempts} optimistic concurrency attempts",
-            sessionId,
-            MaxAttempts
-        );
+        _logger.BffSessionMutationFailed(sessionId, MaxAttempts);
     }
 
     private BffSessionRecord CreateSessionRecord(
@@ -192,12 +189,13 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
         ClaimsPrincipal principal = ticket.Principal;
         DateTimeOffset now = _timeProvider.GetUtcNow();
 
+        string? nameIdentifier = principal.FindFirstValue(ClaimTypes.NameIdentifier);
         string subject =
             principal.FindFirstValue(AuthConstants.Claims.Subject)
-            ?? principal.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? nameIdentifier
             ?? string.Empty;
 
-        string userId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? subject;
+        string userId = nameIdentifier ?? subject;
 
         string accessToken =
             ticket.Properties.GetTokenValue(AuthConstants.CookieTokenNames.AccessToken)
@@ -239,7 +237,7 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
     private bool HasExceededAbsoluteLifetime(BffSessionRecord session)
     {
         DateTimeOffset absoluteExpiry = session.CreatedAtUtc.AddMinutes(
-            _options.GetEffectiveSessionAbsoluteLifetimeMinutes()
+            _options.SessionAbsoluteLifetimeMinutes
         );
         return _timeProvider.GetUtcNow() >= absoluteExpiry;
     }

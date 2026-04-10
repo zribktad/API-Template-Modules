@@ -22,7 +22,7 @@ graph TB
     subgraph APP[ASP.NET Core API]
         BFF[BffController<br/>/api/v1/bff/login<br/>/api/v1/bff/login/{idpHint}<br/>/api/v1/bff/external-providers<br/>/api/v1/bff/logout<br/>/api/v1/bff/user<br/>/api/v1/bff/csrf]
         JWT_VAL[JwtBearer Middleware<br/>validates Bearer token]
-        COOKIE_VAL[Cookie Middleware<br/>looks up session in DragonFly]
+        COOKIE_VAL[Cookie Middleware<br/>looks up session in PostgreSQL + Redis cache]
         REFRESH[CookieSessionRefresher<br/>proactive token refresh<br/>via BffTokenRefreshService]
         CSRF[CsrfValidationMiddleware<br/>X-CSRF: 1 required]
         TENANT[TenantClaimValidator<br/>validates tenant_id claim]
@@ -30,8 +30,12 @@ graph TB
         AUTHZ[Authorization Middleware<br/>Fallback: Bearer OR Cookie]
     end
 
+    subgraph POSTGRES[PostgreSQL]
+        PG_STORE[BffPersistedSession table<br/>primary session store<br/>tokens encrypted at rest]
+    end
+
     subgraph SESSION[DragonFly / Redis]
-        STORE[DragonflyBffSessionStore<br/>bff:session:GUID → BffSessionRecord<br/>tokens encrypted at rest]
+        CACHE[Redis Cache<br/>bff:session:GUID → BffSessionRecord<br/>read-through cache, 10 min TTL]
         LOCK[Refresh Coordinator<br/>bff:session:GUID:refresh:lock<br/>bff:session:GUID:refresh:result]
         DP[DataProtection Keys<br/>DataProtection:Keys]
     end
@@ -46,7 +50,8 @@ graph TB
     SCALAR -->|OAuth2 Authorization Code| REALM
     BFF -->|OIDC Code Flow| REALM
     JWT_VAL --> TENANT --> CLAIM --> AUTHZ
-    COOKIE_VAL --> STORE
+    COOKIE_VAL --> CACHE
+    CACHE -.->|miss| PG_STORE
     COOKIE_VAL --> REFRESH
     REFRESH -->|grant_type=refresh_token| REALM
     REFRESH --> LOCK
@@ -62,7 +67,7 @@ graph TB
 | **Scalar OAuth2**      | Scalar UI (dev tool)           | Yes (in Scalar memory only)                   |
 | **JWT Bearer**         | Mobile apps, Postman, curl     | Yes (client manages it)                       |
 | **Client Credentials** | Microservices, background jobs | N/A (machine-to-machine)                      |
-| **BFF Cookie**         | SPA frontend (browser)         | **No** — httpOnly cookie, tokens in DragonFly |
+| **BFF Cookie**         | SPA frontend (browser)         | **No** — httpOnly cookie, tokens in PostgreSQL (cached in Redis) |
 
 ---
 
@@ -277,16 +282,16 @@ sequenceDiagram
     KC-->>OIDC: access_token + refresh_token + id_token
     OIDC->>OIDC: TenantClaimValidator.OnTokenValidated<br/>maps claims, validates tenant_id
     OIDC->>OIDC: DragonflyTicketStore.StoreAsync<br/>→ BffSessionService.CreateSessionAsync
-    Note over VK: BffSessionRecord created:<br/>tokens encrypted via IDataProtector<br/>key = bff:session:&lt;GUID&gt;
-    OIDC->>VK: Store BffSessionRecord (JSON)<br/>TTL = SessionIdleTimeoutMinutes (60 min)
+    Note over VK: BffSessionRecord created:<br/>tokens encrypted via IDataProtector<br/>PostgreSQL = primary, Redis = cache
+    OIDC->>VK: Store BffPersistedSession (PostgreSQL)<br/>+ Redis cache (TTL = CacheTtlMinutes)
     OIDC-->>SPA: Set-Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>HttpOnly, SameSite=Lax, Secure<br/>302 → /dashboard
 ```
 
-**Session record contents** — the cookie carries only the opaque `SessionId` (GUID). The server-side `BffSessionRecord` in DragonFly contains:
+**Session record contents** — the cookie carries only the opaque `SessionId` (GUID). The server-side `BffPersistedSession` in PostgreSQL (cached in Redis) contains:
 
 | Field | Description |
 |-------|-------------|
-| `SessionId` | Opaque GUID used as cookie value and Redis key |
+| `SessionId` | Opaque GUID used as cookie value and store lookup key |
 | `UserId`, `Subject` | User and IdP subject identifiers |
 | `Provider` | Identity provider type (`Keycloak`) |
 | `TenantId`, `Roles`, `Email`, `DisplayName` | Identity claims projected from the OIDC ticket |
@@ -376,7 +381,7 @@ sequenceDiagram
 
     SPA->>BFF: GET /api/v1/bff/logout<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;
     BFF->>VK: DragonflyTicketStore.RemoveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.RevokeAsync(Logout)
-    Note over VK: Session marked Revoked<br/>(not deleted — RevocationReason = Logout)
+    Note over VK: Session soft-deleted in PostgreSQL<br/>removed from Redis cache<br/>(RevocationReason = Logout)
     BFF-->>SPA: Clear cookie .APITemplate.Auth
     BFF-->>SPA: 302 → Keycloak end_session_endpoint
     SPA->>KC: End session (SSO invalidated)
@@ -385,12 +390,12 @@ sequenceDiagram
 
 ### 3d. Session revocation
 
-Revocation means the session is **marked as `Revoked` in Redis** — it is **not deleted**. The `BffSessionRecord` stays in the store with `Status = Revoked`, `RevokedAtUtc`, and `RevocationReason` populated. Any subsequent request that loads a revoked session gets rejected immediately (`BffSessionService.GetSessionAsync` returns `null` for revoked sessions).
+Revocation means the session is **soft-deleted in PostgreSQL** and **removed from Redis cache**. The `BffPersistedSession` is marked with `IsDeleted = true` and `Status = Revoked`, `RevokedAtUtc`, and `RevocationReason` populated. Any subsequent request that loads a revoked session gets rejected immediately (`BffSessionService.GetSessionAsync` returns `null` for revoked sessions).
 
 This is intentional — keeping the record allows:
-- **Audit trail**: the reason and timestamp of revocation remain readable until the Redis key expires
-- **No race conditions**: concurrent requests see the revoked status rather than a missing key (which could be confused with a cache eviction)
-- **Consistent behavior**: the session eventually disappears when the Redis TTL expires, but until then it is explicitly marked as dead
+- **Audit trail**: the reason and timestamp of revocation remain in PostgreSQL for 24h (cleanup job retention)
+- **No race conditions**: concurrent requests see the soft-deleted status rather than a missing row
+- **Consistent behavior**: the session is permanently deleted by the hourly cleanup job after the retention window
 
 **Revocation reasons:**
 
@@ -404,43 +409,53 @@ This is intentional — keeping the record allows:
 | `ProviderSessionInvalid` | Keycloak HTTP/network error during refresh (non-`invalid_grant` failure) |
 | `AbsoluteLifetimeExceeded` | `CreatedAtUtc + SessionAbsoluteLifetimeMinutes` (480 min) has passed |
 
-### 3e. Redis cache keys and TTL behavior
+### 3e. Storage architecture and Redis cache keys
 
-All BFF session state lives in DragonFly/Redis. Three key patterns are used:
+**PostgreSQL** is the primary durable session store (`BffPersistedSession` table). **Redis/DragonFly** acts as a read-through cache with short TTL (`CacheTtlMinutes`, default 10 min). This design supports offline sessions (`offline_access` scope) — the refresh token in PostgreSQL survives Redis restarts and long idle periods (up to 30 days).
 
-| Key pattern | Content | TTL | Set by |
-|-------------|---------|-----|--------|
-| `bff:session:{id}` | `BffSessionRecord` as JSON (tokens encrypted) | `SessionIdleTimeoutMinutes` (60 min), **sliding** | `DragonflyBffSessionStore` |
-| `bff:session:{id}:refresh:lock` | Lock owner identifier (`machine:pid:guid`) | `RefreshLockTimeoutMilliseconds` (5s), fixed | `DragonflyBffRefreshCoordinator` |
-| `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed | `DragonflyBffRefreshCoordinator` |
+| Layer | Key / Table | Content | TTL | Set by |
+|-------|-------------|---------|-----|--------|
+| PostgreSQL | `BffPersistedSession` | Full session entity, tokens encrypted | No TTL (cleanup job) | `PostgresCachedBffSessionStore` |
+| Redis | `bff:session:{id}` | `BffSessionRecord` as JSON (tokens encrypted) | `CacheTtlMinutes` (10 min), **sliding** | `PostgresCachedBffSessionStore` |
+| Redis | `bff:session:{id}:refresh:lock` | Lock owner identifier (`machine:pid:guid`) | `RefreshLockTimeoutMilliseconds` (5s), fixed | `DragonflyBffRefreshCoordinator` |
+| Redis | `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed | `DragonflyBffRefreshCoordinator` |
 
-**Sliding TTL** — every time the session key is read, the TTL is atomically reset via a Lua script (`GET` + `PEXPIRE` in one roundtrip). This means the session stays alive as long as requests keep coming:
+**Read path:** Redis cache hit → return. Cache miss → load from PostgreSQL → populate Redis cache → return.
+
+**Write path:** Write to PostgreSQL (primary) → write to Redis cache.
+
+**Sliding cache TTL** — every time the session cache key is read, the TTL is atomically reset via a Lua script (`GET` + `PEXPIRE` in one roundtrip). This keeps the cache warm for active sessions:
 
 ```
-Request at 0:00  → TTL reset to 60 min (expires 1:00)
-Request at 0:15  → TTL reset to 60 min (expires 1:15)
-Request at 0:45  → TTL reset to 60 min (expires 1:45)
-No more requests → key expires at 1:45
+Request at 0:00  → cache TTL reset to 10 min (expires 0:10)
+Request at 0:05  → cache TTL reset to 10 min (expires 0:15)
+No more requests → cache key expires at 0:15
+Next request     → cache miss → load from PostgreSQL → repopulate cache
 ```
 
 **Three independent guards** control session lifetime:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ Guard 1: Redis TTL (physical)                                   │
-│ Key disappears after SessionIdleTimeoutMinutes of inactivity.   │
-│ GetAsync → null → 401                                           │
+│ Guard 1: Idle timeout (application code)                        │
+│ LastSeenAtUtc + SessionIdleTimeoutMinutes exceeded.             │
+│ Cleanup job deletes session from PostgreSQL → 401               │
 ├─────────────────────────────────────────────────────────────────┤
-│ Guard 2: BFF absolute lifetime (logical, in application code)   │
+│ Guard 2: BFF absolute lifetime (application code)               │
 │ CreatedAtUtc + SessionAbsoluteLifetimeMinutes exceeded.         │
 │ Session revoked with AbsoluteLifetimeExceeded → 401             │
-│ Key still exists in Redis until TTL expires.                    │
+│ Cleanup job deletes after 24h retention.                        │
 ├─────────────────────────────────────────────────────────────────┤
 │ Guard 3: Keycloak client session (external)                     │
 │ clientSessionMaxLifespan (8h) exceeded.                         │
 │ Keycloak rejects refresh_token → RefreshRejected → revoke → 401│
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+**Session cleanup** — a periodic background job (`CleanupExpiredBffSessionsHandler`) runs hourly via TickerQ and permanently deletes sessions that are:
+1. Revoked with 24h retention (audit trail)
+2. Idle-expired (`LastSeenAtUtc + SessionIdleTimeoutMinutes` passed)
+3. Absolute-expired (`CreatedAtUtc + SessionAbsoluteLifetimeMinutes` passed)
 
 **Optimistic concurrency** — the `Version` field in `BffSessionRecord` is incremented on every mutation. `TryUpdateAsync` uses a Lua compare-and-set script that atomically checks `version == expectedVersion` before writing. If another request updated the session in between, the write fails and the caller retries (up to 3 attempts) or falls back to the follower path.
 
@@ -503,15 +518,23 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    Browser["Browser<br/>cookie = opaque GUID (HttpOnly)"] -->|lookup| Session
+    Browser["Browser<br/>cookie = opaque GUID (HttpOnly)"] -->|lookup| Cache
+
+    subgraph PostgreSQL
+        PGSession["BffPersistedSession table<br/>├── access_token (encrypted)<br/>├── refresh_token (encrypted)<br/>├── id_token (encrypted)<br/>├── AccessTokenExpiresAtUtc<br/>├── Status, Version<br/>└── identity claims<br/>(primary store, durable)"]
+    end
 
     subgraph DragonFly
-        Session["bff:session:&lt;GUID&gt;<br/>├── BffSessionRecord (JSON)<br/>│   ├── access_token (encrypted)<br/>│   ├── refresh_token (encrypted)<br/>│   ├── id_token (encrypted)<br/>│   ├── AccessTokenExpiresAtUtc<br/>│   ├── Status, Version<br/>│   └── identity claims<br/>└── TTL = SessionIdleTimeoutMinutes"]
+        Cache["bff:session:&lt;GUID&gt;<br/>├── BffSessionRecord (JSON)<br/>│   ├── tokens (encrypted)<br/>│   └── identity claims<br/>└── TTL = CacheTtlMinutes (10 min)<br/>(read-through cache)"]
         Lock["bff:session:&lt;GUID&gt;:refresh:lock<br/>└── distributed mutex (NX, TTL=5s)"]
         Result["bff:session:&lt;GUID&gt;:refresh:result<br/>└── leader outcome (TTL=5s)"]
         DP["DataProtection:Keys<br/>└── ASP.NET Data Protection key ring"]
     end
+
+    Cache -.->|miss| PGSession
 ```
+
+**Storage architecture:** PostgreSQL is the primary durable session store. Redis/DragonFly acts as a read-through cache with a short TTL (`CacheTtlMinutes`, default 10 min). On cache miss, the session is loaded from PostgreSQL and populated into Redis. All writes go to PostgreSQL first, then to Redis cache. This design allows offline sessions (with `offline_access` scope) to survive across Redis restarts and long idle periods — the refresh token in PostgreSQL remains available for up to 30 days.
 
 **Security principle:** Tokens never leave the server — the browser only holds an opaque GUID. Token fields (`access_token`, `refresh_token`, `id_token`) are encrypted at rest using `IDataProtector` with purpose `bff:session:tokens`.
 
@@ -559,7 +582,7 @@ All under `/api/v1/bff/`:
 | `GET /bff/login`                | No            | Initiates OIDC login (Keycloak page), optional `?returnUrl=`     |
 | `GET /bff/login/{idpHint}`      | No            | Direct redirect to named IdP (e.g. `google`), skips Keycloak UI |
 | `GET /bff/external-providers`   | No            | Lists registered social providers `[{idpHint, displayName}]`    |
-| `GET /bff/logout`               | Cookie        | Clears session in DragonFly, signs out of Keycloak               |
+| `GET /bff/logout`               | Cookie        | Soft-deletes session in PostgreSQL, clears Redis cache, signs out of Keycloak |
 | `GET /bff/user`                 | Cookie        | Returns current user claims as JSON                              |
 | `GET /bff/csrf`                 | No            | Returns CSRF header name/value contract                          |
 
@@ -584,8 +607,8 @@ Returns `401` (not redirect) when unauthenticated — SPA should redirect to `/a
 
 | Setting | Default | Config key |
 | ------- | ------- | ---------- |
-| Cookie timeout (sliding) | 60 min | `Bff:SessionTimeoutMinutes` |
-| Server-side idle timeout | 60 min | `Bff:SessionIdleTimeoutMinutes` |
+| Session idle timeout (cookie + server-side) | 60 min | `Bff:SessionIdleTimeoutMinutes` |
+| Redis cache TTL | 10 min | `Bff:CacheTtlMinutes` |
 | Absolute session lifetime | 480 min (8h) | `Bff:SessionAbsoluteLifetimeMinutes` |
 | Proactive refresh threshold | 2 min before expiry | `Bff:RefreshThresholdMinutes` |
 | Follower wait timeout | 2000 ms | `Bff:RefreshWaitTimeoutMilliseconds` |
@@ -676,7 +699,7 @@ The BFF session layer and Keycloak maintain **independent clocks** — neither k
 | Constraint | Rule | Current values | Why |
 |------------|------|----------------|-----|
 | Refresh before expiry | `RefreshThresholdMinutes` < `accessTokenLifespan` | 2 min < 5 min | Otherwise the access token expires before BFF attempts refresh |
-| Cookie ≈ Redis idle | `SessionTimeoutMinutes` ≈ `SessionIdleTimeoutMinutes` | 60 min = 60 min | If cookie outlives Redis → cookie valid but session gone → 401. If Redis outlives cookie → orphaned session in Redis |
+| Cookie = idle timeout | `SessionIdleTimeoutMinutes` controls both cookie and server-side idle | 60 min | Single unified setting for cookie expiry and session idle timeout |
 | Redis idle ≤ Keycloak client idle | `SessionIdleTimeoutMinutes` ≤ `clientSessionIdleTimeout` | 60 min ≤ 60 min | If Redis lives longer → BFF tries to refresh with an expired client session → `invalid_grant` → revocation |
 | BFF absolute ≤ Keycloak client max | `SessionAbsoluteLifetimeMinutes` ≤ `clientSessionMaxLifespan` | 480 min ≤ 480 min (8h) | If BFF lives longer → same as above, Keycloak rejects the refresh |
 | Keycloak client max ≤ SSO max | `clientSessionMaxLifespan` ≤ `ssoSessionMaxLifespan` | 8h ≤ 10h | Client session cannot outlive the SSO session |
@@ -701,8 +724,7 @@ The BFF session layer and Keycloak maintain **independent clocks** — neither k
 | `RefreshThresholdMinutes` ≥ `accessTokenLifespan` | Access token always expired before refresh → every request triggers refresh → Keycloak rejects expired token |
 | `SessionIdleTimeoutMinutes` > `clientSessionIdleTimeout` | After Keycloak client idle expires, BFF still has a Redis session but refresh fails → `RefreshRejected` → revocation. User gets surprise 401 before BFF idle timeout |
 | `SessionAbsoluteLifetimeMinutes` > `clientSessionMaxLifespan` | After Keycloak client max, BFF tries to refresh → `invalid_grant` → revocation. Absolute lifetime check in BFF code never fires because Keycloak kills it first |
-| `SessionTimeoutMinutes` ≪ `SessionIdleTimeoutMinutes` | Cookie expires before Redis → user gets 401 even though server-side session is alive. Redis key becomes orphaned until TTL |
-| `SessionTimeoutMinutes` ≫ `SessionIdleTimeoutMinutes` | Redis key expires before cookie → cookie is valid but `RetrieveAsync` returns null → 401. Confusing for the user |
+| `CacheTtlMinutes` too low | More PostgreSQL fallback reads on cache miss — higher DB load. Not a correctness issue, only performance |
 
 ### Roles
 
@@ -780,8 +802,8 @@ When the API sets `options.Authority`, ASP.NET auto-discovers all endpoints via 
   "Bff": {
     "CookieName": ".APITemplate.Auth",
     "PostLogoutRedirectUri": "/",
-    "SessionTimeoutMinutes": 60,
     "SessionIdleTimeoutMinutes": 60,
+    "CacheTtlMinutes": 10,
     "SessionAbsoluteLifetimeMinutes": 480,
     "Scopes": ["openid", "profile", "email", "offline_access"],
     "RefreshThresholdMinutes": 2,

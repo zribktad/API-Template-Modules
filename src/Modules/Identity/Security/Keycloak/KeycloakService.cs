@@ -84,20 +84,24 @@ public sealed class KeycloakService : IKeycloakService
 
     private FormUrlEncodedContent BuildRefreshContent(string refreshToken)
     {
-        Dictionary<string, string> formParams = new()
-        {
-            [AuthConstants.OAuth2FormParameters.GrantType] = AuthConstants
-                .OAuth2GrantTypes
-                .RefreshToken,
-            [AuthConstants.OAuth2FormParameters.ClientId] = _keycloakOptions.Resource,
-            [AuthConstants.OAuth2FormParameters.RefreshToken] = refreshToken,
-        };
+        List<KeyValuePair<string, string>> formParams =
+        [
+            new(
+                AuthConstants.OAuth2FormParameters.GrantType,
+                AuthConstants.OAuth2GrantTypes.RefreshToken
+            ),
+            new(AuthConstants.OAuth2FormParameters.ClientId, _keycloakOptions.Resource),
+            new(AuthConstants.OAuth2FormParameters.RefreshToken, refreshToken),
+        ];
 
         if (!string.IsNullOrEmpty(_keycloakOptions.Credentials.Secret))
         {
-            formParams[AuthConstants.OAuth2FormParameters.ClientSecret] = _keycloakOptions
-                .Credentials
-                .Secret;
+            formParams.Add(
+                new(
+                    AuthConstants.OAuth2FormParameters.ClientSecret,
+                    _keycloakOptions.Credentials.Secret
+                )
+            );
         }
 
         return new FormUrlEncodedContent(formParams);
@@ -122,7 +126,11 @@ public sealed class KeycloakService : IKeycloakService
                 return false;
 
             string? error = errorElement.GetString();
-            return string.Equals(error, "invalid_grant", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(
+                error,
+                AuthConstants.OAuth2Errors.InvalidGrant,
+                StringComparison.OrdinalIgnoreCase
+            );
         }
         catch (JsonException)
         {

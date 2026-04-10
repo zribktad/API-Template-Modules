@@ -96,10 +96,10 @@ public sealed class BffSessionPrincipalFactory : IBffSessionPrincipalFactory
     private DateTimeOffset GetCookieExpiresAt(BffSessionRecord session)
     {
         DateTimeOffset idleExpiry = session.LastSeenAtUtc.AddMinutes(
-            _options.GetEffectiveSessionIdleTimeoutMinutes()
+            _options.SessionIdleTimeoutMinutes
         );
         DateTimeOffset absoluteExpiry = session.CreatedAtUtc.AddMinutes(
-            _options.GetEffectiveSessionAbsoluteLifetimeMinutes()
+            _options.SessionAbsoluteLifetimeMinutes
         );
 
         DateTimeOffset now = _timeProvider.GetUtcNow();

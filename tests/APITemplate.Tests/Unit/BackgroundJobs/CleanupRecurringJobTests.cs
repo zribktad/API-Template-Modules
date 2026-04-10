@@ -61,5 +61,6 @@ public sealed class CleanupRecurringJobTests
         cleanupService.Verify(x => x.CleanupExpiredInvitationsAsync(10, 123, ct), Times.Once);
         cleanupService.Verify(x => x.CleanupSoftDeletedRecordsAsync(20, 123, ct), Times.Once);
         cleanupService.Verify(x => x.CleanupOrphanedProductDataAsync(30, 123, ct), Times.Once);
+        cleanupService.Verify(x => x.CleanupExpiredBffSessionsAsync(123, ct), Times.Once);
     }
 }

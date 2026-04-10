@@ -70,4 +70,9 @@ public sealed class CleanupService : ICleanupService
             ct
         );
     }
+
+    public async Task CleanupExpiredBffSessionsAsync(int batchSize, CancellationToken ct = default)
+    {
+        await _messageBus.InvokeAsync(new CleanupExpiredBffSessionsCommand(batchSize), ct);
+    }
 }

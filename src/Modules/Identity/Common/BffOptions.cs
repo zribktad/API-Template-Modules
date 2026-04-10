@@ -19,12 +19,8 @@ public sealed class BffOptions
     [MinLength(1)]
     public string PostLogoutRedirectUri { get; init; } = "/";
 
-    [Description("Maximum idle session lifetime, in minutes, for the BFF authentication cookie.")]
-    [Range(1, int.MaxValue)]
-    public int SessionTimeoutMinutes { get; init; } = 60;
-
     [Description(
-        "Maximum idle session lifetime, in minutes, for the server-side BFF session record."
+        "Maximum idle session lifetime, in minutes, for both the BFF authentication cookie and the server-side session record."
     )]
     [Range(1, int.MaxValue)]
     public int SessionIdleTimeoutMinutes { get; init; } = 60;
@@ -57,17 +53,7 @@ public sealed class BffOptions
     [Description("When true, a failed refresh revokes only the current BFF session.")]
     public bool RevokeSessionOnRefreshFailure { get; init; } = true;
 
-    /// <summary>
-    ///     Returns the effective idle timeout used by the server-side session store.
-    /// </summary>
-    public int GetEffectiveSessionIdleTimeoutMinutes() =>
-        SessionIdleTimeoutMinutes > 0 ? SessionIdleTimeoutMinutes : SessionTimeoutMinutes;
-
-    /// <summary>
-    ///     Returns the effective absolute lifetime cap for a BFF session.
-    /// </summary>
-    public int GetEffectiveSessionAbsoluteLifetimeMinutes() =>
-        SessionAbsoluteLifetimeMinutes > 0
-            ? SessionAbsoluteLifetimeMinutes
-            : GetEffectiveSessionIdleTimeoutMinutes();
+    [Description("Redis cache TTL, in minutes, for the read-through session cache layer.")]
+    [Range(1, int.MaxValue)]
+    public int CacheTtlMinutes { get; init; } = 10;
 }

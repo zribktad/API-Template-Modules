@@ -133,7 +133,7 @@ public static class IdentityModule
 
         services.AddScoped<CookieSessionRefresher>();
         services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
-        services.AddSingleton<IBffSessionStore, DragonflyBffSessionStore>();
+        services.AddSingleton<IBffSessionStore, PostgresCachedBffSessionStore>();
         services.AddSingleton<IBffSessionService, BffSessionService>();
         services.AddSingleton<IBffSessionRevocationService>(sp =>
             (IBffSessionRevocationService)sp.GetRequiredService<IBffSessionService>()
@@ -226,7 +226,7 @@ public static class IdentityModule
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.Path = "/";
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(bff.GetEffectiveSessionIdleTimeoutMinutes());
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(bff.SessionIdleTimeoutMinutes);
         options.SlidingExpiration = true;
         options.Events.OnRedirectToLogin = context =>
         {

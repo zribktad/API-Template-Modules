@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Identity.Options;
 using Microsoft.Extensions.Options;
+using SharedKernel.Infrastructure.Redis;
 using StackExchange.Redis;
 
 namespace Identity.Security.Sessions;
@@ -11,23 +12,19 @@ namespace Identity.Security.Sessions;
 /// </summary>
 public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
 {
-    private static readonly LuaScript ReleaseLockScript = LuaScript.Prepare(
-        "if redis.call('get', @key) == @value then return redis.call('del', @key) else return 0 end"
-    );
-
-    private readonly IConnectionMultiplexer? _multiplexer;
+    private readonly IConnectionMultiplexer _multiplexer;
     private readonly BffOptions _options;
     private readonly TimeProvider _timeProvider;
     private readonly object _lock = new();
     private readonly Dictionary<string, Task<BffRefreshOutcome>> _fallbackTasks = [];
 
     public DragonflyBffRefreshCoordinator(
-        IEnumerable<IConnectionMultiplexer> connectionMultiplexers,
+        IConnectionMultiplexer connectionMultiplexer,
         IOptions<BffOptions> options,
         TimeProvider timeProvider
     )
     {
-        _multiplexer = connectionMultiplexers.FirstOrDefault();
+        _multiplexer = connectionMultiplexer;
         _options = options.Value;
         _timeProvider = timeProvider;
     }
@@ -40,7 +37,7 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
         CancellationToken ct = default
     )
     {
-        if (_multiplexer is null || !_multiplexer.IsConnected)
+        if (!_multiplexer.IsConnected)
             return await ExecuteWithFallbackSemaphoreAsync(
                 sessionId,
                 leaderAction,
@@ -70,7 +67,7 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
             finally
             {
                 await database.ScriptEvaluateAsync(
-                    ReleaseLockScript,
+                    RedisLuaScripts.ReleaseLock,
                     new { key = lockKey, value = lockValue }
                 );
             }
@@ -88,7 +85,7 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
                 BffRefreshCoordinatorPayload? payload =
                     JsonSerializer.Deserialize<BffRefreshCoordinatorPayload>(
                         outcomePayload.ToString(),
-                        DragonflyBffSessionStore.SerializerOptions
+                        BffSessionSerializerOptions.Instance
                     );
                 if (payload is not null)
                     return payload.Succeeded
@@ -165,7 +162,7 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
     )
     {
         BffRefreshCoordinatorPayload payload = new(outcome.Succeeded, outcome.FailureReason);
-        string json = JsonSerializer.Serialize(payload, DragonflyBffSessionStore.SerializerOptions);
+        string json = JsonSerializer.Serialize(payload, BffSessionSerializerOptions.Instance);
         await database.StringSetAsync(
             GetResultKey(sessionId),
             json,

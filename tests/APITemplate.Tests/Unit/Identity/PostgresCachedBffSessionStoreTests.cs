@@ -1,0 +1,393 @@
+using Identity.Entities;
+using Identity.Options;
+using Identity.Persistence;
+using Identity.Security.Sessions;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Moq;
+using SharedKernel.Application.Context;
+using SharedKernel.Infrastructure.Auditing;
+using Shouldly;
+using StackExchange.Redis;
+using Xunit;
+
+namespace APITemplate.Tests.Unit.Identity;
+
+public sealed class PostgresCachedBffSessionStoreTests : IDisposable
+{
+    private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-04-10T12:00:00Z");
+
+    private readonly IdentityDbContext _dbContext;
+    private readonly Mock<IDistributedCache> _cache = new();
+    private readonly BffOptions _bffOptions = new() { CacheTtlMinutes = 10 };
+    private readonly PostgresCachedBffSessionStore _sut;
+    private readonly ServiceProvider _serviceProvider;
+
+    public PostgresCachedBffSessionStoreTests()
+    {
+        string dbName = $"BffSessionStoreTests_{Guid.NewGuid():N}";
+
+        // Build a real DI container so IServiceScopeFactory works (CreateAsyncScope is an extension method)
+        ServiceCollection serviceCollection = new();
+        serviceCollection.AddDbContext<IdentityDbContext>(
+            (sp, opts) => opts.UseInMemoryDatabase(dbName),
+            ServiceLifetime.Scoped
+        );
+        serviceCollection.AddSingleton<ITenantProvider>(new StubTenantProvider());
+        serviceCollection.AddSingleton<IActorProvider>(new StubActorProvider());
+        serviceCollection.AddSingleton(TimeProvider.System);
+        serviceCollection.AddSingleton<IAuditableEntityStateManager>(
+            new AuditableEntityStateManager()
+        );
+
+        _serviceProvider = serviceCollection.BuildServiceProvider();
+
+        // Resolve a DbContext for direct assertions in tests
+        IServiceScope assertionScope = _serviceProvider.CreateScope();
+        _dbContext = assertionScope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+
+        IServiceScopeFactory scopeFactory =
+            _serviceProvider.GetRequiredService<IServiceScopeFactory>();
+
+        IDataProtectionProvider protectionProvider = new EphemeralDataProtectionProvider();
+
+        Mock<IConnectionMultiplexer> multiplexer = new();
+        multiplexer.Setup(m => m.IsConnected).Returns(false);
+
+        _sut = new PostgresCachedBffSessionStore(
+            _cache.Object,
+            multiplexer.Object,
+            scopeFactory,
+            Options.Create(_bffOptions),
+            protectionProvider,
+            NullLogger<PostgresCachedBffSessionStore>.Instance
+        );
+    }
+
+    public void Dispose()
+    {
+        _dbContext.Dispose();
+        _serviceProvider.Dispose();
+    }
+
+    // ── StoreAsync ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task StoreAsync_PersistsSessionToDatabase()
+    {
+        BffSessionRecord session = CreateSession();
+
+        await _sut.StoreAsync(session);
+
+        BffPersistedSession? entity = await _dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.SessionId == session.SessionId);
+
+        entity.ShouldNotBeNull();
+        entity.UserId.ShouldBe(session.UserId);
+        entity.Subject.ShouldBe(session.Subject);
+        entity.Email.ShouldBe(session.Email);
+        entity.DisplayName.ShouldBe(session.DisplayName);
+        entity.Status.ShouldBe(BffSessionStatus.Active);
+        entity.Version.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task StoreAsync_EncryptsTokensInDatabase()
+    {
+        BffSessionRecord session = CreateSession();
+
+        await _sut.StoreAsync(session);
+
+        BffPersistedSession? entity = await _dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(s => s.SessionId == session.SessionId);
+
+        entity.ShouldNotBeNull();
+        entity.EncryptedAccessToken.ShouldNotBe(session.AccessToken);
+        entity.EncryptedRefreshToken.ShouldNotBe(session.RefreshToken);
+        entity.EncryptedAccessToken.ShouldNotBeNullOrWhiteSpace();
+        entity.EncryptedRefreshToken.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task StoreAsync_WritesToRedisCache()
+    {
+        BffSessionRecord session = CreateSession();
+
+        await _sut.StoreAsync(session);
+
+        _cache.Verify(
+            x =>
+                x.SetAsync(
+                    $"bff:session:{session.SessionId}",
+                    It.IsAny<byte[]>(),
+                    It.IsAny<DistributedCacheEntryOptions>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    // ── GetAsync ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetAsync_WhenCacheMiss_LoadsFromDatabaseAndPopulatesCache()
+    {
+        BffSessionRecord session = CreateSession();
+        await _sut.StoreAsync(session);
+
+        // Reset cache mock so GetStringAsync returns null (cache miss)
+        _cache.Reset();
+        _cache
+            .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((byte[]?)null);
+
+        BffSessionRecord? result = await _sut.GetAsync(session.SessionId);
+
+        result.ShouldNotBeNull();
+        result.SessionId.ShouldBe(session.SessionId);
+        result.AccessToken.ShouldBe(session.AccessToken);
+        result.RefreshToken.ShouldBe(session.RefreshToken);
+
+        // Should have written to cache after DB load
+        _cache.Verify(
+            x =>
+                x.SetAsync(
+                    $"bff:session:{session.SessionId}",
+                    It.IsAny<byte[]>(),
+                    It.IsAny<DistributedCacheEntryOptions>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetAsync_WhenNotFound_ReturnsNull()
+    {
+        _cache
+            .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((byte[]?)null);
+
+        BffSessionRecord? result = await _sut.GetAsync("nonexistent-session");
+
+        result.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task GetAsync_WhenSoftDeleted_ReturnsNull()
+    {
+        BffSessionRecord session = CreateSession();
+        await _sut.StoreAsync(session);
+
+        // Soft-delete the entity
+        BffPersistedSession entity = await _dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .FirstAsync(s => s.SessionId == session.SessionId);
+        entity.IsDeleted = true;
+        await _dbContext.SaveChangesAsync();
+
+        _cache.Reset();
+        _cache
+            .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((byte[]?)null);
+
+        BffSessionRecord? result = await _sut.GetAsync(session.SessionId);
+
+        result.ShouldBeNull();
+    }
+
+    // ── TryUpdateAsync ───────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task TryUpdateAsync_WithMatchingVersion_UpdatesAndReturnsTrue()
+    {
+        BffSessionRecord session = CreateSession();
+        await _sut.StoreAsync(session);
+
+        BffSessionRecord updated = session with
+        {
+            Email = "updated@example.com",
+            LastSeenAtUtc = Now.AddMinutes(5),
+            Version = 1,
+        };
+
+        bool result = await _sut.TryUpdateAsync(updated, expectedVersion: 0);
+
+        result.ShouldBeTrue();
+
+        BffPersistedSession entity = await _dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .FirstAsync(s => s.SessionId == session.SessionId);
+
+        entity.Email.ShouldBe("updated@example.com");
+        entity.Version.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task TryUpdateAsync_WithWrongVersion_ReturnsFalse()
+    {
+        BffSessionRecord session = CreateSession();
+        await _sut.StoreAsync(session);
+
+        BffSessionRecord updated = session with { Email = "updated@example.com", Version = 1 };
+
+        bool result = await _sut.TryUpdateAsync(updated, expectedVersion: 999);
+
+        result.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task TryUpdateAsync_WhenNotFound_ReturnsFalse()
+    {
+        BffSessionRecord session = CreateSession(sessionId: "nonexistent");
+        BffSessionRecord updated = session with { Email = "updated@example.com" };
+
+        bool result = await _sut.TryUpdateAsync(updated, expectedVersion: 0);
+
+        result.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task TryUpdateAsync_OnSuccess_UpdatesRedisCache()
+    {
+        BffSessionRecord session = CreateSession();
+        await _sut.StoreAsync(session);
+        _cache.Reset();
+
+        BffSessionRecord updated = session with { Email = "updated@example.com", Version = 1 };
+
+        await _sut.TryUpdateAsync(updated, expectedVersion: 0);
+
+        _cache.Verify(
+            x =>
+                x.SetAsync(
+                    $"bff:session:{session.SessionId}",
+                    It.IsAny<byte[]>(),
+                    It.IsAny<DistributedCacheEntryOptions>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    // ── RemoveAsync ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task RemoveAsync_SoftDeletesInDatabase()
+    {
+        BffSessionRecord session = CreateSession();
+        await _sut.StoreAsync(session);
+
+        await _sut.RemoveAsync(session.SessionId);
+
+        BffPersistedSession entity = await _dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .FirstAsync(s => s.SessionId == session.SessionId);
+
+        entity.IsDeleted.ShouldBeTrue();
+        entity.DeletedAtUtc.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public async Task RemoveAsync_RemovesFromRedisCache()
+    {
+        BffSessionRecord session = CreateSession();
+        await _sut.StoreAsync(session);
+
+        await _sut.RemoveAsync(session.SessionId);
+
+        _cache.Verify(
+            x => x.RemoveAsync($"bff:session:{session.SessionId}", It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RemoveAsync_WhenNotFound_DoesNotThrow()
+    {
+        await Should.NotThrowAsync(() => _sut.RemoveAsync("nonexistent"));
+    }
+
+    // ── Roundtrip ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task StoreAndGet_RoundtripsAllFields()
+    {
+        BffSessionRecord session = CreateSession() with
+        {
+            IdToken = "id-token-value",
+            TenantId = Guid.NewGuid().ToString(),
+            Roles = ["Admin", "User"],
+            RefreshTokenExpiresAtUtc = Now.AddDays(30),
+        };
+
+        await _sut.StoreAsync(session);
+
+        _cache.Reset();
+        _cache
+            .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((byte[]?)null);
+
+        BffSessionRecord? loaded = await _sut.GetAsync(session.SessionId);
+
+        loaded.ShouldNotBeNull();
+        loaded.SessionId.ShouldBe(session.SessionId);
+        loaded.UserId.ShouldBe(session.UserId);
+        loaded.Subject.ShouldBe(session.Subject);
+        loaded.Provider.ShouldBe(session.Provider);
+        loaded.TenantId.ShouldBe(session.TenantId);
+        loaded.Roles.ShouldBe(session.Roles);
+        loaded.Email.ShouldBe(session.Email);
+        loaded.DisplayName.ShouldBe(session.DisplayName);
+        loaded.AccessToken.ShouldBe(session.AccessToken);
+        loaded.RefreshToken.ShouldBe(session.RefreshToken);
+        loaded.IdToken.ShouldBe(session.IdToken);
+        loaded.AccessTokenExpiresAtUtc.ShouldBe(session.AccessTokenExpiresAtUtc);
+        loaded.RefreshTokenExpiresAtUtc.ShouldBe(session.RefreshTokenExpiresAtUtc);
+        loaded.CreatedAtUtc.ShouldBe(session.CreatedAtUtc);
+        loaded.LastSeenAtUtc.ShouldBe(session.LastSeenAtUtc);
+        loaded.LastRefreshedAtUtc.ShouldBe(session.LastRefreshedAtUtc);
+        loaded.Status.ShouldBe(session.Status);
+        loaded.Version.ShouldBe(session.Version);
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private static BffSessionRecord CreateSession(string? sessionId = null)
+    {
+        return new BffSessionRecord
+        {
+            SessionId = sessionId ?? Guid.NewGuid().ToString("N"),
+            UserId = Guid.NewGuid().ToString(),
+            Subject = Guid.NewGuid().ToString(),
+            Provider = BffProviderType.Keycloak,
+            Email = "test@example.com",
+            DisplayName = "Test User",
+            AccessToken = "access-token-value",
+            RefreshToken = "refresh-token-value",
+            AccessTokenExpiresAtUtc = Now.AddMinutes(5),
+            CreatedAtUtc = Now,
+            LastSeenAtUtc = Now,
+            LastRefreshedAtUtc = Now,
+            Status = BffSessionStatus.Active,
+            Version = 0,
+        };
+    }
+
+    private sealed class StubTenantProvider : ITenantProvider
+    {
+        public Guid TenantId => Guid.Empty;
+        public bool HasTenant => false;
+    }
+
+    private sealed class StubActorProvider : IActorProvider
+    {
+        public Guid ActorId => Guid.Empty;
+    }
+}
