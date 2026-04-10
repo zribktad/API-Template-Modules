@@ -8,7 +8,7 @@ namespace SharedKernel.Infrastructure.Health;
 /// </summary>
 public abstract class HttpEndpointHealthCheck : IHealthCheck
 {
-    private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _checkTimeout = TimeSpan.FromSeconds(5);
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly string _endpoint;
@@ -38,7 +38,7 @@ public abstract class HttpEndpointHealthCheck : IHealthCheck
             using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(
                 cancellationToken
             );
-            cts.CancelAfter(CheckTimeout);
+            cts.CancelAfter(_checkTimeout);
 
             using HttpClient httpClient = _httpClientFactory.CreateClient(_httpClientName);
             using HttpResponseMessage response = await httpClient.GetAsync(_endpoint, cts.Token);
