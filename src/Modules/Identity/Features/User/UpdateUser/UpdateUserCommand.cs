@@ -8,7 +8,7 @@ public sealed record UpdateUserCommand(Guid Id, UpdateUserRequest Request) : IHa
 
 public sealed class UpdateUserCommandHandler
 {
-    public static async Task<ErrorOr<AppUser>> ValidateAsync(
+    public static async Task<ErrorOr<(AppUser User, Email Email)>> ValidateAsync(
         UpdateUserCommand command,
         IUserRepository repository,
         CancellationToken ct
@@ -52,27 +52,23 @@ public sealed class UpdateUserCommandHandler
                 return usernameResult.Errors;
         }
 
-        return user;
+        return (user, newEmail);
     }
 
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         UpdateUserCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        ErrorOr<AppUser> userResult,
+        ErrorOr<(AppUser User, Email Email)> validationResult,
         CancellationToken ct
     )
     {
-        if (userResult.IsError)
-            return (userResult.Errors, OutgoingMessagesHelper.Empty);
-        AppUser user = userResult.Value;
-
-        ErrorOr<Email> emailResult = Email.Create(command.Request.Email);
-        if (emailResult.IsError)
-            return (emailResult.Errors, OutgoingMessagesHelper.Empty);
+        if (validationResult.IsError)
+            return (validationResult.Errors, OutgoingMessagesHelper.Empty);
+        (AppUser user, Email email) = validationResult.Value;
 
         user.Username = command.Request.Username;
-        user.Email = emailResult.Value;
+        user.Email = email;
 
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);

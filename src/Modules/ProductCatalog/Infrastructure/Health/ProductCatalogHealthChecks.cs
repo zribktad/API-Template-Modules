@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using ProductCatalog.Persistence;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Health;
@@ -11,7 +10,7 @@ public sealed class ProductCatalogHealthChecks : IHealthCheckModule
 {
     private readonly IConfiguration _configuration;
 
-    public ProductCatalogHealthChecks(IConfiguration configuration, IHostEnvironment environment)
+    public ProductCatalogHealthChecks(IConfiguration configuration)
     {
         _configuration = configuration;
     }

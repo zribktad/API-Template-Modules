@@ -14,12 +14,16 @@ public static class HealthCheckModuleExtensions
     )
     {
         IHealthChecksBuilder builder = services.AddHealthChecks();
-        object[] args = [configuration, environment];
+
+        ServiceCollection tempServices = new();
+        tempServices.AddSingleton(configuration);
+        tempServices.AddSingleton(environment);
+        ServiceProvider tempProvider = tempServices.BuildServiceProvider();
 
         foreach (Type type in moduleTypes)
         {
             IHealthCheckModule module = (IHealthCheckModule)
-                Activator.CreateInstance(type, args)!;
+                ActivatorUtilities.CreateInstance(tempProvider, type);
             module.RegisterHealthChecks(builder);
         }
         return services;

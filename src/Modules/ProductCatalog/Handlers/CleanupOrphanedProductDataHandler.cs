@@ -59,13 +59,7 @@ public sealed class CleanupOrphanedProductDataHandler
             if (page.Count == 0)
                 break;
 
-            List<Guid> linkedIds = await dbContext
-                .ProductDataLinks.Where(l => page.Contains(l.ProductDataId))
-                .Select(l => l.ProductDataId)
-                .Distinct()
-                .ToListAsync(ct);
-
-            HashSet<Guid> linkedIdSet = linkedIds.ToHashSet();
+            HashSet<Guid> linkedIdSet = await GetLinkedIdsAsync(dbContext, page, ct);
             Guid[] orphanCandidates = page.Where(id => !linkedIdSet.Contains(id)).ToArray();
 
             if (orphanCandidates.Length > 0)
@@ -104,33 +98,34 @@ public sealed class CleanupOrphanedProductDataHandler
             if (pendingPage.Count == 0)
                 break;
 
-            List<Guid> stillLinked = await dbContext
-                .ProductDataLinks.Where(l => pendingPage.Contains(l.ProductDataId))
-                .Select(l => l.ProductDataId)
-                .Distinct()
-                .ToListAsync(ct);
+            HashSet<Guid> stillLinkedSet = await GetLinkedIdsAsync(dbContext, pendingPage, ct);
+            List<Guid> safeToDelete = new();
+            List<Guid> falsePending = new();
+            foreach (Guid id in pendingPage)
+            {
+                if (stillLinkedSet.Contains(id))
+                    falsePending.Add(id);
+                else
+                    safeToDelete.Add(id);
+            }
 
-            HashSet<Guid> stillLinkedSet = stillLinked.ToHashSet();
-            Guid[] safeToDelete = pendingPage.Where(id => !stillLinkedSet.Contains(id)).ToArray();
-            Guid[] falsePending = pendingPage.Where(id => stillLinkedSet.Contains(id)).ToArray();
-
-            if (safeToDelete.Length > 0)
+            if (safeToDelete.Count > 0)
             {
                 await mongoCollection.DeleteManyAsync(
                     Builders<ProductData>.Filter.In(d => d.Id, safeToDelete),
                     ct
                 );
-                totalDeleted += safeToDelete.Length;
+                totalDeleted += safeToDelete.Count;
             }
 
-            if (falsePending.Length > 0)
+            if (falsePending.Count > 0)
             {
                 await mongoCollection.UpdateManyAsync(
                     Builders<ProductData>.Filter.In(d => d.Id, falsePending),
                     Builders<ProductData>.Update.Set(d => d.PendingDeletion, false),
                     cancellationToken: ct
                 );
-                totalCleared += falsePending.Length;
+                totalCleared += falsePending.Count;
             }
 
             lastSeenId = pendingPage[^1];
@@ -141,5 +136,20 @@ public sealed class CleanupOrphanedProductDataHandler
 
         if (totalDeleted > 0 || totalCleared > 0)
             logger.OrphanedProductDataSwept(totalDeleted, totalCleared);
+    }
+
+    private static async Task<HashSet<Guid>> GetLinkedIdsAsync(
+        ProductCatalogDbContext dbContext,
+        List<Guid> candidateIds,
+        CancellationToken ct
+    )
+    {
+        List<Guid> linkedIds = await dbContext
+            .ProductDataLinks.Where(l => candidateIds.Contains(l.ProductDataId))
+            .Select(l => l.ProductDataId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        return linkedIds.ToHashSet();
     }
 }

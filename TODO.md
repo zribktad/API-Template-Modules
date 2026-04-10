@@ -142,11 +142,10 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
 - [ ] **Inconsistent logging** — source-generated `[LoggerMessage]` with event IDs is already used across modules, but
   inline `logger.LogWarning()` remains in `TenantClaimValidator` and `CookieSessionRefresher`. Finish migration to
   source-generated logging for these remaining paths.
-- [ ] **Incomplete health checks** — Redis/Dragonfly and MongoDB checks are implemented, but Wolverine messaging health
-  coverage is still missing. Add remaining messaging-focused checks if required by your ops model.
-- [ ] **Soft delete cascade via three mechanisms** — the same business rule (cascade deletes on soft-delete) is
-  implemented via database cascade rules, infrastructure `SoftDeleteProcessor`, and Wolverine event handlers
-  simultaneously. Consolidate to event-driven approach only.
+- [x] **Incomplete health checks** — Redis/Dragonfly and MongoDB checks are implemented. Wolverine messaging health
+  checks added (`WolverineMessageStoreHealthCheck`, `WolverineDeadLetterHealthCheck`).
+- [x] **Soft delete cascade via three mechanisms** — `ISoftDeleteProcessor` and `ISoftDeleteCascadeRule` infrastructure
+  removed (commit `1b99545`). Cascade is now event-driven only via Wolverine integration events.
 - [ ] **`ClearCategoryAsync` bypasses EF Core change tracker** — `ExecuteUpdateAsync` is a bulk SQL operation that skips
   the DbContext tracker. If products are tracked in the same session (e.g. loaded during validation), their in-memory
   `CategoryId` stays non-null while the DB has `null`; a subsequent `SaveChanges` would overwrite the DB back. Verify no
@@ -225,9 +224,9 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
 
 ## Exception Handling Enhancements
 
-- [ ] Enhance `ApiExceptionHandler` with structured error metadata preservation in
+- [x] Enhance `ApiExceptionHandler` with structured error metadata preservation in
   `ProblemDetails.Extensions["metadata"]`.
-- [ ] Add error code fallback logic (check `exception.ErrorCode` then `metadata["errorCode"]` then
+- [x] Add error code fallback logic (check `exception.ErrorCode` via `IHasErrorCode` then
   `ErrorCatalog.General.Unknown`).
 - [x] Differentiate logging by status code (LogError for 5xx, LogWarning for handled exceptions).
 
@@ -265,7 +264,7 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
 - [x] Make `RepositoryBase<T>` accept generic `DbContext` parameter instead of casting to `AppDbContext`.
 - [x] Extract `TenantAuditableDbContext` as abstract reusable base class with `TenantAuditableDbContextDependencies`
   record for dependency encapsulation. (ModuleDbContext already serves this role)
-- [ ] Make `IEntityNormalizationService` optional (nullable) in DbContext — not all modules need normalization.
+- [x] Make `IEntityNormalizationService` optional (nullable) in DbContext — removed entirely (commit `5d327af`); normalization is no longer part of the DbContext lifecycle.
 - [ ] Improve `DesignTimeConnectionStringResolver` with dynamic path resolution (walk up directory tree) and
   environment-specific appsettings loading.
 
