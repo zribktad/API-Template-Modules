@@ -92,6 +92,9 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
             return null;
         }
 
+        // Absolute lifetime is a security policy — limits the damage window of a compromised session.
+        // Revoke forces re-authentication, but since the user still has an active Keycloak SSO session,
+        // re-login is a transparent redirect chain (~200ms), not a password prompt.
         if (HasExceededAbsoluteLifetime(session))
         {
             await RevokeAsync(sessionId, BffSessionRevocationReason.AbsoluteLifetimeExceeded, ct);
