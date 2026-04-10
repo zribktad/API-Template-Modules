@@ -18,7 +18,7 @@ public static class HealthCheckModuleExtensions
         ServiceCollection tempServices = new();
         tempServices.AddSingleton(configuration);
         tempServices.AddSingleton(environment);
-        ServiceProvider tempProvider = tempServices.BuildServiceProvider();
+        using ServiceProvider tempProvider = tempServices.BuildServiceProvider();
 
         foreach (Type type in moduleTypes)
         {

@@ -1,6 +1,6 @@
 namespace SharedKernel.Application.Errors;
 
-public class AppException : Exception, IHasErrorCode, IHasErrorMetadata
+public sealed class AppException : Exception, IHasErrorCode, IHasErrorMetadata
 {
     public string ErrorCode { get; }
     public IReadOnlyDictionary<string, object> Metadata { get; }

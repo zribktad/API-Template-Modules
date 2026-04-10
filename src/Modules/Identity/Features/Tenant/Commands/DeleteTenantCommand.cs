@@ -27,24 +27,20 @@ public sealed class DeleteTenantCommandHandler
         if (tenantResult.IsError)
             return (tenantResult.Errors, OutgoingMessagesHelper.Empty);
 
-        Task<List<Entities.AppUser>> usersTask = userRepository.ListAsync(
-            new UsersForTenantSoftDeleteSpecification(command.Id),
-            ct
-        );
-
-        Task<List<Entities.TenantInvitation>> invitationsTask =
-            invitationRepository.ListAsync(
-                new InvitationsForTenantSoftDeleteSpecification(command.Id),
-                ct
-            );
-
-        await Task.WhenAll(usersTask, invitationsTask);
-        List<Entities.AppUser> users = usersTask.Result;
-        List<Entities.TenantInvitation> invitations = invitationsTask.Result;
-
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
+                List<AppUser> users = await userRepository.ListAsync(
+                    new UsersForTenantSoftDeleteSpecification(command.Id),
+                    ct
+                );
+
+                List<Entities.TenantInvitation> invitations =
+                    await invitationRepository.ListAsync(
+                        new InvitationsForTenantSoftDeleteSpecification(command.Id),
+                        ct
+                    );
+
                 if (users.Count > 0)
                     await userRepository.DeleteRangeAsync(users, ct);
 

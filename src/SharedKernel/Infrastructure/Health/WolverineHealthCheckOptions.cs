@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SharedKernel.Infrastructure.Health;
 
-public sealed class WolverineHealthCheckOptions
+public sealed class WolverineHealthCheckOptions : IValidatableObject
 {
     [Range(1, int.MaxValue)]
     public int DeadLetterWarningThreshold { get; init; } = 50;
@@ -15,4 +15,16 @@ public sealed class WolverineHealthCheckOptions
 
     [Range(1, int.MaxValue)]
     public int IncomingBacklogWarningThreshold { get; init; } = 100;
+
+    //Used by ValidateOnStart
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (DeadLetterWarningThreshold >= DeadLetterCriticalThreshold)
+        {
+            yield return new ValidationResult(
+                "DeadLetterWarningThreshold must be less than DeadLetterCriticalThreshold",
+                [nameof(DeadLetterWarningThreshold), nameof(DeadLetterCriticalThreshold)]
+            );
+        }
+    }
 }

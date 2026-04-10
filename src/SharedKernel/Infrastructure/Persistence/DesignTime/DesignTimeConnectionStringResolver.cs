@@ -9,7 +9,7 @@ namespace SharedKernel.Infrastructure.Persistence.DesignTime;
 /// </summary>
 public static class DesignTimeConnectionStringResolver
 {
-    public static string Resolve(string? fallbackDatabase = null)
+    public static string Resolve()
     {
         string configDir = ResolveApiConfigurationDirectory();
 
@@ -72,7 +72,7 @@ public static class DesignTimeConnectionStringResolver
         yield return Directory.GetCurrentDirectory();
 
         string? assemblyDir = Path.GetDirectoryName(
-            System.Reflection.Assembly.GetCallingAssembly().Location
+            typeof(DesignTimeConnectionStringResolver).Assembly.Location
         );
         if (!string.IsNullOrEmpty(assemblyDir))
             yield return assemblyDir;

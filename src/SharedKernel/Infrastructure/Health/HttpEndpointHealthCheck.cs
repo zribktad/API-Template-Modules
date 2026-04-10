@@ -41,7 +41,7 @@ public abstract class HttpEndpointHealthCheck : IHealthCheck
             cts.CancelAfter(CheckTimeout);
 
             using HttpClient httpClient = _httpClientFactory.CreateClient(_httpClientName);
-            HttpResponseMessage response = await httpClient.GetAsync(_endpoint, cts.Token);
+            using HttpResponseMessage response = await httpClient.GetAsync(_endpoint, cts.Token);
             return response.IsSuccessStatusCode
                 ? HealthCheckResult.Healthy()
                 : HealthCheckResult.Unhealthy(
