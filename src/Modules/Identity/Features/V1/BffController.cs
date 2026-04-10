@@ -23,13 +23,12 @@ public sealed class BffController : ApiControllerBase
     )
     {
         _bffOptions = bffOptions.Value;
-        List<IExternalIdentityProvider> providerList = identityProviders.ToList();
-        _identityProviders = providerList.ToDictionary(
+        _identityProviders = identityProviders.ToDictionary(
             p => p.IdpHint,
             p => p,
             StringComparer.OrdinalIgnoreCase
         );
-        _externalProviderResponses = providerList
+        _externalProviderResponses = _identityProviders.Values
             .Select(p => new ExternalProviderResponse(p.IdpHint, p.DisplayName))
             .ToList();
     }
