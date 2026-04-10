@@ -225,6 +225,8 @@ namespace Identity.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAtUtc");
+
                     b.HasIndex("SessionId")
                         .IsUnique();
 

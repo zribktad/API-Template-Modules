@@ -16,7 +16,7 @@ namespace APITemplate.Tests.Integration.Postgres;
 
 using AppDbUnitOfWork = SharedKernel.Infrastructure.UnitOfWork.UnitOfWork<APITemplate.Infrastructure.Persistence.AppDbContext>;
 
-[Trait("Category", "Integration.Postgres")]
+[Trait("Category", "Integration.Docker")]
 public abstract class PostgresTestBase : IAsyncLifetime
 {
     protected PostgresWebApplicationFactory _factory;

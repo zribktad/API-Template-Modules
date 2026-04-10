@@ -135,6 +135,12 @@ namespace Identity.Migrations
             );
 
             migrationBuilder.CreateIndex(
+                name: "IX_BffSessions_SessionCreatedAtUtc",
+                table: "BffSessions",
+                column: "SessionCreatedAtUtc"
+            );
+
+            migrationBuilder.CreateIndex(
                 name: "IX_BffSessions_SessionId",
                 table: "BffSessions",
                 column: "SessionId",

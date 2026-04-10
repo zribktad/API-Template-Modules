@@ -21,7 +21,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Postgres;
 
-[Trait("Category", "Integration.Postgres")]
+[Trait("Category", "Integration.Docker")]
 public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContainer>, IAsyncLifetime
 {
     private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-04-10T12:00:00Z");

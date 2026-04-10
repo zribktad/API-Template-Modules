@@ -1,9 +1,9 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using APITemplate.Application.Common.Security;
-using APITemplate.Domain.Enums;
 using APITemplate.Tests.Integration.Helpers;
+using Identity.Enums;
+using Identity.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -15,6 +15,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Auth;
 
+[Trait("Category", "Integration.Docker")]
 public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFactory>
 {
     private readonly BffSecurityWebApplicationFactory _factory;

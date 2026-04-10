@@ -108,7 +108,7 @@ namespace Identity.Migrations
                     b.HasIndex("TenantId", "NormalizedUsername")
                         .IsUnique();
 
-                    b.ToTable("Users", t =>
+                    b.ToTable("Users", null, t =>
                         {
                             t.HasCheckConstraint("CK_Users_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
                         });
@@ -222,6 +222,8 @@ namespace Identity.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAtUtc");
+
                     b.HasIndex("SessionId")
                         .IsUnique();
 
@@ -233,7 +235,7 @@ namespace Identity.Migrations
 
                     b.HasIndex("TenantId", "IsDeleted");
 
-                    b.ToTable("BffSessions", t =>
+                    b.ToTable("BffSessions", null, t =>
                         {
                             t.HasCheckConstraint("CK_BffSessions_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
                         });
@@ -292,7 +294,7 @@ namespace Identity.Migrations
 
                     b.HasIndex("TenantId", "IsDeleted");
 
-                    b.ToTable("Tenants", t =>
+                    b.ToTable("Tenants", null, t =>
                         {
                             t.HasCheckConstraint("CK_Tenants_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
                         });
@@ -359,7 +361,7 @@ namespace Identity.Migrations
 
                     b.HasIndex("TenantId", "NormalizedEmail");
 
-                    b.ToTable("TenantInvitations", t =>
+                    b.ToTable("TenantInvitations", null, t =>
                         {
                             t.HasCheckConstraint("CK_TenantInvitations_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
                         });
@@ -496,7 +498,7 @@ namespace Identity.Migrations
 
                             b1.HasKey("AppUserId");
 
-                            b1.ToTable("Users");
+                            b1.ToTable("Users", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("AppUserId");
@@ -539,7 +541,7 @@ namespace Identity.Migrations
 
                             b1.HasKey("BffPersistedSessionId");
 
-                            b1.ToTable("BffSessions");
+                            b1.ToTable("BffSessions", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("BffPersistedSessionId");
@@ -582,7 +584,7 @@ namespace Identity.Migrations
 
                             b1.HasKey("TenantId");
 
-                            b1.ToTable("Tenants");
+                            b1.ToTable("Tenants", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TenantId");
@@ -631,7 +633,7 @@ namespace Identity.Migrations
 
                             b1.HasKey("TenantInvitationId");
 
-                            b1.ToTable("TenantInvitations");
+                            b1.ToTable("TenantInvitations", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TenantInvitationId");
