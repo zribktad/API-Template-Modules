@@ -26,7 +26,6 @@ public static class DesignTimeServices
         public Guid ActorId => Guid.Empty;
     }
 
-    //Maybe for remove or merge?
     private sealed class NoOpAuditableEntityStateManager : IAuditableEntityStateManager
     {
         public void StampAdded(

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Infrastructure.Configuration;
 
@@ -8,10 +9,12 @@ namespace SharedKernel.Infrastructure.Health;
 public sealed class SharedKernelHealthChecks : IHealthCheckModule
 {
     private readonly IConfiguration _configuration;
+    private readonly bool _isDevelopment;
 
-    public SharedKernelHealthChecks(IConfiguration configuration)
+    public SharedKernelHealthChecks(IConfiguration configuration, IHostEnvironment environment)
     {
         _configuration = configuration;
+        _isDevelopment = environment.IsDevelopment();
     }
 
     public void RegisterHealthChecks(IHealthChecksBuilder builder)
@@ -93,31 +96,16 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
         if (observabilityOptions is null)
             return;
 
-        string? endpoint = ResolveOtlpEndpoint(observabilityOptions);
+        Uri? endpoint = observabilityOptions.ResolveOtlpEndpoint(_isDevelopment);
         if (endpoint is null)
             return;
 
-        builder.Services.Configure<OtlpCollectorHealthCheckOptions>(o => o.Endpoint = endpoint);
+        builder.Services.Configure<OtlpCollectorHealthCheckOptions>(o =>
+            o.Endpoint = endpoint.AbsoluteUri
+        );
         builder.AddCheck<OtlpCollectorHealthCheck>(
             HealthCheckNames.OtlpCollector,
             tags: [HealthCheckTags.Ready, HealthCheckTags.External]
         );
-    }
-
-    private static string? ResolveOtlpEndpoint(ObservabilityOptions options)
-    {
-        if (
-            options.Exporters.Otlp.Enabled == true
-            && !string.IsNullOrWhiteSpace(options.Otlp.Endpoint)
-        )
-            return options.Otlp.Endpoint;
-
-        if (
-            options.Exporters.Aspire.Enabled == true
-            && !string.IsNullOrWhiteSpace(options.Aspire.Endpoint)
-        )
-            return options.Aspire.Endpoint;
-
-        return null;
     }
 }

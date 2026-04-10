@@ -1,29 +1,40 @@
-using APITemplate.Api.Extensions;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting;
-using SharedKernel.Application.Options;
+using SharedKernel.Application.Options.Infrastructure;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Observability;
 
-public sealed class ObservabilityServiceCollectionExtensionsTests
+public sealed class ObservabilityOptionsResolveOtlpEndpointTests
 {
     [Fact]
-    public void GetEnabledOtlpEndpoints_WhenDevelopmentOutsideContainer_DefaultsToAspire()
+    public void ResolveOtlpEndpoint_WhenDevelopment_DefaultsToAspireEndpoint()
     {
-        var options = new ObservabilityOptions();
+        var options = new ObservabilityOptions
+        {
+            Aspire = new AspireEndpointOptions { Endpoint = "http://localhost:4317" },
+        };
 
-        var endpoints = ObservabilityServiceCollectionExtensions.GetEnabledOtlpEndpoints(
-            options,
-            new FakeHostEnvironment(Environments.Development)
-        );
+        Uri? result = options.ResolveOtlpEndpoint(isDevelopment: true);
 
-        endpoints.ShouldContain("http://localhost:4317");
+        result.ShouldNotBeNull();
+        result.AbsoluteUri.ShouldBe("http://localhost:4317/");
     }
 
     [Fact]
-    public void GetEnabledOtlpEndpoints_WhenExplicitOtlpEnabled_IncludesConfiguredEndpoint()
+    public void ResolveOtlpEndpoint_WhenProduction_WithNoExplicitToggle_ReturnsNull()
+    {
+        var options = new ObservabilityOptions
+        {
+            Aspire = new AspireEndpointOptions { Endpoint = "http://localhost:4317" },
+        };
+
+        Uri? result = options.ResolveOtlpEndpoint(isDevelopment: false);
+
+        result.ShouldBeNull();
+    }
+
+    [Fact]
+    public void ResolveOtlpEndpoint_WhenExplicitOtlpEnabled_ReturnsOtlpEndpoint()
     {
         var options = new ObservabilityOptions
         {
@@ -35,22 +46,49 @@ public sealed class ObservabilityServiceCollectionExtensionsTests
             },
         };
 
-        var endpoints = ObservabilityServiceCollectionExtensions.GetEnabledOtlpEndpoints(
-            options,
-            new FakeHostEnvironment(Environments.Production)
-        );
+        Uri? result = options.ResolveOtlpEndpoint(isDevelopment: false);
 
-        endpoints.ShouldBe(["http://alloy:4317"]);
+        result.ShouldNotBeNull();
+        result.AbsoluteUri.ShouldBe("http://alloy:4317/");
     }
 
-    private sealed class FakeHostEnvironment(string environmentName) : IHostEnvironment
+    [Fact]
+    public void ResolveOtlpEndpoint_WhenOtlpEnabled_PrefersOtlpOverAspire()
     {
-        public string EnvironmentName { get; set; } = environmentName;
+        var options = new ObservabilityOptions
+        {
+            Otlp = new OtlpEndpointOptions { Endpoint = "http://alloy:4317" },
+            Aspire = new AspireEndpointOptions { Endpoint = "http://localhost:4317" },
+            Exporters = new ObservabilityExportersOptions
+            {
+                Otlp = new ObservabilityExporterToggleOptions { Enabled = true },
+                Aspire = new ObservabilityExporterToggleOptions { Enabled = true },
+            },
+        };
 
-        public string ApplicationName { get; set; } = "APITemplate.Tests";
+        Uri? result = options.ResolveOtlpEndpoint(isDevelopment: true);
 
-        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        result.ShouldNotBeNull();
+        result.AbsoluteUri.ShouldBe("http://alloy:4317/");
+    }
 
-        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+    [Fact]
+    public void ResolveOtlpEndpoint_WhenOtlpEnabled_WithInvalidUri_FallsBackToAspire()
+    {
+        var options = new ObservabilityOptions
+        {
+            Otlp = new OtlpEndpointOptions { Endpoint = "not-a-uri" },
+            Aspire = new AspireEndpointOptions { Endpoint = "http://localhost:4317" },
+            Exporters = new ObservabilityExportersOptions
+            {
+                Otlp = new ObservabilityExporterToggleOptions { Enabled = true },
+                Aspire = new ObservabilityExporterToggleOptions { Enabled = true },
+            },
+        };
+
+        Uri? result = options.ResolveOtlpEndpoint(isDevelopment: false);
+
+        result.ShouldNotBeNull();
+        result.AbsoluteUri.ShouldBe("http://localhost:4317/");
     }
 }

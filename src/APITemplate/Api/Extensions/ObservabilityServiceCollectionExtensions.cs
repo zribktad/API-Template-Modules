@@ -28,7 +28,7 @@ public static class ObservabilityServiceCollectionExtensions
         string? serviceVersion = typeof(Program).Assembly.GetName().Version?.ToString();
         bool enableConsoleExporter =
             observabilityOptions.Exporters.Console.Enabled ?? environment.IsDevelopment();
-        Uri? otlpEndpoint = ResolveOtlpEndpoint(observabilityOptions, environment);
+        Uri? otlpEndpoint = observabilityOptions.ResolveOtlpEndpoint(environment.IsDevelopment());
 
         OpenTelemetryBuilder openTelemetryBuilder = services
             .AddOpenTelemetry()
@@ -59,32 +59,5 @@ public static class ObservabilityServiceCollectionExtensions
         });
 
         return services;
-    }
-
-    private static Uri? ResolveOtlpEndpoint(
-        ObservabilityOptions observabilityOptions,
-        IHostEnvironment environment
-    )
-    {
-        bool explicitOtlpEnabled = observabilityOptions.Exporters.Otlp.Enabled == true;
-        if (
-            explicitOtlpEnabled
-            && Uri.TryCreate(observabilityOptions.Otlp.Endpoint, UriKind.Absolute, out Uri? otlpUri)
-        )
-            return otlpUri;
-
-        bool aspireEnabled =
-            observabilityOptions.Exporters.Aspire.Enabled ?? environment.IsDevelopment();
-        if (
-            aspireEnabled
-            && Uri.TryCreate(
-                observabilityOptions.Aspire.Endpoint,
-                UriKind.Absolute,
-                out Uri? aspireUri
-            )
-        )
-            return aspireUri;
-
-        return null;
     }
 }
