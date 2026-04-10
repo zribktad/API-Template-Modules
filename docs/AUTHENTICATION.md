@@ -156,18 +156,104 @@ sequenceDiagram
     API-->>C: 200 OK
 ```
 
-**Get token via curl:**
+## How to Request a Token Manually (Postman / cURL)
+
+The key endpoint for obtaining a token across all flows is (for the local environment):  
+`POST http://localhost:8180/realms/api-template/protocol/openid-connect/token`
+
+Below are all the supported methods (Grant Types) to obtain a token:
+
+### 1. Password Grant (Resource Owner Password Credentials)
+**What it does:** The client application collects the username and password directly and sends them in a single REST API POST request to Keycloak to receive tokens. It completely bypasses the Keycloak login UI.
+**When to use:** 
+- **✅ YES:** Local development, quick manual testing via Postman/cURL, and automated E2E/integration tests where simulating a browser login flow is too complex or slow.
+- **❌ NO:** Never use this in production apps (SPAs, mobile apps). Users should never enter their Keycloak credentials directly into your client application.
+
+This method allows you to send the username and password directly and receive a JWT token immediately.  
+*(Note: Requires the client to have "Direct Access Grants" enabled in Keycloak).*
+
 ```bash
+curl -X POST "http://localhost:8180/realms/api-template/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=api-template" \
+  -d "client_secret=dev-client-secret" \
+  -d "username=admin" \
+  -d "password=admin"
+```
+
+### at it does:** The client application authenticates *itself* (not a human user) using its `client_id` and `client_secret`. Keycloak verifies the client and issues an access token representing the machine/service, which will have no human user context.
+**Wh2. Client Credentials (Machine-to-Machine)
+**When to use:** 
+- **✅ YES:** Background workers (CRON jobs), microservice-to-microservice communication, or any automated system that needs to call the API on its own behalf (as a Service Account) without any human user being present.
+
+```bash
+# Get the token and store it directly in a variable (bash)
 TOKEN=$(curl -s -X POST "http://localhost:8180/realms/api-template/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=client_credentials" \
   -d "client_id=api-template" \
   -d "client_secret=dev-client-secret" \
   | jq -r '.access_token')
 
+# Use the token to call our API
 curl -H "Authorization: Bearer $TOKEN" http://localhost:5174/api/v1/products
 ```
 
-> **Tip:** Paste the token into [jwt.io](https://jwt.io) to inspect claims (roles, tenant_id, etc.)
+### 3. Refresh Token
+**What it does:** Instead of credentials, the client sends a previously obtained, long-lived `refresh_token`. Keycloak validates it and issues a fresh, short-lived `access_token` (and typically a rotated `refresh_token`), effectively extending the session without requiring user interaction.
+**When to use:** 
+- **✅ YES:** When your client application (mobile app, or backend BFF) needs to seamlessly maintain the user's session without forcing them to log in again after the short-lived `access_token` (e.g., 5 minutes) expires.
+
+Provide the `refresh_token` (which you received during the initial login) to Keycloak to get a completely new pair of tokens.
+
+```bash
+curl -X POST "http://localhost:8180/realms/api-template/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=refresh_token" \
+  -d "client_id=api-template" \
+  -d "client_secret=dev-client-secret" \
+  -d "refresh_token=<YOUR_REFRESH_TOKEN>"
+```
+
+### at it does:** A secure, multi-step flow where the application never sees the user's credentials. 
+1. The app redirects the user to the Keycloak login page.
+2. After successful login, Keycloak redirects back to the app with a temporary, one-time "authorization code".
+3. The app exchanges this code on the backend for the actual tokens. (The PKCE extension adds a cryptographic challenge to ensure the client exchanging the code is the exact same one that requested it).
+
+**Wh4. Authorization Code (with PKCE)
+**When to use:** 
+- **✅ YES:** User-facing interactive applications like Single Page Applications (React, Vue), native Mobile apps (iOS, Android), Desktop applications (Windows WPF, MAUI, Electron), and our Scalar UI developer documentation. This is the modern security standard for logging in users.
+
+For security, it requires redirecting to the browser where the user logs in securely on the Keycloak screen. The client then intercepts a temporary "authorization code" from the URL parameters and exchanges it for the actual token.
+
+**To simulate this in Postman:**
+1. In the Authorization tab, select Type: **OAuth 2.0**
+2. Select Grant Type: **Authorization Code (With PKCE)**
+3. Callback/Redirect URL: (Depends on your client, e.g., `http://localhost:5174/scalar/v1`)
+4. Auth URL: `http://localhost:8180/realms/api-template/protocol/openid-connect/auth`
+5. Access Token URL: `http://localhost:8180/realms/api-template/protocol/openid-connect/token`
+6. Client ID: `api-template` (or `api-template-public` if you have one)
+7. Client Secret: (Can be left blank/is not required for a PKCE client)
+8. Scope: `openid profile email`
+9. Click **Get New Access Token** – Postman will open a secure Keycloak login window for you.
+
+### 5. Direct Grant / Mobile & Desktop App Login (Alternative for Native UI)
+**What it does:** Similar to the Password Grant, it allows a mobile or desktop application to send the username and password directly to Keycloak from its own native UI without bouncing the user to a browser. *Note: Using an embedded/system browser with PKCE (Method 4) is generally the recommended modern approach for both mobile and desktop apps.*
+**When to use:**
+- **✅ YES:** In a native mobile or desktop application (iOS, Android, Windows WPF, MAUI) where you absolutely must build your own login screen natively, and you have configured a specific `public` client in Keycloak (e.g., `api-template-public`) that has "Direct Access Grants" enabled.
+
+```bash
+# Notice there is no client_secret because a native app is an untrusted "public" client
+curl -X POST "http://localhost:8180/realms/api-template/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=password" \
+  -d "client_id=api-template-public" \
+  -d "username=user@example.com" \
+  -d "password=mypassword"
+```
+
+> **Tip:** Copy the obtained `access_token` and paste it into [jwt.io](https://jwt.io). This allows you to inspect all claims (e.g., roles, `tenant_id`, etc.) that the API parses from Keycloak.
 
 ---
 

@@ -19,7 +19,7 @@ Authentication is fully delegated to Keycloak. The local database stores only bu
 
 ### Mobile (Direct OIDC + PKCE)
 - Mobile app initiates OIDC Authorization Code flow with PKCE directly against Keycloak
-- Keycloak client `api-template-mobile` (public client, no secret)
+- Keycloak client `api-template-public` (public client, no secret)
 - Bearer JWT token is sent with each API request
 - API validates JWT signature against Keycloak's JWKS endpoint
 
@@ -93,7 +93,7 @@ Tenant admins must set the `tenant_id` user attribute in Keycloak when provision
 ### Optional: Mobile Client
 
 For mobile apps using PKCE:
-- Create a new client: `api-template-mobile`
+- Create a new client: `api-template-public`
 - Client type: **Public** (no secret)
 - Valid redirect URIs: your app's deep link scheme
 - Standard flow: enabled
