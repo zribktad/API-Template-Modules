@@ -2,7 +2,6 @@ using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using APITemplate.Infrastructure.Repositories;
 using APITemplate.Infrastructure.StoredProcedures;
 using Microsoft.EntityFrameworkCore;
@@ -180,7 +179,6 @@ public class CategoryRepositoryTests : IDisposable
             tenantProvider,
             new TestActorProvider(),
             TimeProvider.System,
-            new AppUserEntityNormalizationService(),
             stateManager
         );
     }

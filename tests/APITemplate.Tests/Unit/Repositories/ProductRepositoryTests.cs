@@ -1,7 +1,6 @@
 using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Application.Context;
@@ -108,7 +107,6 @@ public class ProductRepositoryTests : IDisposable
             new TestTenantProvider(),
             new TestActorProvider(),
             TimeProvider.System,
-            new AppUserEntityNormalizationService(),
             stateManager
         );
     }

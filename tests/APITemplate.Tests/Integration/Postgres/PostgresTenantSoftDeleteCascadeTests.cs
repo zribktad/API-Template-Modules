@@ -3,7 +3,6 @@ using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -230,7 +229,6 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
             new TestTenantProvider(tenantId, hasTenant),
             new TestActorProvider(actorId),
             TimeProvider.System,
-            new AppUserEntityNormalizationService(),
             stateManager
         );
 

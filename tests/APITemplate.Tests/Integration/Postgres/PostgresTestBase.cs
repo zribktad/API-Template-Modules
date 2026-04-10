@@ -2,7 +2,6 @@ using APITemplate.Api.Extensions;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -82,7 +81,6 @@ public abstract class PostgresTestBase : IAsyncLifetime
             new TestTenantProvider(tenantId, hasTenant),
             new TestActorProvider(actorId),
             TimeProvider.System,
-            new AppUserEntityNormalizationService(),
             stateManager
         );
 

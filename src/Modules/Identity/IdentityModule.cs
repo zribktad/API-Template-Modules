@@ -4,7 +4,6 @@ using Identity.Configuration;
 using Identity.Controllers.V1;
 using Identity.Options;
 using Identity.Persistence;
-using Identity.Persistence.EntityNormalization;
 using Identity.Repositories;
 using Identity.Security.ExternalIdentityProviders;
 using Identity.Security.Keycloak;
@@ -256,9 +255,6 @@ public static class IdentityModule
         string connectionString = configuration.GetConnectionString(
             ConfigurationSections.DefaultConnection
         )!;
-
-        // Register entity normalization before AddDefaultInfrastructure so TryAdd doesn't override it.
-        services.AddSingleton<IEntityNormalizationService, AppUserEntityNormalizationService>();
 
         services
             .AddModule<IdentityDbContext>(configuration)

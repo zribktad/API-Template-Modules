@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using SharedKernel.Application.Context;
 using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Infrastructure.Auditing;
-using SharedKernel.Infrastructure.EntityNormalization;
-
 namespace SharedKernel.Infrastructure.Persistence;
 
 /// <summary>
@@ -15,7 +13,6 @@ namespace SharedKernel.Infrastructure.Persistence;
 public abstract class ModuleDbContext : DbContext
 {
     private readonly IActorProvider _actorProvider;
-    private readonly IEntityNormalizationService? _entityNormalizationService;
     private readonly IAuditableEntityStateManager _entityStateManager;
     private readonly ITenantProvider _tenantProvider;
     private readonly TimeProvider _timeProvider;
@@ -25,15 +22,13 @@ public abstract class ModuleDbContext : DbContext
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
-        IAuditableEntityStateManager entityStateManager,
-        IEntityNormalizationService? entityNormalizationService = null
+        IAuditableEntityStateManager entityStateManager
     )
         : base(options)
     {
         _tenantProvider = tenantProvider;
         _actorProvider = actorProvider;
         _timeProvider = timeProvider;
-        _entityNormalizationService = entityNormalizationService;
         _entityStateManager = entityStateManager;
     }
 
@@ -102,7 +97,6 @@ public abstract class ModuleDbContext : DbContext
             switch (entry.State)
             {
                 case EntityState.Added:
-                    _entityNormalizationService?.Normalize(entity);
                     _entityStateManager.StampAdded(
                         entry,
                         entity,
@@ -113,7 +107,6 @@ public abstract class ModuleDbContext : DbContext
                     );
                     break;
                 case EntityState.Modified:
-                    _entityNormalizationService?.Normalize(entity);
                     _entityStateManager.StampModified(entity, now, actor);
                     break;
                 case EntityState.Deleted:

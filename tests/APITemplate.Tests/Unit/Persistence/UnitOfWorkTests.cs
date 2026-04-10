@@ -3,7 +3,6 @@ using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
-using APITemplate.Infrastructure.Persistence.EntityNormalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -426,7 +425,6 @@ public class UnitOfWorkTests
             new TestTenantProvider(),
             new TestActorProvider(),
             TimeProvider.System,
-            new AppUserEntityNormalizationService(),
             stateManager
         );
     }
