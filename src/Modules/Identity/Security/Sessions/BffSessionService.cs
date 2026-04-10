@@ -86,6 +86,12 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
             return null;
         }
 
+        if (HasRefreshTokenExpired(session))
+        {
+            await ExpireAsync(sessionId, ct);
+            return null;
+        }
+
         if (HasExceededAbsoluteLifetime(session))
         {
             await RevokeAsync(sessionId, BffSessionRevocationReason.AbsoluteLifetimeExceeded, ct);
@@ -234,6 +240,37 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
         };
     }
 
+    private Task ExpireAsync(string sessionId, CancellationToken ct)
+    {
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        return MutateSessionAsync(
+            sessionId,
+            currentSession =>
+                currentSession with
+                {
+                    Status = BffSessionStatus.Expired,
+                    LastSeenAtUtc = now,
+                    Version = currentSession.Version + 1,
+                },
+            ct
+        );
+    }
+
+    /// <summary>
+    ///     Token-level check: the refresh token issued by the identity provider has expired.
+    ///     Once expired, Keycloak will reject it and the session can never be refreshed again — it is permanently dead.
+    /// </summary>
+    private bool HasRefreshTokenExpired(BffSessionRecord session)
+    {
+        return session.RefreshTokenExpiresAtUtc.HasValue
+            && _timeProvider.GetUtcNow() >= session.RefreshTokenExpiresAtUtc.Value;
+    }
+
+    /// <summary>
+    ///     Application-level security policy: forces re-authentication after a configurable absolute lifetime,
+    ///     even when the refresh token is still valid. Guards against long-lived sessions on shared or
+    ///     compromised devices (e.g. stolen laptop, public terminal).
+    /// </summary>
     private bool HasExceededAbsoluteLifetime(BffSessionRecord session)
     {
         DateTimeOffset absoluteExpiry = session.CreatedAtUtc.AddMinutes(

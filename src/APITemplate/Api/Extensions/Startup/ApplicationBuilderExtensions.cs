@@ -22,6 +22,7 @@ public static class ApplicationBuilderExtensions
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
         app.UseAuthentication();
+        app.UseMiddleware<CsrfValidationMiddleware>();
         app.UseMiddleware<RequestContextMiddleware>();
         app.UseAuthorization();
         app.UseSerilogRequestLogging(options =>

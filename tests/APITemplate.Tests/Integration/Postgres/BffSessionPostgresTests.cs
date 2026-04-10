@@ -232,6 +232,7 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
         BffPersistedSession expiredSession = CreateEntity("expired-session");
         expiredSession.LastSeenAtUtc = Now.AddMinutes(-120);
         expiredSession.CreatedAtUtc = Now.AddMinutes(-120);
+        expiredSession.RefreshTokenExpiresAtUtc = Now.AddMinutes(-10);
 
         BffPersistedSession activeSession = CreateEntity("active-session");
         activeSession.LastSeenAtUtc = Now.AddMinutes(-5);

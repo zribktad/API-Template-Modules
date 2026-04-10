@@ -10,8 +10,9 @@ namespace Identity.Handlers;
 
 /// <summary>
 ///     Wolverine handler that processes <see cref="CleanupExpiredBffSessionsCommand" /> dispatched by the
-///     BackgroundJobs module. Permanently deletes BFF sessions that are revoked (past 24h retention),
-///     idle-expired, or have exceeded the absolute lifetime, using batched bulk deletes.
+///     BackgroundJobs module. Permanently deletes BFF sessions whose refresh tokens have expired,
+///     that have been in a terminal state (Revoked/Expired) past the configurable audit retention window,
+///     or that lack a known refresh expiry and exceeded the absolute session lifetime (safety net).
 /// </summary>
 public sealed class CleanupExpiredBffSessionsHandler
 {
@@ -25,14 +26,12 @@ public sealed class CleanupExpiredBffSessionsHandler
     )
     {
         BffOptions options = bffOptions.Value;
-        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+        DateTimeOffset now = timeProvider.GetUtcNow();
 
-        // Revoked sessions: 24h retention for audit trail
-        DateTime revokedCutoff = now.AddHours(-24);
-        // Idle expired: no activity within SessionIdleTimeoutMinutes
-        DateTime idleCutoff = now.AddMinutes(-options.SessionIdleTimeoutMinutes);
-        // Absolute expired: session exceeded SessionAbsoluteLifetimeMinutes
-        DateTime absoluteCutoff = now.AddMinutes(-options.SessionAbsoluteLifetimeMinutes);
+        // Terminal sessions (Revoked/Expired): configurable retention for audit trail
+        DateTimeOffset terminalCutoff = now.AddHours(-options.TerminalSessionRetentionHours);
+        // Safety net: sessions without known refresh expiry that exceeded absolute lifetime
+        DateTimeOffset absoluteCutoff = now.AddMinutes(-options.SessionAbsoluteLifetimeMinutes);
 
         int totalDeleted = 0;
         int deleted;
@@ -42,13 +41,19 @@ public sealed class CleanupExpiredBffSessionsHandler
             List<Guid> ids = await dbContext
                 .BffSessions.IgnoreQueryFilters()
                 .Where(s =>
-                    (s.Status == BffSessionStatus.Revoked && s.RevokedAtUtc < revokedCutoff)
-                    || (
-                        s.Status != BffSessionStatus.Revoked
-                        && (s.LastSeenAtUtc < idleCutoff || s.CreatedAtUtc < absoluteCutoff)
-                    )
+                    // Refresh token expired — session is permanently dead, no recovery possible
+                    (s.RefreshTokenExpiresAtUtc != null && s.RefreshTokenExpiresAtUtc < now)
+                    // Terminal sessions past configurable audit retention.
+                    // Defense in depth: even if RefreshTokenExpiresAtUtc is wrong or missing,
+                    // sessions explicitly marked as terminal will still be cleaned up.
+                    // Revoked = explicitly invalidated (logout, refresh rejected, token replay, etc.)
+                    || (s.Status == BffSessionStatus.Revoked && s.RevokedAtUtc < terminalCutoff)
+                    // Expired = refresh token expiry detected at read time by BffSessionService
+                    || (s.Status == BffSessionStatus.Expired && s.LastSeenAtUtc < terminalCutoff)
+                    // Safety net: no known refresh expiry (pre-first-refresh), past absolute lifetime
+                    || (s.RefreshTokenExpiresAtUtc == null && s.CreatedAtUtc < absoluteCutoff)
                 )
-                .OrderBy(s => s.LastSeenAtUtc)
+                .OrderBy(s => s.CreatedAtUtc)
                 .Take(command.BatchSize)
                 .Select(s => s.Id)
                 .ToListAsync(ct);

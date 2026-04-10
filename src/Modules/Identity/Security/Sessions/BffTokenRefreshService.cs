@@ -98,11 +98,18 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         }
 
         DateTimeOffset now = _timeProvider.GetUtcNow();
+
+        DateTimeOffset? refreshTokenExpiresAtUtc = refreshResult.TokenResponse.RefreshExpiresIn
+            is > 0
+            ? now.AddSeconds(refreshResult.TokenResponse.RefreshExpiresIn.Value)
+            : currentSession.RefreshTokenExpiresAtUtc;
+
         BffSessionRecord updatedSession = currentSession with
         {
             AccessToken = refreshResult.TokenResponse.AccessToken,
             RefreshToken = refreshResult.TokenResponse.RefreshToken ?? currentSession.RefreshToken,
             AccessTokenExpiresAtUtc = now.AddSeconds(refreshResult.TokenResponse.ExpiresIn),
+            RefreshTokenExpiresAtUtc = refreshTokenExpiresAtUtc,
             LastRefreshedAtUtc = now,
             LastSeenAtUtc = now,
             Status = BffSessionStatus.Active,

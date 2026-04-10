@@ -40,19 +40,35 @@ public sealed class BffOptions
 
     [Description(
         "Maximum time, in milliseconds, follower requests wait for an in-flight refresh. "
-            + "Should be aligned with (or exceed) the upstream identity provider HTTP timeout "
+            + "Must be >= RefreshLockTimeoutMilliseconds (followers must outlast the lock). "
+            + "Should match or exceed the upstream identity provider HTTP timeout "
             + "(e.g. Keycloak's default 10 s) so followers do not give up while the leader is still refreshing."
     )]
     [Range(100, int.MaxValue)]
     public int RefreshWaitTimeoutMilliseconds { get; init; } = 10_000;
 
-    [Description("Distributed refresh lock TTL, in milliseconds.")]
+    [Description(
+        "Distributed refresh lock TTL, in milliseconds. Guards against leader crashes leaving the lock held. "
+            + "Must be < RefreshWaitTimeoutMilliseconds (lock must expire before followers give up). "
+            + "Should be >= upstream provider HTTP timeout so the leader has enough time to complete the refresh."
+    )]
     [Range(100, int.MaxValue)]
-    public int RefreshLockTimeoutMilliseconds { get; init; } = 5000;
+    public int RefreshLockTimeoutMilliseconds { get; init; } = 10_000;
 
-    [Description("Refresh coordinator result TTL, in milliseconds.")]
+    [Description(
+        "Refresh coordinator result TTL, in milliseconds. How long the leader's outcome stays in Redis "
+            + "for late followers to read. Must be >= RefreshWaitTimeoutMilliseconds so the result is still "
+            + "available when the slowest follower finishes waiting."
+    )]
     [Range(100, int.MaxValue)]
-    public int RefreshResultTtlMilliseconds { get; init; } = 5000;
+    public int RefreshResultTtlMilliseconds { get; init; } = 15_000;
+
+    [Description(
+        "How long, in hours, terminal sessions (Revoked/Expired) are retained in the database "
+            + "for audit trail purposes before the cleanup handler permanently deletes them."
+    )]
+    [Range(1, int.MaxValue)]
+    public int TerminalSessionRetentionHours { get; init; } = 24;
 
     [Description("When true, a failed refresh revokes only the current BFF session.")]
     public bool RevokeSessionOnRefreshFailure { get; init; } = true;

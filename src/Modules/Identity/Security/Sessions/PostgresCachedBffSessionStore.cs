@@ -42,10 +42,7 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         _tokenProtector = tokenProtector;
         _timeProvider = timeProvider;
         _cacheTtl = TimeSpan.FromMinutes(options.Value.CacheTtlMinutes);
-        _cacheEntryOptions = new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = _cacheTtl,
-        };
+        _cacheEntryOptions = new DistributedCacheEntryOptions { SlidingExpiration = _cacheTtl };
     }
 
     /// <inheritdoc />

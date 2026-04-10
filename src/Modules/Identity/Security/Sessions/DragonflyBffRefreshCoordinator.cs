@@ -55,9 +55,16 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
 
         if (acquired)
         {
+            // Leader uses a dedicated timeout tied to the lock TTL, not the HTTP request token.
+            // If the original caller disconnects, the refresh still completes and writes the
+            // outcome for waiting followers instead of leaving them hanging until timeout.
+            using CancellationTokenSource leaderCts = new(
+                TimeSpan.FromMilliseconds(_options.RefreshLockTimeoutMilliseconds)
+            );
+
             try
             {
-                BffRefreshOutcome leaderOutcome = await leaderAction(ct);
+                BffRefreshOutcome leaderOutcome = await leaderAction(leaderCts.Token);
                 await WriteOutcomeAsync(database, sessionId, leaderOutcome);
                 return leaderOutcome;
             }
@@ -91,7 +98,11 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
             }
             else
             {
-                leaderTask = leaderAction(ct);
+                CancellationTokenSource leaderCts = new(
+                    TimeSpan.FromMilliseconds(_options.RefreshLockTimeoutMilliseconds)
+                );
+                leaderTask = leaderAction(leaderCts.Token);
+                _ = leaderTask.ContinueWith(_ => leaderCts.Dispose(), TaskScheduler.Default);
                 _fallbackTasks[sessionId] = leaderTask;
             }
         }
