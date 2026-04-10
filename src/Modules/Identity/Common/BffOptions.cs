@@ -38,9 +38,13 @@ public sealed class BffOptions
     [Range(0, int.MaxValue)]
     public int RefreshThresholdMinutes { get; init; } = 2;
 
-    [Description("Maximum time, in milliseconds, follower requests wait for an in-flight refresh.")]
+    [Description(
+        "Maximum time, in milliseconds, follower requests wait for an in-flight refresh. "
+            + "Should be aligned with (or exceed) the upstream identity provider HTTP timeout "
+            + "(e.g. Keycloak's default 10 s) so followers do not give up while the leader is still refreshing."
+    )]
     [Range(100, int.MaxValue)]
-    public int RefreshWaitTimeoutMilliseconds { get; init; } = 2000;
+    public int RefreshWaitTimeoutMilliseconds { get; init; } = 10_000;
 
     [Description("Distributed refresh lock TTL, in milliseconds.")]
     [Range(100, int.MaxValue)]

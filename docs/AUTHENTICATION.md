@@ -335,8 +335,11 @@ sequenceDiagram
             COORD->>VK: Write outcome to bff:session:GUID:refresh:result TTL=5s
             COORD->>VK: Release lock (compare-and-delete)
         else Follower (lock already held)
-            COORD->>VK: Poll bff:session:GUID:refresh:result every 100ms<br/>timeout = RefreshWaitTimeoutMilliseconds (2s)
-            COORD->>VK: Reload updated BffSessionRecord
+            COORD->>VK: SUBSCRIBE bff:session:GUID:refresh:notify
+            COORD->>VK: Early GET bff:session:GUID:refresh:result (already written?)
+            COORD->>VK: Await pub/sub notification or timeout (RefreshWaitTimeoutMilliseconds)
+            COORD->>VK: Final GET bff:session:GUID:refresh:result
+            COORD->>VK: Reload updated BffSessionRecord via followerAction
         end
 
         CSR->>CSR: Rebuild principal from BffSessionRecord<br/>ShouldRenew = true → new cookie issued
@@ -458,7 +461,7 @@ Next request     → cache miss → load from PostgreSQL → repopulate cache
 2. Idle-expired (`LastSeenAtUtc + SessionIdleTimeoutMinutes` passed)
 3. Absolute-expired (`CreatedAtUtc + SessionAbsoluteLifetimeMinutes` passed)
 
-**Optimistic concurrency** — two layers guard against concurrent mutations. The `Version` field in `BffSessionRecord` is incremented on every mutation and checked by `TryUpdateAsync` before writing (application-level CAS). EF Core's `xmin` concurrency token guards against PostgreSQL-level races. If either check fails, `BffSessionService.MutateSessionAsync` retries (up to 3 attempts) or the refresh coordinator falls back to the follower path.
+**Optimistic concurrency** — two layers guard against concurrent mutations. The `Version` field in `BffSessionRecord` is incremented on every mutation and checked by `TryUpdateAsync` before writing (application-level version check). EF Core's `xmin` concurrency token guards against PostgreSQL-level races. If either check fails, `BffSessionService.MutateSessionAsync` retries (up to 5 attempts) or the refresh coordinator falls back to the follower path.
 
 ### 3f. CSRF endpoint
 
@@ -886,7 +889,7 @@ Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider
 | `Identity/Common/Security/Sessions/BffProviderType.cs` | Identity provider enum (`Keycloak`) |
 | **Identity Module — Infrastructure (implementations)** | |
 | `Identity/Security/Sessions/DragonflyTicketStore.cs` | `ITicketStore` adapter → delegates to `IBffSessionService` |
-| `Identity/Security/Sessions/DragonflyBffSessionStore.cs` | Redis-backed session store with Lua CAS + token encryption |
+| `Identity/Security/Sessions/PostgresCachedBffSessionStore.cs` | PostgreSQL-primary session store with Redis read-through cache + token encryption |
 | `Identity/Security/Sessions/BffSessionService.cs` | Session lifecycle + revocation (implements both `IBffSessionService` and `IBffSessionRevocationService`) |
 | `Identity/Security/Sessions/BffTokenRefreshService.cs` | Refresh decision logic + Keycloak call + session update |
 | `Identity/Security/Sessions/DragonflyBffRefreshCoordinator.cs` | Redis distributed lock + in-memory fallback semaphore |

@@ -39,15 +39,26 @@ public sealed class CleanupExpiredBffSessionsHandler
 
         do
         {
-            deleted = await dbContext
+            List<Guid> ids = await dbContext
                 .BffSessions.IgnoreQueryFilters()
                 .Where(s =>
                     (s.Status == BffSessionStatus.Revoked && s.RevokedAtUtc < revokedCutoff)
-                    || s.LastSeenAtUtc < idleCutoff
-                    || s.CreatedAtUtc < absoluteCutoff
+                    || (
+                        s.Status != BffSessionStatus.Revoked
+                        && (s.LastSeenAtUtc < idleCutoff || s.CreatedAtUtc < absoluteCutoff)
+                    )
                 )
                 .OrderBy(s => s.LastSeenAtUtc)
                 .Take(command.BatchSize)
+                .Select(s => s.Id)
+                .ToListAsync(ct);
+
+            if (ids.Count == 0)
+                break;
+
+            deleted = await dbContext
+                .BffSessions.IgnoreQueryFilters()
+                .Where(s => ids.Contains(s.Id))
                 .ExecuteDeleteAsync(ct);
 
             totalDeleted += deleted;

@@ -154,7 +154,7 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
         CancellationToken ct
     )
     {
-        const int MaxAttempts = 3;
+        const int MaxAttempts = 5;
 
         for (int attempt = 0; attempt < MaxAttempts; attempt++)
         {
