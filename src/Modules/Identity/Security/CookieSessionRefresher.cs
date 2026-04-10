@@ -47,7 +47,11 @@ public static class CookieSessionRefresher
         refreshRequest = default;
 
         if (!TryGetExpiration(context, out DateTimeOffset expiresAt))
+        {
+            GetLogger(context).BffSessionRefreshInvalidExpiresAtRejectingPrincipal();
+            context.RejectPrincipal();
             return false;
+        }
 
         if (!IsRefreshRequired(context, expiresAt))
             return false;
@@ -83,8 +87,10 @@ public static class CookieSessionRefresher
         BffOptions bffOptions = context
             .HttpContext.RequestServices.GetRequiredService<IOptions<BffOptions>>()
             .Value;
+        TimeProvider timeProvider = context
+            .HttpContext.RequestServices.GetRequiredService<TimeProvider>();
 
-        return expiresAt - DateTimeOffset.UtcNow
+        return expiresAt - timeProvider.GetUtcNow()
             <= TimeSpan.FromMinutes(bffOptions.TokenRefreshThresholdMinutes);
     }
 
@@ -129,9 +135,20 @@ public static class CookieSessionRefresher
                 return null;
             }
 
-            return await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>(
+            KeycloakTokenResponse? tokenResponse = await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>(
                 context.HttpContext.RequestAborted
             );
+            if (!IsValidTokenResponse(tokenResponse))
+            {
+                GetLogger(context).KeycloakRefreshResponseInvalidRejectingPrincipal();
+                return null;
+            }
+
+            return tokenResponse;
+        }
+        catch (OperationCanceledException) when (context.HttpContext.RequestAborted.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -180,9 +197,20 @@ public static class CookieSessionRefresher
         );
         context.Properties.UpdateTokenValue(
             AuthConstants.CookieTokenNames.ExpiresAt,
-            DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn).ToString("o")
+            context
+                .HttpContext.RequestServices.GetRequiredService<TimeProvider>()
+                .GetUtcNow()
+                .AddSeconds(tokenResponse.ExpiresIn)
+                .ToString("o")
         );
         context.ShouldRenew = true;
+    }
+
+    private static bool IsValidTokenResponse(KeycloakTokenResponse? tokenResponse)
+    {
+        return tokenResponse is not null
+            && !string.IsNullOrWhiteSpace(tokenResponse.AccessToken)
+            && tokenResponse.ExpiresIn > 0;
     }
 
     private static KeycloakOptions GetKeycloakOptions(CookieValidatePrincipalContext context)

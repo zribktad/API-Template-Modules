@@ -252,4 +252,20 @@ internal static partial class IdentityLogs
         this ILogger logger,
         Exception exception
     );
+
+    [LoggerMessage(
+        EventId = 3046,
+        Level = LogLevel.Warning,
+        Message = "BFF session refresh skipped; expires_at token value is missing or invalid. Rejecting principal."
+    )]
+    public static partial void BffSessionRefreshInvalidExpiresAtRejectingPrincipal(
+        this ILogger logger
+    );
+
+    [LoggerMessage(
+        EventId = 3047,
+        Level = LogLevel.Warning,
+        Message = "Keycloak refresh response was missing a valid access token or expiry. Rejecting principal."
+    )]
+    public static partial void KeycloakRefreshResponseInvalidRejectingPrincipal(this ILogger logger);
 }
