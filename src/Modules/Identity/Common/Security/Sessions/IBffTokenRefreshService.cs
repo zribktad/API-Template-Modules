@@ -9,7 +9,7 @@ public interface IBffTokenRefreshService
     ///     Refreshes session tokens when required and returns the resulting refresh outcome.
     /// </summary>
     Task<BffRefreshOutcome> RefreshIfRequiredAsync(
-        string sessionId,
+        BffSessionRecord session,
         CancellationToken ct = default
     );
 }

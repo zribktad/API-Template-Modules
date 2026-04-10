@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Npgsql;
@@ -66,7 +67,10 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
         scopeFactory.Setup(x => x.CreateAsyncScope()).Returns(new AsyncServiceScope(scope.Object));
 
         BffOptions bffOptions = new() { CacheTtlMinutes = 10 };
-        IDataProtectionProvider protectionProvider = new EphemeralDataProtectionProvider();
+        IBffSessionTokenProtector tokenProtector = new BffSessionTokenProtector(
+            new EphemeralDataProtectionProvider(),
+            NullLogger<BffSessionTokenProtector>.Instance
+        );
 
         Mock<IConnectionMultiplexer> multiplexer = new();
         multiplexer.Setup(m => m.IsConnected).Returns(false);
@@ -75,9 +79,9 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
             _cache.Object,
             multiplexer.Object,
             scopeFactory.Object,
+            tokenProtector,
             Options.Create(bffOptions),
-            protectionProvider,
-            NullLogger<PostgresCachedBffSessionStore>.Instance
+            TimeProvider.System
         );
     }
 

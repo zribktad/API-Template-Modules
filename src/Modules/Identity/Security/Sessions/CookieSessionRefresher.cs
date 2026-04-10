@@ -12,16 +12,19 @@ namespace Identity.Security.Sessions;
 /// </summary>
 public sealed class CookieSessionRefresher : CookieAuthenticationEvents
 {
+    private readonly IBffSessionService _sessionService;
     private readonly IBffSessionPrincipalFactory _principalFactory;
     private readonly IBffTokenRefreshService _refreshService;
     private readonly ILogger<CookieSessionRefresher> _logger;
 
     public CookieSessionRefresher(
+        IBffSessionService sessionService,
         IBffSessionPrincipalFactory principalFactory,
         IBffTokenRefreshService refreshService,
         ILogger<CookieSessionRefresher> logger
     )
     {
+        _sessionService = sessionService;
         _principalFactory = principalFactory;
         _refreshService = refreshService;
         _logger = logger;
@@ -36,9 +39,18 @@ public sealed class CookieSessionRefresher : CookieAuthenticationEvents
             return;
         }
 
+        CancellationToken ct = context.HttpContext.RequestAborted;
+
+        BffSessionRecord? session = await _sessionService.GetSessionAsync(sessionId, ct);
+        if (session is null)
+        {
+            context.RejectPrincipal();
+            return;
+        }
+
         BffRefreshOutcome refreshOutcome = await _refreshService.RefreshIfRequiredAsync(
-            sessionId,
-            context.HttpContext.RequestAborted
+            session,
+            ct
         );
 
         if (!refreshOutcome.Succeeded || refreshOutcome.Session is null)

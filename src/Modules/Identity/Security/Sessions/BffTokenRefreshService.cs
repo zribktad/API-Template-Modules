@@ -36,27 +36,17 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
 
     /// <inheritdoc />
     public async Task<BffRefreshOutcome> RefreshIfRequiredAsync(
-        string sessionId,
+        BffSessionRecord session,
         CancellationToken ct = default
     )
     {
-        BffSessionRecord? session = await _sessionStore.GetAsync(sessionId, ct);
-        if (session is null)
-            return BffRefreshOutcome.Failed(BffSessionRevocationReason.SessionCorrupted);
-
-        if (
-            session.Status == BffSessionStatus.Revoked
-            || session.Status == BffSessionStatus.Expired
-        )
-            return BffRefreshOutcome.Failed(BffSessionRevocationReason.ProviderSessionInvalid);
-
         if (!IsRefreshRequired(session))
             return BffRefreshOutcome.NotRequired(session);
 
         if (string.IsNullOrWhiteSpace(session.RefreshToken))
         {
             await _revocationService.RevokeAsync(
-                sessionId,
+                session.SessionId,
                 BffSessionRevocationReason.RefreshTokenMissing,
                 ct
             );
@@ -64,9 +54,9 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         }
 
         return await _refreshCoordinator.ExecuteAsync(
-            sessionId,
+            session.SessionId,
             leaderCt => RefreshAsLeaderAsync(session, leaderCt),
-            followerCt => ReloadFollowerOutcomeAsync(sessionId, followerCt),
+            followerCt => ReloadFollowerOutcomeAsync(session.SessionId, followerCt),
             ct
         );
     }

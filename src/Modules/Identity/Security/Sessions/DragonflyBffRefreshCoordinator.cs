@@ -44,7 +44,7 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
 
         IDatabase database = _multiplexer.GetDatabase();
         string lockKey = GetLockKey(sessionId);
-        string lockValue = $"{Environment.MachineName}:{Environment.ProcessId}:{Guid.NewGuid():N}";
+        string lockValue = RedisLuaScripts.GenerateLockOwnerToken();
 
         bool acquired = await database.StringSetAsync(
             lockKey,

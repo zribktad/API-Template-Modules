@@ -75,7 +75,7 @@ public sealed class BffPersistedSessionConfiguration : IEntityTypeConfiguration<
 
         builder.Property(s => s.RevocationReason).HasConversion<string>().HasMaxLength(64);
 
-        // Composite index for cleanup queries: find expired/revoked sessions efficiently
         builder.HasIndex(s => new { s.Status, s.LastSeenAtUtc });
+        builder.HasIndex(s => s.CreatedAtUtc);
     }
 }

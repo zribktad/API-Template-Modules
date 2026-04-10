@@ -31,7 +31,6 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     {
         string dbName = $"BffSessionStoreTests_{Guid.NewGuid():N}";
 
-        // Build a real DI container so IServiceScopeFactory works (CreateAsyncScope is an extension method)
         ServiceCollection serviceCollection = new();
         serviceCollection.AddDbContext<IdentityDbContext>(
             (sp, opts) => opts.UseInMemoryDatabase(dbName),
@@ -46,14 +45,16 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
 
         _serviceProvider = serviceCollection.BuildServiceProvider();
 
-        // Resolve a DbContext for direct assertions in tests
         IServiceScope assertionScope = _serviceProvider.CreateScope();
         _dbContext = assertionScope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
         IServiceScopeFactory scopeFactory =
             _serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
-        IDataProtectionProvider protectionProvider = new EphemeralDataProtectionProvider();
+        IBffSessionTokenProtector tokenProtector = new BffSessionTokenProtector(
+            new EphemeralDataProtectionProvider(),
+            NullLogger<BffSessionTokenProtector>.Instance
+        );
 
         Mock<IConnectionMultiplexer> multiplexer = new();
         multiplexer.Setup(m => m.IsConnected).Returns(false);
@@ -62,9 +63,9 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
             _cache.Object,
             multiplexer.Object,
             scopeFactory,
+            tokenProtector,
             Options.Create(_bffOptions),
-            protectionProvider,
-            NullLogger<PostgresCachedBffSessionStore>.Instance
+            TimeProvider.System
         );
     }
 

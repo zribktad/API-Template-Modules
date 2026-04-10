@@ -49,7 +49,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
         }
 
         string lockKey = $"TickerQ:Leader:{_options.TickerQ.InstanceNamePrefix}:{jobName}";
-        string lockValue = $"{Environment.MachineName}:{Environment.ProcessId}:{Guid.NewGuid():N}";
+        string lockValue = RedisLuaScripts.GenerateLockOwnerToken();
 
         bool acquired = await database.StringSetAsync(
             lockKey,

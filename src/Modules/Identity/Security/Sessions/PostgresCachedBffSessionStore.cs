@@ -1,12 +1,9 @@
-using System.Security.Cryptography;
 using System.Text.Json;
-using Identity.Logging;
+using Identity.Entities;
 using Identity.Options;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SharedKernel.Infrastructure.Redis;
 using StackExchange.Redis;
@@ -25,8 +22,8 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
     private readonly IDistributedCache _cache;
     private readonly IConnectionMultiplexer _multiplexer;
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IDataProtector _protector;
-    private readonly ILogger<PostgresCachedBffSessionStore> _logger;
+    private readonly IBffSessionTokenProtector _tokenProtector;
+    private readonly TimeProvider _timeProvider;
     private readonly TimeSpan _cacheTtl;
     private readonly DistributedCacheEntryOptions _cacheEntryOptions;
 
@@ -34,16 +31,16 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         IDistributedCache cache,
         IConnectionMultiplexer connectionMultiplexer,
         IServiceScopeFactory scopeFactory,
+        IBffSessionTokenProtector tokenProtector,
         IOptions<BffOptions> options,
-        IDataProtectionProvider dataProtectionProvider,
-        ILogger<PostgresCachedBffSessionStore> logger
+        TimeProvider timeProvider
     )
     {
         _cache = cache;
         _multiplexer = connectionMultiplexer;
         _scopeFactory = scopeFactory;
-        _protector = dataProtectionProvider.CreateProtector("bff:session:tokens");
-        _logger = logger;
+        _tokenProtector = tokenProtector;
+        _timeProvider = timeProvider;
         _cacheTtl = TimeSpan.FromMinutes(options.Value.CacheTtlMinutes);
         _cacheEntryOptions = new DistributedCacheEntryOptions
         {
@@ -75,18 +72,18 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         if (entity is null)
             return null;
 
-        BffSessionRecord protectedRecord = MapToRecord(entity);
-        string payload = SerializeProtectedRecord(protectedRecord);
+        BffSessionRecord protectedRecord = BffSessionMapper.ToRecord(entity);
+        string payload = SerializeRecord(protectedRecord);
         await SetCacheAsync(cacheKey, payload, ct);
 
-        return UnprotectRecord(protectedRecord, sessionId);
+        return _tokenProtector.Unprotect(protectedRecord, sessionId);
     }
 
     /// <inheritdoc />
     public async Task StoreAsync(BffSessionRecord session, CancellationToken ct = default)
     {
-        BffSessionRecord protectedRecord = ProtectTokens(session);
-        BffPersistedSession entity = MapToEntity(session, protectedRecord);
+        BffSessionRecord protectedRecord = _tokenProtector.Protect(session);
+        BffPersistedSession entity = BffSessionMapper.ToEntity(session, protectedRecord);
 
         await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
         IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
@@ -95,7 +92,7 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         await dbContext.SaveChangesAsync(ct);
 
         string cacheKey = GetCacheKey(session.SessionId);
-        string payload = SerializeProtectedRecord(protectedRecord);
+        string payload = SerializeRecord(protectedRecord);
         await SetCacheAsync(cacheKey, payload, ct);
     }
 
@@ -116,15 +113,12 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         if (entity is null)
             return false;
 
-        // Check application-level optimistic concurrency via Version on BffSessionRecord.
-        // The record's Version field tracks logical mutations (incremented by BffSessionService).
-        // This is separate from EF's xmin concurrency — xmin guards against PG-level races,
-        // while Version guards against application-level CAS semantics.
+        // Application-level CAS: distinct from EF xmin, which guards PG-level races.
         if (entity.Version != expectedVersion)
             return false;
 
-        BffSessionRecord protectedRecord = ProtectTokens(session);
-        ApplyToEntity(entity, session, protectedRecord);
+        BffSessionRecord protectedRecord = _tokenProtector.Protect(session);
+        BffSessionMapper.ApplyToEntity(entity, session, protectedRecord);
 
         try
         {
@@ -136,7 +130,7 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         }
 
         string cacheKey = GetCacheKey(session.SessionId);
-        string payload = SerializeProtectedRecord(protectedRecord);
+        string payload = SerializeRecord(protectedRecord);
         await SetCacheAsync(cacheKey, payload, ct);
 
         return true;
@@ -155,7 +149,7 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         if (entity is not null)
         {
             entity.IsDeleted = true;
-            entity.DeletedAtUtc = DateTime.UtcNow;
+            entity.DeletedAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
             await dbContext.SaveChangesAsync(ct);
         }
 
@@ -192,17 +186,7 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         return CacheKeyPrefix + sessionId;
     }
 
-    private BffSessionRecord ProtectTokens(BffSessionRecord session)
-    {
-        return session with
-        {
-            AccessToken = Protect(session.AccessToken),
-            RefreshToken = Protect(session.RefreshToken),
-            IdToken = string.IsNullOrWhiteSpace(session.IdToken) ? null : Protect(session.IdToken),
-        };
-    }
-
-    private static string SerializeProtectedRecord(BffSessionRecord protectedRecord)
+    private static string SerializeRecord(BffSessionRecord protectedRecord)
     {
         return JsonSerializer.Serialize(protectedRecord, BffSessionSerializerOptions.Instance);
     }
@@ -216,133 +200,6 @@ public sealed class PostgresCachedBffSessionStore : IBffSessionStore
         if (record is null)
             return null;
 
-        return UnprotectRecord(record, sessionId);
-    }
-
-    private BffSessionRecord? UnprotectRecord(BffSessionRecord record, string sessionId)
-    {
-        try
-        {
-            return record with
-            {
-                AccessToken = Unprotect(record.AccessToken),
-                RefreshToken = Unprotect(record.RefreshToken),
-                IdToken = record.IdToken is null ? null : Unprotect(record.IdToken),
-            };
-        }
-        catch (CryptographicException ex)
-        {
-            _logger.BffSessionUnprotectFailed(ex, sessionId);
-            return null;
-        }
-        catch (FormatException ex)
-        {
-            _logger.BffSessionPayloadMalformed(ex, sessionId);
-            return null;
-        }
-    }
-
-    private string Protect(string value)
-    {
-        byte[] plaintextBytes = System.Text.Encoding.UTF8.GetBytes(value);
-        byte[] ciphertextBytes = _protector.Protect(plaintextBytes);
-        return Convert.ToBase64String(ciphertextBytes);
-    }
-
-    private string Unprotect(string ciphertext)
-    {
-        byte[] ciphertextBytes = Convert.FromBase64String(ciphertext);
-        byte[] plaintextBytes = _protector.Unprotect(ciphertextBytes);
-        return System.Text.Encoding.UTF8.GetString(plaintextBytes);
-    }
-
-    private static BffPersistedSession MapToEntity(
-        BffSessionRecord session,
-        BffSessionRecord protectedRecord
-    )
-    {
-        return new BffPersistedSession
-        {
-            Id = Guid.NewGuid(),
-            SessionId = session.SessionId,
-            UserId = session.UserId,
-            Subject = session.Subject,
-            Provider = session.Provider,
-            TenantId = Guid.TryParse(session.TenantId, out Guid tenantId) ? tenantId : Guid.Empty,
-            Roles = session.Roles,
-            Email = session.Email,
-            DisplayName = session.DisplayName,
-            EncryptedAccessToken = protectedRecord.AccessToken,
-            EncryptedRefreshToken = protectedRecord.RefreshToken,
-            EncryptedIdToken = protectedRecord.IdToken,
-            AccessTokenExpiresAtUtc = session.AccessTokenExpiresAtUtc,
-            RefreshTokenExpiresAtUtc = session.RefreshTokenExpiresAtUtc,
-            CreatedAtUtc = session.CreatedAtUtc,
-            LastSeenAtUtc = session.LastSeenAtUtc,
-            LastRefreshedAtUtc = session.LastRefreshedAtUtc,
-            Status = session.Status,
-            Version = session.Version,
-            RevokedAtUtc = session.RevokedAtUtc,
-            RevocationReason = session.RevocationReason,
-        };
-    }
-
-    /// <summary>
-    ///     Maps a persisted entity back to a <see cref="BffSessionRecord" /> with tokens still encrypted.
-    ///     The caller is responsible for unprotecting tokens before returning to consumers.
-    /// </summary>
-    private BffSessionRecord MapToRecord(BffPersistedSession entity)
-    {
-        return new BffSessionRecord
-        {
-            SessionId = entity.SessionId,
-            UserId = entity.UserId,
-            Subject = entity.Subject,
-            Provider = entity.Provider,
-            TenantId = entity.TenantId == Guid.Empty ? null : entity.TenantId.ToString(),
-            Roles = entity.Roles,
-            Email = entity.Email,
-            DisplayName = entity.DisplayName,
-            AccessToken = entity.EncryptedAccessToken,
-            RefreshToken = entity.EncryptedRefreshToken,
-            IdToken = entity.EncryptedIdToken,
-            AccessTokenExpiresAtUtc = entity.AccessTokenExpiresAtUtc,
-            RefreshTokenExpiresAtUtc = entity.RefreshTokenExpiresAtUtc,
-            CreatedAtUtc = entity.CreatedAtUtc,
-            LastSeenAtUtc = entity.LastSeenAtUtc,
-            LastRefreshedAtUtc = entity.LastRefreshedAtUtc,
-            Status = entity.Status,
-            Version = entity.Version,
-            RevokedAtUtc = entity.RevokedAtUtc,
-            RevocationReason = entity.RevocationReason,
-        };
-    }
-
-    private static void ApplyToEntity(
-        BffPersistedSession entity,
-        BffSessionRecord session,
-        BffSessionRecord protectedRecord
-    )
-    {
-        entity.UserId = session.UserId;
-        entity.Subject = session.Subject;
-        entity.Provider = session.Provider;
-        entity.TenantId = Guid.TryParse(session.TenantId, out Guid tenantId)
-            ? tenantId
-            : Guid.Empty;
-        entity.Roles = session.Roles;
-        entity.Email = session.Email;
-        entity.DisplayName = session.DisplayName;
-        entity.EncryptedAccessToken = protectedRecord.AccessToken;
-        entity.EncryptedRefreshToken = protectedRecord.RefreshToken;
-        entity.EncryptedIdToken = protectedRecord.IdToken;
-        entity.AccessTokenExpiresAtUtc = session.AccessTokenExpiresAtUtc;
-        entity.RefreshTokenExpiresAtUtc = session.RefreshTokenExpiresAtUtc;
-        entity.LastSeenAtUtc = session.LastSeenAtUtc;
-        entity.LastRefreshedAtUtc = session.LastRefreshedAtUtc;
-        entity.Status = session.Status;
-        entity.Version = session.Version;
-        entity.RevokedAtUtc = session.RevokedAtUtc;
-        entity.RevocationReason = session.RevocationReason;
+        return _tokenProtector.Unprotect(record, sessionId);
     }
 }

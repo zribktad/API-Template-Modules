@@ -13,12 +13,14 @@ namespace APITemplate.Tests.Unit.Identity;
 
 public sealed class CookieSessionRefresherTests
 {
+    private readonly Mock<IBffSessionService> _sessionService = new();
     private readonly Mock<IBffSessionPrincipalFactory> _principalFactory = new();
     private readonly Mock<IBffTokenRefreshService> _refreshService = new();
 
     private CookieSessionRefresher CreateSut()
     {
         return new CookieSessionRefresher(
+            _sessionService.Object,
             _principalFactory.Object,
             _refreshService.Object,
             NullLogger<CookieSessionRefresher>.Instance
@@ -32,8 +34,16 @@ public sealed class CookieSessionRefresherTests
         CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
         BffSessionRecord session = CreateSession("access-1", "refresh-1");
 
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
         _refreshService
-            .Setup(x => x.RefreshIfRequiredAsync("session-1", It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(BffRefreshOutcome.NotRequired(session));
 
         await sut.ValidatePrincipal(context);
@@ -47,6 +57,7 @@ public sealed class CookieSessionRefresherTests
     {
         CookieSessionRefresher sut = CreateSut();
         CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
+        BffSessionRecord session = CreateSession("access-1", "refresh-1");
         BffSessionRecord refreshedSession = CreateSession("new-access", "new-refresh");
         ClaimsPrincipal refreshedPrincipal = new(
             new ClaimsIdentity(
@@ -55,8 +66,16 @@ public sealed class CookieSessionRefresherTests
             )
         );
 
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
         _refreshService
-            .Setup(x => x.RefreshIfRequiredAsync("session-1", It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(BffRefreshOutcome.Success(refreshedSession));
         _principalFactory
             .Setup(x => x.CreatePrincipal(refreshedSession))
@@ -79,15 +98,39 @@ public sealed class CookieSessionRefresherTests
     {
         CookieSessionRefresher sut = CreateSut();
         CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
+        BffSessionRecord session = CreateSession("access-1", "refresh-1");
 
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
         _refreshService
-            .Setup(x => x.RefreshIfRequiredAsync("session-1", It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(BffRefreshOutcome.Failed(BffSessionRevocationReason.RefreshRejected));
 
         await sut.ValidatePrincipal(context);
 
         context.Principal.ShouldBeNull();
         context.ShouldRenew.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ValidatePrincipal_WhenSessionNotFound_RejectsPrincipal()
+    {
+        CookieSessionRefresher sut = CreateSut();
+        CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
+
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((BffSessionRecord?)null);
+
+        await sut.ValidatePrincipal(context);
+
+        context.Principal.ShouldBeNull();
     }
 
     [Fact]

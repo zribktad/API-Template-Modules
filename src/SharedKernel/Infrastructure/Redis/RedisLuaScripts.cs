@@ -28,4 +28,12 @@ public static class RedisLuaScripts
         return val
         """
     );
+
+    /// <summary>
+    ///     Generates a unique lock owner token combining machine name, process id, and a random guid.
+    /// </summary>
+    public static string GenerateLockOwnerToken()
+    {
+        return $"{Environment.MachineName}:{Environment.ProcessId}:{Guid.NewGuid():N}";
+    }
 }
