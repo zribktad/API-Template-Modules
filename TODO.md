@@ -1,5 +1,63 @@
 # TODO
 
+## CookieSessionRefresher — Follow-up Priority
+
+### Ľahko opraviteľné
+
+- [x] **`OperationCanceledException` nechytať ako warning** — normálny abort requestu už nie je logovaný ako chyba.
+- [x] **Validácia odpovede z Keycloak** — po `ReadFromJsonAsync` sa kontroluje `AccessToken` a `ExpiresIn > 0`,
+  inak sa principal rejectne.
+- [x] **Lepšie správanie pri neplatnom `expires_at`** — neplatný alebo chýbajúci údaj sa explicitne loguje a vedie
+  k rejectu principalu.
+- [x] **`TimeProvider` namiesto `DateTimeOffset.UtcNow`** — refresh threshold aj nové `expires_at` používajú DI clock.
+- [x] **Doplnenie log eventov** — refresh flow má doplnené source-generated log eventy pre invalidný session/token stav.
+
+### Stredne náročné
+
+- [x] **Refactor zo statickej helper triedy na normálnu DI službu** — `CookieSessionRefresher` je teraz DI event handler.
+- [x] **Sprísnenie HTTP client konfigurácie pre refresh endpoint** — named `KeycloakToken` client má explicitný timeout
+  a retry policy.
+- [x] **Lepšie testy pre refresh flow** — pribudli unit testy pre `CookieSessionRefresher` aj `KeycloakService`.
+
+### Ťažšie opraviteľné
+
+- [ ] **Ochrana proti refresh stormu pri paralelných requestoch** — treba rozhodnúť locking model
+  (per-session, per-user, in-memory, distributed) a správanie čakajúcich requestov.
+- [ ] **Presun refresh tokenu zo session cookie do server-side store** — väčšia architektonická zmena zahŕňajúca storage
+  model, lifecycle tokenov, invalidáciu, cleanup a prípadnú migráciu BFF flow.
+
+## Remaining Work — Hard vs Voluntary
+
+### Hard
+
+- [ ] **Mixed error handling follow-up** — legacy `AppException` / `IHasErrorCode` / `IHasErrorMetadata`
+  infrastructure remains and should be fully removed or isolated to finish the `ErrorOr<T>` migration.
+- [ ] **`ClearCategoryAsync` bypasses EF Core change tracker** — bulk `ExecuteUpdateAsync` can diverge tracked state
+  from database state and needs a safe fix or explicit invalidation strategy.
+- [ ] **Missing `CategorySoftDeletedNotification`** — category soft-delete still has no integration event hook for
+  future cross-module cascades.
+- [ ] **Missing value objects** — stronger domain types such as `Email`, `Rating`, `Price`, and `TenantCode` still need
+  proper invariant enforcement.
+- [ ] **SignalR infrastructure and hubs** — real-time notifications/chat are still entirely unimplemented
+  (`NotificationHub`, `ChatHub`, auth, reconnection, persistence, client SDK).
+- [ ] **Contracts NuGet package extraction** — request/response DTOs and shared contracts still need to be split into a
+  standalone package.
+- [ ] **File upload and storage workflow** — `ProductData` uploads, local/S3 storage abstraction, and orphaned-file
+  cleanup remain open.
+- [ ] **Infrastructure smoke tests** — startup validation and OpenAPI parity checks across modules are still missing.
+- [ ] **Shared test infrastructure** — `Tests.Common` utilities and `ServiceFactoryBase<TProgram>` are still missing.
+- [ ] **Architecture tests** — ArchUnitNET or NetArchTest coverage for module-boundary enforcement is still missing.
+
+### Voluntary
+
+- [ ] **Aggregate boundary cleanup** — remove direct `Product.Category` aggregate navigation and prefer `CategoryId`
+  only.
+- [ ] **Extract `CacheInvalidationCascades` helper** — reduce cache invalidation boilerplate with shared helpers.
+- [ ] **Controller base helpers** — add reusable `ApiControllerBase` invocation helpers to reduce controller boilerplate.
+- [ ] **`ErrorOrHttpExtensions` for minimal APIs** — add ErrorOr-to-ProblemDetails mapping for minimal API endpoints.
+- [ ] **Explicit bidirectional navigation properties** — improve aggregate-root relationship modeling in EF Core.
+- [ ] **`IValidationMetrics` telemetry abstraction** — record validation-failure metrics outside application logic.
+
 ## Distributed Consistency — Identified Issues
 
 ### Critical
