@@ -5,6 +5,7 @@ using Identity.Controllers.V1;
 using Identity.Options;
 using Identity.Persistence;
 using Identity.Repositories;
+using Identity.Security;
 using Identity.Security.ExternalIdentityProviders;
 using Identity.Security.Keycloak;
 using Identity.Security.Tenant;
@@ -129,6 +130,8 @@ public static class IdentityModule
                 options => ConfigureOidc(options, keycloak, bff, authority)
             );
 
+        services.AddScoped<CookieSessionRefresher>();
+
         // Override JWT bearer events to enable tenant claim validation + user provisioning.
         services.PostConfigure<JwtBearerOptions>(
             JwtBearerDefaults.AuthenticationScheme,
@@ -183,7 +186,28 @@ public static class IdentityModule
                         )
             );
 
-        services.AddHttpClient(AuthConstants.HttpClients.KeycloakToken);
+        // Token-endpoint client used by the BFF session refresh flow. Keep calls short and retry
+        // only transient failures so cookie validation does not hang on slow Keycloak responses.
+        services
+            .AddHttpClient(
+                AuthConstants.HttpClients.KeycloakToken,
+                client => client.Timeout = TimeSpan.FromSeconds(10)
+            )
+            .AddResilienceHandler(
+                ResiliencePipelineKeys.KeycloakToken,
+                builder =>
+                {
+                    builder.AddRetry(
+                        new HttpRetryStrategyOptions
+                        {
+                            MaxRetryAttempts = ResilienceDefaults.MaxRetryAttempts,
+                            BackoffType = DelayBackoffType.Exponential,
+                            Delay = ResilienceDefaults.ShortDelay,
+                            UseJitter = true,
+                        }
+                    );
+                }
+            );
     }
 
     private static void ConfigureCookie(CookieAuthenticationOptions options, BffOptions bff)
@@ -198,7 +222,7 @@ public static class IdentityModule
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return Task.CompletedTask;
         };
-        options.Events.OnValidatePrincipal = CookieSessionRefresher.OnValidatePrincipal;
+        options.EventsType = typeof(CookieSessionRefresher);
     }
 
     private static void ConfigureOidc(
@@ -274,6 +298,7 @@ public static class IdentityModule
     {
         services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
+        services.AddScoped<IKeycloakService, KeycloakService>();
         services.AddSingleton<ITenantCodeConflictDetector, PostgresTenantCodeConflictDetector>();
         services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
     }

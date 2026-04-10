@@ -1,36 +1,50 @@
-using System.Net.Http.Json;
+using Identity.Logging;
 using Identity.Options;
 using Identity.Security.Keycloak;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Identity.Security;
 
 /// <summary>
-///     Provides the cookie authentication principal validation callback used to transparently
-///     refresh Keycloak-backed BFF sessions when access tokens are close to expiration.
+///     Cookie authentication event handler that transparently refreshes Keycloak-backed BFF
+///     sessions when access tokens are close to expiration.
 /// </summary>
-public static class CookieSessionRefresher
+public sealed class CookieSessionRefresher : CookieAuthenticationEvents
 {
+    private readonly BffOptions _bffOptions;
+    private readonly IKeycloakService _keycloakService;
+    private readonly ILogger<CookieSessionRefresher> _logger;
+    private readonly TimeProvider _timeProvider;
+
+    public CookieSessionRefresher(
+        IOptions<BffOptions> bffOptions,
+        IKeycloakService keycloakService,
+        ILogger<CookieSessionRefresher> logger,
+        TimeProvider timeProvider
+    )
+    {
+        _bffOptions = bffOptions.Value;
+        _keycloakService = keycloakService;
+        _logger = logger;
+        _timeProvider = timeProvider;
+    }
+
     /// <summary>
-    ///     Validates an incoming cookie principal and, when appropriate, attempts to refresh
-    ///     the underlying Keycloak session and update the authentication cookie.
+    ///     Validates an incoming cookie principal and, when appropriate, refreshes the underlying
+    ///     Keycloak session and renews the authentication cookie.
     /// </summary>
-    public static async Task OnValidatePrincipal(CookieValidatePrincipalContext context)
+    public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
         if (!TryCreateRefreshRequest(context, out RefreshRequest refreshRequest))
             return;
 
-        KeycloakTokenResponse? tokenResponse = await TryRefreshSessionAsync(
-            context,
-            refreshRequest
-        );
+        KeycloakTokenResponse? tokenResponse = await TryRefreshSessionAsync(context, refreshRequest);
         if (tokenResponse is null)
         {
-            GetLogger(context).LogWarning("BFF session refresh failed — rejecting principal.");
+            _logger.BffSessionRefreshFailedRejectingPrincipal();
             context.RejectPrincipal();
             return;
         }
@@ -38,27 +52,33 @@ public static class CookieSessionRefresher
         ApplyRefreshedSession(context, tokenResponse, refreshRequest.RefreshToken);
     }
 
-    private static bool TryCreateRefreshRequest(
+    private bool TryCreateRefreshRequest(
         CookieValidatePrincipalContext context,
         out RefreshRequest refreshRequest
     )
     {
         refreshRequest = default;
 
+        // Missing or malformed token metadata means the cookie session is no longer trustworthy.
         if (!TryGetExpiration(context, out DateTimeOffset expiresAt))
-            return false;
-
-        if (!IsRefreshRequired(context, expiresAt))
-            return false;
-
-        if (!TryGetRefreshToken(context, out string refreshToken))
         {
-            GetLogger(context).LogWarning("BFF session refresh skipped — no refresh token found.");
+            _logger.BffSessionRefreshInvalidExpiresAtRejectingPrincipal();
             context.RejectPrincipal();
             return false;
         }
 
-        refreshRequest = new RefreshRequest(GetKeycloakOptions(context), refreshToken);
+        if (!IsRefreshRequired(expiresAt))
+            return false;
+
+        // Once the access token is near expiry, a refresh token is required to keep the session alive.
+        if (!TryGetRefreshToken(context, out string refreshToken))
+        {
+            _logger.BffSessionRefreshSkippedNoRefreshToken();
+            context.RejectPrincipal();
+            return false;
+        }
+
+        refreshRequest = new RefreshRequest(refreshToken);
         return true;
     }
 
@@ -74,17 +94,10 @@ public static class CookieSessionRefresher
         return expiresAtStr is not null && DateTimeOffset.TryParse(expiresAtStr, out expiresAt);
     }
 
-    private static bool IsRefreshRequired(
-        CookieValidatePrincipalContext context,
-        DateTimeOffset expiresAt
-    )
+    private bool IsRefreshRequired(DateTimeOffset expiresAt)
     {
-        BffOptions bffOptions = context
-            .HttpContext.RequestServices.GetRequiredService<IOptions<BffOptions>>()
-            .Value;
-
-        return expiresAt - DateTimeOffset.UtcNow
-            <= TimeSpan.FromMinutes(bffOptions.TokenRefreshThresholdMinutes);
+        return expiresAt - _timeProvider.GetUtcNow()
+            <= TimeSpan.FromMinutes(_bffOptions.TokenRefreshThresholdMinutes);
     }
 
     private static bool TryGetRefreshToken(
@@ -98,79 +111,40 @@ public static class CookieSessionRefresher
         return !string.IsNullOrEmpty(refreshToken);
     }
 
-    private static async Task<KeycloakTokenResponse?> TryRefreshSessionAsync(
+    private async Task<KeycloakTokenResponse?> TryRefreshSessionAsync(
         CookieValidatePrincipalContext context,
         RefreshRequest refreshRequest
     )
     {
-        string tokenEndpoint = KeycloakUrlHelper.BuildTokenEndpoint(
-            refreshRequest.KeycloakOptions.AuthServerUrl,
-            refreshRequest.KeycloakOptions.Realm
-        );
-
-        HttpClient client = context
-            .HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>()
-            .CreateClient(AuthConstants.HttpClients.KeycloakToken);
-
         try
         {
-            using HttpResponseMessage response = await client.PostAsync(
-                tokenEndpoint,
-                BuildRefreshContent(refreshRequest.KeycloakOptions, refreshRequest.RefreshToken),
-                context.HttpContext.RequestAborted
-            );
-
-            if (!response.IsSuccessStatusCode)
-            {
-                GetLogger(context)
-                    .LogWarning(
-                        "Keycloak token endpoint returned {StatusCode} during BFF refresh.",
-                        (int)response.StatusCode
-                    );
-                return null;
-            }
-
-            return await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>(
+            // Delegate the actual token-endpoint call to the Keycloak service so this event handler
+            // stays focused on cookie/session orchestration.
+            return await _keycloakService.RefreshSessionAsync(
+                refreshRequest.RefreshToken,
                 context.HttpContext.RequestAborted
             );
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (context.HttpContext.RequestAborted.IsCancellationRequested)
         {
-            GetLogger(context).LogWarning(ex, "Token refresh failed, rejecting principal.");
+            throw;
+        }
+        catch (Exception)
+        {
+            // KeycloakService already logs the failure reason; return null so the caller can reject
+            // the principal without duplicating warning logs.
             return null;
         }
     }
 
-    private static FormUrlEncodedContent BuildRefreshContent(
-        KeycloakOptions keycloakOptions,
-        string refreshToken
-    )
-    {
-        Dictionary<string, string> formParams = new()
-        {
-            [AuthConstants.OAuth2FormParameters.GrantType] = AuthConstants
-                .OAuth2GrantTypes
-                .RefreshToken,
-            [AuthConstants.OAuth2FormParameters.ClientId] = keycloakOptions.Resource,
-            [AuthConstants.OAuth2FormParameters.RefreshToken] = refreshToken,
-        };
-
-        if (!string.IsNullOrEmpty(keycloakOptions.Credentials.Secret))
-        {
-            formParams[AuthConstants.OAuth2FormParameters.ClientSecret] = keycloakOptions
-                .Credentials
-                .Secret;
-        }
-
-        return new FormUrlEncodedContent(formParams);
-    }
-
-    private static void ApplyRefreshedSession(
+    private void ApplyRefreshedSession(
         CookieValidatePrincipalContext context,
         KeycloakTokenResponse tokenResponse,
         string refreshToken
     )
     {
+        // Persist the freshly issued tokens back into the auth ticket and ask ASP.NET Core
+        // to re-issue the cookie with the updated session payload.
         context.Properties.UpdateTokenValue(
             AuthConstants.CookieTokenNames.AccessToken,
             tokenResponse.AccessToken
@@ -181,27 +155,9 @@ public static class CookieSessionRefresher
         );
         context.Properties.UpdateTokenValue(
             AuthConstants.CookieTokenNames.ExpiresAt,
-            DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn).ToString("o")
+            _timeProvider.GetUtcNow().AddSeconds(tokenResponse.ExpiresIn).ToString("o")
         );
         context.ShouldRenew = true;
     }
-
-    private static KeycloakOptions GetKeycloakOptions(CookieValidatePrincipalContext context)
-    {
-        return context
-            .HttpContext.RequestServices.GetRequiredService<IOptions<KeycloakOptions>>()
-            .Value;
-    }
-
-    private static ILogger GetLogger(CookieValidatePrincipalContext context)
-    {
-        return context
-            .HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
-            .CreateLogger(nameof(CookieSessionRefresher));
-    }
-
-    private readonly record struct RefreshRequest(
-        KeycloakOptions KeycloakOptions,
-        string RefreshToken
-    );
+    private readonly record struct RefreshRequest(string RefreshToken);
 }

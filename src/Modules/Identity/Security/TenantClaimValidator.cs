@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Identity.Logging;
 using Identity.Security.Keycloak;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,12 +62,10 @@ public static class TenantClaimValidator
 
         if (!HasValidTenantClaim(principal) && !isServiceAccount)
         {
-            GetLogger(httpContext)
-                .LogWarning(
-                    "Missing required {ClaimType} claim on {Scheme} token.",
-                    AuthConstants.Claims.TenantId,
-                    scheme
-                );
+            GetLogger(httpContext).MissingRequiredTenantClaimOnToken(
+                AuthConstants.Claims.TenantId,
+                scheme
+            );
             fail($"Missing required {AuthConstants.Claims.TenantId} claim.");
         }
     }
@@ -109,8 +108,7 @@ public static class TenantClaimValidator
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            GetLogger(httpContext)
-                .LogWarning(ex, "User provisioning failed during token validation.");
+            GetLogger(httpContext).UserProvisioningFailedDuringTokenValidation(ex);
         }
     }
 

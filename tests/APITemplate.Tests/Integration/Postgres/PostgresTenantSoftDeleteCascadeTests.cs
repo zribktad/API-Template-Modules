@@ -52,6 +52,7 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
             Price = 100m,
             CategoryId = category.Id,
         };
+        var productDataId = Guid.NewGuid();
 
         await using (
             var seedContext = await CreateTenantCascadeDbContextAsync(
@@ -66,6 +67,14 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
             seedContext.Users.Add(user);
             seedContext.Categories.Add(category);
             seedContext.Products.Add(product);
+            seedContext.ProductDataLinks.Add(
+                new ProductDataLink
+                {
+                    ProductId = product.Id,
+                    ProductDataId = productDataId,
+                    TenantId = tenantId,
+                }
+            );
             await seedContext.SaveChangesAsync(ct);
         }
 
@@ -119,6 +128,16 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
         deletedProduct.IsDeleted.ShouldBeTrue();
         deletedProduct.DeletedAtUtc.ShouldNotBeNull();
         deletedProduct.DeletedBy.ShouldBe(actorId);
+
+        var deletedProductDataLink = await verifyContext
+            .ProductDataLinks.IgnoreQueryFilters()
+            .SingleAsync(
+                link => link.ProductId == product.Id && link.ProductDataId == productDataId,
+                ct
+            );
+        deletedProductDataLink.IsDeleted.ShouldBeTrue();
+        deletedProductDataLink.DeletedAtUtc.ShouldNotBeNull();
+        deletedProductDataLink.DeletedBy.ShouldBe(actorId);
     }
 
     [Fact]

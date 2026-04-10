@@ -196,4 +196,76 @@ internal static partial class IdentityLogs
         Message = "Cleaned up {Count} expired invitations."
     )]
     public static partial void ExpiredInvitationsCleanedUp(this ILogger logger, int count);
+
+    // TenantClaimValidator / CookieSessionRefresher (3040-3045)
+    [LoggerMessage(
+        EventId = 3040,
+        Level = LogLevel.Warning,
+        Message = "Missing required {ClaimType} claim on {Scheme} token."
+    )]
+    public static partial void MissingRequiredTenantClaimOnToken(
+        this ILogger logger,
+        string claimType,
+        string scheme
+    );
+
+    [LoggerMessage(
+        EventId = 3041,
+        Level = LogLevel.Warning,
+        Message = "User provisioning failed during token validation."
+    )]
+    public static partial void UserProvisioningFailedDuringTokenValidation(
+        this ILogger logger,
+        Exception exception
+    );
+
+    [LoggerMessage(
+        EventId = 3042,
+        Level = LogLevel.Warning,
+        Message = "BFF session refresh failed; rejecting principal."
+    )]
+    public static partial void BffSessionRefreshFailedRejectingPrincipal(this ILogger logger);
+
+    [LoggerMessage(
+        EventId = 3043,
+        Level = LogLevel.Warning,
+        Message = "BFF session refresh skipped; no refresh token found."
+    )]
+    public static partial void BffSessionRefreshSkippedNoRefreshToken(this ILogger logger);
+
+    [LoggerMessage(
+        EventId = 3044,
+        Level = LogLevel.Warning,
+        Message = "Keycloak token endpoint returned {StatusCode} during BFF refresh."
+    )]
+    public static partial void KeycloakTokenEndpointReturnedNonSuccessDuringRefresh(
+        this ILogger logger,
+        int statusCode
+    );
+
+    [LoggerMessage(
+        EventId = 3045,
+        Level = LogLevel.Warning,
+        Message = "Token refresh failed; rejecting principal."
+    )]
+    public static partial void TokenRefreshFailedRejectingPrincipal(
+        this ILogger logger,
+        Exception exception
+    );
+
+    [LoggerMessage(
+        EventId = 3046,
+        Level = LogLevel.Warning,
+        Message = "BFF session refresh skipped; expires_at token value is missing or invalid. Rejecting principal."
+    )]
+    public static partial void BffSessionRefreshInvalidExpiresAtRejectingPrincipal(
+        this ILogger logger
+    );
+
+    [LoggerMessage(
+        EventId = 3047,
+        Level = LogLevel.Warning,
+        Message = "Keycloak refresh response was missing a valid access token or expiry. Rejecting principal."
+    )]
+    public static partial void KeycloakRefreshResponseInvalidRejectingPrincipal(this ILogger logger);
 }
