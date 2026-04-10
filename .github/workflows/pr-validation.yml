@@ -47,7 +47,7 @@ jobs:
           HUSKY: '0'
         run: dotnet test APITemplate.slnx --no-build --no-restore --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
-      - name: Run integration tests (Docker)
+      - name: Run integration tests
         env:
           RESTORE_TOOLS: '0'
           HUSKY: '0'
