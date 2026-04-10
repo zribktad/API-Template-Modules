@@ -101,14 +101,14 @@ For mobile apps using PKCE:
 
 ## AppUser Entity
 
-| Field | Description |
-|---|---|
-| `Id` | Local UUID primary key |
+| Field            | Description                                                   |
+| ---------------- | ------------------------------------------------------------- |
+| `Id`             | Local UUID primary key                                        |
 | `KeycloakUserId` | Keycloak subject ID (`sub` claim) — nullable for legacy users |
-| `Username` | Display name |
-| `Email` | User email |
-| `TenantId` | Tenant this user belongs to |
-| `IsActive` | Whether the user can access the system |
-| `Role` | Application role (User, TenantAdmin, PlatformAdmin) |
+| `Username`       | Display name                                                  |
+| `Email`          | User email                                                    |
+| `TenantId`       | Tenant this user belongs to                                   |
+| `IsActive`       | Whether the user can access the system                        |
+| `Role`           | Application role (User, TenantAdmin, PlatformAdmin)           |
 
 No password hash is stored locally.
