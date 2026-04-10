@@ -23,7 +23,7 @@ graph TB
         BFF[BffController<br/>/api/v1/bff/login<br/>/api/v1/bff/login/{idpHint}<br/>/api/v1/bff/external-providers<br/>/api/v1/bff/logout<br/>/api/v1/bff/user<br/>/api/v1/bff/csrf]
         JWT_VAL[JwtBearer Middleware<br/>validates Bearer token]
         COOKIE_VAL[Cookie Middleware<br/>looks up session in PostgreSQL + Redis cache]
-        REFRESH[CookieSessionRefresher<br/>proactive token refresh<br/>via BffTokenRefreshService]
+        REFRESH[CookieSessionRefresher<br/>loads session, delegates to<br/>BffTokenRefreshService]
         CSRF[CsrfValidationMiddleware<br/>X-CSRF: 1 required]
         TENANT[TenantClaimValidator<br/>validates tenant_id claim]
         CLAIM[KeycloakClaimMapper<br/>maps Keycloak → .NET claims]
@@ -320,8 +320,9 @@ sequenceDiagram
     CM->>VK: DragonflyTicketStore.RetrieveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.GetTicketAsync
     VK-->>CM: BffSessionRecord → AuthenticationTicket
     CM->>CSR: ValidatePrincipal event
-    CSR->>TRS: RefreshIfRequiredAsync(sessionId)
-    TRS->>VK: Load BffSessionRecord
+    CSR->>VK: GetSessionAsync(sessionId)
+    VK-->>CSR: BffSessionRecord (or null → 401)
+    CSR->>TRS: RefreshIfRequiredAsync(session)
 
     alt AccessTokenExpiresAtUtc - now ≤ RefreshThresholdMinutes (2 min)
         TRS->>COORD: ExecuteAsync(sessionId, leader, follower)
@@ -457,7 +458,7 @@ Next request     → cache miss → load from PostgreSQL → repopulate cache
 2. Idle-expired (`LastSeenAtUtc + SessionIdleTimeoutMinutes` passed)
 3. Absolute-expired (`CreatedAtUtc + SessionAbsoluteLifetimeMinutes` passed)
 
-**Optimistic concurrency** — the `Version` field in `BffSessionRecord` is incremented on every mutation. `TryUpdateAsync` uses a Lua compare-and-set script that atomically checks `version == expectedVersion` before writing. If another request updated the session in between, the write fails and the caller retries (up to 3 attempts) or falls back to the follower path.
+**Optimistic concurrency** — two layers guard against concurrent mutations. The `Version` field in `BffSessionRecord` is incremented on every mutation and checked by `TryUpdateAsync` before writing (application-level CAS). EF Core's `xmin` concurrency token guards against PostgreSQL-level races. If either check fails, `BffSessionService.MutateSessionAsync` retries (up to 3 attempts) or the refresh coordinator falls back to the follower path.
 
 ### 3f. CSRF endpoint
 
@@ -536,7 +537,7 @@ graph LR
 
 **Storage architecture:** PostgreSQL is the primary durable session store. Redis/DragonFly acts as a read-through cache with a short TTL (`CacheTtlMinutes`, default 10 min). On cache miss, the session is loaded from PostgreSQL and populated into Redis. All writes go to PostgreSQL first, then to Redis cache. This design allows offline sessions (with `offline_access` scope) to survive across Redis restarts and long idle periods — the refresh token in PostgreSQL remains available for up to 30 days.
 
-**Security principle:** Tokens never leave the server — the browser only holds an opaque GUID. Token fields (`access_token`, `refresh_token`, `id_token`) are encrypted at rest using `IDataProtector` with purpose `bff:session:tokens`.
+**Security principle:** Tokens never leave the server — the browser only holds an opaque GUID. Token fields (`access_token`, `refresh_token`, `id_token`) are encrypted at rest by `BffSessionTokenProtector` using `IDataProtector` with purpose `bff:session:tokens`.
 
 ---
 

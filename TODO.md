@@ -22,10 +22,12 @@
 
 ### Harder to Fix
 
-- [ ] **Protection against refresh storms during parallel requests** - the locking model still needs to be decided
-  (per-session, per-user, in-memory, distributed) together with the behavior of waiting requests.
-- [ ] **Move the refresh token from the session cookie to a server-side store** - a larger architectural change involving the storage
-  model, token lifecycle, invalidation, cleanup, and possible BFF flow migration.
+- [x] **Protection against refresh storms during parallel requests** - implemented via `DragonflyBffRefreshCoordinator`
+  with distributed Redis locking (per-session), Pub/Sub follower notification, and in-memory fallback semaphore when Redis
+  is unavailable.
+- [x] **Move the refresh token from the session cookie to a server-side store** - implemented via `PostgresCachedBffSessionStore`
+  with PostgreSQL as primary durable store and Redis read-through cache. Tokens encrypted at rest by `BffSessionTokenProtector`
+  via `IDataProtector`. Cookie carries only an opaque session GUID.
 
 ## Remaining Work - Hard vs Voluntary
 
