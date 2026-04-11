@@ -227,7 +227,7 @@ internal static partial class IdentityLogs
     )]
     public static partial void ExpiredBffSessionsCleanedUp(this ILogger logger, int count);
 
-    // TenantClaimValidator / CookieSessionRefresher (3040-3045)
+    // IdentityTokenValidatedHandler / CookieSessionRefresher (3040-3045)
     [LoggerMessage(
         EventId = 3040,
         Level = LogLevel.Warning,

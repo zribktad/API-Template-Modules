@@ -16,7 +16,7 @@ namespace Identity.Security;
 ///     Validates tenant-related claims after JWT/OIDC token validation and normalizes
 ///     Keycloak claims into standard .NET claim types used by authorization policies.
 /// </summary>
-public static class TenantClaimValidator
+public static class IdentityTokenValidatedHandler
 {
     /// <summary>
     ///     JWT Bearer token callback. Maps Keycloak claims, enforces tenant claim presence for user
@@ -186,6 +186,6 @@ public static class TenantClaimValidator
     {
         return httpContext
             .RequestServices.GetRequiredService<ILoggerFactory>()
-            .CreateLogger(nameof(TenantClaimValidator));
+            .CreateLogger(nameof(IdentityTokenValidatedHandler));
     }
 }

@@ -204,7 +204,7 @@ Dead-Letter Compensation provides equivalent guarantees with significantly less 
   to `ProvisionKeycloakUserHandler`, which creates the Keycloak account and links it back. This eliminates orphaned Keycloak
   users. `KeycloakAdminService.CreateUserAsync` was made idempotent (handles 409 Conflict via username lookup).
 - [x] **Inconsistent logging** - source-generated `[LoggerMessage]` with event IDs is already used across modules, but
-  inline `logger.LogWarning()` remains in `TenantClaimValidator` and `CookieSessionRefresher`. Finish the migration to
+  inline `logger.LogWarning()` remains in `IdentityTokenValidatedHandler` and `CookieSessionRefresher`. Finish the migration to
   source-generated logging for these remaining paths.
 - [x] **Incomplete health checks** - Redis/Dragonfly and MongoDB checks are implemented. Wolverine messaging health
   checks were added (`WolverineMessageStoreHealthCheck`, `WolverineDeadLetterHealthCheck`).

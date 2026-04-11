@@ -255,7 +255,7 @@ Each module follows the same skeleton using SharedKernel generics:
 | **Domain** | `AppUser`, `Tenant`, `TenantInvitation`, `UserRole`, `InvitationStatus`, repo interfaces (3) |
 | **Application** | `Features/User/`, `Features/Tenant/`, `Features/TenantInvitation/`, `Features/Bff/`, `Common/Security/` (AuthConstants, permissions, IKeycloakAdminService, IRolePermissionMap, StaticRolePermissionMap, IUserProvisioningService), security options (KeycloakOptions, BffOptions, SystemIdentityOptions, CorsOptions) |
 | **Infrastructure** | `IdentityDbContext` (3 DbSets), repos (3), EF configs (3), `AppUserEntityNormalizationService`, `AuthBootstrapSeeder`, Security/ (Keycloak/, Tenant/ — providers, DragonflyTicketStore), `TenantSoftDeleteCascadeRule` (cascades Users + TenantInvitations; publishes `TenantSoftDeletedNotification`) |
-| **Api** | `UsersController`, `TenantsController`, `TenantInvitationsController`, `BffController`, `Authorization/` (PermissionAuthorizationHandler, PermissionPolicyProvider, CsrfValidationMiddleware, TenantClaimValidator, CookieSessionRefresher), `IdentityModule.cs` |
+| **Api** | `UsersController`, `TenantsController`, `TenantInvitationsController`, `BffController`, `Authorization/` (PermissionAuthorizationHandler, PermissionPolicyProvider, CsrfValidationMiddleware, IdentityTokenValidatedHandler, CookieSessionRefresher), `IdentityModule.cs` |
 
 ---
 
