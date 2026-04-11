@@ -11,9 +11,7 @@ public class CorrelationContextMiddlewareTests
     [Fact]
     public async Task InvokeAsync_SetsItemsAndDoesNotSetResponseHeaders()
     {
-        CorrelationContextMiddleware middleware = new(async ctx =>
-            await ctx.Response.WriteAsync("ok")
-        );
+        CorrelationContextMiddleware middleware = new(_ => Task.CompletedTask);
         DefaultHttpContext context = new();
         context.Response.Body = new MemoryStream();
         context.Request.Headers[RequestContextConstants.Headers.CorrelationId] = "corr-early";
