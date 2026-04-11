@@ -23,8 +23,9 @@ public static class ApplicationBuilderExtensions
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseMiddleware<CsrfValidationMiddleware>();
-        app.UseMiddleware<RequestContextMiddleware>();
         app.UseAuthorization();
+        // After authorization so Challenge/Forbid can set status before any response headers run.
+        app.UseMiddleware<RequestContextMiddleware>();
         app.UseSerilogRequestLogging(options =>
         {
             options.MessageTemplate =

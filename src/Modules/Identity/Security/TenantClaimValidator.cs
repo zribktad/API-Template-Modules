@@ -145,7 +145,8 @@ public static class TenantClaimValidator
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             GetLogger(httpContext).UserProvisioningFailedDuringTokenValidation(ex);
-            return true;
+            fail(ex);
+            return false;
         }
     }
 

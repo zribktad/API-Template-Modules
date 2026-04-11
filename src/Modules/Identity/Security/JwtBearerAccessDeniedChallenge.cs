@@ -28,15 +28,13 @@ internal static class JwtBearerAccessDeniedChallenge
             return;
         }
 
-        if (
-            !http.Items.TryGetValue(
+        string detail =
+            http.Items.TryGetValue(
                 AuthConstants.HttpContextItems.AccessDeniedDetail,
                 out object? detailObj
-            ) || detailObj is not string detail
-        )
-        {
-            return;
-        }
+            ) && detailObj is string d
+                ? d
+                : string.Empty;
 
         context.HandleResponse();
 

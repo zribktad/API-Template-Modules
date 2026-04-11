@@ -201,7 +201,7 @@ internal static partial class IdentityLogs
     );
 
     [LoggerMessage(
-        EventId = 3026,
+        EventId = 3025,
         Level = LogLevel.Information,
         Message = "Linked Keycloak id {KeycloakUserId} to AppUser {UserId} (admin-created, previously unlinked)."
     )]
