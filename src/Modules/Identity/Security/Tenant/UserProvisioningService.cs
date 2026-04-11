@@ -1,3 +1,4 @@
+using Identity.Features.TenantInvitation.Specifications;
 using Identity.Logging;
 using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -13,21 +14,20 @@ namespace Identity.Security.Tenant;
 /// </summary>
 public sealed class UserProvisioningService : IUserProvisioningService
 {
-    // IdentityDbContext is injected directly (rather than via repository interfaces) because:
-    // 1. IgnoreQueryFilters() is required — no tenant context exists during OnTokenValidated
-    // 2. Both reads use global filter bypass; routing through repositories would require
-    //    adding filter-bypass methods to the repository interfaces for a single use case
-    private readonly IdentityDbContext _db;
+    private readonly ITenantInvitationRepository _invitationRepository;
     private readonly ILogger<UserProvisioningService> _logger;
-    private readonly IUnitOfWork<IdentityDbContext> _unitOfWork;
+    private readonly IUnitOfWork<IdentityDbMarker> _unitOfWork;
+    private readonly IUserRepository _userRepository;
 
     public UserProvisioningService(
-        IdentityDbContext db,
-        IUnitOfWork<IdentityDbContext> unitOfWork,
+        IUserRepository userRepository,
+        ITenantInvitationRepository invitationRepository,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         ILogger<UserProvisioningService> logger
     )
     {
-        _db = db;
+        _userRepository = userRepository;
+        _invitationRepository = invitationRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -42,9 +42,10 @@ public sealed class UserProvisioningService : IUserProvisioningService
     {
         // 1. Check if the user is already provisioned — bypass tenant filter because
         //    we only have the Keycloak subject ID, not a tenant context yet.
-        AppUser? existing = await _db
-            .Users.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(u => u.KeycloakUserId == keycloakUserId, ct);
+        AppUser? existing = await _userRepository.FirstOrDefaultAsync(
+            new UserByKeycloakUserIdSpecification(keycloakUserId),
+            ct
+        );
 
         if (existing is not null)
         {
@@ -56,12 +57,10 @@ public sealed class UserProvisioningService : IUserProvisioningService
         //    Bypass tenant filter — at this point no tenant context is active.
         string normalizedEmail = Email.NormalizeRaw(email);
 
-        TenantInvitation? invitation = await _db
-            .TenantInvitations.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(
-                i => i.NormalizedEmail == normalizedEmail && i.Status == InvitationStatus.Accepted,
-                ct
-            );
+        TenantInvitation? invitation = await _invitationRepository.FirstOrDefaultAsync(
+            new AcceptedInvitationByNormalizedEmailSpecification(normalizedEmail),
+            ct
+        );
 
         if (invitation is null)
         {
@@ -84,7 +83,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
 
         try
         {
-            await _db.Users.AddAsync(user, ct);
+            await _userRepository.AddAsync(user, ct);
             await _unitOfWork.CommitAsync(ct);
             _logger.UserProvisioned(user.Id, keycloakUserId, invitation.TenantId);
             return user;
@@ -94,9 +93,10 @@ public sealed class UserProvisioningService : IUserProvisioningService
             // Concurrent request may have provisioned this user — re-fetch the winner.
             _logger.UserProvisioningConcurrencyRetry(ex, keycloakUserId);
 
-            return await _db
-                    .Users.IgnoreQueryFilters()
-                    .FirstOrDefaultAsync(u => u.KeycloakUserId == keycloakUserId, ct)
+            return await _userRepository.FirstOrDefaultAsync(
+                    new UserByKeycloakUserIdSpecification(keycloakUserId),
+                    ct
+                )
                 ?? throw new InvalidOperationException(
                     $"Provisioning failed for KeycloakUserId={keycloakUserId} and no existing user was found.",
                     ex
