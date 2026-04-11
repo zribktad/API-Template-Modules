@@ -13,40 +13,88 @@ using OidcTokenValidatedContext = Microsoft.AspNetCore.Authentication.OpenIdConn
 namespace Identity.Security;
 
 /// <summary>
-///     Validates tenant-related claims after JWT/OIDC token validation and normalizes
-///     Keycloak claims into standard .NET claim types used by authorization policies.
+///     Runs immediately after the ASP.NET Core JWT Bearer or OpenID Connect handler has successfully
+///     validated the token (signature, lifetime, issuer). It is wired from
+///     <see cref="Identity.IdentityModule" /> to <c>JwtBearerEvents.OnTokenValidated</c> and
+///     <c>OpenIdConnectEvents.OnTokenValidated</c>.
 /// </summary>
-public static class IdentityTokenValidatedHandler
+/// <remarks>
+///     <para>
+///         Execution order for each request:
+///     </para>
+///     <list type="number">
+///         <item>
+///             <description>
+///                 Map Keycloak-specific claims (realm roles, username, etc.) onto standard .NET
+///                 <see cref="Claim" /> types so authorization policies and app code see a stable shape.
+///             </description>
+///         </item>
+///         <item>
+///             <description>
+///                 If the principal looks like a human user (not a Keycloak service account), resolve
+///                 local access: invitation accepted, user row, tenant linkage via
+///                 <see cref="ResolveAppUserAccessQuery" />. Failure calls the handler-supplied
+///                 fail callback and stops authentication.
+///             </description>
+///         </item>
+///         <item>
+///             <description>
+///                 For human users, require a non-empty GUID <c>tenant_id</c> claim. Service accounts
+///                 skip both user resolution and this check so machine-to-machine callers are not
+///                 tied to the invitation flow.
+///             </description>
+///         </item>
+///     </list>
+///     <para>
+///         <see cref="SetAccessDeniedItems" /> stores machine-readable codes on
+///         <see cref="HttpContext.Items" /> so middleware such as OIDC redirects can show a
+///         consistent error page when authentication is failed from this pipeline.
+///     </para>
+/// </remarks>
+public static class IdentityTokenValidatedPipeline
 {
     /// <summary>
-    ///     JWT Bearer token callback. Maps Keycloak claims, enforces tenant claim presence for user
-    ///     tokens, and provisions the local user record on first login.
+    ///     JWT Bearer entry point (API / bearer tokens). Delegates to the shared validation routine
+    ///     with scheme label <c>JWT Bearer</c> for logging.
     /// </summary>
     public static Task OnTokenValidated(JwtTokenValidatedContext context)
     {
         return ValidateTokenAsync(
             context.Principal,
             context.HttpContext,
-            ex => context.Fail(ex),
+            context.Fail,
             "JWT Bearer",
             context.HttpContext.RequestAborted
         );
     }
 
     /// <summary>
-    ///     OpenID Connect token callback. Applies the same tenant and claim-mapping rules as JWT Bearer validation.
+    ///     OpenID Connect entry point (BFF cookie sign-in and refresh paths that use the OIDC
+    ///     handler). Same rules as <see cref="OnTokenValidated(JwtTokenValidatedContext)" />;
+    ///     scheme label <c>OIDC</c> distinguishes logs.
     /// </summary>
     public static Task OnTokenValidated(OidcTokenValidatedContext context)
     {
         return ValidateTokenAsync(
             context.Principal,
             context.HttpContext,
-            ex => context.Fail(ex),
+            context.Fail,
             "OIDC",
             context.HttpContext.RequestAborted
         );
     }
 
+    /// <summary>
+    ///     Shared implementation for both JWT Bearer and OIDC: map claims, optionally resolve the
+    ///     app user, then enforce <c>tenant_id</c> for human principals.
+    /// </summary>
+    /// <param name="principal">User identity produced by the handler; may be augmented by claim mapping.</param>
+    /// <param name="httpContext">Current request; used for DI, logging, and access-denied metadata.</param>
+    /// <param name="fail">
+    ///     Callback into the JWT/OIDC <c>TokenValidatedContext</c> to mark authentication as failed.
+    /// </param>
+    /// <param name="scheme">Human-readable scheme name for structured logs only.</param>
+    /// <param name="ct">Forwarded from the HTTP request for cooperative cancellation.</param>
     private static async Task ValidateTokenAsync(
         ClaimsPrincipal? principal,
         HttpContext httpContext,
@@ -55,11 +103,13 @@ public static class IdentityTokenValidatedHandler
         CancellationToken ct
     )
     {
+        // Step 1 — Normalize claims from Keycloak into the claim types the rest of the app expects.
         if (principal?.Identity is ClaimsIdentity identity)
             KeycloakClaimMapper.MapKeycloakClaims(identity);
 
         bool isServiceAccount = IsServiceAccount(principal);
 
+        // Step 2 — Humans must exist in our DB with a valid invitation/tenant; service accounts skip this.
         if (!isServiceAccount)
         {
             bool continuePipeline = await TryResolveHumanUserAsync(
@@ -72,6 +122,7 @@ public static class IdentityTokenValidatedHandler
                 return;
         }
 
+        // Step 3 — Every human session must carry a tenant scope in the token; empty GUID is invalid.
         if (!HasValidTenantClaim(principal) && !isServiceAccount)
         {
             GetLogger(httpContext)
@@ -90,7 +141,13 @@ public static class IdentityTokenValidatedHandler
         }
     }
 
-    /// <returns><see langword="false" /> when authentication was failed and the pipeline must stop.</returns>
+    /// <summary>
+    ///     Ensures the token carries the minimum profile claims and that the person is allowed into
+    ///     the application (invitation accepted, provisioning succeeded).
+    /// </summary>
+    /// <returns>
+    ///     <see langword="false" /> if authentication must stop (<paramref name="fail" /> already invoked).
+    /// </returns>
     private static async Task<bool> TryResolveHumanUserAsync(
         HttpContext httpContext,
         ClaimsPrincipal? principal,
@@ -102,6 +159,7 @@ public static class IdentityTokenValidatedHandler
         string? email = principal?.FindFirstValue(ClaimTypes.Email);
         string? username = principal?.FindFirstValue(AuthConstants.Claims.PreferredUsername);
 
+        // Without OIDC subject + email + username we cannot correlate to Keycloak or our user store.
         if (
             string.IsNullOrEmpty(sub)
             || string.IsNullOrEmpty(email)
@@ -126,6 +184,7 @@ public static class IdentityTokenValidatedHandler
         {
             IMessageBus bus = httpContext.RequestServices.GetRequiredService<IMessageBus>();
 
+            // Synchronous handler resolves invitation, tenant membership, and provisioning in one shot.
             UserAccessResolution resolution = await bus.InvokeAsync<UserAccessResolution>(
                 new ResolveAppUserAccessQuery(sub, email, username),
                 ct
@@ -150,6 +209,10 @@ public static class IdentityTokenValidatedHandler
         }
     }
 
+    /// <summary>
+    ///     Surfaces a stable error code and message to later pipeline stages (e.g. OIDC redirect
+    ///     handlers) via <see cref="HttpContext.Items" />.
+    /// </summary>
     private static void SetAccessDeniedItems(
         HttpContext httpContext,
         string errorCode,
@@ -161,7 +224,8 @@ public static class IdentityTokenValidatedHandler
     }
 
     /// <summary>
-    ///     Checks whether the principal has a non-empty GUID value in the <c>tenant_id</c> claim.
+    ///     Returns whether the principal has a <c>tenant_id</c> claim whose value parses to a
+    ///     non-empty <see cref="Guid" />.
     /// </summary>
     public static bool HasValidTenantClaim(ClaimsPrincipal? principal)
     {
@@ -172,6 +236,10 @@ public static class IdentityTokenValidatedHandler
             ) == true;
     }
 
+    /// <summary>
+    ///     Keycloak encodes client credentials / service users with a <c>preferred_username</c>
+    ///     prefix; those principals skip tenant and invitation rules meant for interactive users.
+    /// </summary>
     private static bool IsServiceAccount(ClaimsPrincipal? principal)
     {
         string? username = principal?.FindFirstValue(AuthConstants.Claims.PreferredUsername);
@@ -186,6 +254,6 @@ public static class IdentityTokenValidatedHandler
     {
         return httpContext
             .RequestServices.GetRequiredService<ILoggerFactory>()
-            .CreateLogger(nameof(IdentityTokenValidatedHandler));
+            .CreateLogger(nameof(IdentityTokenValidatedPipeline));
     }
 }

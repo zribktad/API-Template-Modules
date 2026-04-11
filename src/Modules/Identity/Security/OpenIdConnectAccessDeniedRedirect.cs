@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Identity.Security;
 
 /// <summary>
-///     Redirects the browser after OIDC sign-in when <see cref="IdentityTokenValidatedHandler" /> fails with
+///     Redirects the browser after OIDC sign-in when <see cref="IdentityTokenValidatedPipeline" /> fails with
 ///     <see cref="UserAccessDeniedException" /> (invitation / local user gate).
 /// </summary>
 internal static class OpenIdConnectAccessDeniedRedirect

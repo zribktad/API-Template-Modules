@@ -209,7 +209,7 @@ Failure-only telemetry is recorded for:
 Relevant code:
 
 - [AuthenticationServiceCollectionExtensions.cs](../src/APITemplate/Extensions/AuthenticationServiceCollectionExtensions.cs)
-- [TenantClaimValidator.cs](../src/APITemplate/Infrastructure/Security/TenantClaimValidator.cs)
+- [IdentityTokenValidatedPipeline.cs](../src/Modules/Identity/Security/IdentityTokenValidatedPipeline.cs)
 - [CookieSessionRefresher.cs](../src/APITemplate/Infrastructure/Security/CookieSessionRefresher.cs)
 - [AuthTelemetry.cs](../src/APITemplate/Infrastructure/Observability/AuthTelemetry.cs)
 

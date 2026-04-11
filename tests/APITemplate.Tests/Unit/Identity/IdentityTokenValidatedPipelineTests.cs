@@ -5,7 +5,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
-public sealed class IdentityTokenValidatedHandlerTests
+public sealed class IdentityTokenValidatedPipelineTests
 {
     [Theory]
     [InlineData("00000000-0000-0000-0000-000000000000")]
@@ -13,7 +13,7 @@ public sealed class IdentityTokenValidatedHandlerTests
     [InlineData("")]
     public void HasValidTenantClaim_WhenMissingOrInvalid_ReturnsFalse(string? tenantValue)
     {
-        IdentityTokenValidatedHandler
+        IdentityTokenValidatedPipeline
             .HasValidTenantClaim(TestClaimsPrincipalFactory.WithOptionalTenantClaim(tenantValue))
             .ShouldBeFalse();
     }
@@ -23,7 +23,7 @@ public sealed class IdentityTokenValidatedHandlerTests
     {
         string tenantId = Guid.NewGuid().ToString();
 
-        IdentityTokenValidatedHandler
+        IdentityTokenValidatedPipeline
             .HasValidTenantClaim(TestClaimsPrincipalFactory.WithTenantId(tenantId))
             .ShouldBeTrue();
     }
@@ -31,6 +31,6 @@ public sealed class IdentityTokenValidatedHandlerTests
     [Fact]
     public void HasValidTenantClaim_WhenPrincipalNull_ReturnsFalse()
     {
-        IdentityTokenValidatedHandler.HasValidTenantClaim(null).ShouldBeFalse();
+        IdentityTokenValidatedPipeline.HasValidTenantClaim(null).ShouldBeFalse();
     }
 }
