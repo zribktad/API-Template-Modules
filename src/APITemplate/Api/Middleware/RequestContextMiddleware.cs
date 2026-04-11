@@ -8,6 +8,11 @@ using SharedKernel.Infrastructure.Observability;
 
 namespace APITemplate.Api.Middleware;
 
+/// <summary>
+///     After authorization: response headers (correlation, trace, elapsed), tenant enrichment,
+///     and HTTP metrics tags. Correlation id is expected from <see cref="CorrelationContextMiddleware" />
+///     or resolved here as a fallback (e.g. unit tests).
+/// </summary>
 public sealed class RequestContextMiddleware
 {
     private readonly RequestDelegate _next;
@@ -19,7 +24,7 @@ public sealed class RequestContextMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        string correlationId = ResolveCorrelationId(context);
+        string correlationId = ResolveCorrelationIdForRequest(context);
         Stopwatch stopwatch = Stopwatch.StartNew();
         string traceId = Activity.Current?.TraceId.ToHexString() ?? context.TraceIdentifier;
 
@@ -28,7 +33,6 @@ public sealed class RequestContextMiddleware
         if (!string.IsNullOrWhiteSpace(tenantId))
             Activity.Current?.SetTag(TelemetryTagKeys.TenantId, tenantId);
 
-        context.Items[RequestContextConstants.ContextKeys.CorrelationId] = correlationId;
         context.Response.Headers[RequestContextConstants.Headers.CorrelationId] = correlationId;
         context.Response.Headers[RequestContextConstants.Headers.TraceId] = traceId;
         context.Response.Headers[RequestContextConstants.Headers.ElapsedMs] = "0";
@@ -42,12 +46,6 @@ public sealed class RequestContextMiddleware
 
         try
         {
-            using (
-                LogContext.PushProperty(
-                    RequestContextConstants.LogProperties.CorrelationId,
-                    correlationId
-                )
-            )
             using (
                 string.IsNullOrWhiteSpace(tenantId)
                     ? null
@@ -80,11 +78,20 @@ public sealed class RequestContextMiddleware
         }
     }
 
-    private static string ResolveCorrelationId(HttpContext context)
+    private static string ResolveCorrelationIdForRequest(HttpContext context)
     {
-        string incoming = context
-            .Request.Headers[RequestContextConstants.Headers.CorrelationId]
-            .ToString();
-        return string.IsNullOrWhiteSpace(incoming) ? context.TraceIdentifier : incoming;
+        if (
+            context.Items.TryGetValue(
+                RequestContextConstants.ContextKeys.CorrelationId,
+                out object? existing
+            )
+            && existing is string s
+            && !string.IsNullOrWhiteSpace(s)
+        )
+            return s;
+
+        string resolved = RequestCorrelationHelper.ResolveCorrelationId(context);
+        context.Items[RequestContextConstants.ContextKeys.CorrelationId] = resolved;
+        return resolved;
     }
 }
