@@ -1,16 +1,19 @@
+using Identity.Security.Tenant;
+
 namespace Identity.Security;
 
 /// <summary>
-///     Application-layer port that ensures a local <see cref="AppUser" /> record exists for an
-///     authenticated Keycloak identity, creating one on first login if necessary.
+///     Application-layer port that resolves whether a Keycloak-authenticated identity may access the
+///     application: links or creates <see cref="AppUser" /> when an accepted invitation exists, or
+///     returns a denial with a stable error code.
 /// </summary>
 public interface IUserProvisioningService
 {
     /// <summary>
-    ///     Looks up the local user record for the given Keycloak identity and provisions it if it does
-    ///     not yet exist. Returns <see langword="null" /> when provisioning cannot be completed.
+    ///     Ensures a local <see cref="AppUser" /> exists for the Keycloak identity when allowed by
+    ///     invitation / admin flow; otherwise returns <see cref="UserAccessResolution.Denied" />.
     /// </summary>
-    public Task<AppUser?> ProvisionIfNeededAsync(
+    public Task<UserAccessResolution> ResolveAppUserAccessAsync(
         string keycloakUserId,
         string email,
         string username,

@@ -148,6 +148,7 @@ public static class IdentityModule
             {
                 options.Events ??= new JwtBearerEvents();
                 options.Events.OnTokenValidated = TenantClaimValidator.OnTokenValidated;
+                options.Events.OnChallenge = JwtBearerAccessDeniedChallenge.OnChallengeAsync;
             }
         );
 
@@ -257,6 +258,7 @@ public static class IdentityModule
         options.Events = new OpenIdConnectEvents
         {
             OnTokenValidated = TenantClaimValidator.OnTokenValidated,
+            OnAuthenticationFailed = OpenIdConnectAccessDeniedRedirect.OnAuthenticationFailed,
             OnRedirectToIdentityProvider = context =>
             {
                 if (

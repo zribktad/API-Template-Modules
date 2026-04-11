@@ -189,6 +189,28 @@ internal static partial class IdentityLogs
         string keycloakUserId
     );
 
+    [LoggerMessage(
+        EventId = 3024,
+        Level = LogLevel.Warning,
+        Message = "Access denied during provisioning: {ErrorCode} for normalised email {NormalizedEmail}."
+    )]
+    public static partial void UserAccessDenied(
+        this ILogger logger,
+        string errorCode,
+        [PersonalData] string normalizedEmail
+    );
+
+    [LoggerMessage(
+        EventId = 3026,
+        Level = LogLevel.Information,
+        Message = "Linked Keycloak id {KeycloakUserId} to AppUser {UserId} (admin-created, previously unlinked)."
+    )]
+    public static partial void UserProvisioningLinkedAdminCreatedUser(
+        this ILogger logger,
+        Guid userId,
+        [SensitiveData] string keycloakUserId
+    );
+
     // CleanupExpiredInvitationsHandler (3030)
     [LoggerMessage(
         EventId = 3030,

@@ -83,8 +83,24 @@ public static class ErrorOrExtensions
         return ToProblemDetails(errors, controller);
     }
 
-    private static ObjectResult ToProblemDetails(List<Error> errors, ControllerBase controller)
+    /// <summary>
+    ///     Builds RFC 7807 <see cref="ProblemDetails" /> from one or more <see cref="Error" /> values using the same
+    ///     rules as controller <see cref="ToActionResult{T}" /> — for middleware and authentication handlers that are not
+    ///     MVC actions.
+    /// </summary>
+    public static ProblemDetails ToProblemDetails(this Error error, HttpContext httpContext) =>
+        new[] { error }.ToProblemDetails(httpContext);
+
+    /// <inheritdoc cref="ToProblemDetails(Error, HttpContext)" />
+    public static ProblemDetails ToProblemDetails(
+        this IReadOnlyList<Error> errors,
+        HttpContext httpContext
+    )
     {
+        ArgumentNullException.ThrowIfNull(errors);
+        if (errors.Count == 0)
+            throw new ArgumentException("At least one error is required.", nameof(errors));
+
         Error firstError = errors[0];
         int statusCode = firstError.Type switch
         {
@@ -111,7 +127,6 @@ public static class ErrorOrExtensions
                 ? string.Join(" ", errors.Select(e => e.Description))
                 : firstError.Description;
 
-        HttpContext httpContext = controller.HttpContext;
         string errorCode = firstError.Code;
         string? configuredType = httpContext.RequestServices.GetService<
             IOptions<ErrorDocumentationOptions>
@@ -132,11 +147,17 @@ public static class ErrorOrExtensions
         };
 
         problemDetails.Extensions["errorCode"] = firstError.Code;
-        problemDetails.Extensions["traceId"] = controller.HttpContext.TraceIdentifier;
+        problemDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
 
         if (firstError.Metadata is { Count: > 0 })
             problemDetails.Extensions["metadata"] = firstError.Metadata;
 
+        return problemDetails;
+    }
+
+    private static ObjectResult ToProblemDetails(List<Error> errors, ControllerBase controller)
+    {
+        ProblemDetails problemDetails = errors.ToProblemDetails(controller.HttpContext);
         return new ObjectResult(problemDetails) { StatusCode = problemDetails.Status };
     }
 }

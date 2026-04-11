@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Identity.Logging;
 using Identity.Security.Keycloak;
+using Identity.Security.Tenant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ public static class TenantClaimValidator
         return ValidateTokenAsync(
             context.Principal,
             context.HttpContext,
-            msg => context.Fail(msg),
+            ex => context.Fail(ex),
             "JWT Bearer",
             context.HttpContext.RequestAborted
         );
@@ -38,7 +39,7 @@ public static class TenantClaimValidator
         return ValidateTokenAsync(
             context.Principal,
             context.HttpContext,
-            msg => context.Fail(msg),
+            ex => context.Fail(ex),
             "OIDC",
             context.HttpContext.RequestAborted
         );
@@ -47,7 +48,7 @@ public static class TenantClaimValidator
     private static async Task ValidateTokenAsync(
         ClaimsPrincipal? principal,
         HttpContext httpContext,
-        Action<string> fail,
+        Action<Exception> fail,
         string scheme,
         CancellationToken ct
     )
@@ -58,16 +59,105 @@ public static class TenantClaimValidator
         bool isServiceAccount = IsServiceAccount(principal);
 
         if (!isServiceAccount)
-            await TryProvisionUserAsync(httpContext, principal, ct);
+        {
+            bool continuePipeline = await TryResolveHumanUserAsync(
+                httpContext,
+                principal,
+                fail,
+                ct
+            );
+            if (!continuePipeline)
+                return;
+        }
 
         if (!HasValidTenantClaim(principal) && !isServiceAccount)
         {
-            GetLogger(httpContext).MissingRequiredTenantClaimOnToken(
-                AuthConstants.Claims.TenantId,
-                scheme
+            GetLogger(httpContext)
+                .MissingRequiredTenantClaimOnToken(AuthConstants.Claims.TenantId, scheme);
+            SetAccessDeniedItems(
+                httpContext,
+                UserAccessErrorCodes.MissingTenantClaim,
+                UserAccessDeniedMessages.MissingTenantClaim
             );
-            fail($"Missing required {AuthConstants.Claims.TenantId} claim.");
+            fail(
+                new UserAccessDeniedException(
+                    UserAccessErrorCodes.MissingTenantClaim,
+                    UserAccessDeniedMessages.MissingTenantClaim
+                )
+            );
         }
+    }
+
+    /// <returns><see langword="false" /> when authentication was failed and the pipeline must stop.</returns>
+    private static async Task<bool> TryResolveHumanUserAsync(
+        HttpContext httpContext,
+        ClaimsPrincipal? principal,
+        Action<Exception> fail,
+        CancellationToken ct
+    )
+    {
+        string? sub = principal?.FindFirstValue(AuthConstants.Claims.Subject);
+        string? email = principal?.FindFirstValue(ClaimTypes.Email);
+        string? username = principal?.FindFirstValue(AuthConstants.Claims.PreferredUsername);
+
+        if (
+            string.IsNullOrEmpty(sub)
+            || string.IsNullOrEmpty(email)
+            || string.IsNullOrEmpty(username)
+        )
+        {
+            SetAccessDeniedItems(
+                httpContext,
+                UserAccessErrorCodes.MissingProfileClaims,
+                UserAccessDeniedMessages.MissingProfileClaims
+            );
+            fail(
+                new UserAccessDeniedException(
+                    UserAccessErrorCodes.MissingProfileClaims,
+                    UserAccessDeniedMessages.MissingProfileClaims
+                )
+            );
+            return false;
+        }
+
+        try
+        {
+            IUserProvisioningService provisioningService =
+                httpContext.RequestServices.GetRequiredService<IUserProvisioningService>();
+
+            UserAccessResolution resolution = await provisioningService.ResolveAppUserAccessAsync(
+                sub,
+                email,
+                username,
+                ct
+            );
+
+            if (!resolution.IsAllowed)
+            {
+                string code = resolution.ErrorCode ?? UserAccessErrorCodes.NoInvitation;
+                string message = resolution.Message ?? UserAccessDeniedMessages.NoInvitation;
+                SetAccessDeniedItems(httpContext, code, message);
+                fail(new UserAccessDeniedException(code, message));
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            GetLogger(httpContext).UserProvisioningFailedDuringTokenValidation(ex);
+            return true;
+        }
+    }
+
+    private static void SetAccessDeniedItems(
+        HttpContext httpContext,
+        string errorCode,
+        string detail
+    )
+    {
+        httpContext.Items[AuthConstants.HttpContextItems.AccessDeniedErrorCode] = errorCode;
+        httpContext.Items[AuthConstants.HttpContextItems.AccessDeniedDetail] = detail;
     }
 
     /// <summary>
@@ -80,36 +170,6 @@ public static class TenantClaimValidator
                 && Guid.TryParse(c.Value, out Guid tenantId)
                 && tenantId != Guid.Empty
             ) == true;
-    }
-
-    private static async Task TryProvisionUserAsync(
-        HttpContext httpContext,
-        ClaimsPrincipal? principal,
-        CancellationToken ct
-    )
-    {
-        try
-        {
-            string? sub = principal?.FindFirstValue(AuthConstants.Claims.Subject);
-            string? email = principal?.FindFirstValue(ClaimTypes.Email);
-            string? username = principal?.FindFirstValue(AuthConstants.Claims.PreferredUsername);
-
-            if (
-                string.IsNullOrEmpty(sub)
-                || string.IsNullOrEmpty(email)
-                || string.IsNullOrEmpty(username)
-            )
-                return;
-
-            IUserProvisioningService provisioningService =
-                httpContext.RequestServices.GetRequiredService<IUserProvisioningService>();
-
-            await provisioningService.ProvisionIfNeededAsync(sub, email, username, ct);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            GetLogger(httpContext).UserProvisioningFailedDuringTokenValidation(ex);
-        }
     }
 
     private static bool IsServiceAccount(ClaimsPrincipal? principal)

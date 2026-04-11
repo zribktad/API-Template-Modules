@@ -20,6 +20,12 @@ public sealed class BffOptions
     public string PostLogoutRedirectUri { get; init; } = "/";
 
     [Description(
+        "Optional relative or absolute URI to redirect browser clients when application access is denied "
+            + "(e.g. missing invitation). When empty, PostLogoutRedirectUri is used with OAuth2-style query parameters."
+    )]
+    public string? AccessDeniedRedirectUri { get; init; }
+
+    [Description(
         "Maximum idle session lifetime, in minutes, for both the BFF authentication cookie and the server-side session record."
     )]
     [Range(1, int.MaxValue)]
