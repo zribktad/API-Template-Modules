@@ -145,7 +145,7 @@ internal static partial class IdentityLogs
         [SensitiveData] string body
     );
 
-    // UserProvisioningService (3020-3023)
+    // ResolveAppUserAccessHandler (3020-3023)
     [LoggerMessage(
         EventId = 3020,
         Level = LogLevel.Debug,

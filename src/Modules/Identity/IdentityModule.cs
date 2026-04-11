@@ -305,7 +305,6 @@ public static class IdentityModule
 
     private static void RegisterApplicationServices(IServiceCollection services)
     {
-        services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
         services.AddSingleton<IKeycloakService, KeycloakService>();
         services.AddSingleton<ITenantCodeConflictDetector, PostgresTenantCodeConflictDetector>();

@@ -1,63 +1,49 @@
 using Identity.Entities;
 using Identity.Enums;
+using TenantInvitationEntity = Identity.Entities.TenantInvitation;
 using Identity.Features.TenantInvitation.Specifications;
-using Identity.Features.User;
 using Identity.Interfaces;
 using Identity.Logging;
+using Identity.Security.Tenant;
 using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Identity.Security.Tenant;
+namespace Identity.Features.User;
 
 /// <summary>
 ///     Resolves local <see cref="AppUser" /> for a Keycloak identity: links admin-created users,
 ///     provisions from accepted invitations, or denies with invitation-state-specific messages.
 /// </summary>
-public sealed class UserProvisioningService : IUserProvisioningService
+public sealed class ResolveAppUserAccessHandler
 {
-    private readonly ITenantInvitationRepository _invitationRepository;
-    private readonly ILogger<UserProvisioningService> _logger;
-    private readonly TimeProvider _timeProvider;
-    private readonly IUnitOfWork<IdentityDbMarker> _unitOfWork;
-    private readonly IUserRepository _userRepository;
-
-    public UserProvisioningService(
+    public static async Task<UserAccessResolution> HandleAsync(
+        ResolveAppUserAccessQuery query,
         IUserRepository userRepository,
         ITenantInvitationRepository invitationRepository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
         TimeProvider timeProvider,
-        ILogger<UserProvisioningService> logger
+        ILogger<ResolveAppUserAccessHandler> logger,
+        CancellationToken ct
     )
     {
-        _userRepository = userRepository;
-        _invitationRepository = invitationRepository;
-        _unitOfWork = unitOfWork;
-        _timeProvider = timeProvider;
-        _logger = logger;
-    }
+        string keycloakUserId = query.KeycloakUserId;
+        string email = query.Email;
+        string username = query.Username;
 
-    /// <inheritdoc />
-    public async Task<UserAccessResolution> ResolveAppUserAccessAsync(
-        string keycloakUserId,
-        string email,
-        string username,
-        CancellationToken ct = default
-    )
-    {
         var byKeycloakId = new UserByKeycloakUserIdSpecification(keycloakUserId);
 
-        AppUser? existing = await _userRepository.FirstOrDefaultAsync(byKeycloakId, ct);
+        AppUser? existing = await userRepository.FirstOrDefaultAsync(byKeycloakId, ct);
 
         if (existing is not null)
         {
-            _logger.UserProvisioningSkippedAlreadyExists(keycloakUserId);
+            logger.UserProvisioningSkippedAlreadyExists(keycloakUserId);
             return UserAccessResolution.Allowed(existing);
         }
 
         string normalizedEmail = Email.NormalizeRaw(email);
 
-        AppUser? unlinked = await _userRepository.FirstOrDefaultAsync(
+        AppUser? unlinked = await userRepository.FirstOrDefaultAsync(
             new UserUnlinkedByNormalizedEmailSpecification(normalizedEmail),
             ct
         );
@@ -65,13 +51,13 @@ public sealed class UserProvisioningService : IUserProvisioningService
         if (unlinked is not null)
         {
             unlinked.LinkKeycloak(keycloakUserId);
-            await _userRepository.UpdateAsync(unlinked, ct);
-            await _unitOfWork.CommitAsync(ct);
-            _logger.UserProvisioningLinkedAdminCreatedUser(unlinked.Id, keycloakUserId);
+            await userRepository.UpdateAsync(unlinked, ct);
+            await unitOfWork.CommitAsync(ct);
+            logger.UserProvisioningLinkedAdminCreatedUser(unlinked.Id, keycloakUserId);
             return UserAccessResolution.Allowed(unlinked);
         }
 
-        TenantInvitation? acceptedInvitation = await _invitationRepository.FirstOrDefaultAsync(
+        TenantInvitationEntity? acceptedInvitation = await invitationRepository.FirstOrDefaultAsync(
             new AcceptedInvitationByNormalizedEmailSpecification(normalizedEmail),
             ct
         );
@@ -79,6 +65,9 @@ public sealed class UserProvisioningService : IUserProvisioningService
         if (acceptedInvitation is not null)
         {
             return await TryCreateUserFromAcceptedInvitationAsync(
+                userRepository,
+                unitOfWork,
+                logger,
                 acceptedInvitation,
                 keycloakUserId,
                 email,
@@ -87,7 +76,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
             );
         }
 
-        TenantInvitation? latest = await _invitationRepository.FirstOrDefaultAsync(
+        TenantInvitationEntity? latest = await invitationRepository.FirstOrDefaultAsync(
             new LatestInvitationByNormalizedEmailSpecification(normalizedEmail),
             ct
         );
@@ -95,6 +84,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
         if (latest is null)
         {
             return DenyAndLog(
+                logger,
                 UserAccessErrorCodes.NoInvitation,
                 UserAccessDeniedMessages.NoInvitation,
                 normalizedEmail
@@ -104,6 +94,9 @@ public sealed class UserProvisioningService : IUserProvisioningService
         return latest.Status switch
         {
             InvitationStatus.Accepted => await TryCreateUserFromAcceptedInvitationAsync(
+                userRepository,
+                unitOfWork,
+                logger,
                 latest,
                 keycloakUserId,
                 email,
@@ -111,31 +104,36 @@ public sealed class UserProvisioningService : IUserProvisioningService
                 ct
             ),
 
-            InvitationStatus.Pending when latest.IsExpired(_timeProvider) => DenyAndLog(
+            InvitationStatus.Pending when latest.IsExpired(timeProvider) => DenyAndLog(
+                logger,
                 UserAccessErrorCodes.InvitationExpired,
                 UserAccessDeniedMessages.InvitationExpired,
                 normalizedEmail
             ),
 
             InvitationStatus.Pending => DenyAndLog(
+                logger,
                 UserAccessErrorCodes.PendingInvitation,
                 UserAccessDeniedMessages.PendingInvitation,
                 normalizedEmail
             ),
 
             InvitationStatus.Revoked => DenyAndLog(
+                logger,
                 UserAccessErrorCodes.InvitationRevoked,
                 UserAccessDeniedMessages.InvitationRevoked,
                 normalizedEmail
             ),
 
             InvitationStatus.Expired => DenyAndLog(
+                logger,
                 UserAccessErrorCodes.InvitationExpired,
                 UserAccessDeniedMessages.InvitationExpired,
                 normalizedEmail
             ),
 
             _ => DenyAndLog(
+                logger,
                 UserAccessErrorCodes.NoInvitation,
                 UserAccessDeniedMessages.NoInvitation,
                 normalizedEmail
@@ -143,14 +141,22 @@ public sealed class UserProvisioningService : IUserProvisioningService
         };
     }
 
-    private UserAccessResolution DenyAndLog(string code, string message, string normalizedEmail)
+    private static UserAccessResolution DenyAndLog(
+        ILogger<ResolveAppUserAccessHandler> logger,
+        string code,
+        string message,
+        string normalizedEmail
+    )
     {
-        _logger.UserAccessDenied(code, normalizedEmail);
+        logger.UserAccessDenied(code, normalizedEmail);
         return UserAccessResolution.Denied(code, message);
     }
 
-    private async Task<UserAccessResolution> TryCreateUserFromAcceptedInvitationAsync(
-        TenantInvitation invitation,
+    private static async Task<UserAccessResolution> TryCreateUserFromAcceptedInvitationAsync(
+        IUserRepository userRepository,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
+        ILogger<ResolveAppUserAccessHandler> logger,
+        TenantInvitationEntity invitation,
         string keycloakUserId,
         string email,
         string username,
@@ -166,16 +172,16 @@ public sealed class UserProvisioningService : IUserProvisioningService
 
         try
         {
-            await _userRepository.AddAsync(user, ct);
-            await _unitOfWork.CommitAsync(ct);
-            _logger.UserProvisioned(user.Id, keycloakUserId, invitation.TenantId);
+            await userRepository.AddAsync(user, ct);
+            await unitOfWork.CommitAsync(ct);
+            logger.UserProvisioned(user.Id, keycloakUserId, invitation.TenantId);
             return UserAccessResolution.Allowed(user);
         }
         catch (DbUpdateException ex)
         {
-            _logger.UserProvisioningConcurrencyRetry(ex, keycloakUserId);
+            logger.UserProvisioningConcurrencyRetry(ex, keycloakUserId);
 
-            AppUser? winner = await _userRepository.FirstOrDefaultAsync(
+            AppUser? winner = await userRepository.FirstOrDefaultAsync(
                 new UserByKeycloakUserIdSpecification(keycloakUserId),
                 ct
             );

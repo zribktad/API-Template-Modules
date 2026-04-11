@@ -1,10 +1,12 @@
 using System.Security.Claims;
+using Identity.Features.User;
 using Identity.Logging;
 using Identity.Security.Keycloak;
 using Identity.Security.Tenant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Wolverine;
 using JwtTokenValidatedContext = Microsoft.AspNetCore.Authentication.JwtBearer.TokenValidatedContext;
 using OidcTokenValidatedContext = Microsoft.AspNetCore.Authentication.OpenIdConnect.TokenValidatedContext;
 
@@ -122,13 +124,10 @@ public static class TenantClaimValidator
 
         try
         {
-            IUserProvisioningService provisioningService =
-                httpContext.RequestServices.GetRequiredService<IUserProvisioningService>();
+            IMessageBus bus = httpContext.RequestServices.GetRequiredService<IMessageBus>();
 
-            UserAccessResolution resolution = await provisioningService.ResolveAppUserAccessAsync(
-                sub,
-                email,
-                username,
+            UserAccessResolution resolution = await bus.InvokeAsync<UserAccessResolution>(
+                new ResolveAppUserAccessQuery(sub, email, username),
                 ct
             );
 
