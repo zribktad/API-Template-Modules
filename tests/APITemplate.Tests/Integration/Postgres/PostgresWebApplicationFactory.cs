@@ -26,18 +26,11 @@ public sealed class PostgresWebApplicationFactory : WebApplicationFactory<Progra
     }
 
     public string ConnectionString =>
-        new NpgsqlConnectionStringBuilder(_serverConnectionString)
-        {
-            Database = _databaseName,
-        }.ConnectionString;
+        IsolatedPostgresDatabase.BuildConnectionString(_serverConnectionString, _databaseName);
 
     public async ValueTask InitializeAsync()
     {
-        await using var conn = new NpgsqlConnection(_serverConnectionString);
-        await conn.OpenAsync();
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"CREATE DATABASE \"{_databaseName}\"";
-        await cmd.ExecuteNonQueryAsync();
+        await IsolatedPostgresDatabase.CreateDatabaseAsync(_serverConnectionString, _databaseName);
 
         // Pre-warm: trigger host build so EF migrations run before tests execute.
         _ = Services;

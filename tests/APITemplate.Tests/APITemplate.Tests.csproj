@@ -47,7 +47,10 @@
     <Compile Include="Integration\Features\WebhooksControllerTests.cs" />
     <Compile Include="Integration\Auth\BffSecurityTests.cs" />
     <Compile Include="Integration\Postgres\SharedPostgresContainer.cs" />
+    <Compile Include="Integration\Postgres\IsolatedPostgresDatabase.cs" />
+    <Compile Include="Integration\Postgres\IdentityIntegrationTestProviders.cs" />
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
+    <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
     <Compile Remove="Unit\Handlers\**\*.cs" />
     <Compile Remove="Unit\Repositories\**\*.cs" />
     <Compile Remove="Unit\Persistence\**\*.cs" />

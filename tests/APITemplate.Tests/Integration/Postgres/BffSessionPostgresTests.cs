@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Entities;
 using Identity.Handlers;
 using Identity.Options;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using Npgsql;
 using SharedKernel.Application.Context;
 using SharedKernel.Contracts.Commands.Cleanup;
 using SharedKernel.Infrastructure.Auditing;
@@ -38,21 +38,16 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
 
     public async ValueTask InitializeAsync()
     {
-        // Create isolated database for this test class
+        CancellationToken ct = TestContext.Current.CancellationToken;
         string databaseName = $"bffsession_{Guid.NewGuid():N}";
-        await using NpgsqlConnection conn = new(_postgres.ServerConnectionString);
-        await conn.OpenAsync();
-        await using NpgsqlCommand cmd = conn.CreateCommand();
-        cmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
-        await cmd.ExecuteNonQueryAsync();
-
-        _connectionString = new NpgsqlConnectionStringBuilder(_postgres.ServerConnectionString)
-        {
-            Database = databaseName,
-        }.ConnectionString;
+        _connectionString = await IsolatedPostgresDatabase.CreateAndGetConnectionStringAsync(
+            _postgres,
+            databaseName,
+            ct
+        );
 
         _dbContext = CreateDbContext();
-        await _dbContext.Database.MigrateAsync();
+        await _dbContext.Database.MigrateAsync(ct);
 
         // Build the store with real PG and mocked Redis
         ServiceCollection serviceCollection = new();
@@ -279,7 +274,7 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
         return new IdentityDbContext(
             options,
             new StubTenantProvider(),
-            new StubActorProvider(),
+            new IdentityIntegrationEmptyActorProvider(),
             TimeProvider.System,
             new AuditableEntityStateManager()
         );
@@ -325,19 +320,9 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
         };
     }
 
-    private sealed class FakeTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
-    }
-
     private sealed class StubTenantProvider : ITenantProvider
     {
         public Guid TenantId => Guid.Empty;
         public bool HasTenant => false;
-    }
-
-    private sealed class StubActorProvider : IActorProvider
-    {
-        public Guid ActorId => Guid.Empty;
     }
 }

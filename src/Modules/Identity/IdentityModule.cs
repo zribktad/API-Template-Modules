@@ -147,7 +147,8 @@ public static class IdentityModule
             options =>
             {
                 options.Events ??= new JwtBearerEvents();
-                options.Events.OnTokenValidated = TenantClaimValidator.OnTokenValidated;
+                options.Events.OnTokenValidated = IdentityTokenValidatedPipeline.OnTokenValidated;
+                options.Events.OnChallenge = JwtBearerAccessDeniedChallenge.OnChallengeAsync;
             }
         );
 
@@ -256,7 +257,8 @@ public static class IdentityModule
 
         options.Events = new OpenIdConnectEvents
         {
-            OnTokenValidated = TenantClaimValidator.OnTokenValidated,
+            OnTokenValidated = IdentityTokenValidatedPipeline.OnTokenValidated,
+            OnAuthenticationFailed = OpenIdConnectAccessDeniedRedirect.OnAuthenticationFailed,
             OnRedirectToIdentityProvider = context =>
             {
                 if (
@@ -303,7 +305,6 @@ public static class IdentityModule
 
     private static void RegisterApplicationServices(IServiceCollection services)
     {
-        services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
         services.AddSingleton<IKeycloakService, KeycloakService>();
         services.AddSingleton<ITenantCodeConflictDetector, PostgresTenantCodeConflictDetector>();

@@ -25,7 +25,7 @@ graph TB
         COOKIE_VAL[Cookie Middleware<br/>looks up session in PostgreSQL + Redis cache]
         REFRESH[CookieSessionRefresher<br/>loads session, delegates to<br/>BffTokenRefreshService]
         CSRF[CsrfValidationMiddleware<br/>X-CSRF: 1 required]
-        TENANT[TenantClaimValidator<br/>validates tenant_id claim]
+        TENANT[IdentityTokenValidatedPipeline<br/>validates tenant_id claim]
         CLAIM[KeycloakClaimMapper<br/>maps Keycloak → .NET claims]
         AUTHZ[Authorization Middleware<br/>Fallback: Bearer OR Cookie]
     end
@@ -129,7 +129,7 @@ Client (Postman, mobile app, microservice)
   - Downloads JWKS from Keycloak discovery endpoint
   - Validates token signature, issuer, audience, lifetime
 ▼
-[ TenantClaimValidator.OnTokenValidated ]
+[ IdentityTokenValidatedPipeline.OnTokenValidated ]
   - KeycloakClaimMapper: preferred_username → ClaimTypes.Name
   - KeycloakClaimMapper: realm_access.roles[] → ClaimTypes.Role[]
   - Rejects token without tenant_id claim (unless service account)
@@ -151,7 +151,7 @@ sequenceDiagram
     KC-->>C: access_token
     C->>API: GET /api/v1/products<br/>Authorization: Bearer &lt;token&gt;
     API->>API: JwtBearer Middleware<br/>validates signature, issuer, audience, lifetime
-    API->>API: TenantClaimValidator.OnTokenValidated<br/>maps claims, validates tenant_id
+    API->>API: IdentityTokenValidatedPipeline.OnTokenValidated<br/>maps claims, validates tenant_id
     API->>API: Authorization Middleware<br/>Fallback: Bearer OR Cookie
     API-->>C: 200 OK
 ```
@@ -281,7 +281,7 @@ sequenceDiagram
     KC-->>OIDC: Authorization code → callback URL
     OIDC->>KC: Exchange code for tokens
     KC-->>OIDC: access_token + refresh_token + id_token
-    OIDC->>OIDC: TenantClaimValidator.OnTokenValidated
+    OIDC->>OIDC: IdentityTokenValidatedPipeline.OnTokenValidated
     OIDC-->>SPA: Set-Cookie .APITemplate.Auth<br/>302 → /dashboard
 ```
 
@@ -344,7 +344,7 @@ The realm JSON imports the Google IdP automatically on first start. The `${GOOGL
 3. Copy Client ID + Secret → set env vars above
 
 **After first Google login:**  
-`TenantClaimValidator.OnTokenValidated` → `UserProvisioningService.ProvisionIfNeededAsync` fires. The user must have an accepted `TenantInvitation` for their Google email to be provisioned into a tenant.
+`IdentityTokenValidatedPipeline.OnTokenValidated` → `UserProvisioningService.ProvisionIfNeededAsync` fires. The user must have an accepted `TenantInvitation` for their Google email to be provisioned into a tenant.
 
 ---
 
@@ -366,7 +366,7 @@ sequenceDiagram
     KC-->>OIDC: Authorization code → callback URL
     OIDC->>KC: Exchange code for tokens
     KC-->>OIDC: access_token + refresh_token + id_token
-    OIDC->>OIDC: TenantClaimValidator.OnTokenValidated<br/>maps claims, validates tenant_id
+    OIDC->>OIDC: IdentityTokenValidatedPipeline.OnTokenValidated<br/>maps claims, validates tenant_id
     OIDC->>OIDC: DragonflyTicketStore.StoreAsync<br/>→ BffSessionService.CreateSessionAsync
     Note over VK: BffSessionRecord created:<br/>tokens encrypted via IDataProtector<br/>PostgreSQL = primary, Redis = cache
     OIDC->>VK: Store BffPersistedSession (PostgreSQL)<br/>+ Redis cache (TTL = CacheTtlMinutes)
@@ -597,7 +597,7 @@ sequenceDiagram
     SVC->>KC: POST /token<br/>grant_type=client_credentials<br/>client_id=api-template
     KC-->>SVC: access_token (service account)<br/>preferred_username = "service-account-api-template"
     SVC->>API: Request with Authorization: Bearer &lt;token&gt;
-    API->>API: TenantClaimValidator<br/>IsServiceAccount() → true<br/>tenant_id check SKIPPED
+    API->>API: IdentityTokenValidatedPipeline<br/>IsServiceAccount() → true<br/>tenant_id check SKIPPED
     Note over API: EF global filter: HasTenant = false<br/>tenant-scoped entities return empty<br/>Non-tenant endpoints work normally
     API-->>SVC: Response
 ```
@@ -985,7 +985,7 @@ Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider
 | `Identity/Security/Keycloak/KeycloakRefreshResult.cs`                   | Refresh call result (status + token response)                                                            |
 | `Identity/Security/Keycloak/KeycloakRefreshStatus.cs`                   | `Success`, `Rejected`, `ProviderError`                                                                   |
 | **Other**                                                               |                                                                                                          |
-| `Infrastructure/Security/TenantClaimValidator.cs`                       | Validates tenant_id claim; maps Keycloak claims                                                          |
+| `Modules/Identity/Security/IdentityTokenValidatedPipeline.cs`                       | Post–token validation: claim mapping, user access resolution, tenant_id enforcement                         |
 | `Infrastructure/Security/KeycloakClaimMapper.cs`                        | Maps preferred_username + realm roles to .NET claim types                                                |
 | `Infrastructure/Security/KeycloakUrlHelper.cs`                          | Builds Keycloak authority URL                                                                            |
 | `Infrastructure/Health/KeycloakHealthCheck.cs`                          | Keycloak health check endpoint                                                                           |

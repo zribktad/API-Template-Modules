@@ -145,7 +145,7 @@ internal static partial class IdentityLogs
         [SensitiveData] string body
     );
 
-    // UserProvisioningService (3020-3023)
+    // ResolveAppUserAccessHandler (3020-3023)
     [LoggerMessage(
         EventId = 3020,
         Level = LogLevel.Debug,
@@ -189,6 +189,28 @@ internal static partial class IdentityLogs
         string keycloakUserId
     );
 
+    [LoggerMessage(
+        EventId = 3024,
+        Level = LogLevel.Warning,
+        Message = "Access denied during provisioning: {ErrorCode} for normalised email {NormalizedEmail}."
+    )]
+    public static partial void UserAccessDenied(
+        this ILogger logger,
+        string errorCode,
+        [PersonalData] string normalizedEmail
+    );
+
+    [LoggerMessage(
+        EventId = 3025,
+        Level = LogLevel.Information,
+        Message = "Linked Keycloak id {KeycloakUserId} to AppUser {UserId} (admin-created, previously unlinked)."
+    )]
+    public static partial void UserProvisioningLinkedAdminCreatedUser(
+        this ILogger logger,
+        Guid userId,
+        [SensitiveData] string keycloakUserId
+    );
+
     // CleanupExpiredInvitationsHandler (3030)
     [LoggerMessage(
         EventId = 3030,
@@ -205,7 +227,7 @@ internal static partial class IdentityLogs
     )]
     public static partial void ExpiredBffSessionsCleanedUp(this ILogger logger, int count);
 
-    // TenantClaimValidator / CookieSessionRefresher (3040-3045)
+    // IdentityTokenValidatedPipeline / CookieSessionRefresher (3040-3045)
     [LoggerMessage(
         EventId = 3040,
         Level = LogLevel.Warning,

@@ -67,7 +67,12 @@ public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFa
     {
         var ct = TestContext.Current.CancellationToken;
         var client = _factory.CreateClient();
-        IntegrationAuthHelper.Authenticate(client);
+        // Service-account principal skips DB user resolution (IdentityTokenValidatedPipeline); a human test
+        // token is denied without invitation data and can leave the response in a bad state for Challenge.
+        IntegrationAuthHelper.Authenticate(
+            client,
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}bff-security"
+        );
 
         var response = await client.PostAsync(
             "/api/v1/products",

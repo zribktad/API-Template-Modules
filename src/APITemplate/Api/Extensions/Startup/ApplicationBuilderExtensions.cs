@@ -21,10 +21,13 @@ public static class ApplicationBuilderExtensions
     {
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
+        // Correlation in Items + Serilog only (no Response) so Challenge runs before response headers.
+        app.UseMiddleware<CorrelationContextMiddleware>();
         app.UseAuthentication();
         app.UseMiddleware<CsrfValidationMiddleware>();
-        app.UseMiddleware<RequestContextMiddleware>();
         app.UseAuthorization();
+        // Response headers, tenant Serilog, metrics — after Challenge/Forbid can set status.
+        app.UseMiddleware<RequestContextMiddleware>();
         app.UseSerilogRequestLogging(options =>
         {
             options.MessageTemplate =

@@ -149,4 +149,14 @@ public static class AuthConstants
         public const string PlatformAdmin = "PlatformAdmin";
         public const string TenantAdmin = "TenantAdmin";
     }
+
+    /// <summary>
+    ///     Keys on <c>HttpContext.Items</c> when authentication succeeds at the IdP but the application
+    ///     rejects the principal (used by JWT <c>OnChallenge</c> to emit ProblemDetails).
+    /// </summary>
+    public static class HttpContextItems
+    {
+        public const string AccessDeniedErrorCode = "Identity.AccessDenied.ErrorCode";
+        public const string AccessDeniedDetail = "Identity.AccessDenied.Detail";
+    }
 }
