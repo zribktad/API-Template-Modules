@@ -1,31 +1,23 @@
-using Microsoft.EntityFrameworkCore;
+using Identity.Features.TenantInvitation.Specifications;
 
 namespace Identity.Repositories;
 
 /// <summary>
-///     EF Core repository for <see cref="TenantInvitation" /> with token hash and pending-invitation lookup methods.
+///     EF Core repository for <see cref="TenantInvitation" /> with invitation-specific lookup operations.
 /// </summary>
 public sealed class TenantInvitationRepository
     : RepositoryBase<TenantInvitation>,
         ITenantInvitationRepository
 {
-    private readonly IdentityDbContext _db;
-
     public TenantInvitationRepository(IdentityDbContext dbContext)
-        : base(dbContext)
-    {
-        _db = dbContext;
-    }
+        : base(dbContext) { }
 
     public Task<TenantInvitation?> GetNonRevokedByTokenHashAsync(
         string tokenHash,
         CancellationToken ct = default
     )
     {
-        return _db.TenantInvitations.FirstOrDefaultAsync(
-            i => i.TokenHash == tokenHash && i.Status != InvitationStatus.Revoked,
-            ct
-        );
+        return FirstOrDefaultAsync(new NonRevokedInvitationByTokenHashSpecification(tokenHash), ct);
     }
 
     public Task<bool> HasPendingInvitationAsync(
@@ -33,11 +25,6 @@ public sealed class TenantInvitationRepository
         CancellationToken ct = default
     )
     {
-        return _db
-            .TenantInvitations.AsNoTracking()
-            .AnyAsync(
-                i => i.NormalizedEmail == normalizedEmail && i.Status == InvitationStatus.Pending,
-                ct
-            );
+        return AnyAsync(new PendingInvitationByNormalizedEmailSpecification(normalizedEmail), ct);
     }
 }

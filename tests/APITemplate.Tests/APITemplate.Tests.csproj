@@ -48,6 +48,7 @@
     <Compile Include="Integration\Auth\BffSecurityTests.cs" />
     <Compile Include="Integration\Postgres\SharedPostgresContainer.cs" />
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
+    <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
     <Compile Remove="Unit\Handlers\**\*.cs" />
     <Compile Remove="Unit\Repositories\**\*.cs" />
     <Compile Remove="Unit\Persistence\**\*.cs" />
