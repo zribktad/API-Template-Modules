@@ -40,12 +40,9 @@ public sealed class UserProvisioningService : IUserProvisioningService
         CancellationToken ct = default
     )
     {
-        // 1. Check if the user is already provisioned — bypass tenant filter because
-        //    we only have the Keycloak subject ID, not a tenant context yet.
-        AppUser? existing = await _userRepository.FirstOrDefaultAsync(
-            new UserByKeycloakUserIdSpecification(keycloakUserId),
-            ct
-        );
+        var byKeycloakId = new UserByKeycloakUserIdSpecification(keycloakUserId);
+
+        AppUser? existing = await _userRepository.FirstOrDefaultAsync(byKeycloakId, ct);
 
         if (existing is not null)
         {
@@ -53,8 +50,6 @@ public sealed class UserProvisioningService : IUserProvisioningService
             return existing;
         }
 
-        // 2. Look for an accepted invitation matching the normalised email.
-        //    Bypass tenant filter — at this point no tenant context is active.
         string normalizedEmail = Email.NormalizeRaw(email);
 
         TenantInvitation? invitation = await _invitationRepository.FirstOrDefaultAsync(
@@ -68,12 +63,7 @@ public sealed class UserProvisioningService : IUserProvisioningService
             return null;
         }
 
-        // 3. Provision a new user from the invitation data.
-        // The email comes from Keycloak (trusted identity provider), so no re-validation is needed.
-        // TenantId must be set explicitly here. During OnTokenValidated, no tenant context
-        // is active (ITenantProvider.HasTenant == false), so AuditableEntityStateManager
-        // will NOT auto-assign TenantId from the tenant provider. This explicit assignment
-        // is load-bearing and must not be removed.
+        // TenantId from invitation: no tenant context during OnTokenValidated, so auditing will not inject it.
         AppUser user = AppUser.Create(
             username,
             Email.FromPersistence(email),
@@ -90,13 +80,9 @@ public sealed class UserProvisioningService : IUserProvisioningService
         }
         catch (DbUpdateException ex)
         {
-            // Concurrent request may have provisioned this user — re-fetch the winner.
             _logger.UserProvisioningConcurrencyRetry(ex, keycloakUserId);
 
-            return await _userRepository.FirstOrDefaultAsync(
-                    new UserByKeycloakUserIdSpecification(keycloakUserId),
-                    ct
-                )
+            return await _userRepository.FirstOrDefaultAsync(byKeycloakId, ct)
                 ?? throw new InvalidOperationException(
                     $"Provisioning failed for KeycloakUserId={keycloakUserId} and no existing user was found.",
                     ex

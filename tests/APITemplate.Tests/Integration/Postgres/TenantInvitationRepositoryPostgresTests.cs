@@ -1,11 +1,10 @@
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Entities;
 using Identity.Enums;
 using Identity.Persistence;
 using Identity.Repositories;
 using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using Xunit;
@@ -27,7 +26,7 @@ public sealed class TenantInvitationRepositoryPostgresTests
     private Guid _tenantId;
     private IdentityDbContext _dbContext = null!;
     private TenantInvitationRepository _repository = null!;
-    private readonly TimeProvider _time = new FixedTimeProvider(FixedUtc);
+    private readonly TimeProvider _time = new FakeTimeProvider(FixedUtc);
 
     public TenantInvitationRepositoryPostgresTests(SharedPostgresContainer postgres)
     {
@@ -36,28 +35,22 @@ public sealed class TenantInvitationRepositoryPostgresTests
 
     public async ValueTask InitializeAsync()
     {
+        CancellationToken ct = TestContext.Current.CancellationToken;
         string databaseName = $"tinvrepo_{Guid.NewGuid():N}";
-        await using (NpgsqlConnection conn = new(_postgres.ServerConnectionString))
-        {
-            await conn.OpenAsync(TestContext.Current.CancellationToken);
-            await using NpgsqlCommand cmd = conn.CreateCommand();
-            cmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
-            await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
-        }
-
-        _connectionString = new NpgsqlConnectionStringBuilder(_postgres.ServerConnectionString)
-        {
-            Database = databaseName,
-        }.ConnectionString;
+        _connectionString = await IsolatedPostgresDatabase.CreateAndGetConnectionStringAsync(
+            _postgres,
+            databaseName,
+            ct
+        );
 
         _tenantId = Guid.NewGuid();
         _dbContext = CreateDbContext();
-        await _dbContext.Database.MigrateAsync(TestContext.Current.CancellationToken);
+        await _dbContext.Database.MigrateAsync(ct);
 
         TenantCode code = TenantCode.FromPersistence("t" + _tenantId.ToString("N")[..12]);
         Tenant tenant = Tenant.Create(_tenantId, code, "Repo test tenant");
         _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await _dbContext.SaveChangesAsync(ct);
         _dbContext.ChangeTracker.Clear();
 
         _repository = new TenantInvitationRepository(_dbContext);
@@ -87,13 +80,7 @@ public sealed class TenantInvitationRepositoryPostgresTests
         string tokenHash = $"tok-{Guid.NewGuid():N}";
         Email email = Email.FromPersistence($"nr-{status}-{Guid.NewGuid():N}@example.com");
 
-        TenantInvitation invitation = TenantInvitation.Create(email, tokenHash, 48, _time);
-        invitation.TenantId = _tenantId;
-        ApplyStatus(invitation, status, _time);
-
-        _dbContext.TenantInvitations.Add(invitation);
-        await _dbContext.SaveChangesAsync(ct);
-        _dbContext.ChangeTracker.Clear();
+        await PersistInvitationAsync(email, tokenHash, status, ct);
 
         TenantInvitation? found = await _repository.GetNonRevokedByTokenHashAsync(tokenHash, ct);
 
@@ -129,6 +116,20 @@ public sealed class TenantInvitationRepositoryPostgresTests
         string normalized = email.Normalize();
         string tokenHash = $"th-{Guid.NewGuid():N}";
 
+        await PersistInvitationAsync(email, tokenHash, status, ct);
+
+        bool hasPending = await _repository.HasPendingInvitationAsync(normalized, ct);
+
+        hasPending.ShouldBe(expectPending);
+    }
+
+    private async Task PersistInvitationAsync(
+        Email email,
+        string tokenHash,
+        InvitationStatus status,
+        CancellationToken ct
+    )
+    {
         TenantInvitation invitation = TenantInvitation.Create(email, tokenHash, 48, _time);
         invitation.TenantId = _tenantId;
         ApplyStatus(invitation, status, _time);
@@ -136,10 +137,6 @@ public sealed class TenantInvitationRepositoryPostgresTests
         _dbContext.TenantInvitations.Add(invitation);
         await _dbContext.SaveChangesAsync(ct);
         _dbContext.ChangeTracker.Clear();
-
-        bool hasPending = await _repository.HasPendingInvitationAsync(normalized, ct);
-
-        hasPending.ShouldBe(expectPending);
     }
 
     private static void ApplyStatus(
@@ -174,26 +171,10 @@ public sealed class TenantInvitationRepositoryPostgresTests
 
         return new IdentityDbContext(
             options,
-            new FixedTenantProvider(_tenantId),
-            new StubActorProvider(),
+            new IdentityIntegrationTenantProvider(_tenantId),
+            new IdentityIntegrationEmptyActorProvider(),
             _time,
             new AuditableEntityStateManager()
         );
-    }
-
-    private sealed class FixedTenantProvider(Guid tenantId) : ITenantProvider
-    {
-        public Guid TenantId => tenantId;
-        public bool HasTenant => true;
-    }
-
-    private sealed class StubActorProvider : IActorProvider
-    {
-        public Guid ActorId => Guid.Empty;
-    }
-
-    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => utcNow;
     }
 }
