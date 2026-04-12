@@ -25,7 +25,13 @@ public static class ApplicationCompositionServiceCollectionExtensions
 
         services.AddHttpContextAccessor();
         services.AddScoped<ITenantProvider, HttpTenantProvider>();
-        services.AddScoped<IActorProvider, HttpActorProvider>();
+        services.AddScoped<HttpRequestIdentityProvider>();
+        services.AddScoped<ICurrentRequestUser>(sp =>
+            sp.GetRequiredService<HttpRequestIdentityProvider>()
+        );
+        services.AddScoped<IActorProvider>(sp =>
+            sp.GetRequiredService<HttpRequestIdentityProvider>()
+        );
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

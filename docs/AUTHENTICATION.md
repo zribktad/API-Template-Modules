@@ -498,6 +498,7 @@ This is intentional — keeping the record allows:
 | `SessionCorrupted`            | Session record is malformed — missing `SessionId`, `UserId`, `Subject`, or `AccessToken` |
 | `ProviderSessionInvalid`      | Keycloak HTTP/network error during refresh (non-`invalid_grant` failure)                 |
 | `AbsoluteLifetimeExceeded`    | `CreatedAtUtc + SessionAbsoluteLifetimeMinutes` (480 min) has passed                     |
+| `CredentialRotation`          | Password change or global sign-out: `POST /api/v1/account/password`, `POST /api/v1/account/sessions/revoke-all`, or `POST /internal/keycloak-events/password-changed` |
 
 ### 3e. Storage architecture and Redis cache keys
 

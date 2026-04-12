@@ -2,11 +2,20 @@ namespace Identity.Errors;
 
 public static class ErrorCatalog
 {
+    public static class KeycloakWebhook
+    {
+        public const string MissingUserId = "KC-WH-0400";
+    }
+
     public static class Users
     {
         public const string NotFound = "USR-0404";
+        public const string NotFoundByKeycloakId = "USR-0404-KC";
         public const string EmailAlreadyExists = "USR-0409-EMAIL";
         public const string UsernameAlreadyExists = "USR-0409-USERNAME";
+        public const string CurrentPasswordInvalid = "USR-0403-PASSWORD";
+        public const string KeycloakAccountRequired = "USR-0409-NO-KEYCLOAK";
+        public const string NewPasswordMustDiffer = "USR-0422-PASSWORD-SAME";
     }
 
     public static class Tenants

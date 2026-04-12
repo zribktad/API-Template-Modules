@@ -1,7 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Asp.Versioning;
 using ErrorOr;
+using Identity.Auth.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
@@ -10,7 +9,8 @@ using Wolverine;
 namespace Identity.Directory.Controllers.V1;
 
 [ApiVersion(1.0)]
-public sealed class UsersController(IMessageBus bus) : ApiControllerBase
+public sealed class UsersController(IMessageBus bus, ICurrentRequestUser currentUser)
+    : ApiControllerBase
 {
     [HttpGet]
     [RequirePermission(Permission.Users.Read)]
@@ -41,19 +41,25 @@ public sealed class UsersController(IMessageBus bus) : ApiControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<UserResponse>> GetMe(CancellationToken ct)
     {
-        string? userId =
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-            ?? User.FindFirstValue(AuthConstants.Claims.Subject);
+        if (currentUser.ApplicationUserId is Guid appUserId)
+        {
+            ErrorOr<UserResponse> byAppId = await bus.InvokeAsync<ErrorOr<UserResponse>>(
+                new GetUserByIdQuery(appUserId),
+                ct
+            );
+            return byAppId.ToActionResult(this);
+        }
 
-        if (userId is null || !Guid.TryParse(userId, out Guid id))
-            return Unauthorized();
+        if (!string.IsNullOrEmpty(currentUser.OidcSubject))
+        {
+            ErrorOr<UserResponse> byKc = await bus.InvokeAsync<ErrorOr<UserResponse>>(
+                new GetUserByKeycloakUserIdQuery(currentUser.OidcSubject),
+                ct
+            );
+            return byKc.ToActionResult(this);
+        }
 
-        ErrorOr<UserResponse> result = await bus.InvokeAsync<ErrorOr<UserResponse>>(
-            new GetUserByIdQuery(id),
-            ct
-        );
-        return result.ToActionResult(this);
+        return Unauthorized();
     }
 
     [HttpPost]

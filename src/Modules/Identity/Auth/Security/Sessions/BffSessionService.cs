@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using Identity.Logging;
 using Identity.Auth.Options;
+using Identity.Logging;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -155,6 +155,22 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
                 },
             ct
         );
+    }
+
+    /// <inheritdoc />
+    public async Task RevokeAllSessionsForSubjectAsync(
+        string keycloakSubject,
+        BffSessionRevocationReason reason,
+        CancellationToken ct = default
+    )
+    {
+        IReadOnlyList<string> sessionIds = await _sessionStore.FindActiveSessionIdsBySubjectAsync(
+            keycloakSubject,
+            ct
+        );
+
+        foreach (string sessionId in sessionIds)
+            await RevokeAsync(sessionId, reason, ct);
     }
 
     private async Task MutateSessionAsync(

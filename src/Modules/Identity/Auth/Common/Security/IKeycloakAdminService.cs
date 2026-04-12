@@ -1,8 +1,8 @@
 namespace Identity.Auth.Security;
 
 /// <summary>
-///     Application-layer port for managing Keycloak users via the Admin REST API.
-///     Implementations live in the Infrastructure layer and communicate with Keycloak on behalf of the application.
+///     Application-layer port for Keycloak: Admin REST API (user lifecycle), logout-all, and verifying
+///     credentials via the token endpoint (resource-owner grant on a dedicated confidential client).
 /// </summary>
 public interface IKeycloakAdminService
 {
@@ -25,4 +25,25 @@ public interface IKeycloakAdminService
 
     /// <summary>Permanently deletes the specified Keycloak user.</summary>
     public Task DeleteUserAsync(string keycloakUserId, CancellationToken ct = default);
+
+    /// <summary>Sets the user's password via the Admin API (not temporary).</summary>
+    public Task SetUserPasswordAsync(
+        string keycloakUserId,
+        string newPassword,
+        bool temporary,
+        CancellationToken ct = default
+    );
+
+    /// <summary>Terminates all Keycloak sessions for the user (logout everywhere on the IdP).</summary>
+    public Task LogoutAllUserSessionsAsync(string keycloakUserId, CancellationToken ct = default);
+
+    /// <summary>
+    ///     Returns <see langword="true" /> when Keycloak issues tokens for the username/password
+    ///     (resource-owner grant, server-side verification client).
+    /// </summary>
+    Task<bool> ValidateCredentialsAsync(
+        string username,
+        string password,
+        CancellationToken ct = default
+    );
 }

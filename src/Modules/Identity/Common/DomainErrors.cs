@@ -11,6 +11,14 @@ public static class DomainErrors
             return Error.NotFound(ErrorCatalog.Users.NotFound, $"User with id '{id}' not found.");
         }
 
+        public static Error NotFoundByKeycloakUserId(string keycloakUserId)
+        {
+            return Error.NotFound(
+                ErrorCatalog.Users.NotFoundByKeycloakId,
+                $"User with Keycloak id '{keycloakUserId}' not found."
+            );
+        }
+
         public static Error EmailAlreadyExists(string email)
         {
             return Error.Conflict(
@@ -24,6 +32,30 @@ public static class DomainErrors
             return Error.Conflict(
                 ErrorCatalog.Users.UsernameAlreadyExists,
                 $"Username '{username}' is already in use."
+            );
+        }
+
+        public static Error CurrentPasswordInvalid()
+        {
+            return Error.Validation(
+                ErrorCatalog.Users.CurrentPasswordInvalid,
+                "The current password is not correct."
+            );
+        }
+
+        public static Error KeycloakAccountRequired()
+        {
+            return Error.Validation(
+                ErrorCatalog.Users.KeycloakAccountRequired,
+                "This account is not linked to Keycloak; password cannot be changed here."
+            );
+        }
+
+        public static Error NewPasswordMustDiffer()
+        {
+            return Error.Validation(
+                ErrorCatalog.Users.NewPasswordMustDiffer,
+                "The new password must be different from the current password."
             );
         }
     }

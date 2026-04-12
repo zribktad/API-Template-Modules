@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Identity.Auth.Entities;
 using Identity.Auth.Options;
+using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -150,6 +151,30 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
         }
 
         await _distributedCache.RemoveAsync(GetCacheKey(sessionId), ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<string>> FindActiveSessionIdsBySubjectAsync(
+        string keycloakSubject,
+        CancellationToken ct = default
+    )
+    {
+        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
+        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+
+        List<string> ids = await dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .AsNoTracking()
+            .Where(s =>
+                s.Subject == keycloakSubject
+                && !s.IsDeleted
+                && s.Status != BffSessionStatus.Revoked
+                && s.Status != BffSessionStatus.Expired
+            )
+            .Select(s => s.SessionId)
+            .ToListAsync(ct);
+
+        return ids;
     }
 
     protected abstract Task<string?> GetCachedPayloadAsync(string cacheKey, CancellationToken ct);

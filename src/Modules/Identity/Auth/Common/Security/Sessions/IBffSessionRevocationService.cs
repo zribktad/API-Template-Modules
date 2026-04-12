@@ -13,4 +13,13 @@ public interface IBffSessionRevocationService
         BffSessionRevocationReason reason,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Revokes every persisted BFF session whose Keycloak subject matches.
+    /// </summary>
+    Task RevokeAllSessionsForSubjectAsync(
+        string keycloakSubject,
+        BffSessionRevocationReason reason,
+        CancellationToken ct = default
+    );
 }

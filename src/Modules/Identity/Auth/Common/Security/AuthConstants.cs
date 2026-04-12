@@ -57,6 +57,8 @@ public static class AuthConstants
         public const string ClientId = "client_id";
         public const string ClientSecret = "client_secret";
         public const string RefreshToken = "refresh_token";
+        public const string Username = "username";
+        public const string Password = "password";
     }
 
     /// <summary>OAuth2 error codes returned in token endpoint responses.</summary>
@@ -70,6 +72,7 @@ public static class AuthConstants
     {
         public const string ClientCredentials = "client_credentials";
         public const string RefreshToken = "refresh_token";
+        public const string Password = "password";
     }
 
     /// <summary>Keycloak required-action identifiers sent during user lifecycle operations.</summary>
@@ -77,6 +80,12 @@ public static class AuthConstants
     {
         public const string VerifyEmail = "VERIFY_EMAIL";
         public const string UpdatePassword = "UPDATE_PASSWORD";
+    }
+
+    /// <summary>Keycloak credential <c>type</c> values for Admin API password operations.</summary>
+    public static class KeycloakCredentialTypes
+    {
+        public const string Password = "password";
     }
 
     /// <summary>JWT claim names used to extract identity and role information from tokens.</summary>
