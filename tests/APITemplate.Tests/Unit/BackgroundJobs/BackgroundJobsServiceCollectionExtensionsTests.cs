@@ -5,6 +5,7 @@ using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
+using BackgroundJobs.TickerQ;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,7 +29,7 @@ public sealed class BackgroundJobsServiceCollectionExtensionsTests
             {
                 ["ConnectionStrings:DefaultConnection"] =
                     "Host=localhost;Database=test;Username=test;Password=test",
-                ["Dragonfly:ConnectionString"] = "localhost:6379",
+                ["Redis:ConnectionString"] = "localhost:6379",
                 ["BackgroundJobs:TickerQ:Enabled"] = "true",
                 ["BackgroundJobs:Cleanup:Enabled"] = "true",
                 ["BackgroundJobs:Cleanup:Cron"] = "0 * * * *",
@@ -85,7 +86,7 @@ public sealed class BackgroundJobsServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddBackgroundJobs_WhenTickerQEnabledWithoutDragonflyConnection_Throws()
+    public void AddBackgroundJobs_WhenTickerQEnabledWithoutRedisConnection_RegistersLocalCoordinator()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -99,11 +100,12 @@ public sealed class BackgroundJobsServiceCollectionExtensionsTests
             }
         );
 
-        var ex = Should.Throw<InvalidOperationException>(() =>
-            services.AddBackgroundJobs(configuration)
-        );
+        services.AddBackgroundJobs(configuration);
 
-        ex.Message.ShouldContain("Dragonfly:ConnectionString");
+        services.ShouldContain(x =>
+            x.ServiceType == typeof(IDistributedJobCoordinator)
+            && x.ImplementationType == typeof(LocalSingleProcessJobCoordinator)
+        );
     }
 
     [Fact]
@@ -117,11 +119,11 @@ public sealed class BackgroundJobsServiceCollectionExtensionsTests
             {
                 ["ConnectionStrings:DefaultConnection"] =
                     "Host=localhost;Database=test;Username=test;Password=test",
-                ["Dragonfly:ConnectionString"] = "localhost:6379",
+                ["Redis:ConnectionString"] = "localhost:6379",
                 ["BackgroundJobs:TickerQ:Enabled"] = "true",
                 ["BackgroundJobs:TickerQ:FailClosed"] = "true",
                 ["BackgroundJobs:TickerQ:InstanceNamePrefix"] = "ApiTemplate",
-                ["BackgroundJobs:TickerQ:CoordinationConnection"] = "Dragonfly",
+                ["BackgroundJobs:TickerQ:CoordinationConnection"] = "Redis",
                 ["BackgroundJobs:ExternalSync:Cron"] = "0 */12 * * *",
                 ["BackgroundJobs:Cleanup:Cron"] = "5 * * * *",
                 ["BackgroundJobs:Reindex:Cron"] = "0 */4 * * *",
@@ -138,7 +140,7 @@ public sealed class BackgroundJobsServiceCollectionExtensionsTests
         options.TickerQ.Enabled.ShouldBeTrue();
         options.TickerQ.FailClosed.ShouldBeTrue();
         options.TickerQ.InstanceNamePrefix.ShouldBe("ApiTemplate");
-        options.TickerQ.CoordinationConnection.ShouldBe("Dragonfly");
+        options.TickerQ.CoordinationConnection.ShouldBe("Redis");
         options.ExternalSync.Cron.ShouldBe("0 */12 * * *");
         options.Cleanup.Cron.ShouldBe("5 * * * *");
         options.Reindex.Cron.ShouldBe("0 */4 * * *");
@@ -157,7 +159,7 @@ public sealed class BackgroundJobsServiceCollectionExtensionsTests
             {
                 ["ConnectionStrings:DefaultConnection"] =
                     "Host=localhost;Database=test;Username=test;Password=test",
-                ["Dragonfly:ConnectionString"] = "localhost:6379",
+                ["Redis:ConnectionString"] = "localhost:6379",
                 ["BackgroundJobs:TickerQ:Enabled"] = "true",
                 ["BackgroundJobs:Cleanup:Enabled"] = "true",
                 ["BackgroundJobs:Cleanup:BatchSize"] = "0",
@@ -185,7 +187,7 @@ public sealed class BackgroundJobsServiceCollectionExtensionsTests
             {
                 ["ConnectionStrings:DefaultConnection"] =
                     "Host=localhost;Database=test;Username=test;Password=test",
-                ["Dragonfly:ConnectionString"] = "localhost:6379",
+                ["Redis:ConnectionString"] = "localhost:6379",
                 ["BackgroundJobs:TickerQ:Enabled"] = "true",
                 ["BackgroundJobs:EmailRetry:Enabled"] = "true",
                 ["BackgroundJobs:EmailRetry:Cron"] = "not-a-cron",

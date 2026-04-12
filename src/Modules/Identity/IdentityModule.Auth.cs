@@ -47,13 +47,22 @@ public static partial class IdentityModule
         services.AddScoped<CookieSessionRefresher>();
         services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
         services.AddSingleton<IBffSessionTokenProtector, BffSessionTokenProtector>();
-        services.AddSingleton<IBffSessionStore, PostgresCachedBffSessionStore>();
+        if (configuration.IsRedisConfigured())
+        {
+            services.AddSingleton<IBffSessionStore, PostgresCachedBffSessionStore>();
+            services.AddSingleton<IBffRefreshCoordinator, RedisBffRefreshCoordinator>();
+        }
+        else
+        {
+            services.AddSingleton<IBffSessionStore, PostgresDistributedCacheBffSessionStore>();
+            services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();
+        }
+
         services.AddSingleton<BffSessionService>();
         services.AddSingleton<IBffSessionService>(sp => sp.GetRequiredService<BffSessionService>());
         services.AddSingleton<IBffSessionRevocationService>(sp =>
             sp.GetRequiredService<BffSessionService>()
         );
-        services.AddSingleton<IBffRefreshCoordinator, DragonflyBffRefreshCoordinator>();
         services.AddScoped<IBffTokenRefreshService, BffTokenRefreshService>();
 
         services.PostConfigure<JwtBearerOptions>(
@@ -66,10 +75,10 @@ public static partial class IdentityModule
             }
         );
 
-        services.AddSingleton<DragonflyTicketStore>();
+        services.AddSingleton<RedisTicketStore>();
         services
             .AddOptions<CookieAuthenticationOptions>(AuthConstants.BffSchemes.Cookie)
-            .Configure<DragonflyTicketStore>((opts, store) => opts.SessionStore = store);
+            .Configure<RedisTicketStore>((opts, store) => opts.SessionStore = store);
 
         services
             .AddAuthorizationBuilder()

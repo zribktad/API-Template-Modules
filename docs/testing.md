@@ -281,7 +281,7 @@ All integration test classes share `CustomWebApplicationFactory`, which delegate
 | `RemoveExternalHealthChecks` | Removes `postgresql`, `mongodb`, `keycloak`, `dragonfly` health registrations |
 | `ReplaceOutputCacheWithInMemory` | Swaps DragonFly-backed output cache for in-memory |
 | `ReplaceDataProtectionWithInMemory` | Replaces DragonFly-backed DataProtection with `EphemeralDataProtectionProvider` (no key persistence) |
-| `ReplaceTicketStoreWithInMemory` | Replaces Redis-backed `IDistributedCache` with in-memory; re-registers `DragonflyTicketStore` against it |
+| `ReplaceTicketStoreWithInMemory` | Replaces Redis-backed `IDistributedCache` with in-memory; re-registers `RedisTicketStore` against it |
 | `ConfigureTestAuthentication` | Overrides JWT validation to use a local RSA test key; stubs the OIDC metadata |
 
 ```csharp

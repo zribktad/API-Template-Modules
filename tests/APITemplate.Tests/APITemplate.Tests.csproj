@@ -40,6 +40,8 @@
     <Compile Remove="GlobalUsings.ApplicationFeatures.cs" />
     <Compile Remove="Integration\**\*.cs" />
     <Compile Include="Integration\CustomWebApplicationFactory.cs" />
+    <Compile Include="Integration\EmptyRedisWebApplicationFactory.cs" />
+    <Compile Include="Integration\Composition\EmptyRedisHostTests.cs" />
     <Compile Include="Integration\IntegrationAuthHelper.cs" />
     <Compile Include="Integration\Helpers\TestConfigurationHelper.cs" />
     <Compile Include="Integration\Helpers\TestServiceHelper.cs" />
@@ -61,7 +63,7 @@
     <Compile Remove="Unit\Validation\**\*.cs" />
     <Compile Remove="Unit\BackgroundJobs\BackgroundJobsServiceCollectionExtensionsTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\CleanupRecurringJobTests.cs" />
-    <Compile Remove="Unit\BackgroundJobs\DragonflyDistributedJobCoordinatorTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\RedisDistributedJobCoordinatorTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\EmailRetryRecurringJobTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\EmailRetryServiceTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\TickerQRecurringJobRegistrarTests.cs" />

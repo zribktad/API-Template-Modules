@@ -7,12 +7,12 @@ namespace Identity.Auth.Security.Sessions;
 ///     Cookie session store adapter that persists the opaque cookie key as the BFF session id and
 ///     delegates all session state to the explicit server-side BFF session subsystem.
 /// </summary>
-public sealed class DragonflyTicketStore : ITicketStore
+public sealed class RedisTicketStore : ITicketStore
 {
     private readonly IBffSessionService _sessionService;
     private readonly IBffSessionRevocationService _sessionRevocationService;
 
-    public DragonflyTicketStore(
+    public RedisTicketStore(
         IBffSessionService sessionService,
         IBffSessionRevocationService sessionRevocationService
     )

@@ -15,6 +15,6 @@ public sealed class TestConfigurationHelperTests
             .Build();
 
         configuration["BackgroundJobs:TickerQ:Enabled"].ShouldBe("false");
-        configuration["Dragonfly:ConnectionString"].ShouldBe(string.Empty);
+        configuration["Redis:ConnectionString"].ShouldBe(string.Empty);
     }
 }

@@ -6,7 +6,7 @@ using StackExchange.Redis;
 namespace SharedKernel.Infrastructure.Idempotency;
 
 /// <summary>
-///     Redis/Dragonfly-backed implementation of <see cref="IIdempotencyStore" /> that stores
+///     Redis-backed implementation of <see cref="IIdempotencyStore" /> that stores
 ///     idempotency cache entries and distributed locks using atomic Lua scripts.
 ///     Suitable for multi-instance deployments where in-process state would cause duplicate processing.
 /// </summary>

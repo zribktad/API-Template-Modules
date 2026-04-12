@@ -75,7 +75,7 @@ internal static class TestServiceHelper
                                 is HealthCheckNames.MongoDb
                                     or HealthCheckNames.Keycloak
                                     or HealthCheckNames.PostgreSql
-                                    or HealthCheckNames.Dragonfly
+                                    or HealthCheckNames.Redis
                         )
                         .ToList();
                 foreach (var r in toRemove)
@@ -94,8 +94,8 @@ internal static class TestServiceHelper
         services.AddOutputCache();
         services.RemoveAll<IOutputCacheStore>();
         services.AddSingleton<IOutputCacheStore, TestOutputCacheStore>();
-        services.RemoveAll<IValidateOptions<DragonflyOptions>>();
-        services.RemoveAll<IOptionsChangeTokenSource<DragonflyOptions>>();
+        services.RemoveAll<IValidateOptions<RedisOptions>>();
+        services.RemoveAll<IOptionsChangeTokenSource<RedisOptions>>();
     }
 
     internal static void ReplaceDataProtectionWithInMemory(IServiceCollection services)
