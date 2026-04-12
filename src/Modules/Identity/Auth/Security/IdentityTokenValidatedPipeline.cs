@@ -184,17 +184,12 @@ public static class IdentityTokenValidatedPipeline
         string cacheKey = AuthConstants.DistributedCache.UserAccessAllowedKeyPrefix + sub;
         IDistributedCache? distributedCache =
             httpContext.RequestServices.GetService<IDistributedCache>();
+        ILogger logger = GetLogger(httpContext);
 
-        if (distributedCache is not null)
-        {
-            try
-            {
-                byte[]? cached = await distributedCache.GetAsync(cacheKey, ct);
-                if (cached is { Length: > 0 } && cached[0] == 1)
-                    return true;
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException) { }
-        }
+        if (
+            await ShortCircuitIfCachedUserAccessAllowedAsync(distributedCache, cacheKey, logger, ct)
+        )
+            return true;
 
         try
         {
@@ -215,24 +210,7 @@ public static class IdentityTokenValidatedPipeline
                 return false;
             }
 
-            if (distributedCache is not null)
-            {
-                try
-                {
-                    await distributedCache.SetAsync(
-                        cacheKey,
-                        new byte[] { 1 },
-                        new DistributedCacheEntryOptions
-                        {
-                            AbsoluteExpirationRelativeToNow = AuthConstants
-                                .DistributedCache
-                                .UserAccessAllowedTtl,
-                        },
-                        ct
-                    );
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException) { }
-            }
+            await CacheUserAccessAllowedAsync(distributedCache, cacheKey, logger, ct);
 
             return true;
         }
@@ -241,6 +219,59 @@ public static class IdentityTokenValidatedPipeline
             GetLogger(httpContext).UserProvisioningFailedDuringTokenValidation(ex);
             fail(ex);
             return false;
+        }
+    }
+
+    private static async Task<bool> ShortCircuitIfCachedUserAccessAllowedAsync(
+        IDistributedCache? cache,
+        string cacheKey,
+        ILogger logger,
+        CancellationToken ct
+    )
+    {
+        if (cache is null)
+            return false;
+
+        try
+        {
+            byte[]? cached = await cache.GetAsync(cacheKey, ct);
+            return cached is { Length: > 0 }
+                && cached[0] == AuthConstants.DistributedCache.UserAccessAllowedPayloadMarker;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.UserAccessAllowedCacheOperationFailed("get", ex);
+            return false;
+        }
+    }
+
+    private static async Task CacheUserAccessAllowedAsync(
+        IDistributedCache? cache,
+        string cacheKey,
+        ILogger logger,
+        CancellationToken ct
+    )
+    {
+        if (cache is null)
+            return;
+
+        try
+        {
+            await cache.SetAsync(
+                cacheKey,
+                [AuthConstants.DistributedCache.UserAccessAllowedPayloadMarker],
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = AuthConstants
+                        .DistributedCache
+                        .UserAccessAllowedTtl,
+                },
+                ct
+            );
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.UserAccessAllowedCacheOperationFailed("set", ex);
         }
     }
 

@@ -1,6 +1,5 @@
 using APITemplate.Tests.Unit.Helpers;
 using SharedKernel.Application.Contracts;
-using SharedKernel.Infrastructure.Idempotency;
 using Shouldly;
 using Xunit;
 

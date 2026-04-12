@@ -173,6 +173,12 @@ public static class AuthConstants
         public const string UserAccessAllowedKeyPrefix = "identity:useraccess:allowed:v1:";
 
         /// <summary>
+        ///     Marker byte written to the cache under <see cref="UserAccessAllowedKeyPrefix" /> +
+        ///     Keycloak <c>sub</c> after a successful user-access resolution.
+        /// </summary>
+        public const byte UserAccessAllowedPayloadMarker = 1;
+
+        /// <summary>
         ///     How long a successful access resolution may be reused without hitting the app database.
         ///     Denied outcomes are not cached so invitation and account state changes propagate quickly.
         /// </summary>
