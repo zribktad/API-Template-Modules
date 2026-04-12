@@ -1,8 +1,8 @@
-using Identity.Controllers.V1;
-using Identity.Features.Bff.DTOs;
-using Identity.Options;
-using Identity.Security;
-using Identity.Security.ExternalIdentityProviders;
+using Identity.Auth.Controllers.V1;
+using Identity.Auth.Features.Bff.DTOs;
+using Identity.Auth.Options;
+using Identity.Auth.Security;
+using Identity.Auth.Security.ExternalIdentityProviders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -17,9 +17,7 @@ public sealed class BffExternalProvidersTests
 {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static BffController CreateController(
-        IEnumerable<IExternalIdentityProvider> providers
-    )
+    private static BffController CreateController(IEnumerable<IExternalIdentityProvider> providers)
     {
         IOptions<BffOptions> options = Options.Create(new BffOptions());
 
@@ -52,7 +50,9 @@ public sealed class BffExternalProvidersTests
         IActionResult result = controller.GetExternalProviders();
 
         OkObjectResult ok = result.ShouldBeOfType<OkObjectResult>();
-        IEnumerable<ExternalProviderResponse> providers = ok.Value.ShouldBeAssignableTo<IEnumerable<ExternalProviderResponse>>()!;
+        IEnumerable<ExternalProviderResponse> providers = ok.Value.ShouldBeAssignableTo<
+            IEnumerable<ExternalProviderResponse>
+        >()!;
         providers.ShouldNotBeEmpty();
     }
 
@@ -64,7 +64,9 @@ public sealed class BffExternalProvidersTests
         IActionResult result = controller.GetExternalProviders();
 
         OkObjectResult ok = result.ShouldBeOfType<OkObjectResult>();
-        IEnumerable<ExternalProviderResponse> providers = ok.Value.ShouldBeAssignableTo<IEnumerable<ExternalProviderResponse>>()!;
+        IEnumerable<ExternalProviderResponse> providers = ok.Value.ShouldBeAssignableTo<
+            IEnumerable<ExternalProviderResponse>
+        >()!;
         providers.ShouldBeEmpty();
     }
 
@@ -179,7 +181,8 @@ public sealed class BffExternalProvidersTests
 }
 
 /// <summary>Stub provider used in multi-provider tests.</summary>
-file sealed class StubIdentityProvider(string idpHint, string displayName) : IExternalIdentityProvider
+file sealed class StubIdentityProvider(string idpHint, string displayName)
+    : IExternalIdentityProvider
 {
     public string IdpHint { get; } = idpHint;
     public string DisplayName { get; } = displayName;

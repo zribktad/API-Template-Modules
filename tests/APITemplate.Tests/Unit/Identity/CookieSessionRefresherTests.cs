@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using Identity.Security;
-using Identity.Security.Sessions;
+using Identity.Auth.Security;
+using Identity.Auth.Security.Sessions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;

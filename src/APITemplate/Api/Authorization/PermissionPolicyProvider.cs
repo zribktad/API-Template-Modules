@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Identity.Security;
+using Identity.Auth.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;

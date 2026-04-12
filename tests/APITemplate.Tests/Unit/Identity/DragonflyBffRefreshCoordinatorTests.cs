@@ -1,6 +1,6 @@
 using System.Text.Json;
-using Identity.Options;
-using Identity.Security.Sessions;
+using Identity.Auth.Options;
+using Identity.Auth.Security.Sessions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;

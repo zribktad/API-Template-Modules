@@ -1,6 +1,7 @@
 using ErrorOr;
-using Identity.Entities;
-using Identity.Features.User;
+using Identity.Auth.Entities;
+using Identity.Directory.Entities;
+using Identity.Directory.Features.User;
 using Identity.ValueObjects;
 using Moq;
 using SharedKernel.Contracts.Events;
@@ -8,13 +9,13 @@ using Shouldly;
 using Wolverine;
 using Xunit;
 using CacheTags = Identity.Events.CacheTags;
-using CreateUserCommand = Identity.Features.User.CreateUserCommand;
-using CreateUserCommandHandler = Identity.Features.User.CreateUserCommandHandler;
-using CreateUserRequest = Identity.Features.User.CreateUserRequest;
+using CreateUserCommand = Identity.Directory.Features.User.CreateUserCommand;
+using CreateUserCommandHandler = Identity.Directory.Features.User.CreateUserCommandHandler;
+using CreateUserRequest = Identity.Directory.Features.User.CreateUserRequest;
 using ErrorCatalog = Identity.Errors.ErrorCatalog;
 using IdentityUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
-using IUserRepository = Identity.Interfaces.IUserRepository;
-using UserResponse = Identity.Features.User.UserResponse;
+using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
+using UserResponse = Identity.Directory.Features.User.UserResponse;
 
 namespace APITemplate.Tests.Unit.Identity;
 

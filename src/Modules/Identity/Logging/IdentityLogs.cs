@@ -284,6 +284,17 @@ internal static partial class IdentityLogs
     );
 
     [LoggerMessage(
+        EventId = 3051,
+        Level = LogLevel.Debug,
+        Message = "User access allowed cache {Operation} failed; continuing without cache."
+    )]
+    public static partial void UserAccessAllowedCacheOperationFailed(
+        this ILogger logger,
+        string operation,
+        Exception exception
+    );
+
+    [LoggerMessage(
         EventId = 3046,
         Level = LogLevel.Warning,
         Message = "BFF session refresh skipped; expires_at token value is missing or invalid. Rejecting principal."

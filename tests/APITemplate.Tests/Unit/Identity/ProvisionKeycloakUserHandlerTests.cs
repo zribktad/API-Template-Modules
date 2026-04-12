@@ -1,5 +1,6 @@
-using Identity.Entities;
-using Identity.Features.User;
+using Identity.Auth.Entities;
+using Identity.Directory.Entities;
+using Identity.Directory.Features.User;
 using Identity.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -7,9 +8,9 @@ using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;
 using Xunit;
-using IKeycloakAdminService = Identity.Security.IKeycloakAdminService;
+using IKeycloakAdminService = Identity.Auth.Security.IKeycloakAdminService;
 using IUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
-using IUserRepository = Identity.Interfaces.IUserRepository;
+using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 
 namespace APITemplate.Tests.Unit.Identity;
 

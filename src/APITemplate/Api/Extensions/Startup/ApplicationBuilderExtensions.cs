@@ -2,7 +2,7 @@ using APITemplate.Api.Middleware;
 using Chatting;
 using FileStorage;
 using HealthChecks.UI.Client;
-using Identity.Security;
+using Identity.Auth.Security;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Notifications;

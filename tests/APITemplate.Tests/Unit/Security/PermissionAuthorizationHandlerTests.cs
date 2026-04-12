@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using APITemplate.Api.Authorization;
-using Identity.Enums;
-using Identity.Security;
+using Identity.Auth.Security;
+using Identity.Directory.Enums;
 using Microsoft.AspNetCore.Authorization;
 using SharedKernel.Contracts.Security;
 using Shouldly;

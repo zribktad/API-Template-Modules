@@ -3,7 +3,8 @@ using System.Text.Json;
 using APITemplate.Api.Authorization;
 using APITemplate.Api.Security;
 using Asp.Versioning;
-using Identity.Security;
+using Identity.Auth.Security;
+using Identity.Auth.Security.Keycloak;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -32,9 +33,8 @@ public static class ApplicationCompositionServiceCollectionExtensions
             {
                 options.Authority = keycloakAuthority;
                 options.Audience = keycloakAudience;
-                options.RequireHttpsMetadata = !keycloakAuthority.StartsWith(
-                    "http://",
-                    StringComparison.OrdinalIgnoreCase
+                options.RequireHttpsMetadata = KeycloakUrlHelper.ShouldRequireHttpsMetadata(
+                    keycloakAuthority
                 );
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -91,7 +91,7 @@ public static class ApplicationCompositionServiceCollectionExtensions
             );
         }
 
-        return $"{authServerUrl.TrimEnd('/')}/realms/{realm}";
+        return KeycloakUrlHelper.BuildAuthority(authServerUrl, realm);
     }
 
     private static void MapKeycloakClaims(ClaimsIdentity identity)

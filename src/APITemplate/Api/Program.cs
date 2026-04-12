@@ -4,7 +4,7 @@ using BackgroundJobs;
 using Chatting;
 using FileStorage;
 using Identity;
-using Identity.Security;
+using Identity.Auth.Security;
 using JasperFx;
 using JasperFx.Resources;
 using MongoDB.Driver;
@@ -40,7 +40,11 @@ builder.Host.UseSerilog(
 );
 
 builder.Services.AddApiFoundation(builder.Configuration);
-builder.Services.AddModuleHealthChecks(builder.Configuration, builder.Environment, HealthCheckModuleRegistry.Modules);
+builder.Services.AddModuleHealthChecks(
+    builder.Configuration,
+    builder.Environment,
+    HealthCheckModuleRegistry.Modules
+);
 builder.Services.AddApplicationComposition(builder.Configuration);
 builder.Services.AddObservability(builder.Configuration, builder.Environment);
 builder.Services.AddIdentityModule(builder.Configuration);

@@ -1,0 +1,6 @@
+namespace Identity.Directory.Features.Tenant.Validation;
+
+/// <summary>
+///     FluentValidation validator for <see cref="CreateTenantRequest" /> that enforces data-annotation constraints.
+/// </summary>
+public sealed class CreateTenantRequestValidator : DataAnnotationsValidator<CreateTenantRequest>;

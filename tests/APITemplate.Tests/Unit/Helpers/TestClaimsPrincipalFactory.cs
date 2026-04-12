@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Identity.Security;
+using Identity.Auth.Security;
 
 namespace APITemplate.Tests.Unit.Helpers;
 
