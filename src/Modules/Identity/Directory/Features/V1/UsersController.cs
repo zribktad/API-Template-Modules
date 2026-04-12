@@ -117,16 +117,16 @@ public sealed class UsersController(IMessageBus bus, ICurrentRequestUser current
         return result.ToNoContentResult(this);
     }
 
-    [HttpPatch("{id:guid}/role")]
+    [HttpPost("{id:guid}/roles")]
     [RequirePermission(Permission.Users.Update)]
-    public async Task<IActionResult> ChangeRole(
+    public async Task<IActionResult> AssignRoles(
         Guid id,
-        ChangeUserRoleRequest request,
+        Identity.Directory.Features.User.AssignRoles.AssignUserRolesRequest request,
         CancellationToken ct
     )
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
-            new ChangeUserRoleCommand(id, request),
+            new Identity.Directory.Features.User.AssignRoles.AssignUserRolesCommand(id, request),
             ct
         );
         return result.ToNoContentResult(this);

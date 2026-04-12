@@ -14,10 +14,5 @@ public sealed class UserFilterValidator : DataAnnotationsValidator<UserFilter>
     public UserFilterValidator()
     {
         Include(new SortableFilterValidator<UserFilter>(UserSortFields.Map.AllowedNames));
-
-        RuleFor(x => x.Role)
-            .IsInEnum()
-            .When(x => x.Role.HasValue)
-            .WithMessage("Role must be a valid UserRole value.");
     }
 }

@@ -28,8 +28,8 @@ internal static class UserFilterCriteria
         if (filter.IsActive.HasValue)
             query.Where(u => u.IsActive == filter.IsActive.Value);
 
-        if (filter.Role.HasValue)
-            query.Where(u => u.Role == filter.Role.Value);
+        if (filter.RoleId.HasValue)
+            query.Where(u => u.Roles.Any(r => r.Id == filter.RoleId.Value));
 
         if (filter.ProvisioningStatus.HasValue)
             query.Where(u => u.ProvisioningStatus == filter.ProvisioningStatus.Value);

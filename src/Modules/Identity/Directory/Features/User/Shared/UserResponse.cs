@@ -8,7 +8,7 @@ public sealed record UserResponse(
     string Username,
     string Email,
     bool IsActive,
-    UserRole Role,
+    IReadOnlyList<string> Roles,
     ProvisioningStatus ProvisioningStatus,
     DateTime CreatedAtUtc
 ) : IHasId;

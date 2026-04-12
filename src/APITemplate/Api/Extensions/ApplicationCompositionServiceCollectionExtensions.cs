@@ -60,7 +60,6 @@ public static class ApplicationCompositionServiceCollectionExtensions
                 // (IdentityTokenValidatedPipeline + KeycloakClaimMapper).
             });
         services.AddAuthorization();
-        services.AddSingleton<IRolePermissionMap, StaticRolePermissionMap>();
         services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 

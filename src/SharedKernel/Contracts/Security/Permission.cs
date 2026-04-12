@@ -111,4 +111,25 @@ public static class Permission
         public const string Upload = "Examples.Upload";
         public const string Download = "Examples.Download";
     }
+
+    /// <summary>Permissions governing role access and management.</summary>
+    public static class Roles
+    {
+        public const string Read = "Roles.Read";
+        public const string Create = "Roles.Create";
+        public const string Update = "Roles.Update";
+        public const string Delete = "Roles.Delete";
+    }
+
+    /// <summary>Overarching global permissions.</summary>
+    public static class Platform
+    {
+        public const string Manage = "Platform.Manage";
+    }
+
+    /// <summary>Overarching tenant permissions.</summary>
+    public static class Tenant
+    {
+        public const string Manage = "Tenant.Manage";
+    }
 }

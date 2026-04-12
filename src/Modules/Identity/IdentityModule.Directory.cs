@@ -30,7 +30,8 @@ public static partial class IdentityModule
             .ForwardUnitOfWork<IdentityDbMarker>()
             .AddRepository<IUserRepository, UserRepository>()
             .AddRepository<ITenantRepository, TenantRepository>()
-            .AddRepository<ITenantInvitationRepository, TenantInvitationRepository>();
+            .AddRepository<ITenantInvitationRepository, TenantInvitationRepository>()
+            .AddRepository<IRoleRepository, RoleRepository>();
 
         services.AddScoped<AuthBootstrapSeeder>();
     }
