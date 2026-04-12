@@ -1,4 +1,4 @@
-using Identity.Security.Sessions;
+using Identity.Auth.Security.Sessions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;

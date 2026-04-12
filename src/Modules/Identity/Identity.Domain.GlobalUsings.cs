@@ -1,4 +1,4 @@
-global using Identity.Enums;
+global using Identity.Directory.Enums;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities;
 global using SharedKernel.Domain.Entities.Contracts;

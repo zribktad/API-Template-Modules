@@ -1,0 +1,17 @@
+namespace Identity.Directory.Features.User;
+
+/// <summary>
+///     Pagination and filtering parameters for querying users, with optional username, email, active-status, role, and
+///     sort fields.
+/// </summary>
+public sealed record UserFilter(
+    string? Username = null,
+    string? Email = null,
+    bool? IsActive = null,
+    UserRole? Role = null,
+    ProvisioningStatus? ProvisioningStatus = null,
+    string? SortBy = null,
+    string? SortDirection = null,
+    int PageNumber = 1,
+    int PageSize = PaginationFilter.DefaultPageSize
+) : PaginationFilter(PageNumber, PageSize), ISortableFilter;

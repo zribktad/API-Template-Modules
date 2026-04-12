@@ -1,7 +1,8 @@
-using Identity.Entities;
-using Identity.Options;
+using Identity.Auth.Entities;
+using Identity.Auth.Options;
+using Identity.Auth.Security.Sessions;
+using Identity.Directory.Entities;
 using Identity.Persistence;
-using Identity.Security.Sessions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;

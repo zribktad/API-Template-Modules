@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text;
-using Identity.Options;
-using Identity.Security;
-using Identity.Security.Keycloak;
+using Identity.Auth.Options;
+using Identity.Auth.Security;
+using Identity.Auth.Security.Keycloak;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;

@@ -1,8 +1,8 @@
 using APITemplate.Tests.Unit.Helpers;
-using Identity.Entities;
-using Identity.Enums;
+using Identity.Directory.Entities;
+using Identity.Directory.Enums;
+using Identity.Directory.Repositories;
 using Identity.Persistence;
-using Identity.Repositories;
 using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Infrastructure.Auditing;

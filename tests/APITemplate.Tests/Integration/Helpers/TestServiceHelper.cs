@@ -1,5 +1,5 @@
 using BackgroundJobs.TickerQ;
-using Identity.Security;
+using Identity.Auth.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;

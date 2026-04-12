@@ -1,8 +1,9 @@
 global using System.Reflection;
-global using Identity.Entities;
-global using Identity.Enums;
+global using Identity.Auth.Entities;
+global using Identity.Directory.Entities;
+global using Identity.Directory.Enums;
+global using Identity.Directory.Interfaces;
 global using Identity.Errors;
-global using Identity.Interfaces;
 global using SharedKernel.Application.Batch;
 global using SharedKernel.Application.Batch.Rules;
 global using SharedKernel.Application.Context;

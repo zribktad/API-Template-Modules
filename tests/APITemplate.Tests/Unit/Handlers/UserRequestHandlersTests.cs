@@ -1,7 +1,8 @@
 using ErrorOr;
-using Identity.Entities;
-using Identity.Enums;
-using Identity.Features.User;
+using Identity.Auth.Entities;
+using Identity.Directory.Entities;
+using Identity.Directory.Enums;
+using Identity.Directory.Features.User;
 using Identity.ValueObjects;
 using Moq;
 using SharedKernel.Contracts.Events;
@@ -11,7 +12,7 @@ using Wolverine;
 using Xunit;
 using ErrorCatalog = Identity.Errors.ErrorCatalog;
 using IdentityUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
-using IUserRepository = Identity.Interfaces.IUserRepository;
+using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
@@ -188,11 +189,12 @@ public class UserRequestHandlersTests
             new UpdateUserRequest(user.Username, user.Email.Value)
         );
 
-        ErrorOr<(AppUser User, Email Email)> validation = await UpdateUserCommandHandler.ValidateAsync(
-            command,
-            _repositoryMock.Object,
-            TestContext.Current.CancellationToken
-        );
+        ErrorOr<(AppUser User, Email Email)> validation =
+            await UpdateUserCommandHandler.ValidateAsync(
+                command,
+                _repositoryMock.Object,
+                TestContext.Current.CancellationToken
+            );
         (ErrorOr<Success> result, OutgoingMessages messages) =
             await UpdateUserCommandHandler.HandleAsync(
                 command,
@@ -223,11 +225,12 @@ public class UserRequestHandlersTests
 
         UpdateUserCommand command = new(Guid.NewGuid(), new UpdateUserRequest("name", "e@e.com"));
 
-        ErrorOr<(AppUser User, Email Email)> validation = await UpdateUserCommandHandler.ValidateAsync(
-            command,
-            _repositoryMock.Object,
-            TestContext.Current.CancellationToken
-        );
+        ErrorOr<(AppUser User, Email Email)> validation =
+            await UpdateUserCommandHandler.ValidateAsync(
+                command,
+                _repositoryMock.Object,
+                TestContext.Current.CancellationToken
+            );
         (ErrorOr<Success> result, _) = await UpdateUserCommandHandler.HandleAsync(
             command,
             _repositoryMock.Object,
@@ -256,11 +259,12 @@ public class UserRequestHandlersTests
             new UpdateUserRequest(user.Username, "taken@test.com")
         );
 
-        ErrorOr<(AppUser User, Email Email)> validation = await UpdateUserCommandHandler.ValidateAsync(
-            command,
-            _repositoryMock.Object,
-            TestContext.Current.CancellationToken
-        );
+        ErrorOr<(AppUser User, Email Email)> validation =
+            await UpdateUserCommandHandler.ValidateAsync(
+                command,
+                _repositoryMock.Object,
+                TestContext.Current.CancellationToken
+            );
 
         validation.IsError.ShouldBeTrue();
         validation.FirstError.Type.ShouldBe(ErrorType.Conflict);

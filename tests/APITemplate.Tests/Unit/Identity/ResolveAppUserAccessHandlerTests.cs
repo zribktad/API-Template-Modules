@@ -1,10 +1,11 @@
 using Identity;
-using Identity.Entities;
-using Identity.Features.TenantInvitation.Specifications;
-using Identity.Features.User;
-using Identity.Interfaces;
+using Identity.Auth.Entities;
+using Identity.Directory.Entities;
+using Identity.Directory.Features.TenantInvitation.Specifications;
+using Identity.Directory.Features.User;
+using Identity.Directory.Interfaces;
+using Identity.Directory.Security;
 using Identity.Persistence;
-using Identity.Security.Tenant;
 using Identity.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;

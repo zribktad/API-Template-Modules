@@ -1,5 +1,5 @@
 using APITemplate.Tests.Unit.Helpers;
-using Identity.Security;
+using Identity.Auth.Security;
 using Shouldly;
 using Xunit;
 
