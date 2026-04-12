@@ -367,7 +367,7 @@ sequenceDiagram
     OIDC->>KC: Exchange code for tokens
     KC-->>OIDC: access_token + refresh_token + id_token
     OIDC->>OIDC: IdentityTokenValidatedPipeline.OnTokenValidated<br/>maps claims, validates tenant_id
-    OIDC->>OIDC: DragonflyTicketStore.StoreAsync<br/>→ BffSessionService.CreateSessionAsync
+    OIDC->>OIDC: RedisTicketStore.StoreAsync<br/>→ BffSessionService.CreateSessionAsync
     Note over VK: BffSessionRecord created:<br/>tokens encrypted via IDataProtector<br/>PostgreSQL = primary, Redis = cache
     OIDC->>VK: Store BffPersistedSession (PostgreSQL)<br/>+ Redis cache (TTL = CacheTtlMinutes)
     OIDC-->>SPA: Set-Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>HttpOnly, SameSite=Lax, Secure<br/>302 → /dashboard
@@ -397,13 +397,13 @@ sequenceDiagram
     participant VK as DragonFly
     participant CSR as CookieSessionRefresher
     participant TRS as BffTokenRefreshService
-    participant COORD as DragonflyBffRefreshCoordinator
+    participant COORD as RedisBffRefreshCoordinator
     participant KC as Keycloak
     participant CSRF as CsrfValidationMiddleware
     participant AUTHZ as Authorization Middleware
 
     SPA->>CM: POST /api/v1/products<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>X-CSRF: 1
-    CM->>VK: DragonflyTicketStore.RetrieveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.GetTicketAsync
+    CM->>VK: RedisTicketStore.RetrieveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.GetTicketAsync
     VK-->>CM: BffSessionRecord → AuthenticationTicket
     CM->>CSR: ValidatePrincipal event
     CSR->>VK: GetSessionAsync(sessionId)
@@ -470,7 +470,7 @@ sequenceDiagram
     participant KC as Keycloak
 
     SPA->>BFF: GET /api/v1/bff/logout<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;
-    BFF->>VK: DragonflyTicketStore.RemoveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.RevokeAsync(Logout)
+    BFF->>VK: RedisTicketStore.RemoveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.RevokeAsync(Logout)
     Note over VK: Session soft-deleted in PostgreSQL<br/>removed from Redis cache<br/>(RevocationReason = Logout)
     BFF-->>SPA: Clear cookie .APITemplate.Auth
     BFF-->>SPA: 302 → Keycloak end_session_endpoint
@@ -507,8 +507,8 @@ This is intentional — keeping the record allows:
 | ---------- | --------------------------------- | --------------------------------------------------- | -------------------------------------------- | -------------------------------- |
 | PostgreSQL | `BffPersistedSession`             | Full session entity, tokens encrypted               | No TTL (cleanup job)                         | `PostgresCachedBffSessionStore`  |
 | Redis      | `bff:session:{id}`                | `BffSessionRecord` as JSON (tokens encrypted)       | `CacheTtlMinutes` (10 min), **sliding**      | `PostgresCachedBffSessionStore`  |
-| Redis      | `bff:session:{id}:refresh:lock`   | Lock owner identifier (`machine:pid:guid`)          | `RefreshLockTimeoutMilliseconds` (5s), fixed | `DragonflyBffRefreshCoordinator` |
-| Redis      | `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed   | `DragonflyBffRefreshCoordinator` |
+| Redis      | `bff:session:{id}:refresh:lock`   | Lock owner identifier (`machine:pid:guid`)          | `RefreshLockTimeoutMilliseconds` (5s), fixed | `RedisBffRefreshCoordinator` |
+| Redis      | `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed   | `RedisBffRefreshCoordinator` |
 
 **Read path:** Redis cache hit → return. Cache miss → load from PostgreSQL → populate Redis cache → return.
 
@@ -707,7 +707,7 @@ Returns `401` (not redirect) when unauthenticated — SPA should redirect to `/a
 | Revoke on refresh failure                   | true                                   | `Bff:RevokeSessionOnRefreshFailure`  |
 | Scopes requested from OIDC                  | openid, profile, email, offline_access | `Bff:Scopes`                         |
 
-**Token refresh trigger:** On every cookie-authenticated request, `CookieSessionRefresher.ValidatePrincipal` delegates to `BffTokenRefreshService.RefreshIfRequiredAsync`. This checks whether the access token expires within `RefreshThresholdMinutes`. If so, the `DragonflyBffRefreshCoordinator` ensures only one request performs the actual Keycloak `grant_type=refresh_token` call — concurrent requests wait for the leader result via Redis polling or in-memory fallback.
+**Token refresh trigger:** On every cookie-authenticated request, `CookieSessionRefresher.ValidatePrincipal` delegates to `BffTokenRefreshService.RefreshIfRequiredAsync`. This checks whether the access token expires within `RefreshThresholdMinutes`. If so, the `RedisBffRefreshCoordinator` ensures only one request performs the actual Keycloak `grant_type=refresh_token` call — concurrent requests wait for the leader result via Redis polling or in-memory fallback.
 
 **Session validation on load** (`BffSessionService.GetSessionAsync`):
 1. Check session exists in store
@@ -913,7 +913,7 @@ When the API sets `options.Authority`, ASP.NET auto-discovers all endpoints via 
 | `Keycloak__realm`               | Keycloak realm name               |
 | `Keycloak__resource`            | Client ID                         |
 | `Keycloak__credentials__secret` | Client secret                     |
-| `Dragonfly__ConnectionString`   | DragonFly/Redis connection string |
+| `Redis__ConnectionString`   | Redis connection string (StackExchange.Redis) |
 | `GOOGLE_CLIENT_ID`              | Google OAuth2 Client ID           |
 | `GOOGLE_CLIENT_SECRET`          | Google OAuth2 Client Secret       |
 
@@ -974,11 +974,11 @@ Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider
 | `Identity/Common/Security/Sessions/BffRefreshOutcome.cs`                | Refresh result (NotRequired, Success, Failed)                                                            |
 | `Identity/Common/Security/Sessions/BffProviderType.cs`                  | Identity provider enum (`Keycloak`)                                                                      |
 | **Identity Module — Infrastructure (implementations)**                  |                                                                                                          |
-| `Identity/Security/Sessions/DragonflyTicketStore.cs`                    | `ITicketStore` adapter → delegates to `IBffSessionService`                                               |
+| `Identity/Security/Sessions/RedisTicketStore.cs`                    | `ITicketStore` adapter → delegates to `IBffSessionService`                                               |
 | `Identity/Security/Sessions/PostgresCachedBffSessionStore.cs`           | PostgreSQL-primary session store with Redis read-through cache + token encryption                        |
 | `Identity/Security/Sessions/BffSessionService.cs`                       | Session lifecycle + revocation (implements both `IBffSessionService` and `IBffSessionRevocationService`) |
 | `Identity/Security/Sessions/BffTokenRefreshService.cs`                  | Refresh decision logic + Keycloak call + session update                                                  |
-| `Identity/Security/Sessions/DragonflyBffRefreshCoordinator.cs`          | Redis distributed lock + in-memory fallback semaphore                                                    |
+| `Identity/Security/Sessions/RedisBffRefreshCoordinator.cs`          | Redis distributed lock + in-memory fallback semaphore                                                    |
 | `Identity/Security/Sessions/CookieSessionRefresher.cs`                  | `CookieAuthenticationEvents.ValidatePrincipal` handler                                                   |
 | `Identity/Security/Sessions/BffSessionPrincipalFactory.cs`              | Rebuilds principals and tickets from `BffSessionRecord`                                                  |
 | `Identity/Security/Keycloak/KeycloakService.cs`                         | Keycloak token endpoint client (`RefreshSessionAsync`)                                                   |

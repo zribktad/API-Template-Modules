@@ -9,7 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
-public sealed class DragonflyBffRefreshCoordinatorTests
+public sealed class RedisBffRefreshCoordinatorTests
 {
     private const string SessionId = "test-session-42";
 
@@ -44,7 +44,7 @@ public sealed class DragonflyBffRefreshCoordinatorTests
             subscriber.Object
         );
 
-        DragonflyBffRefreshCoordinator sut = CreateSut(multiplexer.Object);
+        RedisBffRefreshCoordinator sut = CreateSut(multiplexer.Object);
 
         await sut.ExecuteAsync(
             SessionId,
@@ -187,7 +187,7 @@ public sealed class DragonflyBffRefreshCoordinatorTests
         Mock<IConnectionMultiplexer> multiplexer = new();
         multiplexer.SetupGet(x => x.IsConnected).Returns(false);
 
-        DragonflyBffRefreshCoordinator sut = CreateSut(multiplexer.Object);
+        RedisBffRefreshCoordinator sut = CreateSut(multiplexer.Object);
         bool leaderInvoked = false;
 
         BffRefreshOutcome result = await sut.ExecuteAsync(
@@ -210,7 +210,7 @@ public sealed class DragonflyBffRefreshCoordinatorTests
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static DragonflyBffRefreshCoordinator CreateSut(
+    private static RedisBffRefreshCoordinator CreateSut(
         IConnectionMultiplexer multiplexer,
         int refreshWaitTimeoutMs = 2000
     ) =>
@@ -264,7 +264,7 @@ public sealed class DragonflyBffRefreshCoordinatorTests
     }
 
     private static Task<BffRefreshOutcome> sut_ExecuteAsFollowerAsync(
-        DragonflyBffRefreshCoordinator sut,
+        RedisBffRefreshCoordinator sut,
         Func<CancellationToken, Task<BffRefreshOutcome>> followerAction,
         CancellationToken ct
     ) =>

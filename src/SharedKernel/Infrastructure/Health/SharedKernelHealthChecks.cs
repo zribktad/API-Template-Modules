@@ -21,7 +21,7 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
     {
         AddPostgreSql(builder);
         AddKeycloak(builder);
-        AddDragonfly(builder);
+        AddRedis(builder);
         AddWolverineMessageStore(builder);
         AddWolverineDeadLetters(builder);
         AddOtlpCollector(builder);
@@ -51,20 +51,15 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
         );
     }
 
-    private void AddDragonfly(IHealthChecksBuilder builder)
+    private void AddRedis(IHealthChecksBuilder builder)
     {
-        DragonflyOptions? dragonflyOptions = _configuration
-            .SectionFor<DragonflyOptions>()
-            .Get<DragonflyOptions>();
+        RedisOptions? redisOptions = _configuration.SectionFor<RedisOptions>().Get<RedisOptions>();
 
-        if (
-            dragonflyOptions is not null
-            && !string.IsNullOrWhiteSpace(dragonflyOptions.ConnectionString)
-        )
+        if (redisOptions is not null && !string.IsNullOrWhiteSpace(redisOptions.ConnectionString))
         {
             builder.AddRedis(
-                dragonflyOptions.ConnectionString,
-                HealthCheckNames.Dragonfly,
+                redisOptions.ConnectionString,
+                HealthCheckNames.Redis,
                 tags: [HealthCheckTags.Ready, HealthCheckTags.Cache]
             );
         }

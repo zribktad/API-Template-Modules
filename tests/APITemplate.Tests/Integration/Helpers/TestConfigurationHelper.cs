@@ -41,7 +41,7 @@ internal static class TestConfigurationHelper
             ["Observability:Exporters:Aspire:Enabled"] = "false",
             ["Observability:Exporters:Otlp:Enabled"] = "false",
             ["Observability:Exporters:Console:Enabled"] = "false",
-            ["Dragonfly:ConnectionString"] = "",
+            ["Redis:ConnectionString"] = "",
             ["Webhook:Secret"] = TestWebhookSecret,
         };
     }

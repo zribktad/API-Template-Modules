@@ -7,7 +7,7 @@ using SharedKernel.Infrastructure.Startup;
 namespace BackgroundJobs.TickerQ;
 
 /// <summary>
-///     TickerQ scheduler context is only registered when TickerQ and Dragonfly are enabled.
+///     TickerQ scheduler context is only registered when TickerQ is enabled.
 /// </summary>
 internal sealed class TickerQSchedulerDatabaseStartupContributor : IDatabaseStartupContributor
 {

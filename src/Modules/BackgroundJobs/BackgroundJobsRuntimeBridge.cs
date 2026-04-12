@@ -90,17 +90,6 @@ public static class BackgroundJobsRuntimeBridge
         if (!options.TickerQ.Enabled)
             return;
 
-        string? dragonflyConnectionString = configuration
-            .SectionFor<DragonflyOptions>()
-            .GetValue<string>(nameof(DragonflyOptions.ConnectionString));
-
-        if (string.IsNullOrWhiteSpace(dragonflyConnectionString))
-        {
-            throw new InvalidOperationException(
-                "Background jobs require Dragonfly:ConnectionString when BackgroundJobs:TickerQ:Enabled is true."
-            );
-        }
-
         string connectionString = configuration.GetConnectionString(
             ConfigurationSections.DefaultConnection
         )!;
@@ -114,7 +103,14 @@ public static class BackgroundJobsRuntimeBridge
         );
 
         services.AddScoped<TickerQRecurringJobRegistrar>();
-        services.AddSingleton<IDistributedJobCoordinator, DragonflyDistributedJobCoordinator>();
+        if (configuration.IsRedisConfigured())
+        {
+            services.AddSingleton<IDistributedJobCoordinator, RedisDistributedJobCoordinator>();
+        }
+        else
+        {
+            services.AddSingleton<IDistributedJobCoordinator, LocalSingleProcessJobCoordinator>();
+        }
         services.AddScoped<
             IRecurringBackgroundJobRegistration,
             ExternalSyncRecurringJobRegistration

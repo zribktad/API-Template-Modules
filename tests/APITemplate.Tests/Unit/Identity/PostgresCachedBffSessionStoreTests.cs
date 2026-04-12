@@ -20,7 +20,7 @@ namespace APITemplate.Tests.Unit.Identity;
 
 public sealed class PostgresCachedBffSessionStoreTests : IDisposable
 {
-    private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-04-10T12:00:00Z");
+    private static readonly DateTimeOffset Now = BffSessionStoreUnitTestHelpers.DefaultSessionEpoch;
 
     private readonly IdentityDbContext _dbContext;
     private readonly Mock<IDistributedCache> _cache = new();
@@ -37,8 +37,12 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
             (sp, opts) => opts.UseInMemoryDatabase(dbName),
             ServiceLifetime.Scoped
         );
-        serviceCollection.AddSingleton<ITenantProvider>(new StubTenantProvider());
-        serviceCollection.AddSingleton<IActorProvider>(new StubActorProvider());
+        serviceCollection.AddSingleton<ITenantProvider>(
+            new BffSessionStoreUnitTestHelpers.StubTenantProvider()
+        );
+        serviceCollection.AddSingleton<IActorProvider>(
+            new BffSessionStoreUnitTestHelpers.StubActorProvider()
+        );
         serviceCollection.AddSingleton(TimeProvider.System);
         serviceCollection.AddSingleton<IAuditableEntityStateManager>(
             new AuditableEntityStateManager()
@@ -81,7 +85,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task StoreAsync_PersistsSessionToDatabase()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
 
         await _sut.StoreAsync(session);
 
@@ -101,7 +105,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task StoreAsync_EncryptsTokensInDatabase()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
 
         await _sut.StoreAsync(session);
 
@@ -119,7 +123,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task StoreAsync_WritesToRedisCache()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
 
         await _sut.StoreAsync(session);
 
@@ -140,7 +144,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task GetAsync_WhenCacheMiss_LoadsFromDatabaseAndPopulatesCache()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
         await _sut.StoreAsync(session);
 
         // Reset cache mock so GetStringAsync returns null (cache miss)
@@ -184,7 +188,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task GetAsync_WhenSoftDeleted_ReturnsNull()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
         await _sut.StoreAsync(session);
 
         // Soft-delete the entity
@@ -209,7 +213,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task TryUpdateAsync_WithMatchingVersion_UpdatesAndReturnsTrue()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
         await _sut.StoreAsync(session);
 
         BffSessionRecord updated = session with
@@ -234,7 +238,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task TryUpdateAsync_WithWrongVersion_ReturnsFalse()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
         await _sut.StoreAsync(session);
 
         BffSessionRecord updated = session with { Email = "updated@example.com", Version = 1 };
@@ -247,7 +251,9 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task TryUpdateAsync_WhenNotFound_ReturnsFalse()
     {
-        BffSessionRecord session = CreateSession(sessionId: "nonexistent");
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession(
+            sessionId: "nonexistent"
+        );
         BffSessionRecord updated = session with { Email = "updated@example.com" };
 
         bool result = await _sut.TryUpdateAsync(updated, expectedVersion: 0);
@@ -258,7 +264,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task TryUpdateAsync_OnSuccess_UpdatesRedisCache()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
         await _sut.StoreAsync(session);
         _cache.Reset();
 
@@ -283,7 +289,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task RemoveAsync_SoftDeletesInDatabase()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
         await _sut.StoreAsync(session);
 
         await _sut.RemoveAsync(session.SessionId);
@@ -299,7 +305,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task RemoveAsync_RemovesFromRedisCache()
     {
-        BffSessionRecord session = CreateSession();
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
         await _sut.StoreAsync(session);
 
         await _sut.RemoveAsync(session.SessionId);
@@ -321,7 +327,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task StoreAndGet_RoundtripsAllFields()
     {
-        BffSessionRecord session = CreateSession() with
+        BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession() with
         {
             IdToken = "id-token-value",
             TenantId = Guid.NewGuid().ToString(),
@@ -357,39 +363,5 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
         loaded.LastRefreshedAtUtc.ShouldBe(session.LastRefreshedAtUtc);
         loaded.Status.ShouldBe(session.Status);
         loaded.Version.ShouldBe(session.Version);
-    }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    private static BffSessionRecord CreateSession(string? sessionId = null)
-    {
-        return new BffSessionRecord
-        {
-            SessionId = sessionId ?? Guid.NewGuid().ToString("N"),
-            UserId = Guid.NewGuid().ToString(),
-            Subject = Guid.NewGuid().ToString(),
-            Provider = BffProviderType.Keycloak,
-            Email = "test@example.com",
-            DisplayName = "Test User",
-            AccessToken = "access-token-value",
-            RefreshToken = "refresh-token-value",
-            AccessTokenExpiresAtUtc = Now.AddMinutes(5),
-            CreatedAtUtc = Now,
-            LastSeenAtUtc = Now,
-            LastRefreshedAtUtc = Now,
-            Status = BffSessionStatus.Active,
-            Version = 0,
-        };
-    }
-
-    private sealed class StubTenantProvider : ITenantProvider
-    {
-        public Guid TenantId => Guid.Empty;
-        public bool HasTenant => false;
-    }
-
-    private sealed class StubActorProvider : IActorProvider
-    {
-        public Guid ActorId => Guid.Empty;
     }
 }

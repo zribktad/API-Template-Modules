@@ -9,10 +9,10 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
-public sealed class DragonflyDistributedJobCoordinatorTests
+public sealed class RedisDistributedJobCoordinatorTests
 {
     [Fact]
-    public async Task ExecuteIfLeaderAsync_ThrowsWhenDragonflyIsUnavailableAndFailClosedIsEnabled()
+    public async Task ExecuteIfLeaderAsync_ThrowsWhenRedisIsUnavailableAndFailClosedIsEnabled()
     {
         var ct = TestContext.Current.CancellationToken;
         var multiplexer = new Mock<IConnectionMultiplexer>();
@@ -142,7 +142,7 @@ public sealed class DragonflyDistributedJobCoordinatorTests
         executed.ShouldBeTrue();
     }
 
-    private static DragonflyDistributedJobCoordinator CreateSut(
+    private static RedisDistributedJobCoordinator CreateSut(
         IConnectionMultiplexer multiplexer,
         bool failClosed
     ) =>
@@ -154,6 +154,6 @@ public sealed class DragonflyDistributedJobCoordinatorTests
                     TickerQ = new TickerQSchedulerOptions { FailClosed = failClosed },
                 }
             ),
-            NullLogger<DragonflyDistributedJobCoordinator>.Instance
+            NullLogger<RedisDistributedJobCoordinator>.Instance
         );
 }

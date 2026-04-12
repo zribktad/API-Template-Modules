@@ -25,7 +25,7 @@ The API connects to DragonFly via the operator-managed service:
 dragonfly.apitemplate.svc.cluster.local:6379
 ```
 
-Set this as the `Dragonfly__ConnectionString` environment variable in your API deployment.
+Set this as the `Redis__ConnectionString` environment variable in your API deployment (Redis protocol; the cluster may still run the Dragonfly operator image).
 
 ## How It Works
 

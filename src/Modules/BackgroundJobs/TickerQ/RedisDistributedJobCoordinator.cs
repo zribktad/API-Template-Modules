@@ -6,7 +6,7 @@ using StackExchange.Redis;
 
 namespace BackgroundJobs.TickerQ;
 
-public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordinator
+public sealed class RedisDistributedJobCoordinator : IDistributedJobCoordinator
 {
     private const int LeaseSeconds = 300;
     private const double LeaseRenewalDivider = 3.0;
@@ -21,13 +21,13 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
     );
 
     private readonly IConnectionMultiplexer _connectionMultiplexer;
-    private readonly ILogger<DragonflyDistributedJobCoordinator> _logger;
+    private readonly ILogger<RedisDistributedJobCoordinator> _logger;
     private readonly BackgroundJobsOptions _options;
 
-    public DragonflyDistributedJobCoordinator(
+    public RedisDistributedJobCoordinator(
         IConnectionMultiplexer connectionMultiplexer,
         IOptions<BackgroundJobsOptions> options,
-        ILogger<DragonflyDistributedJobCoordinator> logger
+        ILogger<RedisDistributedJobCoordinator> logger
     )
     {
         _connectionMultiplexer = connectionMultiplexer;
@@ -83,7 +83,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
     private IDatabase? RequireCoordination(string jobName)
     {
         if (!_connectionMultiplexer.IsConnected)
-            return HandleUnavailable(jobName, "DragonFly connection is not established.");
+            return HandleUnavailable(jobName, "Redis connection is not established.");
 
         try
         {
@@ -91,7 +91,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
         }
         catch (Exception ex)
         {
-            return HandleUnavailable(jobName, "DragonFly coordination is unavailable.", ex);
+            return HandleUnavailable(jobName, "Redis coordination is unavailable.", ex);
         }
     }
 
@@ -110,7 +110,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
         _logger.CoordinationFailClosedStopped(innerException, jobName, message);
 
         throw new InvalidOperationException(
-            $"Background job '{jobName}' did not start because DragonFly coordination is unavailable. {message}",
+            $"Background job '{jobName}' did not start because Redis coordination is unavailable. {message}",
             innerException
         );
     }
@@ -156,7 +156,7 @@ public sealed class DragonflyDistributedJobCoordinator : IDistributedJobCoordina
             _logger.CoordinationLeaseLost(jobName);
             executionCts.Cancel();
             throw new InvalidOperationException(
-                $"Background job '{jobName}' lost its DragonFly coordination lease while still running."
+                $"Background job '{jobName}' lost its Redis coordination lease while still running."
             );
         }
     }

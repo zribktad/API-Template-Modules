@@ -9,7 +9,7 @@ namespace BackgroundJobs.Options;
 public sealed class TickerQSchedulerOptions
 {
     public const string DefaultSchemaName = "tickerq";
-    public const string DefaultCoordinationConnection = "Dragonfly";
+    public const string DefaultCoordinationConnection = "Redis";
 
     [Description("Enables the TickerQ scheduler runtime.")]
     public bool Enabled { get; set; }

@@ -171,7 +171,7 @@ services:
       Keycloak__auth-server-url: "http://keycloak:8180/"
       Keycloak__resource: "api-template"
       Keycloak__credentials__secret: "${KC_DEV_CLIENT_SECRET:-dev-client-secret}"
-      Dragonfly__ConnectionString: "dragonfly:6379"
+      Redis__ConnectionString: "dragonfly:6379"
       Observability__Otlp__Endpoint: "http://alloy:4317"
       Observability__Exporters__Otlp__Enabled: "true"
       Observability__Exporters__Aspire__Enabled: "false"

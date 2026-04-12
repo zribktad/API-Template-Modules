@@ -114,7 +114,7 @@ Configured via `appsettings.json` or environment variables:
 
 ```json
 {
-  "Dragonfly": {
+  "Redis": {
     "ConnectionString": "localhost:6379",
     "ConnectTimeoutMs": 5000,
     "SyncTimeoutMs": 3000
@@ -122,9 +122,9 @@ Configured via `appsettings.json` or environment variables:
 }
 ```
 
-Environment variable override: `Dragonfly__ConnectionString`
+Environment variable override: `Redis__ConnectionString`
 
-When the `Dragonfly:ConnectionString` setting is **missing or empty**, the application logs a warning and uses the built-in in-memory output cache. No DragonFly instance is required for development.
+When the `Redis:ConnectionString` setting is **missing or empty**, the application logs a warning and uses the built-in in-memory output cache. No DragonFly instance is required for development.
 
 ### Cache Policies
 

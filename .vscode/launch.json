@@ -64,7 +64,7 @@
         "Keycloak__auth-server-url": "http://localhost:8180/",
         "Keycloak__resource": "api-template",
         "Keycloak__credentials__secret": "dev-client-secret",
-        "Dragonfly__ConnectionString": "localhost:6379",
+        "Redis__ConnectionString": "localhost:6379",
         "Observability__Aspire__Endpoint": "http://localhost:4317",
         "Observability__Exporters__Aspire__Enabled": "true",
         "Observability__Exporters__Otlp__Enabled": "false"
@@ -90,7 +90,7 @@
         "Keycloak__auth-server-url": "http://localhost:8180/",
         "Keycloak__resource": "api-template",
         "Keycloak__credentials__secret": "dev-client-secret",
-        "Dragonfly__ConnectionString": "localhost:6379",
+        "Redis__ConnectionString": "localhost:6379",
         "Observability__Otlp__Endpoint": "http://localhost:4317",
         "Observability__Exporters__Aspire__Enabled": "false",
         "Observability__Exporters__Otlp__Enabled": "true"
@@ -116,7 +116,7 @@
         "Keycloak__auth-server-url": "http://localhost:8180/",
         "Keycloak__resource": "api-template",
         "Keycloak__credentials__secret": "dev-client-secret",
-        "Dragonfly__ConnectionString": "localhost:6379",
+        "Redis__ConnectionString": "localhost:6379",
         "Observability__Aspire__Endpoint": "http://localhost:18889",
         "Observability__Otlp__Endpoint": "http://localhost:4317",
         "Observability__Exporters__Aspire__Enabled": "true",

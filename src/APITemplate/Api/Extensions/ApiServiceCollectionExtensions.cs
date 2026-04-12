@@ -4,8 +4,10 @@ using APITemplate.Api.OpenApi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using SharedKernel.Application.Options.Http;
+using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Api.Routing;
+using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.OutputCache;
 using StackExchange.Redis;
 
@@ -36,7 +38,7 @@ public static class ApiServiceCollectionExtensions
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
         });
-        services.AddDragonflyInfrastructure(configuration);
+        services.AddRedisInfrastructure(configuration);
         services.AddCaching(configuration);
         services.AddOpenApi(options =>
         {
@@ -49,23 +51,22 @@ public static class ApiServiceCollectionExtensions
         return services;
     }
 
-    private static IServiceCollection AddDragonflyInfrastructure(
+    private static IServiceCollection AddRedisInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration
     )
     {
-        services.AddValidatedOptions<DragonflyOptions>(configuration);
-        DragonflyOptions dragonflyOptions =
-            configuration.SectionFor<DragonflyOptions>().Get<DragonflyOptions>()
-            ?? new DragonflyOptions();
+        services.AddValidatedOptions<RedisOptions>(configuration);
+        RedisOptions redisOptions =
+            configuration.SectionFor<RedisOptions>().Get<RedisOptions>() ?? new RedisOptions();
 
-        if (!string.IsNullOrWhiteSpace(dragonflyOptions.ConnectionString))
+        if (configuration.IsRedisConfigured())
         {
             ConfigurationOptions redisConfig = ConfigurationOptions.Parse(
-                dragonflyOptions.ConnectionString
+                redisOptions.ConnectionString
             );
-            redisConfig.ConnectTimeout = dragonflyOptions.ConnectTimeoutMs;
-            redisConfig.SyncTimeout = dragonflyOptions.SyncTimeoutMs;
+            redisConfig.ConnectTimeout = redisOptions.ConnectTimeoutMs;
+            redisConfig.SyncTimeout = redisOptions.SyncTimeoutMs;
             redisConfig.AbortOnConnectFail = false;
 
             services.AddSingleton<IConnectionMultiplexer>(_ =>

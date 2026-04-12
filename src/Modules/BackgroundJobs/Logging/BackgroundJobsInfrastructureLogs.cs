@@ -81,7 +81,7 @@ internal static partial class BackgroundJobsInfrastructureLogs
     )]
     public static partial void FtsIndexReindexed(this ILogger logger, string indexName);
 
-    // DragonflyDistributedJobCoordinator (8009, 8010, 8011, 8012)
+    // RedisDistributedJobCoordinator (8009, 8010, 8011, 8012)
     [LoggerMessage(
         EventId = 8009,
         Level = LogLevel.Debug,
@@ -92,7 +92,7 @@ internal static partial class BackgroundJobsInfrastructureLogs
     [LoggerMessage(
         EventId = 8010,
         Level = LogLevel.Warning,
-        Message = "DragonFly coordination is unavailable for background job {JobName}; continuing because fail-closed is disabled. {Message}"
+        Message = "Redis coordination is unavailable for background job {JobName}; continuing because fail-closed is disabled. {Message}"
     )]
     public static partial void CoordinationUnavailableFailOpenContinuing(
         this ILogger logger,
@@ -127,7 +127,7 @@ internal static partial class BackgroundJobsInfrastructureLogs
     [LoggerMessage(
         EventId = 8013,
         Level = LogLevel.Warning,
-        Message = "Lost DragonFly coordination lease for background job {JobName}; cancelling the in-flight execution."
+        Message = "Lost Redis coordination lease for background job {JobName}; cancelling the in-flight execution."
     )]
     public static partial void CoordinationLeaseLost(this ILogger logger, string jobName);
 

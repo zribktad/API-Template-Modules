@@ -10,20 +10,20 @@ namespace Identity.Auth.Security.Sessions;
 ///     Redis-backed refresh coordinator that serializes concurrent refresh attempts per session and
 ///     shares the leader outcome with waiting followers.
 /// </summary>
-public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
+public sealed class RedisBffRefreshCoordinator : IBffRefreshCoordinator
 {
     private readonly IConnectionMultiplexer _multiplexer;
     private readonly BffOptions _options;
-    private readonly Lock _lock = new();
-    private readonly Dictionary<string, Task<BffRefreshOutcome>> _fallbackTasks = [];
+    private readonly InProcessBffRefreshCore _inProcessCore;
 
-    public DragonflyBffRefreshCoordinator(
+    public RedisBffRefreshCoordinator(
         IConnectionMultiplexer connectionMultiplexer,
         IOptions<BffOptions> options
     )
     {
         _multiplexer = connectionMultiplexer;
         _options = options.Value;
+        _inProcessCore = new InProcessBffRefreshCore(_options);
     }
 
     /// <inheritdoc />
@@ -35,12 +35,7 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
     )
     {
         if (!_multiplexer.IsConnected)
-            return await ExecuteWithFallbackSemaphoreAsync(
-                sessionId,
-                leaderAction,
-                followerAction,
-                ct
-            );
+            return await _inProcessCore.ExecuteAsync(sessionId, leaderAction, followerAction, ct);
 
         IDatabase database = _multiplexer.GetDatabase();
         string lockKey = GetLockKey(sessionId);
@@ -55,9 +50,7 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
 
         if (acquired)
         {
-            // Leader uses a dedicated timeout tied to the lock TTL, not the HTTP request token.
-            // If the original caller disconnects, the refresh still completes and writes the
-            // outcome for waiting followers instead of leaving them hanging until timeout.
+            // Leader CTS matches lock TTL so refresh can finish and publish outcome even if the HTTP client disconnects.
             using CancellationTokenSource leaderCts = new(
                 TimeSpan.FromMilliseconds(_options.RefreshLockTimeoutMilliseconds)
             );
@@ -78,64 +71,6 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
         }
 
         return await WaitForLeaderOutcomeAsync(database, sessionId, followerAction, ct);
-    }
-
-    private async Task<BffRefreshOutcome> ExecuteWithFallbackSemaphoreAsync(
-        string sessionId,
-        Func<CancellationToken, Task<BffRefreshOutcome>> leaderAction,
-        Func<CancellationToken, Task<BffRefreshOutcome>> followerAction,
-        CancellationToken ct
-    )
-    {
-        Task<BffRefreshOutcome>? existingTask = null;
-        Task<BffRefreshOutcome>? leaderTask = null;
-
-        lock (_lock)
-        {
-            if (_fallbackTasks.TryGetValue(sessionId, out Task<BffRefreshOutcome>? inFlightTask))
-            {
-                existingTask = inFlightTask;
-            }
-            else
-            {
-                CancellationTokenSource leaderCts = new(
-                    TimeSpan.FromMilliseconds(_options.RefreshLockTimeoutMilliseconds)
-                );
-                leaderTask = leaderAction(leaderCts.Token);
-                _ = leaderTask.ContinueWith(_ => leaderCts.Dispose(), TaskScheduler.Default);
-                _fallbackTasks[sessionId] = leaderTask;
-            }
-        }
-
-        if (existingTask is not null)
-        {
-            BffRefreshOutcome completedOutcome;
-            try
-            {
-                completedOutcome = await existingTask.WaitAsync(
-                    TimeSpan.FromMilliseconds(_options.RefreshWaitTimeoutMilliseconds),
-                    ct
-                );
-            }
-            catch (TimeoutException)
-            {
-                return BffRefreshOutcome.Failed(BffSessionRevocationReason.RefreshRejected);
-            }
-
-            return completedOutcome.Succeeded ? await followerAction(ct) : completedOutcome;
-        }
-
-        try
-        {
-            return await leaderTask!;
-        }
-        finally
-        {
-            lock (_lock)
-            {
-                _fallbackTasks.Remove(sessionId);
-            }
-        }
     }
 
     private async Task<BffRefreshOutcome?> TryReadOutcomeAsync(
@@ -234,13 +169,14 @@ public sealed class DragonflyBffRefreshCoordinator : IBffRefreshCoordinator
         await subscriber.PublishAsync(GetNotifyChannel(sessionId), "done");
     }
 
-    private static string GetLockKey(string sessionId) => $"bff:session:{sessionId}:refresh:lock";
+    private static string GetLockKey(string sessionId) =>
+        $"{BffSessionCacheKeys.SessionKeyPrefix}{sessionId}:refresh:lock";
 
     private static string GetResultKey(string sessionId) =>
-        $"bff:session:{sessionId}:refresh:result";
+        $"{BffSessionCacheKeys.SessionKeyPrefix}{sessionId}:refresh:result";
 
     private static RedisChannel GetNotifyChannel(string sessionId) =>
-        RedisChannel.Literal($"bff:session:{sessionId}:refresh:notify");
+        RedisChannel.Literal($"{BffSessionCacheKeys.SessionKeyPrefix}{sessionId}:refresh:notify");
 
     private sealed record BffRefreshCoordinatorPayload(
         bool Succeeded,

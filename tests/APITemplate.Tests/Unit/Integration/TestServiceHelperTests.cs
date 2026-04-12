@@ -48,7 +48,7 @@ public sealed class TestServiceHelperTests
                 {
                     ["ConnectionStrings:DefaultConnection"] =
                         "Host=localhost;Database=test;Username=test;Password=test",
-                    ["Dragonfly:ConnectionString"] = "localhost:6379",
+                    ["Redis:ConnectionString"] = "localhost:6379",
                     ["BackgroundJobs:TickerQ:Enabled"] = "true",
                     ["BackgroundJobs:Cleanup:Cron"] = "0 * * * *",
                     ["BackgroundJobs:Reindex:Cron"] = "0 */6 * * *",

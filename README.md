@@ -61,7 +61,7 @@ Step-by-step guides for the most common workflows in this project:
   username → remote IP → `"anonymous"`. Returns HTTP 429 on breach. Limits are configurable via `RateLimiting:Fixed`.
 * **Output Caching:** Tenant-isolated ASP.NET Core output cache backed by **DragonFly** (Redis-compatible). Policies:
   `Products` (30 s), `Categories` (60 s), `Reviews` (30 s). Mutations evict affected tags. Falls back to in-memory when
-  `Dragonfly:ConnectionString` is absent.
+  `Redis:ConnectionString` is absent.
 * **Domain Filtering:** Seamless filtering, sorting, and paging powered by `Ardalis.Specification` to decouple query
   models from infrastructural EF abstractions.
 * **Enterprise-Grade Utilities:**
@@ -71,7 +71,7 @@ Step-by-step guides for the most common workflows in this project:
     * **Data Redaction:** Sensitive log properties (PII, secrets) are classified with
       `Microsoft.Extensions.Compliance` (`[PersonalData]`, `[SensitiveData]`) and HMAC-redacted before writing.
     * **Authentication:** Pre-configured Keycloak JWT + BFF Cookie dual-auth with production hardening: secure-only
-      cookies in production, server-side session store (`DragonflyTicketStore`) backed by DragonFly, silent token
+      cookies in production, server-side session store (`RedisTicketStore`) backed by DragonFly, silent token
       refresh before expiry, and CSRF protection (`X-CSRF: 1` header required for cookie-authenticated mutations).
     * **Observability:** Health Checks (`/health`) natively tracking PostgreSQL, MongoDB, and DragonFly state.
 * **Role-Based Access Control:** Three-tier role model (`PlatformAdmin`, `TenantAdmin`, `User`) enforced via Keycloak
@@ -344,7 +344,7 @@ src/APITemplate.Infrastructure/
 ├── Repositories/              # ProductRepository, CategoryRepository, ProductDataRepository, …
 ├── Migrations/                # EF Core migrations + Kot.MongoDB.Migrations
 ├── Database/                  # Embedded SQL stored-procedure scripts
-├── Security/                  # DragonflyTicketStore, CookieSessionRefresher, KeycloakClaimMapper, CsrfValidationMiddleware
+├── Security/                  # RedisTicketStore, CookieSessionRefresher, KeycloakClaimMapper, CsrfValidationMiddleware
 └── Observability/             # Health checks (PostgreSQL, MongoDB, DragonFly, Keycloak)
 
 tests/APITemplate.Tests/
@@ -473,7 +473,7 @@ Configuration sections are bound to strongly-typed `IOptions<T>` classes registe
 
 | Key                          | Example Value    | Description                                                                                                                                                                                                                                                                                                                                     |
 |------------------------------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Dragonfly:ConnectionString` | `localhost:6379` | StackExchange.Redis connection string pointing to a DragonFly instance. Used for three purposes: distributed output cache (GET responses), server-side BFF session store (`DragonflyTicketStore`), and shared DataProtection key ring. **Omit or leave empty** to fall back to in-memory cache — suitable for single-instance development only. |
+| `Redis:ConnectionString` | `localhost:6379` | StackExchange.Redis connection string pointing to a DragonFly instance. Used for three purposes: distributed output cache (GET responses), server-side BFF session store (`RedisTicketStore`), and shared DataProtection key ring. **Omit or leave empty** to fall back to in-memory cache — suitable for single-instance development only. |
 
 ### Authentication — Keycloak
 
@@ -559,7 +559,7 @@ clients and Scalar) and **BFF Cookie sessions** (for SPA frontends).
 | Feature                        | Detail                                                                                                                                                                                                                                      |
 |--------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Secure cookie**              | `CookieSecurePolicy.Always` in production; `SameAsRequest` in development                                                                                                                                                                   |
-| **Server-side session store**  | `DragonflyTicketStore` serialises the auth ticket to DragonFly — the cookie contains only a GUID key, keeping cookie size small and preventing token leakage                                                                                |
+| **Server-side session store**  | `RedisTicketStore` serialises the auth ticket to DragonFly — the cookie contains only a GUID key, keeping cookie size small and preventing token leakage                                                                                |
 | **Shared DataProtection keys** | Keys persisted to DragonFly under `DataProtection:Keys` so multiple instances can decrypt each other's cookies                                                                                                                              |
 | **Silent token refresh**       | `CookieSessionRefresher.OnValidatePrincipal` exchanges the refresh token with Keycloak when the access token is within `Bff:TokenRefreshThresholdMinutes` (default 2 min) of expiry                                                         |
 | **CSRF protection**            | `CsrfValidationMiddleware` requires the `X-CSRF: 1` header on all non-GET/HEAD/OPTIONS requests authenticated via the cookie scheme. JWT Bearer requests are exempt. Call `GET /api/v1/bff/csrf` to retrieve the expected header name/value |
@@ -889,7 +889,7 @@ GET endpoints on Products, Categories, and Reviews use `[OutputCache(PolicyName 
 1. **Enables caching for authenticated requests** (ASP.NET Core's default skips Authorization-header requests).
 2. **Varies the cache key by tenant ID** so one tenant never receives another tenant's cached response.
 
-When `Dragonfly:ConnectionString` is configured, all cache entries are stored in **DragonFly** so every application
+When `Redis:ConnectionString` is configured, all cache entries are stored in **DragonFly** so every application
 instance shares a single distributed cache. Without it, each instance maintains its own in-memory cache.
 
 Mutations (Create / Update / Delete) evict the relevant tag via `IOutputCacheStore.EvictByTagAsync()` so stale data is
