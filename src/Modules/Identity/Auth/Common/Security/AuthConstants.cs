@@ -106,24 +106,19 @@ public static class AuthConstants
     ///     Constants for the custom CSRF header contract used by <c>CsrfValidationMiddleware</c>.
     /// </summary>
     /// <remarks>
-    ///     SPAs call <c>GET /api/v1/bff/csrf</c> after login: when a BFF session cookie is present,
-    ///     the response includes a Data Protection–bound <c>headerValue</c>; otherwise a legacy
-    ///     placeholder is returned. Send the header on every non-safe request when using cookie auth.
-    ///     The legacy value <c>1</c> remains accepted for backward compatibility.
+    ///     After login, SPAs call <c>GET /api/v1/bff/csrf</c> with the BFF cookie; the response
+    ///     includes a Data Protection–bound <c>headerValue</c>. Send that value on every non-safe
+    ///     request when using cookie auth. Without a session the endpoint returns <c>401</c>.
     /// </remarks>
     public static class Csrf
     {
         /// <summary>Name of the required anti-CSRF request header.</summary>
         public const string HeaderName = "X-CSRF";
 
-        /// <summary>Expected value of the anti-CSRF header.</summary>
-        public const string HeaderValue = "1";
-
-        /// <summary><c>tokenFormat</c> values returned by <c>GET /bff/csrf</c>.</summary>
+        /// <summary><c>tokenFormat</c> values returned by <c>GET /bff/csrf</c> when authenticated.</summary>
         public static class TokenFormats
         {
             public const string DataProtection = "DataProtection";
-            public const string Legacy = "legacy";
         }
     }
 

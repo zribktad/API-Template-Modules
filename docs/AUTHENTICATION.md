@@ -28,7 +28,7 @@ graph TB
         JWT_VAL[JwtBearer Middleware<br/>validates Bearer token]
         COOKIE_VAL[Cookie Middleware<br/>looks up session in PostgreSQL + Redis cache]
         REFRESH[CookieSessionRefresher<br/>loads session, delegates to<br/>BffTokenRefreshService]
-        CSRF[CsrfValidationMiddleware<br/>X-CSRF: 1 required]
+        CSRF[CsrfValidationMiddleware<br/>X-CSRF token required]
         TENANT[IdentityTokenValidatedPipeline<br/>validates tenant_id claim]
         CLAIM[KeycloakClaimMapper<br/>maps Keycloak → .NET claims]
         AUTHZ[Authorization Middleware<br/>Fallback: Bearer OR Cookie]
@@ -49,7 +49,7 @@ graph TB
     end
 
     SPA -->|Cookie .APITemplate.Auth| COOKIE_VAL
-    SPA -->|POST/PUT/DELETE + X-CSRF: 1| CSRF
+    SPA -->|POST/PUT/DELETE + X-CSRF| CSRF
     API_CLIENT -->|Authorization: Bearer token| JWT_VAL
     SCALAR -->|OAuth2 Authorization Code| REALM
     BFF -->|OIDC Code Flow| REALM
@@ -410,7 +410,7 @@ sequenceDiagram
     participant CSRF as CsrfValidationMiddleware
     participant AUTHZ as Authorization Middleware
 
-    SPA->>CM: POST /api/v1/products<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>X-CSRF: 1
+    SPA->>CM: POST /api/v1/products<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>X-CSRF: &lt;token&gt;
     CM->>VK: RedisTicketStore.RetrieveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.GetTicketAsync
     VK-->>CM: BffSessionRecord → AuthenticationTicket
     CM->>CSR: ValidatePrincipal event
@@ -444,7 +444,7 @@ sequenceDiagram
         CSR-->>SPA: 401 Unauthorized (RejectPrincipal)
     end
 
-    CSR->>CSRF: Validate X-CSRF: 1 header<br/>(GET/HEAD/OPTIONS exempt; JWT Bearer exempt)
+    CSR->>CSRF: Validate X-CSRF header<br/>(GET/HEAD/OPTIONS exempt; JWT Bearer exempt)
     alt Missing X-CSRF header
         CSRF-->>SPA: 403 Forbidden
     end
@@ -562,15 +562,15 @@ Next request     → cache miss → load from PostgreSQL → repopulate cache
 
 ### 3f. CSRF endpoint
 
-SPA should fetch this before making any non-GET request to learn the required header:
+After the BFF session cookie is established, the SPA should call this to obtain the anti-CSRF header value (Data Protection–bound to the session). Without a session cookie the endpoint returns **401 Unauthorized**.
 
 ```
-GET /api/v1/bff/csrf   (AllowAnonymous)
+GET /api/v1/bff/csrf   (AllowAnonymous; requires BFF cookie for 200)
 
-Response: { "headerName": "X-CSRF", "headerValue": "1" }
+Response: { "headerName": "X-CSRF", "headerValue": "<base64url>", "tokenFormat": "DataProtection" }
 ```
 
-Then include `X-CSRF: 1` on every POST / PUT / PATCH / DELETE request.
+Then send that `headerValue` on every POST / PUT / PATCH / DELETE (and on cookie-authenticated `GET /api/v1/bff/logout`) as the `X-CSRF` header.
 
 ---
 
@@ -690,7 +690,7 @@ All under `/api/v1/bff/`:
 | `GET /bff/logout`             | Cookie        | Same as POST; soft-deletes session, clears cache, signs out of Keycloak       |
 | `POST /bff/logout`            | Cookie        | Preferred for SPAs; same behavior as GET                                      |
 | `GET /bff/user`               | Cookie        | Returns current user claims as JSON                                           |
-| `GET /bff/csrf`               | No            | Returns `headerName` + `headerValue`; with a BFF cookie, `headerValue` is a Data Protection token (`tokenFormat: DataProtection`); without a session, legacy placeholder (`tokenFormat: legacy`). The plain value `1` is still accepted for backward compatibility. |
+| `GET /bff/csrf`               | Cookie        | Returns `headerName`, Data Protection `headerValue`, and `tokenFormat: DataProtection` when the BFF session cookie is present; **401 Unauthorized** without a session. |
 
 `GET /bff/login/{idpHint}` returns `404` when the hint does not match any registered `IExternalIdentityProvider`.
 
@@ -972,7 +972,7 @@ Test tokens are signed with RSA-256 using an in-memory test key pair and include
 **BFF/CSRF tests** use `BffSecurityWebApplicationFactory` ([tests/APITemplate.Tests/Integration/Auth/BffSecurityTests.cs](../tests/APITemplate.Tests/Integration/Auth/BffSecurityTests.cs)), which extends `CustomWebApplicationFactory` and replaces the BFF cookie scheme handler with `FakeCookieAuthHandler` via `PostConfigure<AuthenticationOptions>`:
 
 - Set request header `X-Test-Cookie-Auth: 1` to simulate a cookie-authenticated session
-- Mutating requests without `X-CSRF: 1` return HTTP 403; cookie-authenticated `GET /api/v1/bff/logout` also requires the CSRF header (see tests)
+- Mutating requests without a valid `X-CSRF` header (value from `GET /api/v1/bff/csrf`) return HTTP 403; cookie-authenticated `GET /api/v1/bff/logout` also requires the CSRF header (see tests)
 
 **External provider unit tests** (`BffExternalProvidersTests`):
 ```bash

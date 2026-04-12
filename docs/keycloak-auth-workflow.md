@@ -56,7 +56,7 @@ When the user is already signed in (BFF cookie or bearer JWT), they can change t
 3. On success, the API sets the new password via Keycloak Admin API, calls **logout all Keycloak sessions** for that user, and **revokes all persisted BFF sessions** whose Keycloak `sub` matches (including the current browser session).
 4. The client must obtain **new tokens** (OIDC login or token endpoint for mobile).
 
-Browser clients using the BFF cookie must send the CSRF header (`X-CSRF: 1`) on this POST, like other mutating cookie requests.
+Browser clients using the BFF cookie must send the CSRF header (value from `GET /api/v1/bff/csrf`) on this POST, like other mutating cookie requests.
 
 ## Log out everywhere (authenticated)
 

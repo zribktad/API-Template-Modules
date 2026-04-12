@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using Identity.Auth.Security;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -29,13 +28,7 @@ public sealed class BffCsrfTokenService : IBffCsrfTokenService
     /// <inheritdoc />
     public bool IsValid(string? sessionId, string? headerValue)
     {
-        if (string.IsNullOrEmpty(headerValue))
-            return false;
-
-        if (string.Equals(headerValue, AuthConstants.Csrf.HeaderValue, StringComparison.Ordinal))
-            return true;
-
-        if (string.IsNullOrWhiteSpace(sessionId))
+        if (string.IsNullOrWhiteSpace(sessionId) || string.IsNullOrEmpty(headerValue))
             return false;
 
         byte[] decoded;

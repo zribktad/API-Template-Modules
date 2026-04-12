@@ -30,48 +30,20 @@ public sealed class CsrfValidationMiddleware(
             return;
         }
 
-        bool needsSessionId = false;
-        if (
-            context.Request.Headers.TryGetValue(
-                AuthConstants.Csrf.HeaderName,
-                out StringValues csrfValues
-            ) && csrfValues.Any(static v => !string.IsNullOrEmpty(v))
-        )
-        {
-            needsSessionId = csrfValues.Any(static v =>
-                !string.Equals(v, AuthConstants.Csrf.HeaderValue, StringComparison.Ordinal)
-            );
-        }
-
-        bool hasCookiePrincipal = context.User.Identities.Any(i =>
-            i.AuthenticationType == AuthConstants.BffSchemes.Cookie
+        AuthenticateResult cookieAuth = await context.AuthenticateAsync(
+            AuthConstants.BffSchemes.Cookie
         );
-
-        AuthenticateResult? cookieAuth = null;
-        if (!hasCookiePrincipal || needsSessionId)
-            cookieAuth = await context.AuthenticateAsync(AuthConstants.BffSchemes.Cookie);
-
-        bool cookieOk =
-            hasCookiePrincipal && !needsSessionId ? true : cookieAuth?.Succeeded == true;
-
-        if (!cookieOk)
+        if (!cookieAuth.Succeeded)
         {
             await next(context);
             return;
         }
 
-        string? sessionId = null;
-        if (
-            needsSessionId
-            && (
-                cookieAuth is not { Succeeded: true, Properties: { } props }
-                || !props.TryGetBffSessionId(out sessionId)
-            )
-        )
+        if (!cookieAuth.Properties.TryGetBffSessionId(out string? sessionId))
         {
             await WriteCsrfForbiddenAsync(
                 context,
-                $"Invalid or expired '{AuthConstants.Csrf.HeaderName}' header for this session."
+                $"Cookie session is missing a BFF session id; cannot validate '{AuthConstants.Csrf.HeaderName}'."
             );
             return;
         }

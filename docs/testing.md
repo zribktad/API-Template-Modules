@@ -294,7 +294,7 @@ Tests that need a **cookie-authenticated** principal use [`BffSecurityWebApplica
 
 These tests are tagged **`[Trait("Category", "Integration.Docker")]`** because they depend on the same Docker-based factory.
 
-> **CSRF contract:** SPA clients call `GET /api/v1/bff/csrf` for the header contract and send the required header on mutating requests when using the session cookie. Cookie-authenticated `GET /api/v1/bff/logout` also requires the CSRF header (see tests in `BffSecurityTests`).
+> **CSRF contract:** With the BFF cookie, call `GET /api/v1/bff/csrf` to obtain the Data Protection–bound `headerValue`, then send it as the `X-CSRF` header on mutating requests. Without a session, that GET returns **401**. Cookie-authenticated `GET /api/v1/bff/logout` also requires the CSRF header (see tests in `BffSecurityTests`).
 
 ### Authentication test matrix
 

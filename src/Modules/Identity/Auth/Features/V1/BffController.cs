@@ -104,14 +104,7 @@ public sealed class BffController : ApiControllerBase
             );
         }
 
-        return Ok(
-            new
-            {
-                headerName = AuthConstants.Csrf.HeaderName,
-                headerValue = AuthConstants.Csrf.HeaderValue,
-                tokenFormat = AuthConstants.Csrf.TokenFormats.Legacy,
-            }
-        );
+        return Unauthorized();
     }
 
     [HttpGet("user")]
