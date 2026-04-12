@@ -24,6 +24,8 @@ internal static class TestConfigurationHelper
             ["Keycloak:auth-server-url"] = "http://localhost:8180/",
             ["Keycloak:resource"] = "api-template",
             ["Keycloak:credentials:secret"] = "test-secret",
+            ["Keycloak:passwordVerification:clientId"] = "test-password-verification-client",
+            ["Keycloak:passwordVerification:clientSecret"] = "test-password-verification-secret",
             ["Keycloak:SkipReadinessCheck"] = "true",
             ["SystemIdentity:DefaultActorId"] = "00000000-0000-0000-0000-000000000000",
             ["Bootstrap:Tenant:Code"] = "default",

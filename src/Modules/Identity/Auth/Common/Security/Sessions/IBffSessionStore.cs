@@ -30,4 +30,23 @@ public interface IBffSessionStore
     ///     Removes the session from the backing store.
     /// </summary>
     Task RemoveAsync(string sessionId, CancellationToken ct = default);
+
+    /// <summary>
+    ///     Returns session identifiers for non-revoked BFF rows matching the Keycloak subject.
+    /// </summary>
+    Task<IReadOnlyList<string>> FindActiveSessionIdsBySubjectAsync(
+        string keycloakSubject,
+        CancellationToken ct = default
+    );
+
+    /// <summary>
+    ///     Revokes every active session for the subject in a single database update and removes
+    ///     distributed cache entries. Returns the revoked session identifiers.
+    /// </summary>
+    Task<IReadOnlyList<string>> BulkRevokeActiveSessionsBySubjectAsync(
+        string keycloakSubject,
+        BffSessionRevocationReason reason,
+        DateTimeOffset revokedAtUtc,
+        CancellationToken ct = default
+    );
 }

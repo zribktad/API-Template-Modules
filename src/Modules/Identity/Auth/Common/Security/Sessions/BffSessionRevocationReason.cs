@@ -25,4 +25,7 @@ public enum BffSessionRevocationReason
 
     /// <summary>The session exceeded the configured absolute lifetime cap.</summary>
     AbsoluteLifetimeExceeded = 6,
+
+    /// <summary>Password changed or administrator triggered global sign-out for the account.</summary>
+    CredentialRotation = 7,
 }

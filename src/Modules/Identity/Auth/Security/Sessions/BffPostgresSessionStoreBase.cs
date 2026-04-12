@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Identity.Auth.Entities;
 using Identity.Auth.Options;
+using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
@@ -150,6 +151,76 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
         }
 
         await _distributedCache.RemoveAsync(GetCacheKey(sessionId), ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<string>> FindActiveSessionIdsBySubjectAsync(
+        string keycloakSubject,
+        CancellationToken ct = default
+    )
+    {
+        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
+        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+
+        List<string> ids = await dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .AsNoTracking()
+            .Where(s =>
+                s.Subject == keycloakSubject
+                && !s.IsDeleted
+                && s.Status != BffSessionStatus.Revoked
+                && s.Status != BffSessionStatus.Expired
+            )
+            .Select(s => s.SessionId)
+            .ToListAsync(ct);
+
+        return ids;
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<string>> BulkRevokeActiveSessionsBySubjectAsync(
+        string keycloakSubject,
+        BffSessionRevocationReason reason,
+        DateTimeOffset revokedAtUtc,
+        CancellationToken ct = default
+    )
+    {
+        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
+        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+
+        List<string> sessionIds = await dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .AsNoTracking()
+            .Where(s =>
+                s.Subject == keycloakSubject
+                && !s.IsDeleted
+                && s.Status != BffSessionStatus.Revoked
+                && s.Status != BffSessionStatus.Expired
+            )
+            .Select(s => s.SessionId)
+            .ToListAsync(ct);
+
+        if (sessionIds.Count == 0)
+            return sessionIds;
+
+        await dbContext
+            .BffSessions.IgnoreQueryFilters()
+            .Where(s => sessionIds.Contains(s.SessionId))
+            .ExecuteUpdateAsync(
+                setters =>
+                    setters
+                        .SetProperty(s => s.Status, BffSessionStatus.Revoked)
+                        .SetProperty(s => s.RevokedAtUtc, revokedAtUtc)
+                        .SetProperty(s => s.RevocationReason, reason)
+                        .SetProperty(s => s.LastSeenAtUtc, revokedAtUtc)
+                        .SetProperty(s => s.Version, s => s.Version + 1),
+                ct
+            );
+
+        foreach (string sessionId in sessionIds)
+            await _distributedCache.RemoveAsync(GetCacheKey(sessionId), ct);
+
+        return sessionIds;
     }
 
     protected abstract Task<string?> GetCachedPayloadAsync(string cacheKey, CancellationToken ct);

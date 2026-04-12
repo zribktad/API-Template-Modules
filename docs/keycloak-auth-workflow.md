@@ -1,6 +1,6 @@
 # Keycloak Authentication Workflow
 
-This document describes how authentication and identity management work in this API.
+This document describes how authentication and identity management work in this API. For protocol details, BFF session storage (PostgreSQL/Redis), token grants, and infrastructure setup, see [AUTHENTICATION.md](AUTHENTICATION.md).
 
 ## Architecture Overview
 
@@ -46,6 +46,32 @@ Password reset is fully handled by Keycloak — no tokens stored in the local da
 5. User clicks the email link and sets a new password in Keycloak
 
 The endpoint returns `200 OK` regardless of whether the user exists (prevents user enumeration).
+
+## Change password (authenticated)
+
+When the user is already signed in (BFF cookie or bearer JWT), they can change the password through the API:
+
+1. `POST /api/v1/account/password` with `{ currentPassword, newPassword }` (authenticated).
+2. The API verifies the current password against Keycloak using the **resource-owner password grant** on a dedicated **confidential** client (`api-template-password-verification` in the template realm). Only this server-side client has direct-access grants enabled.
+3. On success, the API sets the new password via Keycloak Admin API, calls **logout all Keycloak sessions** for that user, and **revokes all persisted BFF sessions** whose Keycloak `sub` matches (including the current browser session).
+4. The client must obtain **new tokens** (OIDC login or token endpoint for mobile).
+
+Browser clients using the BFF cookie must send the CSRF header (value from `GET /api/v1/bff/csrf`) on this POST, like other mutating cookie requests.
+
+## Log out everywhere (authenticated)
+
+`POST /api/v1/account/sessions/revoke-all` (authenticated) terminates all Keycloak sessions for the user and revokes all BFF sessions for their Keycloak subject. Service accounts cannot call these account endpoints.
+
+## Webhook: password changed via Keycloak email
+
+When the user completes **UPDATE_PASSWORD** through Keycloak’s hosted flow (email link), this API is not in the loop. To align BFF sessions with Keycloak, deploy a **Keycloak HTTP event listener** (or equivalent) that `POST`s to:
+
+- `POST /internal/keycloak-events/password-changed` with JSON `{ "keycloakUserId": "<Keycloak user id>" }`
+- Header `X-Keycloak-Event-Key: <shared secret>` (configurable; see `Keycloak:eventWebhook` in app settings)
+
+When `Keycloak:eventWebhook:apiKey` is empty, the endpoint responds with **404** so it is not accidentally exposed.
+
+The handler performs the same Keycloak logout-all and BFF bulk revocation as the authenticated “log out everywhere” flow.
 
 ## Invitation Flow
 

@@ -227,6 +227,22 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "api-template-password-verification",
+      "name": "API Template password verification (server-side only)",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "dev-password-verification-secret",
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [],
+      "webOrigins": []
     }
   ],
   "identityProviders": [

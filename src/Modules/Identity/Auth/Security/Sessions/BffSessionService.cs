@@ -1,7 +1,8 @@
 using System.Security.Claims;
-using Identity.Logging;
 using Identity.Auth.Options;
+using Identity.Logging;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -17,6 +18,7 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
     private readonly IBffSessionPrincipalFactory _principalFactory;
     private readonly IBffSessionStore _sessionStore;
     private readonly TimeProvider _timeProvider;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<BffSessionService> _logger;
 
     public BffSessionService(
@@ -24,6 +26,7 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
         IBffSessionStore sessionStore,
         IBffSessionPrincipalFactory principalFactory,
         TimeProvider timeProvider,
+        IHttpContextAccessor httpContextAccessor,
         ILogger<BffSessionService> logger
     )
     {
@@ -31,6 +34,7 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
         _sessionStore = sessionStore;
         _principalFactory = principalFactory;
         _timeProvider = timeProvider;
+        _httpContextAccessor = httpContextAccessor;
         _logger = logger;
     }
 
@@ -70,6 +74,15 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
         CancellationToken ct = default
     )
     {
+        HttpContext? httpContext = _httpContextAccessor.HttpContext;
+        string cacheKey = BffRequestScopedSessionCache.GetItemKey(sessionId);
+        if (
+            httpContext is not null
+            && httpContext.Items.TryGetValue(cacheKey, out object? cached)
+            && cached is BffSessionRecord cachedSession
+        )
+            return cachedSession;
+
         BffSessionRecord? session = await _sessionStore.GetAsync(sessionId, ct);
         if (session is null)
             return null;
@@ -100,6 +113,9 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
             await RevokeAsync(sessionId, BffSessionRevocationReason.AbsoluteLifetimeExceeded, ct);
             return null;
         }
+
+        if (httpContext is not null)
+            httpContext.Items[cacheKey] = session;
 
         return session;
     }
@@ -157,6 +173,29 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
         );
     }
 
+    /// <inheritdoc />
+    public async Task RevokeAllSessionsForSubjectAsync(
+        string keycloakSubject,
+        BffSessionRevocationReason reason,
+        CancellationToken ct = default
+    )
+    {
+        // Single instant for all rows — matches per-session revoke semantics (RevokedAtUtc / LastSeenAtUtc).
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        // One DB update + distributed cache removal for all active sessions; avoids N sequential TryUpdate races.
+        IReadOnlyList<string> revokedIds =
+            await _sessionStore.BulkRevokeActiveSessionsBySubjectAsync(
+                keycloakSubject,
+                reason,
+                now,
+                ct
+            );
+
+        // Drop request-scoped memoized sessions so this HTTP request cannot reuse stale BffSessionRecord after bulk revoke.
+        foreach (string sessionId in revokedIds)
+            BffRequestScopedSessionCache.Invalidate(_httpContextAccessor, sessionId);
+    }
+
     private async Task MutateSessionAsync(
         string sessionId,
         Func<BffSessionRecord, BffSessionRecord> mutate,
@@ -178,7 +217,10 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
                 ct
             );
             if (updated)
+            {
+                BffRequestScopedSessionCache.Invalidate(_httpContextAccessor, sessionId);
                 return;
+            }
         }
 
         _logger.BffSessionMutationFailed(sessionId, MaxAttempts);

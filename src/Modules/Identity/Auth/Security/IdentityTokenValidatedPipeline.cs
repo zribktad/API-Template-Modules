@@ -108,7 +108,7 @@ public static class IdentityTokenValidatedPipeline
         if (principal?.Identity is ClaimsIdentity identity)
             KeycloakClaimMapper.MapKeycloakClaims(identity);
 
-        bool isServiceAccount = IsServiceAccount(principal);
+        bool isServiceAccount = KeycloakServiceAccountClaims.IsServiceAccount(principal);
 
         // Step 2 — Humans must exist in our DB with a valid invitation/tenant; service accounts skip this.
         if (!isServiceAccount)
@@ -300,20 +300,6 @@ public static class IdentityTokenValidatedPipeline
                 && Guid.TryParse(c.Value, out Guid tenantId)
                 && tenantId != Guid.Empty
             ) == true;
-    }
-
-    /// <summary>
-    ///     Keycloak encodes client credentials / service users with a <c>preferred_username</c>
-    ///     prefix; those principals skip tenant and invitation rules meant for interactive users.
-    /// </summary>
-    private static bool IsServiceAccount(ClaimsPrincipal? principal)
-    {
-        string? username = principal?.FindFirstValue(AuthConstants.Claims.PreferredUsername);
-        return username != null
-            && username.StartsWith(
-                AuthConstants.Claims.ServiceAccountUsernamePrefix,
-                StringComparison.OrdinalIgnoreCase
-            );
     }
 
     private static ILogger GetLogger(HttpContext httpContext)

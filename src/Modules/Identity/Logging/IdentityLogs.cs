@@ -133,6 +133,48 @@ internal static partial class IdentityLogs
     )]
     public static partial void KeycloakUserDeleted(this ILogger logger, string keycloakUserId);
 
+    [LoggerMessage(
+        EventId = 3008,
+        Level = LogLevel.Information,
+        Message = "Set password for Keycloak user {KeycloakUserId}, temporary={Temporary}"
+    )]
+    public static partial void KeycloakUserPasswordSet(
+        this ILogger logger,
+        [SensitiveData] string keycloakUserId,
+        bool temporary
+    );
+
+    [LoggerMessage(
+        EventId = 3009,
+        Level = LogLevel.Information,
+        Message = "Logged out all Keycloak sessions for user {KeycloakUserId}"
+    )]
+    public static partial void KeycloakUserAllSessionsLoggedOut(
+        this ILogger logger,
+        [SensitiveData] string keycloakUserId
+    );
+
+    [LoggerMessage(
+        EventId = 3011,
+        Level = LogLevel.Warning,
+        Message = "Logout-all-sessions: Keycloak user {KeycloakUserId} not found (404) — treating as no-op"
+    )]
+    public static partial void KeycloakUserLogoutAllSessionsUserNotFound(
+        this ILogger logger,
+        [SensitiveData] string keycloakUserId
+    );
+
+    [LoggerMessage(
+        EventId = 3013,
+        Level = LogLevel.Warning,
+        Message = "Logout all Keycloak sessions failed for user {KeycloakUserId}; continuing with local BFF session revocation."
+    )]
+    public static partial void KeycloakLogoutAllSessionsFailed(
+        this ILogger logger,
+        Exception exception,
+        [SensitiveData] string keycloakUserId
+    );
+
     // KeycloakAdminTokenProvider (3010)
     [LoggerMessage(
         EventId = 3010,

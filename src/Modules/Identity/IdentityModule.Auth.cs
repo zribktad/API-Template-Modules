@@ -47,6 +47,11 @@ public static partial class IdentityModule
         services.AddScoped<CookieSessionRefresher>();
         services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
         services.AddSingleton<IBffSessionTokenProtector, BffSessionTokenProtector>();
+        services.AddSingleton<IBffCsrfTokenService, BffCsrfTokenService>();
+        services.AddSingleton<
+            IPostConfigureOptions<CookieAuthenticationOptions>,
+            BffCookieSecurePostConfigure
+        >();
         if (configuration.IsRedisConfigured())
         {
             services.AddSingleton<IBffSessionStore, PostgresCachedBffSessionStore>();
@@ -218,5 +223,6 @@ public static partial class IdentityModule
             .AddKeycloakHttpRetry(ResiliencePipelineKeys.KeycloakAdmin);
 
         services.AddScoped<IKeycloakAdminService, KeycloakAdminService>();
+        services.AddScoped<IKeycloakAndBffGlobalLogoutService, KeycloakAndBffGlobalLogoutService>();
     }
 }

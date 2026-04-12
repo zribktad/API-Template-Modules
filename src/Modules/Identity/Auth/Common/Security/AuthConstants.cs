@@ -57,6 +57,8 @@ public static class AuthConstants
         public const string ClientId = "client_id";
         public const string ClientSecret = "client_secret";
         public const string RefreshToken = "refresh_token";
+        public const string Username = "username";
+        public const string Password = "password";
     }
 
     /// <summary>OAuth2 error codes returned in token endpoint responses.</summary>
@@ -70,6 +72,7 @@ public static class AuthConstants
     {
         public const string ClientCredentials = "client_credentials";
         public const string RefreshToken = "refresh_token";
+        public const string Password = "password";
     }
 
     /// <summary>Keycloak required-action identifiers sent during user lifecycle operations.</summary>
@@ -79,6 +82,12 @@ public static class AuthConstants
         public const string UpdatePassword = "UPDATE_PASSWORD";
     }
 
+    /// <summary>Keycloak credential <c>type</c> values for Admin API password operations.</summary>
+    public static class KeycloakCredentialTypes
+    {
+        public const string Password = "password";
+    }
+
     /// <summary>JWT claim names used to extract identity and role information from tokens.</summary>
     public static class Claims
     {
@@ -86,6 +95,9 @@ public static class AuthConstants
         public const string RealmAccess = "realm_access";
         public const string Roles = "roles";
         public const string PreferredUsername = "preferred_username";
+
+        /// <summary>OAuth 2.0 <c>azp</c> (authorized party) — present on many Keycloak access tokens.</summary>
+        public const string AuthorizedParty = "azp";
         public const string ServiceAccountUsernamePrefix = "service-account-";
         public const string TenantId = TenantSecurityClaims.TenantId;
     }
@@ -94,16 +106,20 @@ public static class AuthConstants
     ///     Constants for the custom CSRF header contract used by <c>CsrfValidationMiddleware</c>.
     /// </summary>
     /// <remarks>
-    ///     SPAs retrieve these values at runtime via <c>GET /api/v1/bff/csrf</c> and must send
-    ///     <c>X-CSRF: 1</c> on every non-safe (mutating) request authenticated with a session cookie.
+    ///     After login, SPAs call <c>GET /api/v1/bff/csrf</c> with the BFF cookie; the response
+    ///     includes a Data Protection–bound <c>headerValue</c>. Send that value on every non-safe
+    ///     request when using cookie auth. Without a session the endpoint returns <c>401</c>.
     /// </remarks>
     public static class Csrf
     {
         /// <summary>Name of the required anti-CSRF request header.</summary>
         public const string HeaderName = "X-CSRF";
 
-        /// <summary>Expected value of the anti-CSRF header.</summary>
-        public const string HeaderValue = "1";
+        /// <summary><c>tokenFormat</c> values returned by <c>GET /bff/csrf</c> when authenticated.</summary>
+        public static class TokenFormats
+        {
+            public const string DataProtection = "DataProtection";
+        }
     }
 
     /// <summary>

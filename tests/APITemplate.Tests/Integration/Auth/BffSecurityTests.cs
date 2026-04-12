@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
 using Identity.Auth.Security;
 using Identity.Directory.Enums;
@@ -47,10 +48,8 @@ public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFa
         var ct = TestContext.Current.CancellationToken;
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Test-Cookie-Auth", "1");
-        client.DefaultRequestHeaders.Add(
-            AuthConstants.Csrf.HeaderName,
-            AuthConstants.Csrf.HeaderValue
-        );
+        string csrf = await GetCsrfHeaderValueAsync(client, ct);
+        client.DefaultRequestHeaders.Add(AuthConstants.Csrf.HeaderName, csrf);
 
         var response = await client.PostAsync(
             "/api/v1/products",
@@ -84,10 +83,22 @@ public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFa
     }
 
     [Fact]
-    public async Task GetCsrfEndpoint_ReturnsHeaderConfig()
+    public async Task GetCsrf_WithoutBffSession_Returns401()
     {
         var ct = TestContext.Current.CancellationToken;
         var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/v1/bff/csrf", ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetCsrf_WithFakeCookieAuth_ReturnsDataProtectionToken()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Test-Cookie-Auth", "1");
 
         var response = await client.GetAsync("/api/v1/bff/csrf", ct);
 
@@ -96,6 +107,7 @@ public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFa
         body.ShouldContain("X-CSRF");
         body.ShouldContain("headerName");
         body.ShouldContain("headerValue");
+        body.ShouldContain(AuthConstants.Csrf.TokenFormats.DataProtection);
     }
 
     [Fact]
@@ -116,14 +128,24 @@ public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFa
         var ct = TestContext.Current.CancellationToken;
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Test-Cookie-Auth", "1");
-        client.DefaultRequestHeaders.Add(
-            AuthConstants.Csrf.HeaderName,
-            AuthConstants.Csrf.HeaderValue
-        );
+        string csrf = await GetCsrfHeaderValueAsync(client, ct);
+        client.DefaultRequestHeaders.Add(AuthConstants.Csrf.HeaderName, csrf);
 
         var response = await client.GetAsync(AuthConstants.BffRoutes.Logout, ct);
 
         response.StatusCode.ShouldNotBe(HttpStatusCode.Forbidden);
+    }
+
+    private static async Task<string> GetCsrfHeaderValueAsync(
+        HttpClient client,
+        CancellationToken ct
+    )
+    {
+        using var response = await client.GetAsync("/api/v1/bff/csrf", ct);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        await using var stream = await response.Content.ReadAsStreamAsync(ct);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+        return doc.RootElement.GetProperty("headerValue").GetString()!;
     }
 }
 
@@ -179,8 +201,13 @@ internal sealed class FakeCookieAuthHandler(
             AuthConstants.BffSchemes.Cookie
         );
 
+        var properties = new AuthenticationProperties();
+        properties.Items[AuthConstants.SessionProperties.SessionId] =
+            "bff-integration-test-session";
+
         var ticket = new AuthenticationTicket(
             new ClaimsPrincipal(identity),
+            properties,
             AuthConstants.BffSchemes.Cookie
         );
 

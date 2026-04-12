@@ -1,6 +1,6 @@
 using System.Net;
-using Identity.Logging;
 using Identity.Auth.Options;
+using Identity.Logging;
 using Keycloak.AuthServices.Sdk.Admin;
 using Keycloak.AuthServices.Sdk.Admin.Models;
 using Keycloak.AuthServices.Sdk.Admin.Requests.Users;
@@ -10,23 +10,32 @@ using Microsoft.Extensions.Options;
 namespace Identity.Auth.Security.Keycloak;
 
 /// <summary>
-///     Keycloak Admin REST API client facade that wraps user lifecycle operations
-///     (create, enable/disable, password reset, delete) using the Keycloak SDK.
+///     Keycloak integration: Admin REST API (SDK) for user lifecycle, direct HTTP for logout-all,
+///     and resource-owner grant against the token endpoint for password verification.
 /// </summary>
 public sealed class KeycloakAdminService : IKeycloakAdminService
 {
     private readonly ILogger<KeycloakAdminService> _logger;
     private readonly string _realm;
+    private readonly string _authServerUrl;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IKeycloakUserClient _userClient;
+    private readonly KeycloakOptions _keycloak;
+    private readonly KeycloakPasswordVerificationOptions _passwordVerification;
 
     public KeycloakAdminService(
         IKeycloakUserClient userClient,
+        IHttpClientFactory httpClientFactory,
         IOptions<KeycloakOptions> keycloakOptions,
         ILogger<KeycloakAdminService> logger
     )
     {
         _userClient = userClient;
-        _realm = keycloakOptions.Value.Realm;
+        _httpClientFactory = httpClientFactory;
+        _keycloak = keycloakOptions.Value;
+        _realm = _keycloak.Realm;
+        _authServerUrl = _keycloak.AuthServerUrl;
+        _passwordVerification = _keycloak.PasswordVerification;
         _logger = logger;
     }
 
@@ -145,6 +154,93 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         }
 
         _logger.KeycloakUserDeleted(keycloakUserId);
+    }
+
+    /// <inheritdoc />
+    public async Task SetUserPasswordAsync(
+        string keycloakUserId,
+        string newPassword,
+        bool temporary,
+        CancellationToken ct = default
+    )
+    {
+        CredentialRepresentation credential = new()
+        {
+            Type = AuthConstants.KeycloakCredentialTypes.Password,
+            Value = newPassword,
+            Temporary = temporary,
+        };
+
+        await _userClient.ResetPasswordAsync(_realm, keycloakUserId, credential, ct);
+        _logger.KeycloakUserPasswordSet(keycloakUserId, temporary);
+    }
+
+    /// <inheritdoc />
+    public async Task LogoutAllUserSessionsAsync(
+        string keycloakUserId,
+        CancellationToken ct = default
+    )
+    {
+        HttpClient client = _httpClientFactory.CreateClient(
+            AuthConstants.HttpClients.KeycloakAdmin
+        );
+        string url = KeycloakUrlHelper.BuildAdminUserLogoutUrl(
+            _authServerUrl,
+            _realm,
+            keycloakUserId
+        );
+
+        using HttpResponseMessage response = await client.PostAsync(url, null, ct);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.KeycloakUserLogoutAllSessionsUserNotFound(keycloakUserId);
+            return;
+        }
+
+        response.EnsureSuccessStatusCode();
+        _logger.KeycloakUserAllSessionsLoggedOut(keycloakUserId);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> ValidateCredentialsAsync(
+        string username,
+        string password,
+        CancellationToken ct = default
+    )
+    {
+        if (
+            string.IsNullOrWhiteSpace(_passwordVerification.ClientId)
+            || string.IsNullOrWhiteSpace(_passwordVerification.ClientSecret)
+        )
+            return false;
+
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            return false;
+
+        string tokenEndpoint = KeycloakUrlHelper.BuildTokenEndpoint(
+            _keycloak.AuthServerUrl,
+            _keycloak.Realm
+        );
+
+        using FormUrlEncodedContent content = new([
+            new KeyValuePair<string, string>(
+                AuthConstants.OAuth2FormParameters.GrantType,
+                AuthConstants.OAuth2GrantTypes.Password
+            ),
+            new(AuthConstants.OAuth2FormParameters.ClientId, _passwordVerification.ClientId),
+            new(
+                AuthConstants.OAuth2FormParameters.ClientSecret,
+                _passwordVerification.ClientSecret
+            ),
+            new(AuthConstants.OAuth2FormParameters.Username, username),
+            new(AuthConstants.OAuth2FormParameters.Password, password),
+        ]);
+
+        HttpClient client = _httpClientFactory.CreateClient(
+            AuthConstants.HttpClients.KeycloakToken
+        );
+        using HttpResponseMessage response = await client.PostAsync(tokenEndpoint, content, ct);
+        return response.IsSuccessStatusCode;
     }
 
     private async Task<string> GetExistingUserIdByUsernameAsync(

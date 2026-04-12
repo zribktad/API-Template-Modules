@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Asp.Versioning;
 using Identity.Auth.Features.Bff.DTOs;
 using Identity.Auth.Options;
+using Identity.Auth.Security.Sessions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,22 +15,25 @@ namespace Identity.Auth.Controllers.V1;
 public sealed class BffController : ApiControllerBase
 {
     private readonly BffOptions _bffOptions;
+    private readonly IBffCsrfTokenService _csrfTokens;
     private readonly IReadOnlyDictionary<string, IExternalIdentityProvider> _identityProviders;
     private readonly IReadOnlyList<ExternalProviderResponse> _externalProviderResponses;
 
     public BffController(
         IOptions<BffOptions> bffOptions,
+        IBffCsrfTokenService csrfTokens,
         IEnumerable<IExternalIdentityProvider> identityProviders
     )
     {
         _bffOptions = bffOptions.Value;
+        _csrfTokens = csrfTokens;
         _identityProviders = identityProviders.ToDictionary(
             p => p.IdpHint,
             p => p,
             StringComparer.OrdinalIgnoreCase
         );
-        _externalProviderResponses = _identityProviders.Values
-            .Select(p => new ExternalProviderResponse(p.IdpHint, p.DisplayName))
+        _externalProviderResponses = _identityProviders
+            .Values.Select(p => new ExternalProviderResponse(p.IdpHint, p.DisplayName))
             .ToList();
     }
 
@@ -48,7 +52,12 @@ public sealed class BffController : ApiControllerBase
     [AllowAnonymous]
     public IActionResult LoginWithProvider(string idpHint, [FromQuery] string? returnUrl = null)
     {
-        if (!_identityProviders.TryGetValue(idpHint, out IExternalIdentityProvider? identityProvider))
+        if (
+            !_identityProviders.TryGetValue(
+                idpHint,
+                out IExternalIdentityProvider? identityProvider
+            )
+        )
             return NotFound();
 
         string redirectUri = Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
@@ -66,6 +75,7 @@ public sealed class BffController : ApiControllerBase
     }
 
     [HttpGet("logout")]
+    [HttpPost("logout")]
     public IActionResult Logout()
     {
         return SignOut(
@@ -77,15 +87,24 @@ public sealed class BffController : ApiControllerBase
 
     [HttpGet("csrf")]
     [AllowAnonymous]
-    public IActionResult GetCsrf()
+    public async Task<IActionResult> GetCsrf()
     {
-        return Ok(
-            new
-            {
-                headerName = AuthConstants.Csrf.HeaderName,
-                headerValue = AuthConstants.Csrf.HeaderValue,
-            }
+        AuthenticateResult auth = await HttpContext.AuthenticateAsync(
+            AuthConstants.BffSchemes.Cookie
         );
+        if (auth.Succeeded && auth.Properties.TryGetBffSessionId(out string? sessionId))
+        {
+            return Ok(
+                new
+                {
+                    headerName = AuthConstants.Csrf.HeaderName,
+                    headerValue = _csrfTokens.CreateToken(sessionId),
+                    tokenFormat = AuthConstants.Csrf.TokenFormats.DataProtection,
+                }
+            );
+        }
+
+        return Unauthorized();
     }
 
     [HttpGet("user")]

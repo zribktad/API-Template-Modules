@@ -19,6 +19,7 @@ public sealed class BffPersistedSessionConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(s => s.UserId);
 
         builder.Property(s => s.Subject).IsRequired().HasMaxLength(256);
+        builder.HasIndex(s => s.Subject);
 
         builder
             .Property(s => s.Provider)

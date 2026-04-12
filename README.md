@@ -19,6 +19,7 @@ Step-by-step guides for the most common workflows in this project:
 | [MongoDB Migration](docs/mongodb-migration.md)       | Create index and data migrations with Kot.MongoDB.Migrations                |
 | [Transactions](docs/transactions.md)                 | Wrap multiple operations in an atomic Unit of Work transaction              |
 | [Authentication](docs/AUTHENTICATION.md)             | JWT login flow, protecting endpoints, and production guidance               |
+| [Keycloak auth workflow](docs/keycloak-auth-workflow.md) | User lifecycle: registration, invitations, account API, Keycloak webhooks   |
 | [Stored Procedures](docs/stored-procedures.md)       | Add a PostgreSQL function and call it safely from C#                        |
 | [MongoDB Polymorphism](docs/mongodb-polymorphism.md) | Store multiple document subtypes in one collection                          |
 | [Validation](docs/validation.md)                     | Add FluentValidation rules, cross-field rules, and shared validators        |
@@ -72,7 +73,7 @@ Step-by-step guides for the most common workflows in this project:
       `Microsoft.Extensions.Compliance` (`[PersonalData]`, `[SensitiveData]`) and HMAC-redacted before writing.
     * **Authentication:** Pre-configured Keycloak JWT + BFF Cookie dual-auth with production hardening: secure-only
       cookies in production, server-side session store (`RedisTicketStore`) backed by DragonFly, silent token
-      refresh before expiry, and CSRF protection (`X-CSRF: 1` header required for cookie-authenticated mutations).
+      refresh before expiry, and CSRF protection (session-bound `X-CSRF` token from `GET /api/v1/bff/csrf` for cookie-authenticated mutations).
     * **Observability:** Health Checks (`/health`) natively tracking PostgreSQL, MongoDB, and DragonFly state.
 * **Role-Based Access Control:** Three-tier role model (`PlatformAdmin`, `TenantAdmin`, `User`) enforced via Keycloak
   claims and ASP.NET Core policy-based authorization. `PermissionRequirement` handlers gate controller actions and
@@ -496,7 +497,7 @@ Configuration sections are bound to strongly-typed `IOptions<T>` classes registe
 | `Bff:Scopes`                       | `["openid","profile","email","offline_access"]` | OIDC scopes requested from Keycloak during the BFF login flow. `offline_access` is required for silent token refresh via refresh token.                                                             |
 | `Bff:RefreshThresholdMinutes`      | `2`                                             | `CookieSessionRefresher` exchanges the refresh token with Keycloak when the access token will expire within this many minutes. Prevents mid-request token expiry without requiring a full re-login. |
 | `Bff:RefreshWaitTimeoutMilliseconds` | `10000`                                       | Maximum time, in milliseconds, follower requests wait for an in-flight refresh before giving up. Should match or exceed the upstream IdP HTTP timeout. |
-| `Bff:RefreshLockTimeoutMilliseconds` | `10000`                                       | Distributed refresh lock TTL in milliseconds. Must be < `RefreshWaitTimeoutMilliseconds`. Also used as the leader's CancellationToken timeout. |
+| `Bff:RefreshLockTimeoutMilliseconds` | `9000`                                        | Distributed refresh lock TTL in milliseconds. Must be < `RefreshWaitTimeoutMilliseconds`. Also used as the leader's CancellationToken timeout. |
 | `Bff:RefreshResultTtlMilliseconds` | `15000`                                        | How long the refresh coordinator result stays in Redis for late followers to read. Must be >= `RefreshWaitTimeoutMilliseconds`. |
 | `Bff:RevokeSessionOnRefreshFailure` | `true`                                        | When `true`, a failed token refresh revokes only the current BFF session. |
 
@@ -552,7 +553,7 @@ clients and Scalar) and **BFF Cookie sessions** (for SPA frontends).
 | Flow           | Use Case                                   | How it works                                                                                              |
 |----------------|--------------------------------------------|-----------------------------------------------------------------------------------------------------------|
 | **JWT Bearer** | Scalar UI, API clients, service-to-service | `Authorization: Bearer <token>` header                                                                    |
-| **BFF Cookie** | SPA frontend                               | `/api/v1/bff/login` → Keycloak login → session cookie → direct API calls with cookie + `X-CSRF: 1` header |
+| **BFF Cookie** | SPA frontend                               | `/api/v1/bff/login` → Keycloak login → session cookie → `GET /api/v1/bff/csrf` → direct API calls with cookie + `X-CSRF` header |
 
 #### BFF Production Hardening
 
@@ -562,7 +563,7 @@ clients and Scalar) and **BFF Cookie sessions** (for SPA frontends).
 | **Server-side session store**  | `RedisTicketStore` serialises the auth ticket to DragonFly — the cookie contains only a GUID key, keeping cookie size small and preventing token leakage                                                                                |
 | **Shared DataProtection keys** | Keys persisted to DragonFly under `DataProtection:Keys` so multiple instances can decrypt each other's cookies                                                                                                                              |
 | **Silent token refresh**       | `CookieSessionRefresher.OnValidatePrincipal` exchanges the refresh token with Keycloak when the access token is within `Bff:TokenRefreshThresholdMinutes` (default 2 min) of expiry                                                         |
-| **CSRF protection**            | `CsrfValidationMiddleware` requires the `X-CSRF: 1` header on all non-GET/HEAD/OPTIONS requests authenticated via the cookie scheme. JWT Bearer requests are exempt. Call `GET /api/v1/bff/csrf` to retrieve the expected header name/value |
+| **CSRF protection**            | `CsrfValidationMiddleware` requires a valid session-bound `X-CSRF` header on non-GET/HEAD/OPTIONS requests authenticated via the cookie scheme. JWT Bearer requests are exempt. Call `GET /api/v1/bff/csrf` with the BFF cookie to retrieve `headerName` / `headerValue` |
 
 ### BFF Endpoints
 
@@ -571,7 +572,7 @@ clients and Scalar) and **BFF Cookie sessions** (for SPA frontends).
 | `GET`  | `/api/v1/bff/login`  |  ❌   | Redirects to Keycloak login page                                 |
 | `GET`  | `/api/v1/bff/logout` |  🍪  | Signs out from both cookie and Keycloak                          |
 | `GET`  | `/api/v1/bff/user`   |  🍪  | Returns current user info (id, username, email, tenantId, roles) |
-| `GET`  | `/api/v1/bff/csrf`   |  ❌   | Returns the required CSRF header name and value (`X-CSRF: 1`)    |
+| `GET`  | `/api/v1/bff/csrf`   |  🍪   | Returns `headerName` + Data Protection `headerValue` when the BFF cookie is present; **401** without a session |
 
 ### Manual Testing Guide
 

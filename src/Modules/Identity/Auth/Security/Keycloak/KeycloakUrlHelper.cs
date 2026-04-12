@@ -32,4 +32,17 @@ public static class KeycloakUrlHelper
     {
         return $"{BuildAuthority(authServerUrl, realm)}/{AuthConstants.OpenIdConnect.TokenEndpointPath}";
     }
+
+    /// <summary>
+    ///     Admin REST: POST to log out all sessions for a Keycloak user
+    ///     (<c>/admin/realms/{realm}/users/{id}/logout</c>).
+    /// </summary>
+    public static string BuildAdminUserLogoutUrl(
+        string authServerUrl,
+        string realm,
+        string keycloakUserId
+    )
+    {
+        return $"{authServerUrl.TrimEnd('/')}/admin/realms/{Uri.EscapeDataString(realm)}/users/{Uri.EscapeDataString(keycloakUserId)}/logout";
+    }
 }

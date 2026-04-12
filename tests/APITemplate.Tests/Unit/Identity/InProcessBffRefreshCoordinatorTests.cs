@@ -21,7 +21,7 @@ public sealed class InProcessBffRefreshCoordinatorTests
         var options = Options.Create(
             new BffOptions
             {
-                RefreshLockTimeoutMilliseconds = 10_000,
+                RefreshLockTimeoutMilliseconds = 9_000,
                 RefreshWaitTimeoutMilliseconds = 10_000,
             }
         );
@@ -48,7 +48,7 @@ public sealed class InProcessBffRefreshCoordinatorTests
         var options = Options.Create(
             new BffOptions
             {
-                RefreshLockTimeoutMilliseconds = 10_000,
+                RefreshLockTimeoutMilliseconds = 9_000,
                 RefreshWaitTimeoutMilliseconds = 10_000,
             }
         );
