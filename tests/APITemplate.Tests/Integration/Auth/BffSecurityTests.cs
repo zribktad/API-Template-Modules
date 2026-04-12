@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 
@@ -69,7 +70,8 @@ public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFa
         // token is denied without invitation data and can leave the response in a bad state for Challenge.
         IntegrationAuthHelper.Authenticate(
             client,
-            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}bff-security"
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}bff-security",
+            permissions: [Permission.Products.Create]
         );
 
         var response = await client.PostAsync(
@@ -196,10 +198,8 @@ internal sealed class FakeCookieAuthHandler(
                 new Claim(ClaimTypes.Name, "testuser"),
                 new Claim(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Role, "PlatformAdmin"),
-                new Claim(
-                    AuthConstants.Claims.Permission,
-                    SharedKernel.Contracts.Security.Permission.Platform.Manage
-                ),
+                new Claim(AuthConstants.Claims.Permission, Permission.Platform.Manage),
+                new Claim(AuthConstants.Claims.Permission, Permission.Products.Create),
             ],
             AuthConstants.BffSchemes.Cookie
         );
