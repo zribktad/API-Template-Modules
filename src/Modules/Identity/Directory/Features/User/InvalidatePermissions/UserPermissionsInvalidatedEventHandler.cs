@@ -1,3 +1,4 @@
+using Identity.Auth.Security;
 using Identity.Directory.Features.User.AssignRoles;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
@@ -16,7 +17,9 @@ public sealed class UserPermissionsInvalidatedEventHandler
     {
         if (!string.IsNullOrEmpty(message.KeycloakUserId))
         {
-            string cacheKey = $"UserPermissions:{message.KeycloakUserId}";
+            string cacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
+                message.KeycloakUserId
+            );
             await cache.RemoveAsync(cacheKey, ct);
             logger.LogInformation(
                 "Invalidated permissions cache for KeycloakUserId {KeycloakUserId}",
@@ -24,7 +27,9 @@ public sealed class UserPermissionsInvalidatedEventHandler
             );
         }
 
-        string appUserCacheKey = $"UserPermissions:{message.AppUserId}";
+        string appUserCacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
+            message.AppUserId.ToString()
+        );
         await cache.RemoveAsync(appUserCacheKey, ct);
         logger.LogInformation(
             "Invalidated permissions cache for AppUserId {AppUserId}",

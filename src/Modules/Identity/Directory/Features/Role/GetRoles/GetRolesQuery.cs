@@ -16,7 +16,10 @@ public sealed class GetRolesQueryHandler
         CancellationToken ct
     )
     {
-        var roles = await repository.ListAsync(new RolesByTenantIdSpecification(tenantProvider.TenantId), ct);
+        var roles = await repository.ListAsync(
+            new RolesByTenantIdSpecification(tenantProvider.TenantId),
+            ct
+        );
         return roles.Select(r => r.ToResponse()).ToList();
     }
 }

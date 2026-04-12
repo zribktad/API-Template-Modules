@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Identity.Auth.Security;
 using Identity.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -27,34 +26,30 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
     {
         if (
             principal.Identity?.IsAuthenticated != true
-            || principal.HasClaim(c => c.Type == "Permission")
+            || principal.HasClaim(c => c.Type == AuthConstants.Claims.Permission)
         )
             return principal;
 
-        // Extract subject (Keycloak user ID or Local AppUser ID)
         string? sub = principal.FindFirstValue(AuthConstants.Claims.Subject);
         if (string.IsNullOrEmpty(sub))
             return principal;
 
-        // If it's a Keycloak service account, it might have Realm roles mapped to ClaimTypes.Role.
-        // We could optionally map those to Permission claims here if needed, but for now we focus on human users.
         if (KeycloakServiceAccountClaims.IsServiceAccount(principal))
         {
             var identity = new ClaimsIdentity();
             foreach (var roleClaim in principal.FindAll(ClaimTypes.Role))
             {
-                // Simple mapping: if service account has PlatformAdmin role, grant Platform.Manage permission
                 if (roleClaim.Value == "PlatformAdmin")
                     identity.AddClaim(
                         new Claim(
-                            "Permission",
+                            AuthConstants.Claims.Permission,
                             SharedKernel.Contracts.Security.Permission.Platform.Manage
                         )
                     );
                 else if (roleClaim.Value == "TenantAdmin")
                     identity.AddClaim(
                         new Claim(
-                            "Permission",
+                            AuthConstants.Claims.Permission,
                             SharedKernel.Contracts.Security.Permission.Tenant.Manage
                         )
                     );
@@ -64,7 +59,7 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
             return principal;
         }
 
-        string cacheKey = $"UserPermissions:{sub}";
+        string cacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(sub);
         string? permissionsJson = await _cache.GetStringAsync(cacheKey);
         List<string>? permissions = null;
 
@@ -88,7 +83,7 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
 
             var cacheOptions = new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
+                AbsoluteExpirationRelativeToNow = AuthConstants.DistributedCache.UserPermissionsTtl,
             };
             await _cache.SetStringAsync(
                 cacheKey,
@@ -102,7 +97,7 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
             var identity = new ClaimsIdentity();
             foreach (var perm in permissions)
             {
-                identity.AddClaim(new Claim("Permission", perm));
+                identity.AddClaim(new Claim(AuthConstants.Claims.Permission, perm));
             }
             principal.AddIdentity(identity);
         }

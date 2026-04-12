@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ErrorOr;
+using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.CreateRole;
 using Identity.Directory.Features.Role.DeleteRole;
@@ -36,7 +37,7 @@ public class RoleRequestHandlersTests
         var claims = new List<Claim>();
         if (isPlatformAdmin)
         {
-            claims.Add(new Claim("Permission", Permission.Platform.Manage));
+            claims.Add(new Claim(AuthConstants.Claims.Permission, Permission.Platform.Manage));
         }
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);

@@ -7,7 +7,6 @@ public sealed class RolesByTenantIdSpecification : Specification<CustomRole>
 {
     public RolesByTenantIdSpecification(Guid tenantId)
     {
-        Query.Where(r => r.TenantId == tenantId || r.TenantId == null)
-             .Include(r => r.Permissions);
+        Query.Where(r => r.TenantId == tenantId || r.TenantId == null).Include(r => r.Permissions);
     }
 }

@@ -11,28 +11,32 @@ public sealed class CustomRoleConfiguration : IEntityTypeConfiguration<CustomRol
     public void Configure(EntityTypeBuilder<CustomRole> builder)
     {
         builder.HasKey(r => r.Id);
-        
+
         // Custom Auditable and Soft Delete configuration (since it's not a strict IAuditableTenantEntity)
         builder.OwnsOne(
             e => e.Audit,
             audit =>
             {
-                audit.Property(a => a.CreatedAtUtc)
+                audit
+                    .Property(a => a.CreatedAtUtc)
                     .HasColumnName("CreatedAtUtc")
                     .HasColumnType("timestamp with time zone")
                     .HasDefaultValueSql("now()");
 
-                audit.Property(a => a.CreatedBy)
+                audit
+                    .Property(a => a.CreatedBy)
                     .HasColumnName("CreatedBy")
                     .IsRequired()
                     .HasDefaultValue(AuditDefaults.SystemActorId);
 
-                audit.Property(a => a.UpdatedAtUtc)
+                audit
+                    .Property(a => a.UpdatedAtUtc)
                     .HasColumnName("UpdatedAtUtc")
                     .HasColumnType("timestamp with time zone")
                     .HasDefaultValueSql("now()");
 
-                audit.Property(a => a.UpdatedBy)
+                audit
+                    .Property(a => a.UpdatedBy)
                     .HasColumnName("UpdatedBy")
                     .IsRequired()
                     .HasDefaultValue(AuditDefaults.SystemActorId);
@@ -44,9 +48,9 @@ public sealed class CustomRoleConfiguration : IEntityTypeConfiguration<CustomRol
         builder.Property(e => e.DeletedBy);
 
         builder.ConfigurePostgresXminConcurrency();
-        
+
         builder.HasIndex(r => r.TenantId);
-        
+
         builder.ToTable(t =>
             t.HasCheckConstraint(
                 $"CK_{builder.Metadata.GetTableName()}_SoftDeleteConsistency",
@@ -55,15 +59,18 @@ public sealed class CustomRoleConfiguration : IEntityTypeConfiguration<CustomRol
         );
 
         builder.Property(r => r.Name).IsRequired().HasMaxLength(100);
-        
+
         builder.HasIndex(r => new { r.TenantId, r.Name }).IsUnique();
 
-        builder.OwnsMany(r => r.Permissions, permissions =>
-        {
-            permissions.ToTable("RolePermissions", "identity");
-            permissions.WithOwner(rp => rp.Role).HasForeignKey(rp => rp.RoleId);
-            permissions.Property(rp => rp.Permission).IsRequired().HasMaxLength(100);
-            permissions.HasKey(rp => new { rp.RoleId, rp.Permission });
-        });
+        builder.OwnsMany(
+            r => r.Permissions,
+            permissions =>
+            {
+                permissions.ToTable("RolePermissions", "identity");
+                permissions.WithOwner(rp => rp.Role).HasForeignKey(rp => rp.RoleId);
+                permissions.Property(rp => rp.Permission).IsRequired().HasMaxLength(100);
+                permissions.HasKey(rp => new { rp.RoleId, rp.Permission });
+            }
+        );
     }
 }

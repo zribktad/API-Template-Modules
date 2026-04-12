@@ -27,7 +27,8 @@ public sealed class CreateRoleCommandHandler
     )
     {
         var user = httpContextAccessor.HttpContext?.User;
-        bool isPlatformAdmin = user?.HasClaim("Permission", Permission.Platform.Manage) == true;
+        bool isPlatformAdmin =
+            user?.HasClaim(AuthConstants.Claims.Permission, Permission.Platform.Manage) == true;
 
         if (!isPlatformAdmin && command.Request.Permissions.Contains(Permission.Platform.Manage))
         {

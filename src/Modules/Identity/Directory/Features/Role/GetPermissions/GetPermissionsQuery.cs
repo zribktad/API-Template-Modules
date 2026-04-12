@@ -1,4 +1,5 @@
 using ErrorOr;
+using Identity.Auth.Security;
 using Microsoft.AspNetCore.Http;
 using SharedKernel.Contracts.Security;
 
@@ -15,18 +16,13 @@ public sealed class GetPermissionsQueryHandler
     )
     {
         var user = httpContextAccessor.HttpContext?.User;
-        var isPlatformAdmin = user?.HasClaim("Permission", Permission.Platform.Manage) == true;
+        var isPlatformAdmin =
+            user?.HasClaim(AuthConstants.Claims.Permission, Permission.Platform.Manage) == true;
 
         var allPermissions = Permission.All.ToList();
 
         if (!isPlatformAdmin)
-        {
-            // Filter out platform-level permissions for tenant admins
             allPermissions.Remove(Permission.Platform.Manage);
-
-            // Optionally, TenantAdmin might not be allowed to assign Tenant.Manage to avoid creating more admins?
-            // If they are allowed, they can keep it. We will just remove Platform.Manage.
-        }
 
         return Task.FromResult<ErrorOr<IReadOnlyList<string>>>(allPermissions);
     }

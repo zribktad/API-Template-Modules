@@ -6,7 +6,6 @@ namespace Identity.Directory.Repositories;
 
 internal sealed class RoleRepository : RepositoryBase<CustomRole>, IRoleRepository
 {
-    public RoleRepository(IdentityDbContext dbContext) : base(dbContext)
-    {
-    }
+    public RoleRepository(IdentityDbContext dbContext)
+        : base(dbContext) { }
 }

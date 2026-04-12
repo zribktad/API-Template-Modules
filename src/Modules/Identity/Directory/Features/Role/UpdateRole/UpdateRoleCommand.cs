@@ -1,4 +1,5 @@
 using ErrorOr;
+using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Interfaces;
@@ -43,7 +44,8 @@ public sealed class UpdateRoleCommandHandler
         var role = roleResult.Value;
 
         var user = httpContextAccessor.HttpContext?.User;
-        bool isPlatformAdmin = user?.HasClaim("Permission", Permission.Platform.Manage) == true;
+        bool isPlatformAdmin =
+            user?.HasClaim(AuthConstants.Claims.Permission, Permission.Platform.Manage) == true;
 
         if (!isPlatformAdmin && command.Request.Permissions.Contains(Permission.Platform.Manage))
         {

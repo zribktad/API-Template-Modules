@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using Identity.Auth.Entities;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
-using Identity.Directory.Enums;
 using Identity.Persistence;
 using Identity.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,19 +47,25 @@ internal static class IntegrationAuthHelper
         {
             foreach (var permission in permissions)
             {
-                claims.Add(new Claim("Permission", permission));
+                claims.Add(new Claim(AuthConstants.Claims.Permission, permission));
             }
         }
         else if (role == "PlatformAdmin")
         {
             claims.Add(
-                new Claim("Permission", SharedKernel.Contracts.Security.Permission.Platform.Manage)
+                new Claim(
+                    AuthConstants.Claims.Permission,
+                    SharedKernel.Contracts.Security.Permission.Platform.Manage
+                )
             );
         }
         else if (role == "TenantAdmin")
         {
             claims.Add(
-                new Claim("Permission", SharedKernel.Contracts.Security.Permission.Tenant.Manage)
+                new Claim(
+                    AuthConstants.Claims.Permission,
+                    SharedKernel.Contracts.Security.Permission.Tenant.Manage
+                )
             );
         }
 

@@ -18,8 +18,10 @@ public sealed class DeleteRoleCommandHandler
     )
     {
         var role = await repository.FirstOrDefaultAsync(new RoleByIdSpecification(command.Id), ct);
-        if (role == null) return Error.NotFound("Role.NotFound", "Role not found.");
-        if (role.IsImmutable) return Error.Validation("Role.Immutable", "Cannot modify built-in roles.");
+        if (role == null)
+            return Error.NotFound("Role.NotFound", "Role not found.");
+        if (role.IsImmutable)
+            return Error.Validation("Role.Immutable", "Cannot modify built-in roles.");
         return role;
     }
 
@@ -31,13 +33,18 @@ public sealed class DeleteRoleCommandHandler
         CancellationToken ct
     )
     {
-        if (roleResult.IsError) return (roleResult.Errors, OutgoingMessagesHelper.Empty);
+        if (roleResult.IsError)
+            return (roleResult.Errors, OutgoingMessagesHelper.Empty);
 
         await repository.DeleteAsync(roleResult.Value, ct);
         await unitOfWork.CommitAsync(ct);
 
         OutgoingMessages messages = new();
-        messages.Add(new Identity.Directory.Features.User.InvalidatePermissions.RolePermissionsInvalidatedEvent(command.Id));
+        messages.Add(
+            new Identity.Directory.Features.User.InvalidatePermissions.RolePermissionsInvalidatedEvent(
+                command.Id
+            )
+        );
 
         return (Result.Success, messages);
     }

@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using Identity.Auth.Security;
 using Microsoft.AspNetCore.Authorization;
 
 namespace APITemplate.Api.Authorization;
@@ -10,7 +10,7 @@ public sealed class PermissionAuthorizationHandler : AuthorizationHandler<Permis
         PermissionRequirement requirement
     )
     {
-        if (context.User.HasClaim("Permission", requirement.Permission))
+        if (context.User.HasClaim(AuthConstants.Claims.Permission, requirement.Permission))
         {
             context.Succeed(requirement);
         }

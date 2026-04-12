@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.GetPermissions;
 using Identity.Directory.Features.Role.GetRoles;
@@ -66,7 +67,10 @@ public class RoleQueriesTests
     {
         // Arrange
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        var claims = new List<Claim> { new Claim("Permission", Permission.Platform.Manage) };
+        var claims = new List<Claim>
+        {
+            new Claim(AuthConstants.Claims.Permission, Permission.Platform.Manage),
+        };
         var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "Test"));
         httpContextAccessor
             .Setup(x => x.HttpContext)

@@ -4,7 +4,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
 using Identity.Auth.Security;
-using Identity.Directory.Enums;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -197,7 +196,10 @@ internal sealed class FakeCookieAuthHandler(
                 new Claim(ClaimTypes.Name, "testuser"),
                 new Claim(AuthConstants.Claims.Subject, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.Role, "PlatformAdmin"),
-                new Claim("Permission", SharedKernel.Contracts.Security.Permission.Platform.Manage),
+                new Claim(
+                    AuthConstants.Claims.Permission,
+                    SharedKernel.Contracts.Security.Permission.Platform.Manage
+                ),
             ],
             AuthConstants.BffSchemes.Cookie
         );

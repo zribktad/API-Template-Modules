@@ -72,7 +72,7 @@ public class UserPermissionsClaimsTransformationTests
             _cache.Object
         );
         var identity = new ClaimsIdentity("TestAuth");
-        identity.AddClaim(new Claim("Permission", "Some.Perm"));
+        identity.AddClaim(new Claim(AuthConstants.Claims.Permission, "Some.Perm"));
         var principal = new ClaimsPrincipal(identity);
 
         // Act
@@ -103,7 +103,9 @@ public class UserPermissionsClaimsTransformationTests
         var result = await transformation.TransformAsync(principal);
 
         // Assert
-        result.HasClaim("Permission", Permission.Platform.Manage).ShouldBeTrue();
+        result
+            .HasClaim(AuthConstants.Claims.Permission, Permission.Platform.Manage)
+            .ShouldBeTrue();
     }
 
     [Fact]
@@ -125,14 +127,22 @@ public class UserPermissionsClaimsTransformationTests
         );
 
         _cache
-            .Setup(c => c.GetAsync($"UserPermissions:{subject}", It.IsAny<CancellationToken>()))
+            .Setup(c =>
+                c.GetAsync(
+                    AuthConstants.DistributedCache.UserPermissionsCacheKey(subject),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(cachedBytes);
 
         // Act
         var result = await transformation.TransformAsync(principal);
 
         // Assert
-        var extractedPermissions = result.FindAll("Permission").Select(c => c.Value).ToList();
+        var extractedPermissions = result
+            .FindAll(AuthConstants.Claims.Permission)
+            .Select(c => c.Value)
+            .ToList();
         extractedPermissions.Count.ShouldBe(2);
         extractedPermissions.ShouldContain("Test.Perm1");
         extractedPermissions.ShouldContain("Test.Perm2");

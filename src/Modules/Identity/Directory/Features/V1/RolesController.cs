@@ -17,19 +17,34 @@ public sealed class RolesController(IMessageBus bus) : ApiControllerBase
 {
     [HttpPost]
     [RequirePermission(Permission.Roles.Create)]
-    public async Task<ActionResult<RoleResponse>> Create(CreateRoleRequest request, CancellationToken ct)
+    public async Task<ActionResult<RoleResponse>> Create(
+        CreateRoleRequest request,
+        CancellationToken ct
+    )
     {
         ErrorOr<RoleResponse> result = await bus.InvokeAsync<ErrorOr<RoleResponse>>(
-            new CreateRoleCommand(request), ct);
-        return result.ToCreatedResult(this, nameof(GetRoles), v => new { id = v.Id, version = this.GetApiVersion() });
+            new CreateRoleCommand(request),
+            ct
+        );
+        return result.ToCreatedResult(
+            this,
+            nameof(GetRoles),
+            v => new { id = v.Id, version = this.GetApiVersion() }
+        );
     }
 
     [HttpPut("{id:guid}")]
     [RequirePermission(Permission.Roles.Update)]
-    public async Task<ActionResult<RoleResponse>> Update(Guid id, UpdateRoleRequest request, CancellationToken ct)
+    public async Task<ActionResult<RoleResponse>> Update(
+        Guid id,
+        UpdateRoleRequest request,
+        CancellationToken ct
+    )
     {
         ErrorOr<RoleResponse> result = await bus.InvokeAsync<ErrorOr<RoleResponse>>(
-            new UpdateRoleCommand(id, request), ct);
+            new UpdateRoleCommand(id, request),
+            ct
+        );
         return result.ToActionResult(this);
     }
 
@@ -38,7 +53,9 @@ public sealed class RolesController(IMessageBus bus) : ApiControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
-            new DeleteRoleCommand(id), ct);
+            new DeleteRoleCommand(id),
+            ct
+        );
         return result.ToNoContentResult(this);
     }
 
@@ -46,8 +63,9 @@ public sealed class RolesController(IMessageBus bus) : ApiControllerBase
     [RequirePermission(Permission.Roles.Read)]
     public async Task<ActionResult<IReadOnlyList<RoleResponse>>> GetRoles(CancellationToken ct)
     {
-        ErrorOr<IReadOnlyList<RoleResponse>> result = await bus.InvokeAsync<ErrorOr<IReadOnlyList<RoleResponse>>>(
-            new GetRolesQuery(), ct);
+        ErrorOr<IReadOnlyList<RoleResponse>> result = await bus.InvokeAsync<
+            ErrorOr<IReadOnlyList<RoleResponse>>
+        >(new GetRolesQuery(), ct);
         return result.ToActionResult(this);
     }
 
@@ -55,8 +73,9 @@ public sealed class RolesController(IMessageBus bus) : ApiControllerBase
     [RequirePermission(Permission.Roles.Read)]
     public async Task<ActionResult<IReadOnlyList<string>>> GetPermissions(CancellationToken ct)
     {
-        ErrorOr<IReadOnlyList<string>> result = await bus.InvokeAsync<ErrorOr<IReadOnlyList<string>>>(
-            new GetPermissionsQuery(), ct);
+        ErrorOr<IReadOnlyList<string>> result = await bus.InvokeAsync<
+            ErrorOr<IReadOnlyList<string>>
+        >(new GetPermissionsQuery(), ct);
         return result.ToActionResult(this);
     }
 }

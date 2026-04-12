@@ -11,8 +11,7 @@ namespace Identity.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "identity");
+            migrationBuilder.EnsureSchema(name: "identity");
 
             migrationBuilder.CreateTable(
                 name: "CustomRole",
@@ -20,22 +19,53 @@ namespace Identity.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(
+                        type: "character varying(100)",
+                        maxLength: 100,
+                        nullable: false
+                    ),
                     IsImmutable = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false, defaultValue: new Guid("00000000-0000-0000-0000-000000000000")),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    UpdatedBy = table.Column<Guid>(type: "uuid", nullable: false, defaultValue: new Guid("00000000-0000-0000-0000-000000000000")),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    DeletedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(
+                        type: "timestamp with time zone",
+                        nullable: false,
+                        defaultValueSql: "now()"
+                    ),
+                    CreatedBy = table.Column<Guid>(
+                        type: "uuid",
+                        nullable: false,
+                        defaultValue: new Guid("00000000-0000-0000-0000-000000000000")
+                    ),
+                    UpdatedAtUtc = table.Column<DateTime>(
+                        type: "timestamp with time zone",
+                        nullable: false,
+                        defaultValueSql: "now()"
+                    ),
+                    UpdatedBy = table.Column<Guid>(
+                        type: "uuid",
+                        nullable: false,
+                        defaultValue: new Guid("00000000-0000-0000-0000-000000000000")
+                    ),
+                    IsDeleted = table.Column<bool>(
+                        type: "boolean",
+                        nullable: false,
+                        defaultValue: false
+                    ),
+                    DeletedAtUtc = table.Column<DateTime>(
+                        type: "timestamp with time zone",
+                        nullable: true
+                    ),
                     DeletedBy = table.Column<Guid>(type: "uuid", nullable: true),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CustomRole", x => x.Id);
-                    table.CheckConstraint("CK_CustomRole_SoftDeleteConsistency", "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)");
-                });
+                    table.CheckConstraint(
+                        "CK_CustomRole_SoftDeleteConsistency",
+                        "\"IsDeleted\" OR (\"DeletedAtUtc\" IS NULL AND \"DeletedBy\" IS NULL)"
+                    );
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "AppUserRoles",
@@ -43,7 +73,7 @@ namespace Identity.Migrations
                 columns: table => new
                 {
                     RolesId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UsersId = table.Column<Guid>(type: "uuid", nullable: false)
+                    UsersId = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -53,14 +83,17 @@ namespace Identity.Migrations
                         column: x => x.RolesId,
                         principalTable: "CustomRole",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Cascade
+                    );
                     table.ForeignKey(
                         name: "FK_AppUserRoles_Users_UsersId",
                         column: x => x.UsersId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "RolePermissions",
@@ -68,7 +101,11 @@ namespace Identity.Migrations
                 columns: table => new
                 {
                     RoleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Permission = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                    Permission = table.Column<string>(
+                        type: "character varying(100)",
+                        maxLength: 100,
+                        nullable: false
+                    ),
                 },
                 constraints: table =>
                 {
@@ -78,25 +115,30 @@ namespace Identity.Migrations
                         column: x => x.RoleId,
                         principalTable: "CustomRole",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_AppUserRoles_UsersId",
                 schema: "identity",
                 table: "AppUserRoles",
-                column: "UsersId");
+                column: "UsersId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_CustomRole_TenantId",
                 table: "CustomRole",
-                column: "TenantId");
+                column: "TenantId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_CustomRole_TenantId_Name",
                 table: "CustomRole",
                 columns: new[] { "TenantId", "Name" },
-                unique: true);
+                unique: true
+            );
 
             // Data Migration: Seed Default Roles
             var platformAdminId = Guid.NewGuid();
@@ -110,17 +152,21 @@ namespace Identity.Migrations
                 {
                     { platformAdminId, null, "PlatformAdmin", true },
                     { tenantAdminId, null, "TenantAdmin", true },
-                    { userId, null, "User", true }
-                });
+                    { userId, null, "User", true },
+                }
+            );
 
             // Data Migration: Seed Permissions
-            migrationBuilder.Sql($@"
+            migrationBuilder.Sql(
+                $@"
                 INSERT INTO identity.""RolePermissions"" (""RoleId"", ""Permission"") VALUES ('{platformAdminId}', 'Platform.Manage');
                 INSERT INTO identity.""RolePermissions"" (""RoleId"", ""Permission"") VALUES ('{tenantAdminId}', 'Tenant.Manage');
-            ");
+            "
+            );
 
             // Data Migration: Migrate existing users
-            migrationBuilder.Sql($@"
+            migrationBuilder.Sql(
+                $@"
                 INSERT INTO identity.""AppUserRoles"" (""UsersId"", ""RolesId"")
                 SELECT ""Id"", 
                        CASE 
@@ -129,11 +175,10 @@ namespace Identity.Migrations
                            ELSE '{userId}'::uuid
                        END
                 FROM ""Users"";
-            ");
+            "
+            );
 
-            migrationBuilder.DropColumn(
-                name: "Role",
-                table: "Users");
+            migrationBuilder.DropColumn(name: "Role", table: "Users");
         }
 
         /// <inheritdoc />
@@ -145,10 +190,12 @@ namespace Identity.Migrations
                 type: "character varying(32)",
                 maxLength: 32,
                 nullable: false,
-                defaultValue: "User");
+                defaultValue: "User"
+            );
 
             // Restore roles from Many-to-Many mapping
-            migrationBuilder.Sql(@"
+            migrationBuilder.Sql(
+                @"
                 UPDATE ""Users""
                 SET ""Role"" = (
                     SELECT cr.""Name""
@@ -157,18 +204,14 @@ namespace Identity.Migrations
                     WHERE ur.""UsersId"" = ""Users"".""Id""
                     LIMIT 1
                 )
-            ");
+            "
+            );
 
-            migrationBuilder.DropTable(
-                name: "AppUserRoles",
-                schema: "identity");
+            migrationBuilder.DropTable(name: "AppUserRoles", schema: "identity");
 
-            migrationBuilder.DropTable(
-                name: "RolePermissions",
-                schema: "identity");
+            migrationBuilder.DropTable(name: "RolePermissions", schema: "identity");
 
-            migrationBuilder.DropTable(
-                name: "CustomRole");
+            migrationBuilder.DropTable(name: "CustomRole");
         }
     }
 }

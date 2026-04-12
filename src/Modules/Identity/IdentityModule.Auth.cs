@@ -109,7 +109,7 @@ public static partial class IdentityModule
                         )
                         .RequireAuthenticatedUser()
                         .RequireClaim(
-                            "Permission",
+                            AuthConstants.Claims.Permission,
                             SharedKernel.Contracts.Security.Permission.Platform.Manage
                         )
             )
@@ -123,7 +123,7 @@ public static partial class IdentityModule
                         )
                         .RequireAuthenticatedUser()
                         .RequireClaim(
-                            "Permission",
+                            AuthConstants.Claims.Permission,
                             SharedKernel.Contracts.Security.Permission.Tenant.Manage,
                             SharedKernel.Contracts.Security.Permission.Platform.Manage
                         )

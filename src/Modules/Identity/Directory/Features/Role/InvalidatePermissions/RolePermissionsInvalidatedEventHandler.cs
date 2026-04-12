@@ -1,4 +1,5 @@
 using Ardalis.Specification;
+using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
@@ -35,11 +36,15 @@ public sealed class RolePermissionsInvalidatedEventHandler
         {
             if (!string.IsNullOrEmpty(user.KeycloakUserId))
             {
-                string cacheKey = $"UserPermissions:{user.KeycloakUserId}";
+                string cacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
+                    user.KeycloakUserId
+                );
                 await cache.RemoveAsync(cacheKey, ct);
             }
 
-            string appUserCacheKey = $"UserPermissions:{user.Id}";
+            string appUserCacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
+                user.Id.ToString()
+            );
             await cache.RemoveAsync(appUserCacheKey, ct);
         }
 

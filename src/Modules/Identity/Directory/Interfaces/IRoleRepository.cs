@@ -3,6 +3,4 @@ using SharedKernel.Domain.Interfaces;
 
 namespace Identity.Directory.Interfaces;
 
-public interface IRoleRepository : IRepository<CustomRole>
-{
-}
+public interface IRoleRepository : IRepository<CustomRole> { }

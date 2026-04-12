@@ -20,7 +20,8 @@ public static class RoleMappings
             role.Permissions.Select(p => p.Permission).ToList()
         );
 
-    private static readonly Func<CustomRole, RoleResponse> CompiledProjection = Projection.Compile();
+    private static readonly Func<CustomRole, RoleResponse> CompiledProjection =
+        Projection.Compile();
 
     /// <summary>
     ///     Maps a <see cref="CustomRole" /> entity to a <see cref="RoleResponse" /> using the pre-compiled projection.

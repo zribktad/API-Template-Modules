@@ -43,7 +43,6 @@ public sealed class AssignUserRolesCommandHandler
             ct
         );
 
-        // Security check: Verify that all requested roles actually exist.
         if (requestedRoles.Count != command.Request.RoleIds.Count)
         {
             return (
@@ -61,8 +60,6 @@ public sealed class AssignUserRolesCommandHandler
         await userRepository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);
 
-        // Instead of manually deleting redis here, we could publish a CacheInvalidationNotification or delete directly.
-        // There is already CacheInvalidationNotification, but we also want to invalidate the specific user's permission cache.
         OutgoingMessages messages = new();
         messages.Add(new UserPermissionsInvalidatedEvent(user.Id, user.KeycloakUserId));
 
