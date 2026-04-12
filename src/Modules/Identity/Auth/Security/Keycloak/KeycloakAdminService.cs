@@ -184,8 +184,11 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         HttpClient client = _httpClientFactory.CreateClient(
             AuthConstants.HttpClients.KeycloakAdmin
         );
-        string url =
-            $"{_authServerUrl.TrimEnd('/')}/admin/realms/{Uri.EscapeDataString(_realm)}/users/{Uri.EscapeDataString(keycloakUserId)}/logout";
+        string url = KeycloakUrlHelper.BuildAdminUserLogoutUrl(
+            _authServerUrl,
+            _realm,
+            keycloakUserId
+        );
 
         using HttpResponseMessage response = await client.PostAsync(url, null, ct);
         if (response.StatusCode == HttpStatusCode.NotFound)

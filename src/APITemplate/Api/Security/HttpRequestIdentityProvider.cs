@@ -96,13 +96,7 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
             user.FindFirstValue(AuthConstants.Claims.PreferredUsername)
             ?? user.FindFirstValue(ClaimTypes.Name);
 
-        if (
-            !string.IsNullOrEmpty(_preferredUsername)
-            && _preferredUsername.StartsWith(
-                AuthConstants.Claims.ServiceAccountUsernamePrefix,
-                StringComparison.OrdinalIgnoreCase
-            )
-        )
+        if (KeycloakServiceAccountClaims.IsServiceAccount(user))
             _isInteractiveUser = false;
 
         if (Guid.TryParse(nameId, out Guid nameIdGuid))

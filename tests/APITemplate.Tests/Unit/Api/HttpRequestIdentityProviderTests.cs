@@ -70,6 +70,22 @@ public sealed class HttpRequestIdentityProviderTests
     }
 
     [Fact]
+    public void ServiceAccount_WithAzpAndServiceSubject_NoPreferredUsername_IsInteractiveUserFalse()
+    {
+        string serviceSub =
+            AuthConstants.Claims.ServiceAccountUsernamePrefix
+            + "00000000-0000-0000-0000-000000000000";
+        ClaimsPrincipal principal = CreatePrincipal([
+            new Claim(AuthConstants.Claims.AuthorizedParty, "my-client-id"),
+            new Claim(ClaimTypes.NameIdentifier, serviceSub),
+        ]);
+
+        HttpRequestIdentityProvider sut = CreateProvider(principal);
+
+        sut.IsInteractiveUser.ShouldBeFalse();
+    }
+
+    [Fact]
     public void NoHttpContext_ActorIdEmptyAndNoSubject()
     {
         IHttpContextAccessor accessor = new TestHttpContextAccessor(null!);

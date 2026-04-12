@@ -41,8 +41,13 @@ public static class ApiServiceCollectionExtensions
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
         });
-        services.AddRedisInfrastructure(configuration);
-        services.AddCaching(configuration);
+
+        ConfigurationOptions? redisConfiguration = null;
+        if (configuration.IsRedisConfigured())
+            redisConfiguration = BuildRedisConfigurationOptions(configuration);
+
+        services.AddRedisInfrastructure(configuration, redisConfiguration);
+        services.AddCaching(configuration, redisConfiguration);
         services.AddOpenApi(options =>
         {
             options.AddDocumentTransformer<HealthCheckOpenApiDocumentTransformer>();
@@ -56,21 +61,20 @@ public static class ApiServiceCollectionExtensions
 
     private static IServiceCollection AddRedisInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration
+        IConfiguration configuration,
+        ConfigurationOptions? redisConfiguration
     )
     {
         services.AddValidatedOptions<RedisOptions>(configuration);
 
-        if (configuration.IsRedisConfigured())
+        if (redisConfiguration is not null)
         {
-            ConfigurationOptions redisConfig = BuildRedisConfigurationOptions(configuration);
-
-            IConnectionMultiplexer redis = ConnectionMultiplexer.Connect(redisConfig);
+            IConnectionMultiplexer redis = ConnectionMultiplexer.Connect(redisConfiguration);
             services.AddSingleton<IConnectionMultiplexer>(_ => redis);
 
             services.AddStackExchangeRedisCache(opts =>
             {
-                opts.ConfigurationOptions = redisConfig;
+                opts.ConfigurationOptions = redisConfiguration;
             });
 
             services
@@ -103,7 +107,8 @@ public static class ApiServiceCollectionExtensions
 
     private static IServiceCollection AddCaching(
         this IServiceCollection services,
-        IConfiguration configuration
+        IConfiguration configuration,
+        ConfigurationOptions? redisConfiguration
     )
     {
         services.AddValidatedOptions<CachingOptions>(configuration);
@@ -112,11 +117,11 @@ public static class ApiServiceCollectionExtensions
 
         services.AddOutputCache(options => options.AddBasePolicy(builder => builder.NoCache()));
 
-        if (configuration.IsRedisConfigured())
+        if (redisConfiguration is not null)
         {
             services.AddStackExchangeRedisOutputCache(options =>
             {
-                options.ConfigurationOptions = BuildRedisConfigurationOptions(configuration);
+                options.ConfigurationOptions = redisConfiguration;
                 options.InstanceName = RedisInstanceNames.OutputCache;
             });
         }

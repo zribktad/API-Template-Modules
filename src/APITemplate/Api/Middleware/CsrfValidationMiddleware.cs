@@ -52,7 +52,7 @@ public sealed class CsrfValidationMiddleware(
             !context.Request.Headers.TryGetValue(
                 AuthConstants.Csrf.HeaderName,
                 out StringValues values
-            ) || !values.Any(static v => !string.IsNullOrEmpty(v))
+            )
         )
         {
             await WriteCsrfForbiddenAsync(
@@ -62,7 +62,30 @@ public sealed class CsrfValidationMiddleware(
             return;
         }
 
-        if (!values.Any(v => csrfTokens.IsValid(sessionId, v)))
+        bool anyNonEmpty = false;
+        bool anyValid = false;
+        foreach (string? v in values)
+        {
+            if (string.IsNullOrEmpty(v))
+                continue;
+            anyNonEmpty = true;
+            if (csrfTokens.IsValid(sessionId, v))
+            {
+                anyValid = true;
+                break;
+            }
+        }
+
+        if (!anyNonEmpty)
+        {
+            await WriteCsrfForbiddenAsync(
+                context,
+                $"Cookie-authenticated requests must include a valid '{AuthConstants.Csrf.HeaderName}' header (see GET /api/v1/bff/csrf)."
+            );
+            return;
+        }
+
+        if (!anyValid)
         {
             await WriteCsrfForbiddenAsync(
                 context,

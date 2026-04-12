@@ -14,11 +14,7 @@ public sealed class RevokeAllOwnSessionsCommandHandler
         CancellationToken ct
     )
     {
-        await globalLogout.SignOutEverywhereAsync(
-            command.KeycloakUserId,
-            BffSessionRevocationReason.CredentialRotation,
-            ct
-        );
+        await globalLogout.SignOutAfterCredentialChangeAsync(command.KeycloakUserId, ct);
 
         return Result.Success;
     }

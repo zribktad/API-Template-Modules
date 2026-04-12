@@ -21,11 +21,7 @@ public sealed class KeycloakPasswordChangedWebhookCommandHandler
                 "KeycloakUserId is required."
             );
 
-        await globalLogout.SignOutEverywhereAsync(
-            command.KeycloakUserId,
-            BffSessionRevocationReason.CredentialRotation,
-            ct
-        );
+        await globalLogout.SignOutAfterCredentialChangeAsync(command.KeycloakUserId, ct);
 
         return Result.Success;
     }

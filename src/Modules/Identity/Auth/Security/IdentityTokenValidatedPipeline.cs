@@ -108,7 +108,7 @@ public static class IdentityTokenValidatedPipeline
         if (principal?.Identity is ClaimsIdentity identity)
             KeycloakClaimMapper.MapKeycloakClaims(identity);
 
-        bool isServiceAccount = IsServiceAccount(principal);
+        bool isServiceAccount = KeycloakServiceAccountClaims.IsServiceAccount(principal);
 
         // Step 2 — Humans must exist in our DB with a valid invitation/tenant; service accounts skip this.
         if (!isServiceAccount)
@@ -300,41 +300,6 @@ public static class IdentityTokenValidatedPipeline
                 && Guid.TryParse(c.Value, out Guid tenantId)
                 && tenantId != Guid.Empty
             ) == true;
-    }
-
-    /// <summary>
-    ///     Keycloak encodes client credentials / service users with a <c>preferred_username</c>
-    ///     prefix; those principals skip tenant and invitation rules meant for interactive users.
-    /// </summary>
-    private static bool IsServiceAccount(ClaimsPrincipal? principal)
-    {
-        if (principal is null)
-            return false;
-
-        string? username = principal.FindFirstValue(AuthConstants.Claims.PreferredUsername);
-        if (
-            username != null
-            && username.StartsWith(
-                AuthConstants.Claims.ServiceAccountUsernamePrefix,
-                StringComparison.OrdinalIgnoreCase
-            )
-        )
-            return true;
-
-        // Client-credentials flows: Keycloak sets azp to the OAuth client id; sub often still uses
-        // the service-account-* pattern but preferred_username can be absent in some configurations.
-        if (string.IsNullOrEmpty(principal.FindFirstValue(AuthConstants.Claims.AuthorizedParty)))
-            return false;
-
-        string? subject =
-            principal.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? principal.FindFirstValue(AuthConstants.Claims.Subject);
-
-        return subject != null
-            && subject.StartsWith(
-                AuthConstants.Claims.ServiceAccountUsernamePrefix,
-                StringComparison.OrdinalIgnoreCase
-            );
     }
 
     private static ILogger GetLogger(HttpContext httpContext)

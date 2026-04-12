@@ -33,9 +33,6 @@ public sealed class ChangeOwnPasswordCommandHandler
         if (user is null)
             return DomainErrors.Users.NotFoundByKeycloakUserId(command.KeycloakUserId);
 
-        if (user.KeycloakUserId is null)
-            return DomainErrors.Users.KeycloakAccountRequired();
-
         if (
             string.Equals(
                 command.Request.CurrentPassword,
@@ -55,17 +52,13 @@ public sealed class ChangeOwnPasswordCommandHandler
             return DomainErrors.Users.CurrentPasswordInvalid();
 
         await keycloakAdmin.SetUserPasswordAsync(
-            user.KeycloakUserId,
+            command.KeycloakUserId,
             command.Request.NewPassword,
             temporary: false,
             ct
         );
 
-        await globalLogout.SignOutEverywhereAsync(
-            command.KeycloakUserId,
-            BffSessionRevocationReason.CredentialRotation,
-            ct
-        );
+        await globalLogout.SignOutAfterCredentialChangeAsync(command.KeycloakUserId, ct);
 
         return Result.Success;
     }
