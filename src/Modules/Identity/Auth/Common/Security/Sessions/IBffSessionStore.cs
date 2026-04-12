@@ -38,4 +38,15 @@ public interface IBffSessionStore
         string keycloakSubject,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Revokes every active session for the subject in a single database update and removes
+    ///     distributed cache entries. Returns the revoked session identifiers.
+    /// </summary>
+    Task<IReadOnlyList<string>> BulkRevokeActiveSessionsBySubjectAsync(
+        string keycloakSubject,
+        BffSessionRevocationReason reason,
+        DateTimeOffset revokedAtUtc,
+        CancellationToken ct = default
+    );
 }

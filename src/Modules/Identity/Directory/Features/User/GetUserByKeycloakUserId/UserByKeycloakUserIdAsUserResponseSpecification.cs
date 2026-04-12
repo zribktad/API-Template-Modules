@@ -12,7 +12,6 @@ public sealed class UserByKeycloakUserIdAsUserResponseSpecification
     public UserByKeycloakUserIdAsUserResponseSpecification(string keycloakUserId)
     {
         Query
-            .IgnoreQueryFilters()
             .Where(u => u.KeycloakUserId == keycloakUserId)
             .AsNoTracking()
             .Select(UserMappings.Projection);

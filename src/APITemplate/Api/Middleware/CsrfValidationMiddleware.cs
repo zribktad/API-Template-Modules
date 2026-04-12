@@ -24,7 +24,7 @@ public sealed class CsrfValidationMiddleware(
             return;
         }
 
-        if (HasBearerAuthorization(context))
+        if (await HasSuccessfulBearerAuthenticationAsync(context))
         {
             await next(context);
             return;
@@ -111,19 +111,27 @@ public sealed class CsrfValidationMiddleware(
             || HttpMethods.IsOptions(context.Request.Method);
     }
 
-    private static bool HasBearerAuthorization(HttpContext context)
+    private static async Task<bool> HasSuccessfulBearerAuthenticationAsync(HttpContext context)
     {
-        return context.Request.Headers.TryGetValue(
+        if (
+            !context.Request.Headers.TryGetValue(
                 HeaderNames.Authorization,
                 out StringValues authorizationValues
             )
-            && authorizationValues.Any(static value =>
+            || !authorizationValues.Any(static value =>
                 !string.IsNullOrEmpty(value)
                 && value.StartsWith(
                     $"{JwtBearerDefaults.AuthenticationScheme} ",
                     StringComparison.OrdinalIgnoreCase
                 )
-            );
+            )
+        )
+            return false;
+
+        AuthenticateResult bearer = await context.AuthenticateAsync(
+            JwtBearerDefaults.AuthenticationScheme
+        );
+        return bearer.Succeeded;
     }
 
     private async Task WriteCsrfForbiddenAsync(HttpContext context, string detail)

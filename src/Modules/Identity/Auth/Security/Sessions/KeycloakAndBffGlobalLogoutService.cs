@@ -1,4 +1,6 @@
 using Identity.Auth.Security;
+using Identity.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Identity.Auth.Security.Sessions;
 
@@ -6,14 +8,17 @@ public sealed class KeycloakAndBffGlobalLogoutService : IKeycloakAndBffGlobalLog
 {
     private readonly IKeycloakAdminService _keycloakAdmin;
     private readonly IBffSessionRevocationService _bffSessionRevocation;
+    private readonly ILogger<KeycloakAndBffGlobalLogoutService> _logger;
 
     public KeycloakAndBffGlobalLogoutService(
         IKeycloakAdminService keycloakAdmin,
-        IBffSessionRevocationService bffSessionRevocation
+        IBffSessionRevocationService bffSessionRevocation,
+        ILogger<KeycloakAndBffGlobalLogoutService> logger
     )
     {
         _keycloakAdmin = keycloakAdmin;
         _bffSessionRevocation = bffSessionRevocation;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -23,7 +28,15 @@ public sealed class KeycloakAndBffGlobalLogoutService : IKeycloakAndBffGlobalLog
         CancellationToken ct = default
     )
     {
-        await _keycloakAdmin.LogoutAllUserSessionsAsync(keycloakUserId, ct);
+        try
+        {
+            await _keycloakAdmin.LogoutAllUserSessionsAsync(keycloakUserId, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.KeycloakLogoutAllSessionsFailed(ex, keycloakUserId);
+        }
+
         await _bffSessionRevocation.RevokeAllSessionsForSubjectAsync(keycloakUserId, reason, ct);
     }
 }

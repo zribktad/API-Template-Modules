@@ -180,13 +180,20 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
         CancellationToken ct = default
     )
     {
-        IReadOnlyList<string> sessionIds = await _sessionStore.FindActiveSessionIdsBySubjectAsync(
-            keycloakSubject,
-            ct
-        );
+        // Single instant for all rows — matches per-session revoke semantics (RevokedAtUtc / LastSeenAtUtc).
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        // One DB update + distributed cache removal for all active sessions; avoids N sequential TryUpdate races.
+        IReadOnlyList<string> revokedIds =
+            await _sessionStore.BulkRevokeActiveSessionsBySubjectAsync(
+                keycloakSubject,
+                reason,
+                now,
+                ct
+            );
 
-        foreach (string sessionId in sessionIds)
-            await RevokeAsync(sessionId, reason, ct);
+        // Drop request-scoped memoized sessions so this HTTP request cannot reuse stale BffSessionRecord after bulk revoke.
+        foreach (string sessionId in revokedIds)
+            BffRequestScopedSessionCache.Invalidate(_httpContextAccessor, sessionId);
     }
 
     private async Task MutateSessionAsync(

@@ -26,7 +26,10 @@ public interface IKeycloakAdminService
     /// <summary>Permanently deletes the specified Keycloak user.</summary>
     public Task DeleteUserAsync(string keycloakUserId, CancellationToken ct = default);
 
-    /// <summary>Sets the user's password via the Admin API (not temporary).</summary>
+    /// <summary>
+    ///     Sets the user's password via the Admin API. When <paramref name="temporary" /> is
+    ///     <see langword="true" />, Keycloak requires a password change on next login.
+    /// </summary>
     public Task SetUserPasswordAsync(
         string keycloakUserId,
         string newPassword,

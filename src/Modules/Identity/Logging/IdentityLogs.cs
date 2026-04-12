@@ -164,6 +164,17 @@ internal static partial class IdentityLogs
         [SensitiveData] string keycloakUserId
     );
 
+    [LoggerMessage(
+        EventId = 3013,
+        Level = LogLevel.Warning,
+        Message = "Logout all Keycloak sessions failed for user {KeycloakUserId}; continuing with local BFF session revocation."
+    )]
+    public static partial void KeycloakLogoutAllSessionsFailed(
+        this ILogger logger,
+        Exception exception,
+        [SensitiveData] string keycloakUserId
+    );
+
     // KeycloakAdminTokenProvider (3010)
     [LoggerMessage(
         EventId = 3010,
