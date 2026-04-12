@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity.Auth.Security;
 using Identity.Auth.Security.Sessions;
 using Wolverine;
 
@@ -11,13 +10,11 @@ public sealed class RevokeAllOwnSessionsCommandHandler
 {
     public static async Task<ErrorOr<Success>> HandleAsync(
         RevokeAllOwnSessionsCommand command,
-        IKeycloakAdminService keycloakAdmin,
-        IBffSessionRevocationService sessionRevocation,
+        IKeycloakAndBffGlobalLogoutService globalLogout,
         CancellationToken ct
     )
     {
-        await keycloakAdmin.LogoutAllUserSessionsAsync(command.KeycloakUserId, ct);
-        await sessionRevocation.RevokeAllSessionsForSubjectAsync(
+        await globalLogout.SignOutEverywhereAsync(
             command.KeycloakUserId,
             BffSessionRevocationReason.CredentialRotation,
             ct

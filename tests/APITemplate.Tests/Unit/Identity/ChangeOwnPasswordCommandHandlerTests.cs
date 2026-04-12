@@ -17,7 +17,7 @@ public sealed class ChangeOwnPasswordCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _repository = new();
     private readonly Mock<IKeycloakAdminService> _keycloakAdmin = new();
-    private readonly Mock<IBffSessionRevocationService> _sessionRevocation = new();
+    private readonly Mock<IKeycloakAndBffGlobalLogoutService> _globalLogout = new();
 
     [Fact]
     public async Task HandleAsync_WhenUserNotFound_ReturnsNotFound()
@@ -38,7 +38,7 @@ public sealed class ChangeOwnPasswordCommandHandlerTests
             command,
             _repository.Object,
             _keycloakAdmin.Object,
-            _sessionRevocation.Object,
+            _globalLogout.Object,
             ct
         );
 
@@ -54,6 +54,15 @@ public sealed class ChangeOwnPasswordCommandHandlerTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
+                    ct
+                ),
+            Times.Never
+        );
+        _globalLogout.Verify(
+            g =>
+                g.SignOutEverywhereAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<BffSessionRevocationReason>(),
                     ct
                 ),
             Times.Never
@@ -85,13 +94,22 @@ public sealed class ChangeOwnPasswordCommandHandlerTests
             command,
             _repository.Object,
             _keycloakAdmin.Object,
-            _sessionRevocation.Object,
+            _globalLogout.Object,
             ct
         );
 
         result.IsError.ShouldBeTrue();
         _keycloakAdmin.Verify(
             k => k.SetUserPasswordAsync(It.IsAny<string>(), It.IsAny<string>(), false, ct),
+            Times.Never
+        );
+        _globalLogout.Verify(
+            g =>
+                g.SignOutEverywhereAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<BffSessionRevocationReason>(),
+                    ct
+                ),
             Times.Never
         );
     }
@@ -121,20 +139,14 @@ public sealed class ChangeOwnPasswordCommandHandlerTests
             command,
             _repository.Object,
             _keycloakAdmin.Object,
-            _sessionRevocation.Object,
+            _globalLogout.Object,
             ct
         );
 
         result.IsError.ShouldBeFalse();
         _keycloakAdmin.Verify(k => k.SetUserPasswordAsync(kcId, "new1new1", false, ct), Times.Once);
-        _keycloakAdmin.Verify(k => k.LogoutAllUserSessionsAsync(kcId, ct), Times.Once);
-        _sessionRevocation.Verify(
-            s =>
-                s.RevokeAllSessionsForSubjectAsync(
-                    kcId,
-                    BffSessionRevocationReason.CredentialRotation,
-                    ct
-                ),
+        _globalLogout.Verify(
+            g => g.SignOutEverywhereAsync(kcId, BffSessionRevocationReason.CredentialRotation, ct),
             Times.Once
         );
     }

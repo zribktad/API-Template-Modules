@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity.Auth.Security;
 using Identity.Auth.Security.Sessions;
 using Identity.Errors;
 using Wolverine;
@@ -12,8 +11,7 @@ public sealed class KeycloakPasswordChangedWebhookCommandHandler
 {
     public static async Task<ErrorOr<Success>> HandleAsync(
         KeycloakPasswordChangedWebhookCommand command,
-        IKeycloakAdminService keycloakAdmin,
-        IBffSessionRevocationService sessionRevocation,
+        IKeycloakAndBffGlobalLogoutService globalLogout,
         CancellationToken ct
     )
     {
@@ -23,8 +21,7 @@ public sealed class KeycloakPasswordChangedWebhookCommandHandler
                 "KeycloakUserId is required."
             );
 
-        await keycloakAdmin.LogoutAllUserSessionsAsync(command.KeycloakUserId, ct);
-        await sessionRevocation.RevokeAllSessionsForSubjectAsync(
+        await globalLogout.SignOutEverywhereAsync(
             command.KeycloakUserId,
             BffSessionRevocationReason.CredentialRotation,
             ct

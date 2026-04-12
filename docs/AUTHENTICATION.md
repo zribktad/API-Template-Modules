@@ -500,6 +500,8 @@ This is intentional — keeping the record allows:
 | `AbsoluteLifetimeExceeded`    | `CreatedAtUtc + SessionAbsoluteLifetimeMinutes` (480 min) has passed                     |
 | `CredentialRotation`          | Password change or global sign-out: `POST /api/v1/account/password`, `POST /api/v1/account/sessions/revoke-all`, or `POST /internal/keycloak-events/password-changed` |
 
+**Account password change (`POST /api/v1/account/password`):** The handler verifies the current password by calling Keycloak’s token endpoint with the **resource-owner password grant** using the confidential client configured under `Keycloak:PasswordVerification` (`client_id` / `client_secret` in application settings; see realm client `api-template-password-verification` in the template). **Direct Access Grants must be enabled for that server-side client** in Keycloak. If this grant is disabled, `ValidateCredentialsAsync` will fail and password change returns a validation error even when the password is correct. Production realms that disable password grants for end-user clients should still allow them for this dedicated verification client only.
+
 ### 3e. Storage architecture and Redis cache keys
 
 **PostgreSQL** is the primary durable session store (`BffPersistedSession` table). **Redis/DragonFly** acts as a read-through cache with short TTL (`CacheTtlMinutes`, default 10 min). This design supports offline sessions (`offline_access` scope) — the refresh token in PostgreSQL survives Redis restarts and long idle periods (up to 30 days).
@@ -968,6 +970,7 @@ Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider
 | `Identity/Common/Security/Sessions/IBffTokenRefreshService.cs`          | Token refresh decision + execution                                                                       |
 | `Identity/Common/Security/Sessions/IBffRefreshCoordinator.cs`           | Concurrent refresh coordination (leader/follower)                                                        |
 | `Identity/Common/Security/Sessions/IBffSessionRevocationService.cs`     | Session revocation with reason tracking                                                                  |
+| `Identity/Common/Security/Sessions/IKeycloakAndBffGlobalLogoutService.cs` | Keycloak logout-all + BFF subject revocation orchestration                                            |
 | `Identity/Common/Security/Sessions/IBffSessionPrincipalFactory.cs`      | Reconstruct `ClaimsPrincipal` / `AuthenticationTicket` from session                                      |
 | `Identity/Common/Security/Sessions/BffSessionRecord.cs`                 | Server-side session model (identity, tokens, lifecycle, concurrency)                                     |
 | `Identity/Common/Security/Sessions/BffSessionStatus.cs`                 | `Active`, `Refreshing`, `Revoked`, `Expired`                                                             |
@@ -978,6 +981,7 @@ Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider
 | `Identity/Security/Sessions/RedisTicketStore.cs`                    | `ITicketStore` adapter → delegates to `IBffSessionService`                                               |
 | `Identity/Security/Sessions/PostgresCachedBffSessionStore.cs`           | PostgreSQL-primary session store with Redis read-through cache + token encryption                        |
 | `Identity/Security/Sessions/BffSessionService.cs`                       | Session lifecycle + revocation (implements both `IBffSessionService` and `IBffSessionRevocationService`) |
+| `Identity/Security/Sessions/KeycloakAndBffGlobalLogoutService.cs`       | Implements `IKeycloakAndBffGlobalLogoutService` (IdP + BFF global sign-out)                               |
 | `Identity/Security/Sessions/BffTokenRefreshService.cs`                  | Refresh decision logic + Keycloak call + session update                                                  |
 | `Identity/Security/Sessions/RedisBffRefreshCoordinator.cs`          | Redis distributed lock + in-memory fallback semaphore                                                    |
 | `Identity/Security/Sessions/CookieSessionRefresher.cs`                  | `CookieAuthenticationEvents.ValidatePrincipal` handler                                                   |

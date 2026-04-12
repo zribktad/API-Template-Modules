@@ -21,7 +21,7 @@ public sealed class ChangeOwnPasswordCommandHandler
         ChangeOwnPasswordCommand command,
         IUserRepository repository,
         IKeycloakAdminService keycloakAdmin,
-        IBffSessionRevocationService sessionRevocation,
+        IKeycloakAndBffGlobalLogoutService globalLogout,
         CancellationToken ct
     )
     {
@@ -61,8 +61,7 @@ public sealed class ChangeOwnPasswordCommandHandler
             ct
         );
 
-        await keycloakAdmin.LogoutAllUserSessionsAsync(user.KeycloakUserId, ct);
-        await sessionRevocation.RevokeAllSessionsForSubjectAsync(
+        await globalLogout.SignOutEverywhereAsync(
             command.KeycloakUserId,
             BffSessionRevocationReason.CredentialRotation,
             ct

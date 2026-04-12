@@ -218,5 +218,6 @@ public static partial class IdentityModule
             .AddKeycloakHttpRetry(ResiliencePipelineKeys.KeycloakAdmin);
 
         services.AddScoped<IKeycloakAdminService, KeycloakAdminService>();
+        services.AddScoped<IKeycloakAndBffGlobalLogoutService, KeycloakAndBffGlobalLogoutService>();
     }
 }
