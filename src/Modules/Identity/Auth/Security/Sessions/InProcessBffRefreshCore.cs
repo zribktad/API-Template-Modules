@@ -44,8 +44,26 @@ internal sealed class InProcessBffRefreshCore
                 CancellationTokenSource leaderCts = new(
                     TimeSpan.FromMilliseconds(_options.RefreshLockTimeoutMilliseconds)
                 );
-                leaderTask = leaderAction(leaderCts.Token);
-                _ = leaderTask.ContinueWith(_ => leaderCts.Dispose(), TaskScheduler.Default);
+                try
+                {
+                    leaderTask = Task.Run(
+                        () => leaderAction(leaderCts.Token),
+                        CancellationToken.None
+                    );
+                }
+                catch
+                {
+                    leaderCts.Dispose();
+                    throw;
+                }
+
+                _ = leaderTask.ContinueWith(
+                    (_, state) => ((CancellationTokenSource)state!).Dispose(),
+                    leaderCts,
+                    CancellationToken.None,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default
+                );
                 _inFlightRefreshBySessionId[sessionId] = leaderTask;
             }
         }

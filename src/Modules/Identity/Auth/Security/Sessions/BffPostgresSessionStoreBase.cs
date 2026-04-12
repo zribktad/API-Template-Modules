@@ -11,7 +11,8 @@ namespace Identity.Auth.Security.Sessions;
 /// <summary>
 ///     Shared PostgreSQL-backed BFF session persistence and cache write-through; subclasses only
 ///     differ in how the distributed cache payload is read (Redis Lua vs. plain cache API).
-///     Not intended for implementation outside this assembly.
+///     Consumers should depend on <see cref="IBffSessionStore" />; inheritance is reserved for implementations
+///     in this assembly.
 /// </summary>
 public abstract class BffPostgresSessionStoreBase : IBffSessionStore
 {
@@ -153,18 +154,17 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
 
     protected abstract Task<string?> GetCachedPayloadAsync(string cacheKey, CancellationToken ct);
 
-    /// <summary>Sliding read-through via <see cref="IDistributedCache.GetStringAsync" /> + <see cref="IDistributedCache.RefreshAsync" />.</summary>
-    protected static async Task<string?> GetDistributedCachePayloadSlidingAsync(
+    /// <summary>
+    ///     Reads via <see cref="IDistributedCache.GetStringAsync(string?, CancellationToken)" />; sliding expiration
+    ///     is applied when this store writes entries using <see cref="DistributedCacheEntryOptions" /> from options.
+    /// </summary>
+    protected static Task<string?> GetDistributedCachePayloadSlidingAsync(
         IDistributedCache cache,
         string cacheKey,
         CancellationToken ct
     )
     {
-        string? payload = await cache.GetStringAsync(cacheKey, ct);
-        if (payload is not null)
-            await cache.RefreshAsync(cacheKey, ct);
-
-        return payload;
+        return cache.GetStringAsync(cacheKey, ct);
     }
 
     private Task SetCacheAsync(string cacheKey, string payload, CancellationToken ct)

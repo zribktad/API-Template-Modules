@@ -12,8 +12,9 @@ public sealed class RedisOptions
     public const int DefaultConnectTimeoutMs = 5000;
     public const int DefaultSyncTimeoutMs = 3000;
 
-    [Description("Redis connection string (StackExchange.Redis format).")]
-    [Required]
+    [Description(
+        "Redis connection string (StackExchange.Redis format). Leave empty when Redis is not used."
+    )]
     public string ConnectionString { get; init; } = string.Empty;
 
     [Description("Connection timeout, in milliseconds, for establishing a Redis connection.")]
