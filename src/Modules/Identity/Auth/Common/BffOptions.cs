@@ -59,7 +59,7 @@ public sealed class BffOptions
             + "Should be >= upstream provider HTTP timeout so the leader has enough time to complete the refresh."
     )]
     [Range(100, int.MaxValue)]
-    public int RefreshLockTimeoutMilliseconds { get; init; } = 10_000;
+    public int RefreshLockTimeoutMilliseconds { get; init; } = 9_000;
 
     [Description(
         "Refresh coordinator result TTL, in milliseconds. How long the leader's outcome stays in Redis "

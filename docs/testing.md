@@ -296,6 +296,19 @@ These tests are tagged **`[Trait("Category", "Integration.Docker")]`** because t
 
 > **CSRF contract:** SPA clients call `GET /api/v1/bff/csrf` for the header contract and send the required header on mutating requests when using the session cookie. Cookie-authenticated `GET /api/v1/bff/logout` also requires the CSRF header (see tests in `BffSecurityTests`).
 
+### Authentication test matrix
+
+Use this table when changing auth middleware or BFF behavior — extend it when you add new tests.
+
+| Scenario | What it exercises | Where |
+| --- | --- | --- |
+| JWT Bearer, tenant-aware API calls | RSA-signed test tokens, issuer/audience, claims used by handlers | [`IntegrationAuthHelper`](../tests/APITemplate.Tests/Integration/IntegrationAuthHelper.cs), integration tests using `CustomWebApplicationFactory` |
+| JWT without CSRF | Bearer path bypasses CSRF middleware | `BffSecurityTests.PostWithJwtBearer_WithoutCsrfHeader_PassesCsrfCheck` |
+| Cookie + CSRF | Real `CsrfValidationMiddleware` rules with `FakeCookieAuthHandler` | [`BffSecurityTests`](../tests/APITemplate.Tests/Integration/Auth/BffSecurityTests.cs), `BffSecurityWebApplicationFactory` |
+| Service account JWT | Pipeline skips invitation DB path when `preferred_username` / subject matches service-account pattern | Comment and usage in `BffSecurityTests.PostWithJwtBearer_WithoutCsrfHeader_PassesCsrfCheck` |
+
+For DI registration order and middleware placement, see [auth-registration.md](auth-registration.md).
+
 ---
 
 ### REST Integration Test Pattern

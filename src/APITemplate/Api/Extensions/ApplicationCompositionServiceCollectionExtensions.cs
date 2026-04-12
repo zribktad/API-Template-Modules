@@ -13,6 +13,11 @@ namespace APITemplate.Api.Extensions;
 
 public static class ApplicationCompositionServiceCollectionExtensions
 {
+    /// <summary>
+    ///     Registers JWT Bearer as the default scheme, tenant/request identity services, and permission
+    ///     authorization infrastructure. <c>JwtBearerEvents.OnTokenValidated</c> is assigned from the
+    ///     Identity module via <c>PostConfigure&lt;JwtBearerOptions&gt;</c> (must run after this call).
+    /// </summary>
     public static IServiceCollection AddApplicationComposition(
         this IServiceCollection services,
         IConfiguration configuration

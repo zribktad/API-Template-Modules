@@ -497,7 +497,7 @@ Configuration sections are bound to strongly-typed `IOptions<T>` classes registe
 | `Bff:Scopes`                       | `["openid","profile","email","offline_access"]` | OIDC scopes requested from Keycloak during the BFF login flow. `offline_access` is required for silent token refresh via refresh token.                                                             |
 | `Bff:RefreshThresholdMinutes`      | `2`                                             | `CookieSessionRefresher` exchanges the refresh token with Keycloak when the access token will expire within this many minutes. Prevents mid-request token expiry without requiring a full re-login. |
 | `Bff:RefreshWaitTimeoutMilliseconds` | `10000`                                       | Maximum time, in milliseconds, follower requests wait for an in-flight refresh before giving up. Should match or exceed the upstream IdP HTTP timeout. |
-| `Bff:RefreshLockTimeoutMilliseconds` | `10000`                                       | Distributed refresh lock TTL in milliseconds. Must be < `RefreshWaitTimeoutMilliseconds`. Also used as the leader's CancellationToken timeout. |
+| `Bff:RefreshLockTimeoutMilliseconds` | `9000`                                        | Distributed refresh lock TTL in milliseconds. Must be < `RefreshWaitTimeoutMilliseconds`. Also used as the leader's CancellationToken timeout. |
 | `Bff:RefreshResultTtlMilliseconds` | `15000`                                        | How long the refresh coordinator result stays in Redis for late followers to read. Must be >= `RefreshWaitTimeoutMilliseconds`. |
 | `Bff:RevokeSessionOnRefreshFailure` | `true`                                        | When `true`, a failed token refresh revokes only the current BFF session. |
 

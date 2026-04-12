@@ -1,0 +1,41 @@
+# Authentication registration map
+
+This document is the **maintainer index** for where authentication and related middleware are registered. For protocol behavior, BFF storage, and tokens, see [AUTHENTICATION.md](AUTHENTICATION.md).
+
+## DI registration order in `Program.cs`
+
+The API host calls, in order:
+
+1. **`AddApiFoundation`** — output cache policies, Redis/in-memory cache, Data Protection (when Redis is configured), OpenAPI, etc. ([`ApiServiceCollectionExtensions.cs`](../src/APITemplate/Api/Extensions/ApiServiceCollectionExtensions.cs))
+2. **`AddModuleHealthChecks`**
+3. **`AddApplicationCompositionAndIdentityModule`** (or equivalently `AddApplicationComposition` then `AddIdentityModule`) — see below
+4. **`AddObservability`**
+5. Other feature modules (ProductCatalog, Reviews, …)
+
+**Why `AddApplicationComposition` must run before `AddIdentityModule`**
+
+- `AddApplicationComposition` registers the default authentication scheme **JWT Bearer** and calls `AddAuthorization()`.
+- `AddIdentityModule` registers **Cookie** and **OpenID Connect** schemes, `PostConfigure<JwtBearerOptions>` (wires `IdentityTokenValidatedPipeline` and challenge behavior), BFF session services, and authorization policies (fallback + roles).
+
+If Identity ran first, Bearer registration and `PostConfigure<JwtBearerOptions>` would not line up with the intended pipeline.
+
+## HTTP middleware order
+
+Configured in [`ApplicationBuilderExtensions.cs`](../src/APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs) (`UseApiPipeline`): exception handler, HTTPS, correlation, **`UseAuthentication`**, **`CsrfValidationMiddleware`**, **`UseAuthorization`**, request context / Serilog, **`UseOutputCache`**, API docs.
+
+CSRF runs after authentication so cookie-authenticated requests can be validated against the CSRF header contract.
+
+## Component map
+
+| Area | Primary location | Notes |
+| --- | --- | --- |
+| JWT Bearer defaults + `AddAuthorization()` shell | [`ApplicationCompositionServiceCollectionExtensions.cs`](../src/APITemplate/Api/Extensions/ApplicationCompositionServiceCollectionExtensions.cs) | Authority/audience; `OnTokenValidated` attached in Identity via `PostConfigure` |
+| Cookie + OIDC BFF, session store, refresh coordinator, policies, `PostConfigure<JwtBearerOptions>` | [`IdentityModule.Auth.cs`](../src/Modules/Identity/IdentityModule.Auth.cs) | Redis vs in-memory BFF store follows `IsRedisConfigured()` |
+| Post-login token validation (claims, tenant, user access) | [`IdentityTokenValidatedPipeline.cs`](../src/Modules/Identity/Auth/Security/IdentityTokenValidatedPipeline.cs) | JWT Bearer + OIDC `OnTokenValidated` |
+| CSRF for cookie auth | [`CsrfValidationMiddleware.cs`](../src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs) | After `UseAuthentication` |
+| BFF HTTP surface | [`BffController.cs`](../src/Modules/Identity/Auth/Features/V1/BffController.cs) | login, logout, user, csrf |
+| Constants (schemes, routes, CSRF) | [`AuthConstants.cs`](../src/Modules/Identity/Auth/Common/Security/AuthConstants.cs) | |
+
+## Related test pointers
+
+See the **Authentication test matrix** in [testing.md](testing.md).

@@ -1,4 +1,5 @@
 using Identity.Auth.Options;
+using Identity.Auth.Validation;
 using Identity.Configuration;
 using Identity.Directory.Options;
 using Identity.Options;
@@ -50,6 +51,7 @@ public static partial class IdentityModule
     {
         services.AddValidatedOptions<KeycloakOptions>(configuration);
         services.AddValidatedOptions<BffOptions>(configuration);
+        services.AddSingleton<IValidateOptions<BffOptions>, BffOptionsValidator>();
         services.AddValidatedOptions<CorsOptions>(configuration);
         services
             .AddValidatedOptions<BootstrapTenantOptions>(configuration)

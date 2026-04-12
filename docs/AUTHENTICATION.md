@@ -6,6 +6,8 @@ Project uses **Keycloak** as identity provider with hybrid authentication:
 
 > **Related doc:** [Keycloak auth workflow](keycloak-auth-workflow.md) focuses on user lifecycle (registration, invitations, account endpoints, webhooks). This document focuses on protocols, BFF session storage, tokens, and local infrastructure.
 
+> **Where things register:** For DI/middleware ownership and ordering (`AddApplicationComposition` vs `AddIdentityModule`, CSRF placement), see [auth-registration.md](auth-registration.md).
+
 - **JWT Bearer** — direct API access (microservices, mobile apps, Postman, curl)
 - **OIDC + Cookie (BFF)** — browser-based login for SPA; tokens never exposed to JavaScript
 - **Scalar OAuth2** — interactive OAuth2 Authorization Code flow in Scalar UI (development)
@@ -716,7 +718,7 @@ Returns `401` (not redirect) when unauthenticated — SPA should redirect to `/a
 | Absolute session lifetime                   | 480 min (8h)                           | `Bff:SessionAbsoluteLifetimeMinutes` |
 | Proactive refresh threshold                 | 2 min before expiry                    | `Bff:RefreshThresholdMinutes`        |
 | Follower wait timeout                       | 10000 ms (see `BffOptions` default)    | `Bff:RefreshWaitTimeoutMilliseconds` |
-| Distributed lock TTL                        | 10000 ms                               | `Bff:RefreshLockTimeoutMilliseconds` |
+| Distributed lock TTL                        | 9000 ms (must be &lt; wait timeout)   | `Bff:RefreshLockTimeoutMilliseconds` |
 | Refresh result cache TTL                    | 15000 ms                               | `Bff:RefreshResultTtlMilliseconds`   |
 | Revoke on refresh failure                   | true                                   | `Bff:RevokeSessionOnRefreshFailure`  |
 | Scopes requested from OIDC                  | openid, profile, email, offline_access | `Bff:Scopes`                         |
@@ -812,7 +814,7 @@ The BFF session layer and Keycloak maintain **independent clocks** — neither k
 
 | Setting                                                               | Why independent                                                                                                |
 | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `RefreshLockTimeoutMilliseconds` (default 10000 ms)                    | Internal coordination between concurrent requests — Keycloak is not involved                                   |
+| `RefreshLockTimeoutMilliseconds` (default 9000 ms)                     | Internal coordination between concurrent requests — Keycloak is not involved                                   |
 | `RefreshResultTtlMilliseconds` (default 15000 ms)                      | Internal leader/follower result sharing                                                                        |
 | `RefreshWaitTimeoutMilliseconds` (default 10000 ms)                    | How long followers wait — affects individual request latency, not session validity                             |
 | `RevokeSessionOnRefreshFailure`                                       | BFF-only policy decision                                                                                       |
@@ -916,7 +918,7 @@ Defaults match [src/APITemplate/Api/appsettings.json](../src/APITemplate/Api/app
     "Scopes": ["openid", "profile", "email", "offline_access"],
     "RefreshThresholdMinutes": 2,
     "RefreshWaitTimeoutMilliseconds": 10000,
-    "RefreshLockTimeoutMilliseconds": 10000,
+    "RefreshLockTimeoutMilliseconds": 9000,
     "RefreshResultTtlMilliseconds": 15000,
     "RevokeSessionOnRefreshFailure": true
   }
