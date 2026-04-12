@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using ErrorOr;
 using Identity.Auth.Options;
 using Identity.Directory.Features.Account;
@@ -41,7 +43,14 @@ public sealed class KeycloakEventWebhookController(
         if (
             !Request.Headers.TryGetValue(headerName, out StringValues provided)
             || provided.Count != 1
-            || !string.Equals(provided[0], webhook.ApiKey, StringComparison.Ordinal)
+        )
+            return Unauthorized();
+
+        byte[] expected = Encoding.UTF8.GetBytes(webhook.ApiKey);
+        byte[] actual = Encoding.UTF8.GetBytes(provided[0]!);
+        if (
+            expected.Length != actual.Length
+            || !CryptographicOperations.FixedTimeEquals(expected, actual)
         )
             return Unauthorized();
 

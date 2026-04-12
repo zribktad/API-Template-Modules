@@ -19,6 +19,7 @@ Step-by-step guides for the most common workflows in this project:
 | [MongoDB Migration](docs/mongodb-migration.md)       | Create index and data migrations with Kot.MongoDB.Migrations                |
 | [Transactions](docs/transactions.md)                 | Wrap multiple operations in an atomic Unit of Work transaction              |
 | [Authentication](docs/AUTHENTICATION.md)             | JWT login flow, protecting endpoints, and production guidance               |
+| [Keycloak auth workflow](docs/keycloak-auth-workflow.md) | User lifecycle: registration, invitations, account API, Keycloak webhooks   |
 | [Stored Procedures](docs/stored-procedures.md)       | Add a PostgreSQL function and call it safely from C#                        |
 | [MongoDB Polymorphism](docs/mongodb-polymorphism.md) | Store multiple document subtypes in one collection                          |
 | [Validation](docs/validation.md)                     | Add FluentValidation rules, cross-field rules, and shared validators        |

@@ -3,6 +3,7 @@ using Identity.Auth.Features.Bff.DTOs;
 using Identity.Auth.Options;
 using Identity.Auth.Security;
 using Identity.Auth.Security.ExternalIdentityProviders;
+using Identity.Auth.Security.Sessions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -21,7 +22,7 @@ public sealed class BffExternalProvidersTests
     {
         IOptions<BffOptions> options = Options.Create(new BffOptions());
 
-        BffController controller = new(options, providers);
+        BffController controller = new(options, new Mock<IBffCsrfTokenService>().Object, providers);
 
         Mock<IUrlHelper> urlHelper = new();
         urlHelper

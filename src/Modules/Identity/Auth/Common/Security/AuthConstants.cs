@@ -95,6 +95,9 @@ public static class AuthConstants
         public const string RealmAccess = "realm_access";
         public const string Roles = "roles";
         public const string PreferredUsername = "preferred_username";
+
+        /// <summary>OAuth 2.0 <c>azp</c> (authorized party) — present on many Keycloak access tokens.</summary>
+        public const string AuthorizedParty = "azp";
         public const string ServiceAccountUsernamePrefix = "service-account-";
         public const string TenantId = TenantSecurityClaims.TenantId;
     }
@@ -103,8 +106,10 @@ public static class AuthConstants
     ///     Constants for the custom CSRF header contract used by <c>CsrfValidationMiddleware</c>.
     /// </summary>
     /// <remarks>
-    ///     SPAs retrieve these values at runtime via <c>GET /api/v1/bff/csrf</c> and must send
-    ///     <c>X-CSRF: 1</c> on every non-safe (mutating) request authenticated with a session cookie.
+    ///     SPAs call <c>GET /api/v1/bff/csrf</c> after login: when a BFF session cookie is present,
+    ///     the response includes a Data Protection–bound <c>headerValue</c>; otherwise a legacy
+    ///     placeholder is returned. Send the header on every non-safe request when using cookie auth.
+    ///     The legacy value <c>1</c> remains accepted for backward compatibility.
     /// </remarks>
     public static class Csrf
     {
@@ -113,6 +118,13 @@ public static class AuthConstants
 
         /// <summary>Expected value of the anti-CSRF header.</summary>
         public const string HeaderValue = "1";
+
+        /// <summary><c>tokenFormat</c> values returned by <c>GET /bff/csrf</c>.</summary>
+        public static class TokenFormats
+        {
+            public const string DataProtection = "DataProtection";
+            public const string Legacy = "legacy";
+        }
     }
 
     /// <summary>

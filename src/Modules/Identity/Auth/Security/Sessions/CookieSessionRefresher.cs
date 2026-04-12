@@ -81,18 +81,6 @@ public sealed class CookieSessionRefresher : CookieAuthenticationEvents
         context.ShouldRenew = true;
     }
 
-    private static string? ResolveSessionId(CookieValidatePrincipalContext context)
-    {
-        if (
-            context.Properties.Items.TryGetValue(
-                AuthConstants.SessionProperties.SessionId,
-                out string? sessionId
-            ) && !string.IsNullOrWhiteSpace(sessionId)
-        )
-        {
-            return sessionId;
-        }
-
-        return null;
-    }
+    private static string? ResolveSessionId(CookieValidatePrincipalContext context) =>
+        context.Properties.TryGetBffSessionId(out string? sessionId) ? sessionId : null;
 }

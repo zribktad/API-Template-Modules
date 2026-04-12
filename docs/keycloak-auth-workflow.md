@@ -1,6 +1,6 @@
 # Keycloak Authentication Workflow
 
-This document describes how authentication and identity management work in this API.
+This document describes how authentication and identity management work in this API. For protocol details, BFF session storage (PostgreSQL/Redis), token grants, and infrastructure setup, see [AUTHENTICATION.md](AUTHENTICATION.md).
 
 ## Architecture Overview
 

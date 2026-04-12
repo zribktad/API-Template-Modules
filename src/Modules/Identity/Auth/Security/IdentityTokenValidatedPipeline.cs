@@ -308,9 +308,30 @@ public static class IdentityTokenValidatedPipeline
     /// </summary>
     private static bool IsServiceAccount(ClaimsPrincipal? principal)
     {
-        string? username = principal?.FindFirstValue(AuthConstants.Claims.PreferredUsername);
-        return username != null
+        if (principal is null)
+            return false;
+
+        string? username = principal.FindFirstValue(AuthConstants.Claims.PreferredUsername);
+        if (
+            username != null
             && username.StartsWith(
+                AuthConstants.Claims.ServiceAccountUsernamePrefix,
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+            return true;
+
+        // Client-credentials flows: Keycloak sets azp to the OAuth client id; sub often still uses
+        // the service-account-* pattern but preferred_username can be absent in some configurations.
+        if (string.IsNullOrEmpty(principal.FindFirstValue(AuthConstants.Claims.AuthorizedParty)))
+            return false;
+
+        string? subject =
+            principal.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? principal.FindFirstValue(AuthConstants.Claims.Subject);
+
+        return subject != null
+            && subject.StartsWith(
                 AuthConstants.Claims.ServiceAccountUsernamePrefix,
                 StringComparison.OrdinalIgnoreCase
             );

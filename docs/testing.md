@@ -269,75 +269,32 @@ Exception translation behavior is covered separately in `tests/APITemplate.Tests
 
 ## Integration Tests
 
-Integration tests live in `tests/APITemplate.Tests/Integration/`. They start the full ASP.NET Core pipeline in memory using `WebApplicationFactory`, with the real DI container and middleware — only the databases are swapped out.
+Integration tests live in `tests/APITemplate.Tests/Integration/`. They run the full ASP.NET Core pipeline with the real DI container and middleware. **`CustomWebApplicationFactory`** uses **Testcontainers** for **PostgreSQL** and **MongoDB** (Docker required). The factory merges test configuration, points connection strings at the containers, and swaps a few infrastructure concerns for in-memory or test doubles.
 
 ### The `CustomWebApplicationFactory`
 
-All integration test classes share `CustomWebApplicationFactory`, which delegates to helpers in `TestServiceHelper`:
+[`CustomWebApplicationFactory`](../tests/APITemplate.Tests/Integration/CustomWebApplicationFactory.cs) implements `IAsyncLifetime`: it starts PostgreSQL and MongoDB containers in `InitializeAsync` before tests run. In `ConfigureWebHost` it:
 
-| Helper | What it replaces |
-|--------|-----------------|
-| `MockMongoServices` | Removes `MongoDbContext`; mocks `IProductDataRepository` |
-| `RemoveExternalHealthChecks` | Removes `postgresql`, `mongodb`, `keycloak`, `redis` health registrations |
-| `ReplaceOutputCacheWithInMemory` | Swaps Redis-backed output cache for in-memory |
-| `ReplaceDataProtectionWithInMemory` | Replaces Redis-backed DataProtection with `EphemeralDataProtectionProvider` (no key persistence) |
-| `ReplaceTicketStoreWithInMemory` | Replaces Redis-backed `IDistributedCache` with in-memory; re-registers `RedisTicketStore` against it |
-| `ConfigureTestAuthentication` | Overrides JWT validation to use a local RSA test key; stubs the OIDC metadata |
+- Sets `ConnectionStrings:DefaultConnection` and Mongo settings from the running containers.
+- Merges `TestConfigurationHelper.GetBaseConfiguration()` (minus overridden keys).
+- Applies `TestServiceHelper` helpers:
 
-```csharp
-// tests/APITemplate.Tests/Integration/CustomWebApplicationFactory.cs
-public class CustomWebApplicationFactory : WebApplicationFactory<Program>
-{
-    private readonly string _dbName = Guid.NewGuid().ToString();
-
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.ConfigureAppConfiguration((_, configBuilder) =>
-            configBuilder.AddInMemoryCollection(TestConfigurationHelper.GetBaseConfiguration()));
-
-        builder.ConfigureTestServices(services =>
-        {
-            // Swap PostgreSQL for InMemory
-            services.RemoveAll(typeof(DbContextOptions<AppDbContext>));
-            services.AddDbContext<AppDbContext>(o =>
-                o.UseInMemoryDatabase(_dbName));
-
-            TestServiceHelper.MockMongoServices(services);
-            TestServiceHelper.RemoveExternalHealthChecks(services);
-            TestServiceHelper.ReplaceOutputCacheWithInMemory(services);
-            TestServiceHelper.ReplaceDataProtectionWithInMemory(services);
-            TestServiceHelper.ReplaceTicketStoreWithInMemory(services);
-            TestServiceHelper.ConfigureTestAuthentication(services);
-        });
-
-        builder.UseEnvironment("Development");
-    }
-}
-```
+| Helper | What it does |
+|--------|----------------|
+| `RemoveExternalHealthChecks` | Unregisters external health checks (postgres, mongodb, keycloak, redis) |
+| `ReplaceOutputCacheWithInMemory` | In-memory output cache instead of Redis |
+| `ReplaceDataProtectionWithInMemory` | Ephemeral Data Protection (no persisted key ring) |
+| `ConfigureTestAuthentication` | JWT validation uses [`IntegrationAuthHelper`](../tests/APITemplate.Tests/Integration/IntegrationAuthHelper.cs) RSA test key and issuer/audience |
+| `RemoveTickerQRuntimeServices` | Disables background ticker runtime in tests |
+| `ReplaceStartupCoordinationWithNoOp` | No-op startup coordination |
 
 ### BFF / CSRF Integration Tests
 
-Tests that need to simulate a **cookie-authenticated** session extend `CustomWebApplicationFactory` with `BffSecurityWebApplicationFactory`. It registers a `FakeCookieAuthStartupFilter` that, when the request includes `X-Test-Cookie-Auth: 1`, pre-populates `HttpContext.User` with an identity whose `AuthenticationType` equals `BffAuthenticationSchemes.Cookie`. Because `UseAuthentication` does not overwrite a pre-set user when the default JWT Bearer scheme finds no token, the CSRF middleware sees the correct cookie identity.
+Tests that need a **cookie-authenticated** principal use [`BffSecurityWebApplicationFactory`](../tests/APITemplate.Tests/Integration/Auth/BffSecurityTests.cs). It extends `CustomWebApplicationFactory` and, in `ConfigureTestServices`, calls `PostConfigure<AuthenticationOptions>` to set the BFF cookie scheme’s **`HandlerType`** to **`FakeCookieAuthHandler`**. When the request includes **`X-Test-Cookie-Auth: 1`**, that handler returns `AuthenticateResult.Success` with a principal using `AuthConstants.BffSchemes.Cookie`, so [`CsrfValidationMiddleware`](../src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs) exercises the real CSRF rules.
 
-```csharp
-// tests/APITemplate.Tests/Integration/BffSecurityTests.cs
-public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFactory>
-{
-    [Fact]
-    public async Task PostWithCookieAuth_WithoutCsrfHeader_Returns403()
-    {
-        var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-Cookie-Auth", "1");
+These tests are tagged **`[Trait("Category", "Integration.Docker")]`** because they depend on the same Docker-based factory.
 
-        var response = await client.PostAsync("/api/v1/products",
-            new StringContent("{}", Encoding.UTF8, "application/json"));
-
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-}
-```
-
-> **CSRF contract:** SPA clients must call `GET /api/v1/bff/csrf` on startup to retrieve the required header (`X-CSRF: 1`) and include it on every non-safe mutation request authenticated with the session cookie.
+> **CSRF contract:** SPA clients call `GET /api/v1/bff/csrf` for the header contract and send the required header on mutating requests when using the session cookie. Cookie-authenticated `GET /api/v1/bff/logout` also requires the CSRF header (see tests in `BffSecurityTests`).
 
 ---
 

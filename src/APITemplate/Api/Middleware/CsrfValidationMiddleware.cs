@@ -1,4 +1,5 @@
 using Identity.Auth.Security;
+using Identity.Auth.Security.Sessions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Primitives;
@@ -11,30 +12,113 @@ namespace APITemplate.Api.Middleware;
 /// </summary>
 public sealed class CsrfValidationMiddleware(
     RequestDelegate next,
-    IProblemDetailsService problemDetailsService
+    IProblemDetailsService problemDetailsService,
+    IBffCsrfTokenService csrfTokens
 )
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        bool isBffLogoutRequest =
+        if (IsSafeMethodExcludingBffLogoutGet(context))
+        {
+            await next(context);
+            return;
+        }
+
+        if (HasBearerAuthorization(context))
+        {
+            await next(context);
+            return;
+        }
+
+        bool needsSessionId = false;
+        if (
+            context.Request.Headers.TryGetValue(
+                AuthConstants.Csrf.HeaderName,
+                out StringValues csrfValues
+            ) && csrfValues.Any(static v => !string.IsNullOrEmpty(v))
+        )
+        {
+            needsSessionId = csrfValues.Any(static v =>
+                !string.Equals(v, AuthConstants.Csrf.HeaderValue, StringComparison.Ordinal)
+            );
+        }
+
+        bool hasCookiePrincipal = context.User.Identities.Any(i =>
+            i.AuthenticationType == AuthConstants.BffSchemes.Cookie
+        );
+
+        AuthenticateResult? cookieAuth = null;
+        if (!hasCookiePrincipal || needsSessionId)
+            cookieAuth = await context.AuthenticateAsync(AuthConstants.BffSchemes.Cookie);
+
+        bool cookieOk =
+            hasCookiePrincipal && !needsSessionId ? true : cookieAuth?.Succeeded == true;
+
+        if (!cookieOk)
+        {
+            await next(context);
+            return;
+        }
+
+        string? sessionId = null;
+        if (
+            needsSessionId
+            && (
+                cookieAuth is not { Succeeded: true, Properties: { } props }
+                || !props.TryGetBffSessionId(out sessionId)
+            )
+        )
+        {
+            await WriteCsrfForbiddenAsync(
+                context,
+                $"Invalid or expired '{AuthConstants.Csrf.HeaderName}' header for this session."
+            );
+            return;
+        }
+
+        if (
+            !context.Request.Headers.TryGetValue(
+                AuthConstants.Csrf.HeaderName,
+                out StringValues values
+            ) || !values.Any(static v => !string.IsNullOrEmpty(v))
+        )
+        {
+            await WriteCsrfForbiddenAsync(
+                context,
+                $"Cookie-authenticated requests must include a valid '{AuthConstants.Csrf.HeaderName}' header (see GET /api/v1/bff/csrf)."
+            );
+            return;
+        }
+
+        if (!values.Any(v => csrfTokens.IsValid(sessionId, v)))
+        {
+            await WriteCsrfForbiddenAsync(
+                context,
+                $"Invalid or expired '{AuthConstants.Csrf.HeaderName}' header for this session."
+            );
+            return;
+        }
+
+        await next(context);
+    }
+
+    private static bool IsSafeMethodExcludingBffLogoutGet(HttpContext context)
+    {
+        bool isBffLogoutGet =
             HttpMethods.IsGet(context.Request.Method)
             && context.Request.Path.Equals(
                 AuthConstants.BffRoutes.Logout,
                 StringComparison.OrdinalIgnoreCase
             );
 
-        if (
-            (HttpMethods.IsGet(context.Request.Method) && !isBffLogoutRequest)
+        return (HttpMethods.IsGet(context.Request.Method) && !isBffLogoutGet)
             || HttpMethods.IsHead(context.Request.Method)
-            || HttpMethods.IsOptions(context.Request.Method)
-        )
-        {
-            await next(context);
-            return;
-        }
+            || HttpMethods.IsOptions(context.Request.Method);
+    }
 
-        if (
-            context.Request.Headers.TryGetValue(
+    private static bool HasBearerAuthorization(HttpContext context)
+    {
+        return context.Request.Headers.TryGetValue(
                 HeaderNames.Authorization,
                 out StringValues authorizationValues
             )
@@ -44,45 +128,11 @@ public sealed class CsrfValidationMiddleware(
                     $"{JwtBearerDefaults.AuthenticationScheme} ",
                     StringComparison.OrdinalIgnoreCase
                 )
-            )
-        )
-        {
-            await next(context);
-            return;
-        }
-
-        bool isCookieAuthenticated = context.User.Identities.Any(i =>
-            i.AuthenticationType == AuthConstants.BffSchemes.Cookie
-        );
-
-        if (!isCookieAuthenticated)
-        {
-            AuthenticateResult cookieAuthResult = await context.AuthenticateAsync(
-                AuthConstants.BffSchemes.Cookie
             );
-            isCookieAuthenticated = cookieAuthResult.Succeeded;
-        }
+    }
 
-        if (!isCookieAuthenticated)
-        {
-            await next(context);
-            return;
-        }
-
-        if (
-            context.Request.Headers.TryGetValue(
-                AuthConstants.Csrf.HeaderName,
-                out StringValues value
-            )
-            && value.Any(v =>
-                string.Equals(v, AuthConstants.Csrf.HeaderValue, StringComparison.Ordinal)
-            )
-        )
-        {
-            await next(context);
-            return;
-        }
-
+    private async Task WriteCsrfForbiddenAsync(HttpContext context, string detail)
+    {
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
         await problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext
@@ -93,8 +143,7 @@ public sealed class CsrfValidationMiddleware(
                     Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
                     Title = "Forbidden",
                     Status = StatusCodes.Status403Forbidden,
-                    Detail =
-                        $"Cookie-authenticated requests must include the '{AuthConstants.Csrf.HeaderName}: {AuthConstants.Csrf.HeaderValue}' header.",
+                    Detail = detail,
                 },
             }
         );

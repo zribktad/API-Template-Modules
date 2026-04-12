@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Text.Json;
 using APITemplate.Api.Authorization;
 using APITemplate.Api.Security;
 using Asp.Versioning;
@@ -52,16 +51,8 @@ public static class ApplicationCompositionServiceCollectionExtensions
                     NameClaimType = ClaimTypes.Name,
                     RoleClaimType = ClaimTypes.Role,
                 };
-                options.Events = new JwtBearerEvents
-                {
-                    OnTokenValidated = context =>
-                    {
-                        if (context.Principal?.Identity is ClaimsIdentity identity)
-                            MapKeycloakClaims(identity);
-
-                        return Task.CompletedTask;
-                    },
-                };
+                // OnTokenValidated is assigned in IdentityModule via PostConfigure<JwtBearerOptions>
+                // (IdentityTokenValidatedPipeline + KeycloakClaimMapper).
             });
         services.AddAuthorization();
         services.AddSingleton<IRolePermissionMap, StaticRolePermissionMap>();
@@ -98,36 +89,5 @@ public static class ApplicationCompositionServiceCollectionExtensions
         }
 
         return KeycloakUrlHelper.BuildAuthority(authServerUrl, realm);
-    }
-
-    private static void MapKeycloakClaims(ClaimsIdentity identity)
-    {
-        if (
-            identity.FindFirst(ClaimTypes.Name) is null
-            && identity.FindFirst(AuthConstants.Claims.PreferredUsername) is Claim preferredUsername
-        )
-            identity.AddClaim(new Claim(ClaimTypes.Name, preferredUsername.Value));
-
-        if (identity.FindFirst(AuthConstants.Claims.RealmAccess) is not Claim realmAccess)
-            return;
-
-        using JsonDocument document = JsonDocument.Parse(realmAccess.Value);
-        if (
-            !document.RootElement.TryGetProperty(AuthConstants.Claims.Roles, out JsonElement roles)
-            || roles.ValueKind != JsonValueKind.Array
-        )
-            return;
-
-        foreach (JsonElement role in roles.EnumerateArray())
-        {
-            string? roleValue = role.GetString();
-            if (
-                string.IsNullOrWhiteSpace(roleValue)
-                || identity.HasClaim(ClaimTypes.Role, roleValue)
-            )
-                continue;
-
-            identity.AddClaim(new Claim(ClaimTypes.Role, roleValue));
-        }
     }
 }

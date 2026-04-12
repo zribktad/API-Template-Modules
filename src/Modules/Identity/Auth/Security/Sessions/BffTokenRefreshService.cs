@@ -1,5 +1,6 @@
 using Identity.Auth.Options;
 using Identity.Auth.Security.Keycloak;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace Identity.Auth.Security.Sessions;
@@ -16,6 +17,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
     private readonly IKeycloakService _keycloakService;
     private readonly BffOptions _options;
     private readonly TimeProvider _timeProvider;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public BffTokenRefreshService(
         IBffRefreshCoordinator refreshCoordinator,
@@ -23,7 +25,8 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         IBffSessionRevocationService revocationService,
         IKeycloakService keycloakService,
         IOptions<BffOptions> options,
-        TimeProvider timeProvider
+        TimeProvider timeProvider,
+        IHttpContextAccessor httpContextAccessor
     )
     {
         _refreshCoordinator = refreshCoordinator;
@@ -32,6 +35,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         _keycloakService = keycloakService;
         _options = options.Value;
         _timeProvider = timeProvider;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     /// <inheritdoc />
@@ -124,6 +128,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         if (!updated)
             return await ReloadFollowerOutcomeAsync(currentSession.SessionId, ct);
 
+        BffRequestScopedSessionCache.Invalidate(_httpContextAccessor, currentSession.SessionId);
         return BffRefreshOutcome.Success(updatedSession);
     }
 

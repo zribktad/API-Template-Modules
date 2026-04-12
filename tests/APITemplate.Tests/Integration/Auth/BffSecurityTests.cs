@@ -179,8 +179,13 @@ internal sealed class FakeCookieAuthHandler(
             AuthConstants.BffSchemes.Cookie
         );
 
+        var properties = new AuthenticationProperties();
+        properties.Items[AuthConstants.SessionProperties.SessionId] =
+            "bff-integration-test-session";
+
         var ticket = new AuthenticationTicket(
             new ClaimsPrincipal(identity),
+            properties,
             AuthConstants.BffSchemes.Cookie
         );
 
