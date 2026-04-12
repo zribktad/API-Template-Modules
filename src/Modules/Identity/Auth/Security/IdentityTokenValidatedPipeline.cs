@@ -1,9 +1,10 @@
 using System.Security.Claims;
-using Identity.Directory.Features.User;
-using Identity.Logging;
 using Identity.Auth.Security.Keycloak;
+using Identity.Directory.Features.User;
 using Identity.Directory.Security;
+using Identity.Logging;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wolverine;
@@ -180,6 +181,21 @@ public static class IdentityTokenValidatedPipeline
             return false;
         }
 
+        string cacheKey = AuthConstants.DistributedCache.UserAccessAllowedKeyPrefix + sub;
+        IDistributedCache? distributedCache =
+            httpContext.RequestServices.GetService<IDistributedCache>();
+
+        if (distributedCache is not null)
+        {
+            try
+            {
+                byte[]? cached = await distributedCache.GetAsync(cacheKey, ct);
+                if (cached is { Length: > 0 } && cached[0] == 1)
+                    return true;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException) { }
+        }
+
         try
         {
             IMessageBus bus = httpContext.RequestServices.GetRequiredService<IMessageBus>();
@@ -197,6 +213,25 @@ public static class IdentityTokenValidatedPipeline
                 SetAccessDeniedItems(httpContext, code, message);
                 fail(new UserAccessDeniedException(code, message));
                 return false;
+            }
+
+            if (distributedCache is not null)
+            {
+                try
+                {
+                    await distributedCache.SetAsync(
+                        cacheKey,
+                        new byte[] { 1 },
+                        new DistributedCacheEntryOptions
+                        {
+                            AbsoluteExpirationRelativeToNow = AuthConstants
+                                .DistributedCache
+                                .UserAccessAllowedTtl,
+                        },
+                        ct
+                    );
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException) { }
             }
 
             return true;

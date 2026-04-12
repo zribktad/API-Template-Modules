@@ -159,4 +159,23 @@ public static class AuthConstants
         public const string AccessDeniedErrorCode = "Identity.AccessDenied.ErrorCode";
         public const string AccessDeniedDetail = "Identity.AccessDenied.Detail";
     }
+
+    /// <summary>
+    ///     Keys and TTLs for <see cref="Microsoft.Extensions.Caching.Distributed.IDistributedCache" />
+    ///     entries written by the Identity auth layer.
+    /// </summary>
+    public static class DistributedCache
+    {
+        /// <summary>
+        ///     Prefix for a positive user-access resolution for a Keycloak <c>sub</c>. Full key: prefix +
+        ///     subject string.
+        /// </summary>
+        public const string UserAccessAllowedKeyPrefix = "identity:useraccess:allowed:v1:";
+
+        /// <summary>
+        ///     How long a successful access resolution may be reused without hitting the app database.
+        ///     Denied outcomes are not cached so invitation and account state changes propagate quickly.
+        /// </summary>
+        public static readonly TimeSpan UserAccessAllowedTtl = TimeSpan.FromMinutes(2);
+    }
 }

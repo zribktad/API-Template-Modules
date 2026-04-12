@@ -148,9 +148,11 @@ public static partial class IdentityModule
         options.SaveTokens = true;
         options.SignInScheme = AuthConstants.BffSchemes.Cookie;
 
-        options.Scope.Clear();
         foreach (string scope in bff.Scopes)
-            options.Scope.Add(scope);
+        {
+            if (!options.Scope.Contains(scope))
+                options.Scope.Add(scope);
+        }
 
         options.Events = new OpenIdConnectEvents
         {
