@@ -17,7 +17,7 @@ public static class UserMappings
             u.Username,
             u.Email,
             u.IsActive,
-            u.Role,
+            u.Roles.Select(r => r.Name).ToList(),
             u.ProvisioningStatus,
             u.Audit.CreatedAtUtc
         );

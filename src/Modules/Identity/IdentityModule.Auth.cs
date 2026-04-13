@@ -6,6 +6,7 @@ using Identity.Auth.Security.Keycloak;
 using Identity.Auth.Security.Sessions;
 using Identity.Common.Email;
 using Keycloak.AuthServices.Sdk;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -85,6 +86,8 @@ public static partial class IdentityModule
             .AddOptions<CookieAuthenticationOptions>(AuthConstants.BffSchemes.Cookie)
             .Configure<RedisTicketStore>((opts, store) => opts.SessionStore = store);
 
+        services.AddTransient<IClaimsTransformation, UserPermissionsClaimsTransformation>();
+
         services
             .AddAuthorizationBuilder()
             .SetFallbackPolicy(
@@ -105,7 +108,10 @@ public static partial class IdentityModule
                             AuthConstants.BffSchemes.Cookie
                         )
                         .RequireAuthenticatedUser()
-                        .RequireRole(UserRole.PlatformAdmin.ToString())
+                        .RequireClaim(
+                            AuthConstants.Claims.Permission,
+                            SharedKernel.Contracts.Security.Permission.Platform.Manage
+                        )
             )
             .AddPolicy(
                 AuthConstants.Policies.TenantAdmin,
@@ -116,9 +122,10 @@ public static partial class IdentityModule
                             AuthConstants.BffSchemes.Cookie
                         )
                         .RequireAuthenticatedUser()
-                        .RequireRole(
-                            UserRole.TenantAdmin.ToString(),
-                            UserRole.PlatformAdmin.ToString()
+                        .RequireClaim(
+                            AuthConstants.Claims.Permission,
+                            SharedKernel.Contracts.Security.Permission.Tenant.Manage,
+                            SharedKernel.Contracts.Security.Permission.Platform.Manage
                         )
             );
 

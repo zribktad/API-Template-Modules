@@ -30,20 +30,17 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.IsActive).IsRequired().HasDefaultValue(true);
 
         builder
-            .Property(u => u.Role)
-            .HasConversion<string>()
-            .IsRequired()
-            .HasMaxLength(32)
-            .HasDefaultValue(UserRole.User)
-            .HasSentinel((UserRole)(-1));
-
-        builder
             .Property(u => u.ProvisioningStatus)
             .HasConversion<string>()
             .IsRequired()
             .HasMaxLength(32)
             .HasDefaultValue(ProvisioningStatus.Pending)
             .HasSentinel((ProvisioningStatus)(-1));
+
+        builder
+            .HasMany(u => u.Roles)
+            .WithMany(r => r.Users)
+            .UsingEntity(j => j.ToTable("AppUserRoles", "identity"));
 
         // FK to Tenant — no navigation property on Tenant side (module boundary)
         builder

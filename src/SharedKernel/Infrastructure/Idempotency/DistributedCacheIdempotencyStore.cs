@@ -35,10 +35,20 @@ public sealed class DistributedCacheIdempotencyStore : IIdempotencyStore
         CancellationToken ct = default
     )
     {
-        RedisValue json = await _database.StringGetAsync(KeyPrefix + key);
-        return json.IsNullOrEmpty
-            ? null
-            : JsonSerializer.Deserialize<IdempotencyCacheEntry>(json.ToString());
+        string redisKey = KeyPrefix + key;
+        RedisValue json = await _database.StringGetAsync(redisKey);
+        if (json.IsNullOrEmpty)
+            return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<IdempotencyCacheEntry>(json.ToString()!);
+        }
+        catch (JsonException)
+        {
+            await _database.KeyDeleteAsync(redisKey);
+            return null;
+        }
     }
 
     /// <summary>

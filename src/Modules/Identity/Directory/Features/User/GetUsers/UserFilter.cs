@@ -8,7 +8,7 @@ public sealed record UserFilter(
     string? Username = null,
     string? Email = null,
     bool? IsActive = null,
-    UserRole? Role = null,
+    Guid? RoleId = null,
     ProvisioningStatus? ProvisioningStatus = null,
     string? SortBy = null,
     string? SortDirection = null,

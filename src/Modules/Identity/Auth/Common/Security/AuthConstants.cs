@@ -96,6 +96,9 @@ public static class AuthConstants
         public const string Roles = "roles";
         public const string PreferredUsername = "preferred_username";
 
+        /// <summary>Application permission strings expanded onto the principal by <c>IClaimsTransformation</c>.</summary>
+        public const string Permission = "Permission";
+
         /// <summary>OAuth 2.0 <c>azp</c> (authorized party) — present on many Keycloak access tokens.</summary>
         public const string AuthorizedParty = "azp";
         public const string ServiceAccountUsernamePrefix = "service-account-";
@@ -199,5 +202,15 @@ public static class AuthConstants
         ///     Denied outcomes are not cached so invitation and account state changes propagate quickly.
         /// </summary>
         public static readonly TimeSpan UserAccessAllowedTtl = TimeSpan.FromMinutes(2);
+
+        /// <summary>Prefix for cached permission lists keyed by OIDC <c>sub</c> or app user id string.</summary>
+        public const string UserPermissionsKeyPrefix = "UserPermissions:";
+
+        /// <summary>Builds the distributed cache key used for expanded permission claims.</summary>
+        public static string UserPermissionsCacheKey(string subjectOrUserId) =>
+            $"{UserPermissionsKeyPrefix}{subjectOrUserId}";
+
+        /// <summary>TTL for cached permission lists loaded from the Identity database.</summary>
+        public static readonly TimeSpan UserPermissionsTtl = TimeSpan.FromMinutes(10);
     }
 }

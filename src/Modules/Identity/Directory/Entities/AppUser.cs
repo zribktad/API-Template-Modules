@@ -56,8 +56,9 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     public string? KeycloakUserId { get; set; }
 
     public bool IsActive { get; set; } = true;
-    public UserRole Role { get; set; } = UserRole.User;
     public ProvisioningStatus ProvisioningStatus { get; set; } = ProvisioningStatus.Pending;
+
+    public ICollection<CustomRole> Roles { get; set; } = new List<CustomRole>();
 
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();
@@ -84,7 +85,6 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
         Email email,
         string? keycloakUserId,
         Guid? tenantId = null,
-        UserRole role = UserRole.User,
         bool isActive = true
     )
     {
@@ -95,7 +95,6 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
             Email = email,
             KeycloakUserId = keycloakUserId,
             TenantId = tenantId ?? Guid.Empty,
-            Role = role,
             IsActive = isActive,
         };
 

@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using Identity.Auth.Entities;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
-using Identity.Directory.Enums;
 using Identity.Persistence;
 using Identity.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +27,8 @@ internal static class IntegrationAuthHelper
         Guid? userId = null,
         Guid? tenantId = null,
         string? username = null,
-        UserRole role = UserRole.PlatformAdmin
+        string role = "PlatformAdmin",
+        string[]? permissions = null
     )
     {
         var id = userId ?? Guid.NewGuid();
@@ -40,8 +40,34 @@ internal static class IntegrationAuthHelper
             new(AuthConstants.Claims.PreferredUsername, username ?? "admin"),
             new(ClaimTypes.Email, $"{username ?? "admin"}@example.com"),
             new(AuthConstants.Claims.TenantId, tenant.ToString()),
-            new(ClaimTypes.Role, role.ToString()),
+            new(ClaimTypes.Role, role),
         };
+
+        if (permissions != null)
+        {
+            foreach (var permission in permissions)
+            {
+                claims.Add(new Claim(AuthConstants.Claims.Permission, permission));
+            }
+        }
+        else if (role == "PlatformAdmin")
+        {
+            claims.Add(
+                new Claim(
+                    AuthConstants.Claims.Permission,
+                    SharedKernel.Contracts.Security.Permission.Platform.Manage
+                )
+            );
+        }
+        else if (role == "TenantAdmin")
+        {
+            claims.Add(
+                new Claim(
+                    AuthConstants.Claims.Permission,
+                    SharedKernel.Contracts.Security.Permission.Tenant.Manage
+                )
+            );
+        }
 
         var token = new JwtSecurityToken(
             issuer: "http://localhost:8180/realms/api-template",
@@ -59,10 +85,11 @@ internal static class IntegrationAuthHelper
         Guid? userId = null,
         Guid? tenantId = null,
         string? username = null,
-        UserRole role = UserRole.PlatformAdmin
+        string role = "PlatformAdmin",
+        string[]? permissions = null
     )
     {
-        string token = CreateTestToken(userId, tenantId, username, role);
+        string token = CreateTestToken(userId, tenantId, username, role, permissions);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
@@ -70,26 +97,36 @@ internal static class IntegrationAuthHelper
         HttpClient client,
         Guid? tenantId = null,
         string? username = null,
-        UserRole role = UserRole.PlatformAdmin
+        string role = "PlatformAdmin",
+        string[]? permissions = null
     )
     {
         var userId = Guid.NewGuid();
-        Authenticate(client, userId, tenantId, username, role);
+        Authenticate(client, userId, tenantId, username, role, permissions);
         return userId;
     }
 
     public static void AuthenticateAsUser(
         HttpClient client,
         Guid? userId = null,
-        Guid? tenantId = null
-    ) => Authenticate(client, userId, tenantId, username: "user", role: UserRole.User);
+        Guid? tenantId = null,
+        string[]? permissions = null
+    ) => Authenticate(client, userId, tenantId, username: "user", role: "User", permissions);
 
     public static void AuthenticateAsTenantAdmin(
         HttpClient client,
         Guid? userId = null,
-        Guid? tenantId = null
+        Guid? tenantId = null,
+        string[]? permissions = null
     ) =>
-        Authenticate(client, userId, tenantId, username: "tenantadmin", role: UserRole.TenantAdmin);
+        Authenticate(
+            client,
+            userId,
+            tenantId,
+            username: "tenantadmin",
+            role: "TenantAdmin",
+            permissions
+        );
 
     /// <summary>
     ///     Seeds an additional tenant and user for tests that need data beyond the bootstrap tenant.

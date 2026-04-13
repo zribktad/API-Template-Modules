@@ -60,6 +60,17 @@ public static class DomainErrors
         }
     }
 
+    public static class Roles
+    {
+        public static Error CannotAssignForeignTenant()
+        {
+            return Error.Forbidden(
+                ErrorCatalog.Roles.CannotAssignForeignTenant,
+                "Cannot assign roles that belong to another tenant."
+            );
+        }
+    }
+
     public static class Tenants
     {
         public static Error NotFound(Guid id)
