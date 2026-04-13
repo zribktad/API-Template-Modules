@@ -60,7 +60,11 @@ public sealed class CustomRoleConfiguration : IEntityTypeConfiguration<CustomRol
 
         builder.Property(r => r.Name).IsRequired().HasMaxLength(100);
 
-        builder.HasIndex(r => new { r.TenantId, r.Name }).IsUnique();
+        builder
+            .HasIndex(r => new { r.TenantId, r.Name })
+            .IsUnique()
+            .HasFilter("\"TenantId\" IS NOT NULL");
+        builder.HasIndex(r => r.Name).IsUnique().HasFilter("\"TenantId\" IS NULL");
 
         builder.OwnsMany(
             r => r.Permissions,

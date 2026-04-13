@@ -3,6 +3,7 @@ using ErrorOr;
 using Identity.Directory.Features.Role.CreateRole;
 using Identity.Directory.Features.Role.DeleteRole;
 using Identity.Directory.Features.Role.GetPermissions;
+using Identity.Directory.Features.Role.GetRole;
 using Identity.Directory.Features.Role.GetRoles;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Features.Role.UpdateRole;
@@ -28,7 +29,7 @@ public sealed class RolesController(IMessageBus bus) : ApiControllerBase
         );
         return result.ToCreatedResult(
             this,
-            nameof(GetRoles),
+            nameof(GetRole),
             v => new { id = v.Id, version = this.GetApiVersion() }
         );
     }
@@ -57,6 +58,17 @@ public sealed class RolesController(IMessageBus bus) : ApiControllerBase
             ct
         );
         return result.ToNoContentResult(this);
+    }
+
+    [HttpGet("{id:guid}")]
+    [RequirePermission(Permission.Roles.Read)]
+    public async Task<ActionResult<RoleResponse>> GetRole(Guid id, CancellationToken ct)
+    {
+        ErrorOr<RoleResponse> result = await bus.InvokeAsync<ErrorOr<RoleResponse>>(
+            new GetRoleQuery(id),
+            ct
+        );
+        return result.ToActionResult(this);
     }
 
     [HttpGet]

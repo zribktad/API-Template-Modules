@@ -45,10 +45,8 @@ public sealed class CreateRoleCommandHandler
         {
             Id = command.Id,
             Name = command.Request.Name,
-            // PlatformAdmin can override TenantId, TenantAdmin always creates in their own tenant
-            TenantId = isPlatformAdmin
-                ? (command.Request.TenantId ?? tenantProvider.TenantId)
-                : tenantProvider.TenantId,
+            // PlatformAdmin can set TenantId including null (global role); TenantAdmin always creates in their own tenant
+            TenantId = isPlatformAdmin ? command.Request.TenantId : tenantProvider.TenantId,
             IsImmutable = false,
         };
 

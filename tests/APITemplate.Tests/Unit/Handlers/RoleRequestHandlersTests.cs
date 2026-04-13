@@ -309,7 +309,7 @@ public class RoleRequestHandlersTests
         _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
 
         messages
-            .OfType<Identity.Directory.Features.User.InvalidatePermissions.RolePermissionsInvalidatedEvent>()
+            .OfType<Identity.Directory.Features.Role.InvalidatePermissions.RolePermissionsInvalidatedEvent>()
             .ShouldHaveSingleItem();
     }
 
@@ -371,7 +371,7 @@ public class RoleRequestHandlersTests
         _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
 
         messages
-            .OfType<Identity.Directory.Features.User.InvalidatePermissions.RolePermissionsInvalidatedEvent>()
+            .OfType<Identity.Directory.Features.Role.InvalidatePermissions.RolePermissionsInvalidatedEvent>()
             .ShouldHaveSingleItem();
     }
 }

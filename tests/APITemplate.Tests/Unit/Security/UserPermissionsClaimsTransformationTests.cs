@@ -23,6 +23,7 @@ public class UserPermissionsClaimsTransformationTests
     private readonly Mock<IServiceScopeFactory> _scopeFactory = new();
     private readonly Mock<IServiceScope> _scope = new();
     private readonly Mock<IServiceProvider> _scopedProvider = new();
+    private readonly IdentityDbContext _dbContext;
 
     public UserPermissionsClaimsTransformationTests()
     {
@@ -35,14 +36,14 @@ public class UserPermissionsClaimsTransformationTests
         var options = new DbContextOptionsBuilder<IdentityDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        var dbContext = new IdentityDbContext(
+        _dbContext = new IdentityDbContext(
             options,
             Mock.Of<ITenantProvider>(),
             Mock.Of<IActorProvider>(),
             TimeProvider.System,
             Mock.Of<IAuditableEntityStateManager>()
         );
-        _scopedProvider.Setup(s => s.GetService(typeof(IdentityDbContext))).Returns(dbContext);
+        _scopedProvider.Setup(s => s.GetService(typeof(IdentityDbContext))).Returns(_dbContext);
     }
 
     [Fact]
@@ -146,5 +147,60 @@ public class UserPermissionsClaimsTransformationTests
         extractedPermissions.Count.ShouldBe(2);
         extractedPermissions.ShouldContain("Test.Perm1");
         extractedPermissions.ShouldContain("Test.Perm2");
+    }
+
+    [Fact]
+    public async Task TransformAsync_WhenCacheContainsInvalidJson_RemovesKeyAndDoesNotThrow()
+    {
+        var userId = Guid.NewGuid();
+        var transformation = new UserPermissionsClaimsTransformation(
+            _serviceProvider.Object,
+            _cache.Object
+        );
+        var identity = new ClaimsIdentity("TestAuth");
+        identity.AddClaim(new Claim(AuthConstants.Claims.Subject, userId.ToString()));
+        var principal = new ClaimsPrincipal(identity);
+
+        var badJson = System.Text.Encoding.UTF8.GetBytes("{not-json");
+        _cache
+            .Setup(c =>
+                c.GetAsync(
+                    AuthConstants.DistributedCache.UserPermissionsCacheKey(userId.ToString()),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(badJson);
+
+        _cache
+            .Setup(c =>
+                c.RemoveAsync(
+                    AuthConstants.DistributedCache.UserPermissionsCacheKey(userId.ToString()),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        _cache
+            .Setup(c =>
+                c.SetAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<byte[]>(),
+                    It.IsAny<DistributedCacheEntryOptions>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        var result = await transformation.TransformAsync(principal);
+
+        _cache.Verify(
+            c =>
+                c.RemoveAsync(
+                    AuthConstants.DistributedCache.UserPermissionsCacheKey(userId.ToString()),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        result.ShouldNotBeNull();
     }
 }

@@ -65,16 +65,25 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
 
         if (!string.IsNullOrEmpty(permissionsJson))
         {
-            permissions = JsonSerializer.Deserialize<List<string>>(permissionsJson);
+            try
+            {
+                permissions = JsonSerializer.Deserialize<List<string>>(permissionsJson);
+            }
+            catch (JsonException)
+            {
+                await _cache.RemoveAsync(cacheKey);
+            }
         }
-        else
+
+        if (permissions == null)
         {
+            bool isGuid = Guid.TryParse(sub, out Guid subGuid);
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
             permissions = await dbContext
                 .Users.AsNoTracking()
-                .Where(u => u.KeycloakUserId == sub || u.Id.ToString() == sub)
+                .Where(u => u.KeycloakUserId == sub || (isGuid && u.Id == subGuid))
                 .SelectMany(u => u.Roles)
                 .SelectMany(r => r.Permissions)
                 .Select(rp => rp.Permission)

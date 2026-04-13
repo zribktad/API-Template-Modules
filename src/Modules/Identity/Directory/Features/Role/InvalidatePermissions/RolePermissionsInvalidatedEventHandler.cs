@@ -5,15 +5,21 @@ using Identity.Directory.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
-namespace Identity.Directory.Features.User.InvalidatePermissions;
+namespace Identity.Directory.Features.Role.InvalidatePermissions;
 
 public sealed record RolePermissionsInvalidatedEvent(Guid RoleId);
 
-public sealed class UsersByRoleIdSpecification : Specification<AppUser>
+/// <summary>Projection of user identifiers used only for permission cache key eviction.</summary>
+public readonly record struct UserPermissionCacheKeySource(Guid Id, string? KeycloakUserId);
+
+public sealed class UsersByRoleIdForCacheInvalidationSpecification
+    : Specification<AppUser, UserPermissionCacheKeySource>
 {
-    public UsersByRoleIdSpecification(Guid roleId)
+    public UsersByRoleIdForCacheInvalidationSpecification(Guid roleId)
     {
         Query.Where(u => u.Roles.Any(r => r.Id == roleId));
+        Query.AsNoTracking();
+        Query.Select(u => new UserPermissionCacheKeySource(u.Id, u.KeycloakUserId));
     }
 }
 
@@ -28,7 +34,7 @@ public sealed class RolePermissionsInvalidatedEventHandler
     )
     {
         var users = await userRepository.ListAsync(
-            new UsersByRoleIdSpecification(message.RoleId),
+            new UsersByRoleIdForCacheInvalidationSpecification(message.RoleId),
             ct
         );
 

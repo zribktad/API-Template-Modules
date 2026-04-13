@@ -1,5 +1,6 @@
 using ErrorOr;
 using Identity.Directory.Entities;
+using Identity.Directory.Features.Role.InvalidatePermissions;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Interfaces;
 using SharedKernel.Domain.Interfaces;
@@ -40,11 +41,7 @@ public sealed class DeleteRoleCommandHandler
         await unitOfWork.CommitAsync(ct);
 
         OutgoingMessages messages = new();
-        messages.Add(
-            new Identity.Directory.Features.User.InvalidatePermissions.RolePermissionsInvalidatedEvent(
-                command.Id
-            )
-        );
+        messages.Add(new RolePermissionsInvalidatedEvent(command.Id));
 
         return (Result.Success, messages);
     }

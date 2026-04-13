@@ -1,6 +1,8 @@
 using ErrorOr;
+using FluentValidation;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
+using Identity.Directory.Features.Role.InvalidatePermissions;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -11,6 +13,16 @@ using Wolverine;
 namespace Identity.Directory.Features.Role.UpdateRole;
 
 public sealed record UpdateRoleRequest(string Name, List<string> Permissions);
+
+public sealed class UpdateRoleRequestValidator : AbstractValidator<UpdateRoleRequest>
+{
+    public UpdateRoleRequestValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Permissions).NotNull();
+        RuleForEach(x => x.Permissions).NotEmpty().MaximumLength(100);
+    }
+}
 
 public sealed record UpdateRoleCommand(Guid Id, UpdateRoleRequest Request) : IHasId;
 
@@ -77,11 +89,7 @@ public sealed class UpdateRoleCommandHandler
         await unitOfWork.CommitAsync(ct);
 
         OutgoingMessages messages = new();
-        messages.Add(
-            new Identity.Directory.Features.User.InvalidatePermissions.RolePermissionsInvalidatedEvent(
-                role.Id
-            )
-        );
+        messages.Add(new RolePermissionsInvalidatedEvent(role.Id));
 
         return (role.ToResponse(), messages);
     }

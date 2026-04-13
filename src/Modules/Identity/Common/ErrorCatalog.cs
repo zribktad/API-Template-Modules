@@ -18,6 +18,11 @@ public static class ErrorCatalog
         public const string NewPasswordMustDiffer = "USR-0422-PASSWORD-SAME";
     }
 
+    public static class Roles
+    {
+        public const string CannotAssignForeignTenant = "ROL-0403-TENANT";
+    }
+
     public static class Tenants
     {
         public const string NotFound = "TNT-0404";

@@ -3,6 +3,7 @@ using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Features.User.Shared;
 using Identity.Directory.Interfaces;
+using Identity.Errors;
 using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
@@ -21,7 +22,7 @@ public sealed class AssignUserRolesCommandHandler
             ct
         );
         if (user == null)
-            return Error.NotFound("User.NotFound", "User not found.");
+            return DomainErrors.Users.NotFound(command.UserId);
         return user;
     }
 
@@ -49,6 +50,11 @@ public sealed class AssignUserRolesCommandHandler
                 Error.Validation("Roles.Invalid", "One or more requested roles do not exist."),
                 OutgoingMessagesHelper.Empty
             );
+        }
+
+        if (requestedRoles.Any(r => r.TenantId != null && r.TenantId != user.TenantId))
+        {
+            return (DomainErrors.Roles.CannotAssignForeignTenant(), OutgoingMessagesHelper.Empty);
         }
 
         user.Roles.Clear();
