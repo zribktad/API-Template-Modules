@@ -29,10 +29,11 @@ public static class ProductValidationRules
 }
 
 /// <summary>
-///     Abstract base validator for create/update product requests; inherits data-annotation validation and adds the shared
-///     description-required-above-price-threshold rule.
+///     Abstract base validator for create/update product requests. Field-level Data Annotations on DTOs are enforced at
+///     the API boundary by ASP.NET Core; this validator only adds cross-field rules MVC cannot express (e.g.
+///     description required above a price threshold), avoiding duplicate <c>TryValidateObject</c> in batch handlers.
 /// </summary>
-public abstract class ProductRequestValidatorBase<T> : DataAnnotationsValidator<T>
+public abstract class ProductRequestValidatorBase<T> : AbstractValidator<T>
     where T : class, IProductRequest
 {
     protected ProductRequestValidatorBase()
