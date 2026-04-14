@@ -15,10 +15,13 @@ using ProductCatalog.GraphQL.DataLoaders;
 using ProductCatalog.GraphQL.Mutations;
 using ProductCatalog.GraphQL.Queries;
 using ProductCatalog.GraphQL.Types;
+using ProductCatalog.Infrastructure.Health;
 using ProductCatalog.Persistence;
 using ProductCatalog.Repositories;
+using ProductCatalog.Services;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
+using SharedKernel.Infrastructure.Health;
 using SharedKernel.Infrastructure.Registration;
 using SharedKernel.Infrastructure.Startup;
 using ProductApplicationRepository = ProductCatalog.Interfaces.IProductRepository;
@@ -70,6 +73,7 @@ public static class ProductCatalogModule
                 new MigrationOptions(mongoSettings.DatabaseName),
                 config => config.LoadMigrationsFromAssembly(typeof(ProductCatalogModule).Assembly)
             );
+            services.AddHealthChecks().AddCheck<MongoDbHealthCheck>(HealthCheckNames.MongoDb);
         }
 
         services.AddResiliencePipeline(
@@ -87,6 +91,10 @@ public static class ProductCatalogModule
                 );
             }
         );
+        services.AddSingleton<
+            IMongoProductDataDeletePipelineProvider,
+            MongoProductDataDeletePipelineProvider
+        >();
 
         services.AddControllers().AddApplicationPart(typeof(ProductCatalogModule).Assembly);
 

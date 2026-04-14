@@ -62,11 +62,37 @@ public static class DomainErrors
 
     public static class Roles
     {
+        public static Error NotFound(Guid id)
+        {
+            return Error.NotFound(ErrorCatalog.Roles.NotFound, $"Role with id '{id}' not found.");
+        }
+
+        public static Error Immutable()
+        {
+            return Error.Validation(ErrorCatalog.Roles.Immutable, "Cannot modify built-in roles.");
+        }
+
+        public static Error CannotGrantPlatformManage()
+        {
+            return Error.Forbidden(
+                ErrorCatalog.Roles.CannotGrantPlatformManage,
+                "TenantAdmin cannot grant Platform.Manage permission."
+            );
+        }
+
         public static Error CannotAssignForeignTenant()
         {
             return Error.Forbidden(
                 ErrorCatalog.Roles.CannotAssignForeignTenant,
                 "Cannot assign roles that belong to another tenant."
+            );
+        }
+
+        public static Error InvalidRoles()
+        {
+            return Error.Validation(
+                ErrorCatalog.Roles.InvalidRoles,
+                "One or more requested roles do not exist."
             );
         }
     }

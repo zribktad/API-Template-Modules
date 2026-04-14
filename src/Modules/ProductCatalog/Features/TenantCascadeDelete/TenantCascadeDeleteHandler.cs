@@ -1,14 +1,14 @@
 using Wolverine;
-using CategoryEntity = ProductCatalog.Entities.Category;
-using ProductEntity = ProductCatalog.Entities.Product;
 
 namespace ProductCatalog.Features.TenantCascadeDelete;
 
 /// <summary>
 ///     Handles <see cref="TenantSoftDeletedNotification" /> by cascading the soft-delete to all
-///     non-deleted <see cref="CategoryEntity" /> and <see cref="ProductEntity" /> records for the tenant.
-///     Publishes <see cref="ProductSoftDeletedNotification" /> per product so the Reviews module
-///     can cascade to ProductReviews, and invalidates the Products and Categories cache.
+///     non-deleted categories, product data links, and products for the tenant using bulk SQL
+///     (<c>ExecuteUpdateAsync</c>) — zero entity materialization.
+///     Publishes a single <see cref="ProductsBatchSoftDeletedNotification" /> so the Reviews module
+///     can cascade soft-delete to ProductReviews in one batch, and invalidates the Products, Categories,
+///     and Reviews cache.
 /// </summary>
 public static class TenantCascadeDeleteHandler
 {
@@ -21,33 +21,34 @@ public static class TenantCascadeDeleteHandler
         CancellationToken ct
     )
     {
-        IReadOnlyList<CategoryEntity> categories = await categoryRepository.ListAsync(
-            new CategoriesForTenantSoftDeleteSpecification(notification.TenantId),
+        IReadOnlyList<Guid> productIds = await productRepository.GetNonDeletedIdsByTenantAsync(
+            notification.TenantId,
             ct
         );
-
-        IReadOnlyList<ProductEntity> products = await productRepository.ListAsync(
-            new ProductsForTenantSoftDeleteSpecification(notification.TenantId),
-            ct
-        );
-
-        if (categories.Count == 0 && products.Count == 0)
-            return OutgoingMessagesHelper.Empty;
-
-        List<ProductDataLink> allLinks = products
-            .SelectMany(product => product.ProductDataLinks)
-            .ToList();
 
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                if (categories.Count > 0)
-                    await categoryRepository.DeleteRangeAsync(categories, ct);
+                await categoryRepository.BulkSoftDeleteByTenantAsync(
+                    notification.TenantId,
+                    notification.ActorId,
+                    notification.DeletedAtUtc,
+                    ct
+                );
 
-                linkRepository.DeleteRange(allLinks);
+                await linkRepository.BulkSoftDeleteByTenantAsync(
+                    notification.TenantId,
+                    notification.ActorId,
+                    notification.DeletedAtUtc,
+                    ct
+                );
 
-                if (products.Count > 0)
-                    await productRepository.DeleteRangeAsync(products, ct);
+                await productRepository.BulkSoftDeleteByTenantAsync(
+                    notification.TenantId,
+                    notification.ActorId,
+                    notification.DeletedAtUtc,
+                    ct
+                );
             },
             ct
         );
@@ -55,16 +56,12 @@ public static class TenantCascadeDeleteHandler
         OutgoingMessages messages = new();
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
 
-        foreach (ProductEntity product in products)
+        if (productIds.Count > 0)
         {
-            messages.Add(
-                new ProductSoftDeletedNotification(
-                    product.Id,
-                    notification.ActorId,
-                    notification.DeletedAtUtc
-                )
-            );
+            messages.Add(new ProductsBatchSoftDeletedNotification(
+                productIds, notification.ActorId, notification.DeletedAtUtc, Guid.NewGuid()));
         }
 
         return messages;

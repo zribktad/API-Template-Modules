@@ -87,11 +87,14 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
 
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
         BffPersistedSession? entity = await _dbContext
             .BffSessions.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(s => s.SessionId == session.SessionId);
+            .FirstOrDefaultAsync(
+                s => s.SessionId == session.SessionId,
+                TestContext.Current.CancellationToken
+            );
 
         entity.ShouldNotBeNull();
         entity.UserId.ShouldBe(session.UserId);
@@ -107,11 +110,14 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
 
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
         BffPersistedSession? entity = await _dbContext
             .BffSessions.IgnoreQueryFilters()
-            .FirstOrDefaultAsync(s => s.SessionId == session.SessionId);
+            .FirstOrDefaultAsync(
+                s => s.SessionId == session.SessionId,
+                TestContext.Current.CancellationToken
+            );
 
         entity.ShouldNotBeNull();
         entity.EncryptedAccessToken.ShouldNotBe(session.AccessToken);
@@ -125,7 +131,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
 
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
         _cache.Verify(
             x =>
@@ -145,7 +151,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     public async Task GetAsync_WhenCacheMiss_LoadsFromDatabaseAndPopulatesCache()
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
         // Reset cache mock so GetStringAsync returns null (cache miss)
         _cache.Reset();
@@ -189,14 +195,17 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     public async Task GetAsync_WhenSoftDeleted_ReturnsNull()
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
         // Soft-delete the entity
         BffPersistedSession entity = await _dbContext
             .BffSessions.IgnoreQueryFilters()
-            .FirstAsync(s => s.SessionId == session.SessionId);
+            .FirstAsync(
+                s => s.SessionId == session.SessionId,
+                TestContext.Current.CancellationToken
+            );
         entity.IsDeleted = true;
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _cache.Reset();
         _cache
@@ -214,7 +223,7 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     public async Task TryUpdateAsync_WithMatchingVersion_UpdatesAndReturnsTrue()
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
         BffSessionRecord updated = session with
         {
@@ -223,13 +232,20 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
             Version = 1,
         };
 
-        bool result = await _sut.TryUpdateAsync(updated, expectedVersion: 0);
+        bool result = await _sut.TryUpdateAsync(
+            updated,
+            expectedVersion: 0,
+            TestContext.Current.CancellationToken
+        );
 
         result.ShouldBeTrue();
 
         BffPersistedSession entity = await _dbContext
             .BffSessions.IgnoreQueryFilters()
-            .FirstAsync(s => s.SessionId == session.SessionId);
+            .FirstAsync(
+                s => s.SessionId == session.SessionId,
+                TestContext.Current.CancellationToken
+            );
 
         entity.Email.ShouldBe("updated@example.com");
         entity.Version.ShouldBe(1);
@@ -239,11 +255,15 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     public async Task TryUpdateAsync_WithWrongVersion_ReturnsFalse()
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
         BffSessionRecord updated = session with { Email = "updated@example.com", Version = 1 };
 
-        bool result = await _sut.TryUpdateAsync(updated, expectedVersion: 999);
+        bool result = await _sut.TryUpdateAsync(
+            updated,
+            expectedVersion: 999,
+            TestContext.Current.CancellationToken
+        );
 
         result.ShouldBeFalse();
     }
@@ -256,7 +276,11 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
         );
         BffSessionRecord updated = session with { Email = "updated@example.com" };
 
-        bool result = await _sut.TryUpdateAsync(updated, expectedVersion: 0);
+        bool result = await _sut.TryUpdateAsync(
+            updated,
+            expectedVersion: 0,
+            TestContext.Current.CancellationToken
+        );
 
         result.ShouldBeFalse();
     }
@@ -265,12 +289,16 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     public async Task TryUpdateAsync_OnSuccess_UpdatesRedisCache()
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
         _cache.Reset();
 
         BffSessionRecord updated = session with { Email = "updated@example.com", Version = 1 };
 
-        await _sut.TryUpdateAsync(updated, expectedVersion: 0);
+        await _sut.TryUpdateAsync(
+            updated,
+            expectedVersion: 0,
+            TestContext.Current.CancellationToken
+        );
 
         _cache.Verify(
             x =>
@@ -290,13 +318,16 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     public async Task RemoveAsync_SoftDeletesInDatabase()
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
-        await _sut.RemoveAsync(session.SessionId);
+        await _sut.RemoveAsync(session.SessionId, TestContext.Current.CancellationToken);
 
         BffPersistedSession entity = await _dbContext
             .BffSessions.IgnoreQueryFilters()
-            .FirstAsync(s => s.SessionId == session.SessionId);
+            .FirstAsync(
+                s => s.SessionId == session.SessionId,
+                TestContext.Current.CancellationToken
+            );
 
         entity.IsDeleted.ShouldBeTrue();
         entity.DeletedAtUtc.ShouldNotBeNull();
@@ -306,9 +337,9 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     public async Task RemoveAsync_RemovesFromRedisCache()
     {
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
-        await _sut.RemoveAsync(session.SessionId);
+        await _sut.RemoveAsync(session.SessionId, TestContext.Current.CancellationToken);
 
         _cache.Verify(
             x => x.RemoveAsync($"bff:session:{session.SessionId}", It.IsAny<CancellationToken>()),
@@ -319,7 +350,9 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
     [Fact]
     public async Task RemoveAsync_WhenNotFound_DoesNotThrow()
     {
-        await Should.NotThrowAsync(() => _sut.RemoveAsync("nonexistent"));
+        await Should.NotThrowAsync(() =>
+            _sut.RemoveAsync("nonexistent", TestContext.Current.CancellationToken)
+        );
     }
 
     // ── Roundtrip ────────────────────────────────────────────────────────────
@@ -335,14 +368,17 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
             RefreshTokenExpiresAtUtc = Now.AddDays(30),
         };
 
-        await _sut.StoreAsync(session);
+        await _sut.StoreAsync(session, TestContext.Current.CancellationToken);
 
         _cache.Reset();
         _cache
             .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((byte[]?)null);
 
-        BffSessionRecord? loaded = await _sut.GetAsync(session.SessionId);
+        BffSessionRecord? loaded = await _sut.GetAsync(
+            session.SessionId,
+            TestContext.Current.CancellationToken
+        );
 
         loaded.ShouldNotBeNull();
         loaded.SessionId.ShouldBe(session.SessionId);

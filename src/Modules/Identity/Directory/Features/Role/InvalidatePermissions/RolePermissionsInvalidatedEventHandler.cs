@@ -1,7 +1,5 @@
 using Ardalis.Specification;
-using Identity.Auth.Security;
-using Identity.Directory.Entities;
-using Identity.Directory.Interfaces;
+using Identity.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
@@ -38,26 +36,26 @@ public sealed class RolePermissionsInvalidatedEventHandler
             ct
         );
 
+        List<Task> removals = new(users.Count * 2);
         foreach (var user in users)
         {
             if (!string.IsNullOrEmpty(user.KeycloakUserId))
-            {
-                string cacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
-                    user.KeycloakUserId
+                removals.Add(
+                    cache.RemoveAsync(
+                        AuthConstants.DistributedCache.UserPermissionsCacheKey(user.KeycloakUserId),
+                        ct
+                    )
                 );
-                await cache.RemoveAsync(cacheKey, ct);
-            }
 
-            string appUserCacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
-                user.Id.ToString()
+            removals.Add(
+                cache.RemoveAsync(
+                    AuthConstants.DistributedCache.UserPermissionsCacheKey(user.Id.ToString()),
+                    ct
+                )
             );
-            await cache.RemoveAsync(appUserCacheKey, ct);
         }
+        await Task.WhenAll(removals);
 
-        logger.LogInformation(
-            "Invalidated permissions cache for {Count} users assigned to RoleId {RoleId}",
-            users.Count,
-            message.RoleId
-        );
+        logger.PermissionCacheInvalidatedForRole(users.Count, message.RoleId);
     }
 }

@@ -36,22 +36,16 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
 
         if (KeycloakServiceAccountClaims.IsServiceAccount(principal))
         {
-            var identity = new ClaimsIdentity();
-            foreach (var roleClaim in principal.FindAll(ClaimTypes.Role))
+            ClaimsIdentity identity = new ClaimsIdentity();
+            foreach (Claim roleClaim in principal.FindAll(ClaimTypes.Role))
             {
-                if (roleClaim.Value == "PlatformAdmin")
+                if (roleClaim.Value == AuthConstants.Policies.PlatformAdmin)
                     identity.AddClaim(
-                        new Claim(
-                            AuthConstants.Claims.Permission,
-                            SharedKernel.Contracts.Security.Permission.Platform.Manage
-                        )
+                        new Claim(AuthConstants.Claims.Permission, Permission.Platform.Manage)
                     );
-                else if (roleClaim.Value == "TenantAdmin")
+                else if (roleClaim.Value == AuthConstants.Policies.TenantAdmin)
                     identity.AddClaim(
-                        new Claim(
-                            AuthConstants.Claims.Permission,
-                            SharedKernel.Contracts.Security.Permission.Tenant.Manage
-                        )
+                        new Claim(AuthConstants.Claims.Permission, Permission.Tenant.Manage)
                     );
             }
             if (identity.Claims.Any())
@@ -101,7 +95,7 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
             );
         }
 
-        if (permissions != null && permissions.Count > 0)
+        if (permissions.Count > 0)
         {
             var identity = new ClaimsIdentity();
             foreach (var perm in permissions)

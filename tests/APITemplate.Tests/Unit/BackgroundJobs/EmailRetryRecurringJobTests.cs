@@ -48,6 +48,7 @@ public sealed class EmailRetryRecurringJobTests
                         BatchSize = 77,
                         MaxRetryAttempts = 5,
                         DeadLetterAfterHours = 48,
+                        ClaimLeaseMinutes = 10,
                     },
                 }
             ),
@@ -57,7 +58,7 @@ public sealed class EmailRetryRecurringJobTests
         await sut.ExecuteAsync(new TickerFunctionContext(), ct);
 
         coordinatorCalled.ShouldBeTrue();
-        retryService.Verify(x => x.RetryFailedEmailsAsync(5, 77, ct), Times.Once);
-        retryService.Verify(x => x.DeadLetterExpiredAsync(48, 77, ct), Times.Once);
+        retryService.Verify(x => x.RetryFailedEmailsAsync(5, 77, 10, ct), Times.Once);
+        retryService.Verify(x => x.DeadLetterExpiredAsync(48, 77, 10, ct), Times.Once);
     }
 }

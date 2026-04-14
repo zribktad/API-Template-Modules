@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SharedKernel.Application.Options;
+namespace BackgroundJobs.Options;
 
 /// <summary>
 ///     Configuration for the background job that retries failed outbound email deliveries

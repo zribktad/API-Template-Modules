@@ -1,4 +1,5 @@
 using ErrorOr;
+using ProductCatalog.Interfaces;
 using Wolverine;
 
 namespace ProductCatalog.Features.ProductData.DeleteProductData;

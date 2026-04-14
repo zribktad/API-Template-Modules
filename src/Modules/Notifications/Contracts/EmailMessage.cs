@@ -1,8 +1,7 @@
 namespace Notifications.Contracts;
 
 /// <summary>
-///     Immutable value object representing a single outbound email queued for delivery.
-///     Passed through <see cref="IEmailQueue" /> and consumed by the email-sending background service.
+///     Immutable message representing a single outbound email dispatched through Wolverine.
 /// </summary>
 /// <param name="TemplateName">
 ///     Optional template name used for logging and dead-letter categorisation.

@@ -13,6 +13,7 @@ public interface IEmailRetryService
     public Task RetryFailedEmailsAsync(
         int maxRetryAttempts,
         int batchSize,
+        int claimLeaseMinutes,
         CancellationToken ct = default
     );
 
@@ -23,6 +24,7 @@ public interface IEmailRetryService
     public Task DeadLetterExpiredAsync(
         int deadLetterAfterHours,
         int batchSize,
+        int claimLeaseMinutes,
         CancellationToken ct = default
     );
 }

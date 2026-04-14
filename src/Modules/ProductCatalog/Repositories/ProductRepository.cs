@@ -132,6 +132,33 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
             );
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<Guid>> GetNonDeletedIdsByTenantAsync(
+        Guid tenantId,
+        CancellationToken ct = default
+    )
+    {
+        return await _dbContext
+            .Products.IgnoreQueryFilters()
+            .Where(product => product.TenantId == tenantId && !product.IsDeleted)
+            .Select(product => product.Id)
+            .ToListAsync(ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<int> BulkSoftDeleteByTenantAsync(
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    )
+    {
+        return await _dbContext
+            .Products.IgnoreQueryFilters()
+            .Where(product => product.TenantId == tenantId && !product.IsDeleted)
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
+    }
+
     private sealed record PriceFacetCounts(
         int ZeroToFifty,
         int FiftyToOneHundred,

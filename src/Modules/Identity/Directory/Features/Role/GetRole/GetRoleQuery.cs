@@ -1,7 +1,5 @@
 using ErrorOr;
 using Identity.Directory.Features.Role.Shared;
-using Identity.Directory.Interfaces;
-using SharedKernel.Application.Context;
 
 namespace Identity.Directory.Features.Role.GetRole;
 
@@ -16,14 +14,13 @@ public sealed class GetRoleQueryHandler
         CancellationToken ct
     )
     {
-        var role = await repository.FirstOrDefaultAsync(new RoleByIdSpecification(query.Id), ct);
+        RoleResponse? role = await repository.FirstOrDefaultAsync(
+            new RoleByIdForTenantSpecification(query.Id, tenantProvider.TenantId),
+            ct
+        );
         if (role == null)
-            return Error.NotFound("Role.NotFound", "Role not found.");
+            return DomainErrors.Roles.NotFound(query.Id);
 
-        bool visible = role.TenantId == null || role.TenantId == tenantProvider.TenantId;
-        if (!visible)
-            return Error.NotFound("Role.NotFound", "Role not found.");
-
-        return role.ToResponse();
+        return role;
     }
 }

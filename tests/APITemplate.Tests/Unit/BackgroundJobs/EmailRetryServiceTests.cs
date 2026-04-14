@@ -3,7 +3,6 @@ using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Moq;
 using Polly.Registry;
 using SharedKernel.Application.Options;
@@ -62,17 +61,11 @@ public sealed class EmailRetryServiceTests
             sender.Object,
             unitOfWork.Object,
             timeProvider,
-            Options.Create(
-                new BackgroundJobsOptions
-                {
-                    EmailRetry = new EmailRetryJobOptions { ClaimLeaseMinutes = 7 },
-                }
-            ),
             CreateRegistry(),
             NullLogger<EmailRetryService>.Instance
         );
 
-        await sut.RetryFailedEmailsAsync(5, 10, ct);
+        await sut.RetryFailedEmailsAsync(5, 10, 7, ct);
 
         repository.VerifyAll();
         repository.Verify(x => x.UpdateAsync(email, ct), Times.Once);
@@ -127,17 +120,11 @@ public sealed class EmailRetryServiceTests
             sender.Object,
             unitOfWork.Object,
             timeProvider,
-            Options.Create(
-                new BackgroundJobsOptions
-                {
-                    EmailRetry = new EmailRetryJobOptions { ClaimLeaseMinutes = 4 },
-                }
-            ),
             CreateRegistry(),
             NullLogger<EmailRetryService>.Instance
         );
 
-        await sut.DeadLetterExpiredAsync(48, 10, ct);
+        await sut.DeadLetterExpiredAsync(48, 10, 4, ct);
 
         repository.Verify(x => x.UpdateAsync(email, ct), Times.Once);
         email.IsDeadLettered.ShouldBeTrue();

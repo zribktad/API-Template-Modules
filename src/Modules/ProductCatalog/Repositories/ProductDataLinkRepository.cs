@@ -107,4 +107,18 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
 
         _dbContext.ProductDataLinks.RemoveRange(links);
     }
+
+    /// <inheritdoc />
+    public async Task<int> BulkSoftDeleteByTenantAsync(
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    )
+    {
+        return await _dbContext
+            .ProductDataLinks.IgnoreQueryFilters()
+            .Where(link => link.TenantId == tenantId && !link.IsDeleted)
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
+    }
 }

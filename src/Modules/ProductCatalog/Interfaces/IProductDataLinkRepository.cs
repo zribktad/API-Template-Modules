@@ -45,4 +45,15 @@ public interface IProductDataLinkRepository
     ///     when the unit of work commits.
     /// </summary>
     public void DeleteRange(IReadOnlyCollection<ProductDataLink> links);
+
+    /// <summary>
+    ///     Bulk soft-deletes all non-deleted product data links for the specified tenant via a single
+    ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization).
+    /// </summary>
+    Task<int> BulkSoftDeleteByTenantAsync(
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    );
 }

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using ProductCatalog.Persistence;
 using ProductCatalog.StoredProcedures;
 
@@ -9,6 +10,7 @@ namespace ProductCatalog.Repositories;
 /// </summary>
 public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepository
 {
+    private readonly ProductCatalogDbContext _dbContext;
     private readonly IStoredProcedureExecutor _spExecutor;
     private readonly ITenantProvider _tenantProvider;
 
@@ -19,6 +21,7 @@ public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepo
     )
         : base(dbContext)
     {
+        _dbContext = dbContext;
         _spExecutor = spExecutor;
         _tenantProvider = tenantProvider;
     }
@@ -37,5 +40,19 @@ public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepo
             new GetProductCategoryStatsProcedure(categoryId, _tenantProvider.TenantId),
             ct
         );
+    }
+
+    /// <inheritdoc />
+    public async Task<int> BulkSoftDeleteByTenantAsync(
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    )
+    {
+        return await _dbContext
+            .Categories.IgnoreQueryFilters()
+            .Where(category => category.TenantId == tenantId && !category.IsDeleted)
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

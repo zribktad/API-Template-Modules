@@ -1,7 +1,6 @@
-using BackgroundJobs.Options;
 using BackgroundJobs.Validation;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options;
+using BackgroundJobs.Options;
 using Shouldly;
 using Xunit;
 

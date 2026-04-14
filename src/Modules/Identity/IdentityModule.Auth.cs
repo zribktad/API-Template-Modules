@@ -4,6 +4,7 @@ using Identity.Auth.Security;
 using Identity.Auth.Security.ExternalIdentityProviders;
 using Identity.Auth.Security.Keycloak;
 using Identity.Auth.Security.Sessions;
+using Identity.Auth.Security.Sessions.Lifecycle;
 using Identity.Common.Email;
 using Keycloak.AuthServices.Sdk;
 using Microsoft.AspNetCore.Authentication;
@@ -64,6 +65,9 @@ public static partial class IdentityModule
             services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();
         }
 
+        services.AddSingleton<IBffSessionValidator, BffSessionValidator>();
+        services.AddSingleton<IBffSessionRecordFactory, BffSessionRecordFactory>();
+        services.AddSingleton<IBffSessionMutator, BffSessionMutator>();
         services.AddSingleton<BffSessionService>();
         services.AddSingleton<IBffSessionService>(sp => sp.GetRequiredService<BffSessionService>());
         services.AddSingleton<IBffSessionRevocationService>(sp =>

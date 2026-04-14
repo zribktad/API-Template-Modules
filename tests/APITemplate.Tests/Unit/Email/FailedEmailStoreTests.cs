@@ -4,7 +4,6 @@ using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Email;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Moq;
 using SharedKernel.Application.Options;
 using Shouldly;
@@ -37,12 +36,6 @@ public sealed class FailedEmailStoreTests
         using var provider = services.BuildServiceProvider();
         var sut = new FailedEmailStore(
             provider.GetRequiredService<IServiceScopeFactory>(),
-            Options.Create(
-                new BackgroundJobsOptions
-                {
-                    EmailRetry = new EmailRetryJobOptions { Enabled = true },
-                }
-            ),
             NullLogger<FailedEmailStore>.Instance
         );
 

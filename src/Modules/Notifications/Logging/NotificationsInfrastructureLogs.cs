@@ -79,7 +79,7 @@ internal static partial class NotificationsInfrastructureLogs
     )]
     public static partial void EmailDeadLetterCommitConcurrencyConflict(this ILogger logger);
 
-    // EmailSendingBackgroundService (6005)
+    // SendEmailMessageHandler (6005)
     [LoggerMessage(
         EventId = 6005,
         Level = LogLevel.Error,
