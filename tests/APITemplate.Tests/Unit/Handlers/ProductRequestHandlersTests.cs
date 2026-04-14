@@ -533,7 +533,7 @@ public class ProductRequestHandlersTests
             Times.Once
         );
         _busMock.Verify(
-            p => p.PublishAsync(It.IsAny<ProductSoftDeletedNotification>()),
+            p => p.PublishAsync(It.IsAny<ProductsBatchSoftDeletedNotification>()),
             Times.Once
         );
         product.ProductDataLinks.ShouldBeEmpty();

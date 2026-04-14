@@ -1,19 +1,23 @@
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.ProductReview;
 
-namespace Reviews.Domain;
+namespace Reviews.Features.ProductSoftDelete;
 
-public static class ProductSoftDeletedEventHandler
+/// <summary>
+///     Handles <see cref="ProductsBatchSoftDeletedNotification" /> by cascading the soft-delete
+///     to all <see cref="ProductReviewEntity" /> records for the given product IDs in a single batch query.
+/// </summary>
+public static class ProductsBatchSoftDeletedHandler
 {
     public static async Task<OutgoingMessages> Handle(
-        ProductSoftDeletedNotification notification,
+        ProductsBatchSoftDeletedNotification notification,
         IProductReviewRepository repository,
         IUnitOfWork<ReviewsDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
         IReadOnlyList<ProductReviewEntity> reviews = await repository.ListAsync(
-            new ProductReviewsForSoftDeleteSpecification(notification.ProductId),
+            new ProductReviewsForBatchSoftDeleteSpecification(notification.ProductIds),
             ct
         );
 
@@ -28,8 +32,7 @@ public static class ProductSoftDeletedEventHandler
             ct
         );
 
-        OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
+        OutgoingMessages messages = [new CacheInvalidationNotification(CacheTags.Reviews)];
         return messages;
     }
 }

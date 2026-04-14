@@ -7,8 +7,8 @@ namespace ProductCatalog.Features.TenantCascadeDelete;
 /// <summary>
 ///     Handles <see cref="TenantSoftDeletedNotification" /> by cascading the soft-delete to all
 ///     non-deleted <see cref="CategoryEntity" /> and <see cref="ProductEntity" /> records for the tenant.
-///     Publishes <see cref="ProductSoftDeletedNotification" /> per product so the Reviews module
-///     can cascade to ProductReviews, and invalidates the Products and Categories cache.
+///     Publishes a single <see cref="ProductsBatchSoftDeletedNotification" /> so the Reviews module
+///     can cascade soft-delete to ProductReviews in one batch, and invalidates the Products and Categories cache.
 /// </summary>
 public static class TenantCascadeDeleteHandler
 {
@@ -56,15 +56,11 @@ public static class TenantCascadeDeleteHandler
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
 
-        foreach (ProductEntity product in products)
+        if (products.Count > 0)
         {
-            messages.Add(
-                new ProductSoftDeletedNotification(
-                    product.Id,
-                    notification.ActorId,
-                    notification.DeletedAtUtc
-                )
-            );
+            IReadOnlyList<Guid> productIds = products.Select(p => p.Id).ToList();
+            messages.Add(new ProductsBatchSoftDeletedNotification(
+                productIds, notification.ActorId, notification.DeletedAtUtc, Guid.NewGuid()));
         }
 
         return messages;

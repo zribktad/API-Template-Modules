@@ -1,5 +1,70 @@
 # TODO
 
+## Cascade Soft-Delete — Analysis & Simplification
+
+The cascade soft-delete flow (Identity → ProductCatalog → Reviews) uses per-entity Wolverine notifications,
+creating O(n) messages for n products. Analysis identified bugs, performance issues, and simplification paths.
+
+### Bugs
+
+- [ ] **BUG: Missing `IgnoreQueryFilters()` in `ProductReviewsForSoftDeleteSpecification`** —
+  `ProductReview` implements `IAuditableTenantEntity` (has tenant + soft-delete global query filters).
+  The cascade handler runs without tenant context, so the tenant filter silently excludes reviews.
+  All other soft-delete specifications (`UsersForTenantSoftDeleteSpecification`,
+  `CategoriesForTenantSoftDeleteSpecification`, `ProductsForTenantSoftDeleteSpecification`) correctly call
+  `.IgnoreQueryFilters()`. Fix: add `.IgnoreQueryFilters()` to `Reviews/Domain/ProductReviewsForSoftDeleteSpecification.cs:10`.
+
+### Performance Issues
+
+- [ ] **Message explosion — O(n) per-product notifications** — `TenantCascadeDeleteHandler` publishes one
+  `ProductSoftDeletedNotification` per product in a foreach loop (`TenantCascadeDeleteHandler.cs:59-68`).
+  A tenant with 1,000 products = 1,000 Wolverine outbox messages + 1,000 separate Reviews handler invocations.
+- [ ] **N+1 queries in Reviews cascade** — Each `ProductSoftDeletedNotification` triggers a separate
+  `ProductSoftDeletedEventHandler` invocation, each performing its own DB query + transaction
+  (`ProductSoftDeletedEventHandler.cs:15-29`). 1,000 products = 1,000 DB round trips.
+- [ ] **Load-all-into-memory** — `TenantCascadeDeleteHandler` loads all products + ProductDataLinks into memory
+  via `ListAsync()` (`TenantCascadeDeleteHandler.cs:29-39`). For tenants with 100k+ products, this causes
+  high GC pressure and potential timeouts.
+
+### Consistency Issues
+
+- [ ] **No atomic rollback across cascade chain** — Each handler has its own `UnitOfWork`. If handler #500 fails,
+  handlers #1-499 already committed their deletes. No saga or compensation mechanism exists.
+- [ ] **Missing idempotency key on cascade notifications** — `ProductSoftDeletedNotification` has no idempotency
+  key. Wolverine retry on transient failure can cause double-processing.
+
+### Structural Issues
+
+- [ ] **Layer violation — handler in `Reviews/Domain/`** — `ProductSoftDeletedEventHandler` and
+  `ProductReviewsForSoftDeleteSpecification` live in `Reviews/Domain/` instead of `Reviews/Features/`.
+  Event handlers are application/infrastructure concerns, not domain logic. ProductCatalog correctly places
+  its cascade handler in `Features/TenantCascadeDelete/`.
+- [ ] **Missing integration test for Reviews cascade** — `PostgresTenantSoftDeleteCascadeTests` verifies
+  tenant → user → product deletion but does NOT verify that product reviews are also soft-deleted.
+
+### Simplification Approaches
+
+**Approach 1: Minimal — Batch notifications** (hours, low risk)
+Replace per-product `ProductSoftDeletedNotification` loop with a single
+`ProductBatchSoftDeletedNotification(TenantId, IReadOnlyList<Guid> ProductIds)`.
+Reviews handler processes all product IDs in one query (`WHERE ProductId = ANY(@ids)`).
+Reduces messages from O(n) to O(1). Preserves existing architecture and module decoupling.
+
+**Approach 2: Recommended — Bulk SQL + batch notification** (1-2 days, low-medium risk)
+Replace load-modify-save with bulk `UPDATE SET IsDeleted=true WHERE TenantId=X`.
+Combine with batch notification for Reviews. Eliminates memory pressure, reduces queries to O(1).
+Preserves module decoupling. Caveat: bypasses EF change tracker — `AuditInfo` stamping needs SQL-level handling.
+
+**Approach 3: Single DB transaction** (2-3 days, medium risk) `[BREAKING]`
+All modules share PostgreSQL — execute cascade in one transaction via direct interface calls instead of
+Wolverine messages. Atomic consistency, zero messages. Breaks module decoupling — modules call each other directly.
+
+**Approach 4: EF/DB-level cascade** (3+ days, high risk) `[BREAKING]`
+Configure cascade soft-delete via EF Core `OnDelete` behavior or PostgreSQL triggers.
+DB handles cascade automatically. Breaks current event-driven architecture, harder to debug and extend.
+
+---
+
 ## Architecture Review — Identified Issues
 
 ### Critical

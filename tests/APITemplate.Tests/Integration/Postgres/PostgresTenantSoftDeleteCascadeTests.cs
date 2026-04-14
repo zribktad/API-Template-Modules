@@ -7,8 +7,11 @@ using APITemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Reviews.Domain;
+using Reviews.Persistence;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Options;
+using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using Xunit;
 
@@ -54,6 +57,9 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
         };
         var productDataId = Guid.NewGuid();
 
+        ProductReview review = ProductReview.Create(product.Id, user.Id, Rating.FromPersistence(4), "cascade test");
+        review.TenantId = tenantId;
+
         await using (
             var seedContext = await CreateTenantCascadeDbContextAsync(
                 false,
@@ -76,6 +82,14 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
                 }
             );
             await seedContext.SaveChangesAsync(ct);
+        }
+
+        await using (
+            var reviewsSeedContext = await CreateReviewsDbContextAsync(false, Guid.Empty, actorId, ct)
+        )
+        {
+            reviewsSeedContext.ProductReviews.Add(review);
+            await reviewsSeedContext.SaveChangesAsync(ct);
         }
 
         await using (
@@ -138,6 +152,21 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
         deletedProductDataLink.IsDeleted.ShouldBeTrue();
         deletedProductDataLink.DeletedAtUtc.ShouldNotBeNull();
         deletedProductDataLink.DeletedBy.ShouldBe(actorId);
+
+        // Verify review soft-delete via ReviewsDbContext
+        await using var verifyReviewsContext = await CreateReviewsDbContextAsync(
+            false,
+            Guid.Empty,
+            actorId,
+            ct
+        );
+
+        ProductReview deletedReview = await verifyReviewsContext
+            .ProductReviews.IgnoreQueryFilters()
+            .SingleAsync(r => r.Id == review.Id, ct);
+        deletedReview.IsDeleted.ShouldBeTrue();
+        deletedReview.DeletedAtUtc.ShouldNotBeNull();
+        deletedReview.DeletedBy.ShouldBe(actorId);
     }
 
     [Fact]
@@ -227,6 +256,29 @@ public sealed class PostgresTenantSoftDeleteCascadeTests(SharedPostgresContainer
             .Tenants.IgnoreQueryFilters()
             .SingleAsync(t => t.Id == tenantBId, ct);
         tB.IsDeleted.ShouldBeFalse();
+    }
+
+    private async Task<ReviewsDbContext> CreateReviewsDbContextAsync(
+        bool hasTenant,
+        Guid tenantId,
+        Guid actorId,
+        CancellationToken ct
+    )
+    {
+        DbContextOptionsBuilder<ReviewsDbContext> optionsBuilder = new();
+        optionsBuilder.UseNpgsql(_factory.ConnectionString);
+
+        AuditableEntityStateManager stateManager = new();
+        ReviewsDbContext context = new(
+            optionsBuilder.Options,
+            new TestTenantProvider(tenantId, hasTenant),
+            new TestActorProvider(actorId),
+            TimeProvider.System,
+            stateManager
+        );
+
+        await context.Database.OpenConnectionAsync(ct);
+        return context;
     }
 
     private async Task<AppDbContext> CreateTenantCascadeDbContextAsync(
