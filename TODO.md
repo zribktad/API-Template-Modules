@@ -7,7 +7,7 @@ creating O(n) messages for n products. Analysis identified bugs, performance iss
 
 ### Bugs
 
-- [ ] **BUG: Missing `IgnoreQueryFilters()` in `ProductReviewsForSoftDeleteSpecification`** —
+- [x] **BUG: Missing `IgnoreQueryFilters()` in `ProductReviewsForSoftDeleteSpecification`** —
   `ProductReview` implements `IAuditableTenantEntity` (has tenant + soft-delete global query filters).
   The cascade handler runs without tenant context, so the tenant filter silently excludes reviews.
   All other soft-delete specifications (`UsersForTenantSoftDeleteSpecification`,
@@ -25,17 +25,17 @@ creating O(n) messages for n products. Analysis identified bugs, performance iss
 
 ### Consistency Issues
 
-- [ ] **No atomic rollback across cascade chain** — Each handler has its own `UnitOfWork`. If handler #500 fails,
-  handlers #1-499 already committed their deletes. No saga or compensation mechanism exists.
-- [ ] **Missing idempotency key on cascade notifications** — `ProductSoftDeletedNotification` has no idempotency
-  key. Wolverine retry on transient failure can cause double-processing.
+- [x] **No atomic rollback across cascade chain** — Resolved: ProductCatalog cascade (categories + links + products)
+  runs in a single transaction. Reviews cascade is a single idempotent `ExecuteUpdateAsync` (`WHERE !IsDeleted`).
+  Cross-module consistency via Wolverine retry + idempotent handlers (eventual consistency by design).
+- [x] **Missing idempotency key on cascade notifications** — Resolved: `ProductsBatchSoftDeletedNotification`
+  includes `CorrelationId`. Bulk handler is inherently idempotent (`WHERE !IsDeleted` filter — retry is a no-op).
 
 ### Structural Issues
 
-- [ ] **Layer violation — handler in `Reviews/Domain/`** — `ProductSoftDeletedEventHandler` and
-  `ProductReviewsForSoftDeleteSpecification` live in `Reviews/Domain/` instead of `Reviews/Features/`.
-  Event handlers are application/infrastructure concerns, not domain logic. ProductCatalog correctly places
-  its cascade handler in `Features/TenantCascadeDelete/`.
+- [x] **Layer violation — handler in `Reviews/Domain/`** — Resolved: old `ProductSoftDeletedEventHandler` and
+  `ProductReviewsForSoftDeleteSpecification` in `Reviews/Domain/` replaced by `ProductsBatchSoftDeletedHandler`
+  and `ProductReviewsForBatchSoftDeleteSpecification` in `Reviews/Features/ProductSoftDelete/`.
 - [x] **Missing integration test for Reviews cascade** — Resolved: `PostgresTenantSoftDeleteCascadeTests`
   now verifies product reviews are also soft-deleted.
 
