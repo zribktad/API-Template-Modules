@@ -16,15 +16,12 @@ creating O(n) messages for n products. Analysis identified bugs, performance iss
 
 ### Performance Issues
 
-- [ ] **Message explosion — O(n) per-product notifications** — `TenantCascadeDeleteHandler` publishes one
-  `ProductSoftDeletedNotification` per product in a foreach loop (`TenantCascadeDeleteHandler.cs:59-68`).
-  A tenant with 1,000 products = 1,000 Wolverine outbox messages + 1,000 separate Reviews handler invocations.
-- [ ] **N+1 queries in Reviews cascade** — Each `ProductSoftDeletedNotification` triggers a separate
-  `ProductSoftDeletedEventHandler` invocation, each performing its own DB query + transaction
-  (`ProductSoftDeletedEventHandler.cs:15-29`). 1,000 products = 1,000 DB round trips.
-- [ ] **Load-all-into-memory** — `TenantCascadeDeleteHandler` loads all products + ProductDataLinks into memory
-  via `ListAsync()` (`TenantCascadeDeleteHandler.cs:29-39`). For tenants with 100k+ products, this causes
-  high GC pressure and potential timeouts.
+- [x] **Message explosion — O(n) per-product notifications** — Resolved: single `ProductsBatchSoftDeletedNotification`
+  replaces per-product loop. O(1) messages.
+- [x] **N+1 queries in Reviews cascade** — Resolved: `BulkSoftDeleteByProductIdsAsync` uses single
+  `ExecuteUpdateAsync` SQL statement. O(1) DB round trips.
+- [x] **Load-all-into-memory** — Resolved: bulk `ExecuteUpdateAsync` replaces `ListAsync()` + change tracker.
+  Zero entity materialization, no GC pressure.
 
 ### Consistency Issues
 
@@ -39,8 +36,8 @@ creating O(n) messages for n products. Analysis identified bugs, performance iss
   `ProductReviewsForSoftDeleteSpecification` live in `Reviews/Domain/` instead of `Reviews/Features/`.
   Event handlers are application/infrastructure concerns, not domain logic. ProductCatalog correctly places
   its cascade handler in `Features/TenantCascadeDelete/`.
-- [ ] **Missing integration test for Reviews cascade** — `PostgresTenantSoftDeleteCascadeTests` verifies
-  tenant → user → product deletion but does NOT verify that product reviews are also soft-deleted.
+- [x] **Missing integration test for Reviews cascade** — Resolved: `PostgresTenantSoftDeleteCascadeTests`
+  now verifies product reviews are also soft-deleted.
 
 ### Simplification Approaches
 

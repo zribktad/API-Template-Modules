@@ -42,4 +42,24 @@ public interface IProductRepository : IRepository<ProductEntity>
         IReadOnlyCollection<Guid> categoryIds,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Returns the IDs of all non-deleted products belonging to the specified tenant,
+    ///     bypassing global query filters (lightweight ID-only projection).
+    /// </summary>
+    Task<IReadOnlyList<Guid>> GetNonDeletedIdsByTenantAsync(
+        Guid tenantId,
+        CancellationToken ct = default
+    );
+
+    /// <summary>
+    ///     Bulk soft-deletes all non-deleted products for the specified tenant via a single
+    ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization).
+    /// </summary>
+    Task<int> BulkSoftDeleteByTenantAsync(
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    );
 }

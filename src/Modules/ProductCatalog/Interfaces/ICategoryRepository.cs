@@ -15,4 +15,15 @@ public interface ICategoryRepository : IRepository<Category>
         Guid categoryId,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Bulk soft-deletes all non-deleted categories for the specified tenant via a single
+    ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization).
+    /// </summary>
+    Task<int> BulkSoftDeleteByTenantAsync(
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    );
 }

@@ -1,36 +1,29 @@
 using Wolverine;
-using ProductReviewEntity = Reviews.Domain.ProductReview;
 
 namespace Reviews.Features.ProductSoftDelete;
 
 /// <summary>
 ///     Handles <see cref="ProductsBatchSoftDeletedNotification" /> by cascading the soft-delete
-///     to all <see cref="ProductReviewEntity" /> records for the given product IDs in a single batch query.
+///     to all <see cref="ProductReview" /> records for the given product IDs via a single bulk SQL
+///     statement (<c>ExecuteUpdateAsync</c>) — zero entity materialization.
 /// </summary>
 public static class ProductsBatchSoftDeletedHandler
 {
     public static async Task<OutgoingMessages> Handle(
         ProductsBatchSoftDeletedNotification notification,
         IProductReviewRepository repository,
-        IUnitOfWork<ReviewsDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
-        IReadOnlyList<ProductReviewEntity> reviews = await repository.ListAsync(
-            new ProductReviewsForBatchSoftDeleteSpecification(notification.ProductIds),
+        int affected = await repository.BulkSoftDeleteByProductIdsAsync(
+            notification.ProductIds,
+            notification.ActorId,
+            notification.DeletedAtUtc,
             ct
         );
 
-        if (reviews.Count == 0)
+        if (affected == 0)
             return OutgoingMessagesHelper.Empty;
-
-        await unitOfWork.ExecuteInTransactionAsync(
-            async () =>
-            {
-                await repository.DeleteRangeAsync(reviews, ct);
-            },
-            ct
-        );
 
         OutgoingMessages messages = [new CacheInvalidationNotification(CacheTags.Reviews)];
         return messages;
