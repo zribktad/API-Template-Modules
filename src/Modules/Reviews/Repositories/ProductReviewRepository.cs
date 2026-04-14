@@ -30,15 +30,6 @@ public sealed class ProductReviewRepository
         return await _dbContext
             .ProductReviews.IgnoreQueryFilters()
             .Where(review => productIds.Contains(review.ProductId) && !review.IsDeleted)
-            .ExecuteUpdateAsync(
-                setters =>
-                    setters
-                        .SetProperty(review => review.IsDeleted, true)
-                        .SetProperty(review => review.DeletedAtUtc, deletedAtUtc)
-                        .SetProperty(review => review.DeletedBy, actorId)
-                        .SetProperty(review => review.Audit.UpdatedAtUtc, deletedAtUtc)
-                        .SetProperty(review => review.Audit.UpdatedBy, actorId),
-                ct
-            );
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

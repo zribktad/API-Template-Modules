@@ -33,7 +33,7 @@ public sealed class CustomRole : IAuditableEntity, IHasId, ISoftDeletable
     public void SetPermissions(IEnumerable<string> permissions)
     {
         Permissions.Clear();
-        foreach (var perm in permissions)
+        foreach (string perm in permissions)
             Permissions.Add(new RolePermission { RoleId = Id, Permission = perm });
     }
 }

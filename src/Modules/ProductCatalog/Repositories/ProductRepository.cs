@@ -156,16 +156,7 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
         return await _dbContext
             .Products.IgnoreQueryFilters()
             .Where(product => product.TenantId == tenantId && !product.IsDeleted)
-            .ExecuteUpdateAsync(
-                setters =>
-                    setters
-                        .SetProperty(product => product.IsDeleted, true)
-                        .SetProperty(product => product.DeletedAtUtc, deletedAtUtc)
-                        .SetProperty(product => product.DeletedBy, actorId)
-                        .SetProperty(product => product.Audit.UpdatedAtUtc, deletedAtUtc)
-                        .SetProperty(product => product.Audit.UpdatedBy, actorId),
-                ct
-            );
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 
     private sealed record PriceFacetCounts(

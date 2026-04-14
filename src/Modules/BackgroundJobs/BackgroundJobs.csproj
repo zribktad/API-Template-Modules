@@ -9,7 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj"/>
-    <ProjectReference Include="..\Notifications\Notifications.csproj"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc"/>

@@ -1,5 +1,6 @@
 using Identity.Auth.Options;
 using Identity.Auth.Security.Keycloak;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace Identity.Auth.Security.Sessions;
@@ -13,6 +14,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
     private readonly IBffRefreshCoordinator _refreshCoordinator;
     private readonly IBffSessionStore _sessionStore;
     private readonly IKeycloakService _keycloakService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly BffOptions _options;
     private readonly TimeProvider _timeProvider;
 
@@ -20,6 +22,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         IBffRefreshCoordinator refreshCoordinator,
         IBffSessionStore sessionStore,
         IKeycloakService keycloakService,
+        IHttpContextAccessor httpContextAccessor,
         IOptions<BffOptions> options,
         TimeProvider timeProvider
     )
@@ -27,6 +30,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         _refreshCoordinator = refreshCoordinator;
         _sessionStore = sessionStore;
         _keycloakService = keycloakService;
+        _httpContextAccessor = httpContextAccessor;
         _options = options.Value;
         _timeProvider = timeProvider;
     }
@@ -133,6 +137,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         if (!updated)
             return await ReloadFollowerOutcomeAsync(latestSession.SessionId, ct);
 
+        BffRequestScopedSessionCache.Invalidate(_httpContextAccessor, currentSession.SessionId);
         return BffRefreshOutcome.Success(updatedSession);
     }
 
@@ -189,7 +194,13 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
             ct
         );
         if (updated)
+        {
+            BffRequestScopedSessionCache.Invalidate(
+                _httpContextAccessor,
+                expectedSession.SessionId
+            );
             return BffRefreshOutcome.Failed(reason);
+        }
 
         return await ReloadFollowerOutcomeAsync(expectedSession.SessionId, ct);
     }

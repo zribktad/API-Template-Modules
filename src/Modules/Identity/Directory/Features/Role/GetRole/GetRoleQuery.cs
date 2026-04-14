@@ -14,7 +14,7 @@ public sealed class GetRoleQueryHandler
         CancellationToken ct
     )
     {
-        var role = await repository.FirstOrDefaultAsync(
+        RoleResponse? role = await repository.FirstOrDefaultAsync(
             new RoleByIdForTenantSpecification(query.Id, tenantProvider.TenantId),
             ct
         );

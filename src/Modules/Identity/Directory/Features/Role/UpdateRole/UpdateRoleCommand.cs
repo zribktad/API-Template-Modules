@@ -40,7 +40,7 @@ public sealed class UpdateRoleCommandHandler
     {
         if (roleResult.IsError)
             return (roleResult.Errors, OutgoingMessagesHelper.Empty);
-        var role = roleResult.Value;
+        CustomRole role = roleResult.Value;
 
         bool isPlatformAdmin = httpContextAccessor.HttpContext?.User.IsPlatformAdmin() == true;
 

@@ -53,15 +53,6 @@ public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepo
         return await _dbContext
             .Categories.IgnoreQueryFilters()
             .Where(category => category.TenantId == tenantId && !category.IsDeleted)
-            .ExecuteUpdateAsync(
-                setters =>
-                    setters
-                        .SetProperty(category => category.IsDeleted, true)
-                        .SetProperty(category => category.DeletedAtUtc, deletedAtUtc)
-                        .SetProperty(category => category.DeletedBy, actorId)
-                        .SetProperty(category => category.Audit.UpdatedAtUtc, deletedAtUtc)
-                        .SetProperty(category => category.Audit.UpdatedBy, actorId),
-                ct
-            );
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

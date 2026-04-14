@@ -10,7 +10,10 @@ public static class RoleLoader
         CancellationToken ct
     )
     {
-        var role = await repository.FirstOrDefaultAsync(new RoleByIdSpecification(roleId), ct);
+        CustomRole? role = await repository.FirstOrDefaultAsync(
+            new RoleByIdSpecification(roleId),
+            ct
+        );
         if (role == null)
             return DomainErrors.Roles.NotFound(roleId);
         if (role.IsImmutable)

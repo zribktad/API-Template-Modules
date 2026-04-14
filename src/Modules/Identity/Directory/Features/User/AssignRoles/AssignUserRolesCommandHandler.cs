@@ -36,8 +36,8 @@ public sealed class AssignUserRolesCommandHandler
             return (userResult.Errors, OutgoingMessagesHelper.Empty);
         var user = userResult.Value;
 
-        var distinctRoleIds = command.Request.RoleIds.Distinct().ToList();
-        var requestedRoles = await roleRepository.ListAsync(
+        List<Guid> distinctRoleIds = command.Request.RoleIds.Distinct().ToList();
+        List<CustomRole> requestedRoles = await roleRepository.ListAsync(
             new RolesByIdsSpecification(distinctRoleIds),
             ct
         );

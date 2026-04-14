@@ -36,8 +36,8 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
 
         if (KeycloakServiceAccountClaims.IsServiceAccount(principal))
         {
-            var identity = new ClaimsIdentity();
-            foreach (var roleClaim in principal.FindAll(ClaimTypes.Role))
+            ClaimsIdentity identity = new ClaimsIdentity();
+            foreach (Claim roleClaim in principal.FindAll(ClaimTypes.Role))
             {
                 if (roleClaim.Value == AuthConstants.Policies.PlatformAdmin)
                     identity.AddClaim(

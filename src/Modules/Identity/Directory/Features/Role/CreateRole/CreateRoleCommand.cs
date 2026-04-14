@@ -26,7 +26,7 @@ public sealed class CreateRoleCommandHandler
         if (!isPlatformAdmin && command.Request.Permissions.Contains(Permission.Platform.Manage))
             return (DomainErrors.Roles.CannotGrantPlatformManage(), OutgoingMessagesHelper.Empty);
 
-        var role = new CustomRole
+        CustomRole role = new()
         {
             Id = command.Id,
             Name = command.Request.Name,
