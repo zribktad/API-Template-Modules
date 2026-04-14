@@ -149,7 +149,7 @@ Each module follows an internal **Clean Architecture** structure: Domain → App
 | **Identity**       | Auth, BFF sessions, user registration, roles, Keycloak sync   | PostgreSQL           | Keycloak OIDC, JWT, BFF Cookie, RedisTicketStore |
 | **ProductCatalog** | Products, categories, polymorphic media metadata, GraphQL      | PostgreSQL + MongoDB | EF Core, MongoDB.Driver, HotChocolate            |
 | **Reviews**        | Product reviews, rating aggregation                            | PostgreSQL           | EF Core, Ardalis.Specification                   |
-| **Notifications**  | Transactional email delivery via SMTP pipeline                 | PostgreSQL (queue)   | ISmtpSendPipelineProvider, FailedEmailStore      |
+| **Notifications**  | Transactional email delivery via SMTP pipeline                 | PostgreSQL           | Wolverine, ISmtpSendPipelineProvider, FailedEmailStore |
 | **BackgroundJobs** | Recurring scheduled tasks (email retry, cleanup)               | PostgreSQL (TickerQ) | TickerQ, distributed leader election (Redis)     |
 | **FileStorage**    | Multipart file upload and streaming download                   | File system / blob   | ASP.NET Core streaming, IFormFile                |
 | **Webhooks**       | Outbound HTTP callbacks to registered consumer endpoints       | PostgreSQL           | HttpClient, Wolverine, retry resilience          |
@@ -187,7 +187,7 @@ Modules never reference each other's internal types directly. Cross-module commu
 flowchart LR
     subgraph SharedKernel_Events ["SharedKernel.Contracts.Events"]
         EV1[TenantSoftDeletedNotification]
-        EV2[ProductSoftDeletedNotification]
+        EV2[ProductsBatchSoftDeletedNotification]
     end
 
     subgraph ProductCatalog
@@ -195,7 +195,7 @@ flowchart LR
     end
 
     subgraph Reviews
-        RV_H[ProductSoftDeletedEventHandler]
+        RV_H[ProductsBatchSoftDeletedHandler]
     end
 
     EV1 -->|Wolverine routes| PC_H
@@ -261,7 +261,7 @@ flowchart LR
 
 | Communication Style              | When to use                                                  | Example                                                        |
 |----------------------------------|--------------------------------------------------------------|----------------------------------------------------------------|
-| **SharedKernel event + Wolverine** | Domain events crossing module boundaries                   | `ProductSoftDeletedNotification` → cascade delete reviews      |
+| **SharedKernel event + Wolverine** | Domain events crossing module boundaries                   | `ProductsBatchSoftDeletedNotification` → cascade delete reviews      |
 | **Wolverine command (cross-module)** | BackgroundJobs triggering logic in another module        | `BackgroundJobs` → `RetryFailedEmailsCommand` → `Notifications` |
 | **Notifications.Contracts record**  | Passing email data through Wolverine pipeline              | `EmailMessage` routed to `SendEmailMessageHandler`             |
 

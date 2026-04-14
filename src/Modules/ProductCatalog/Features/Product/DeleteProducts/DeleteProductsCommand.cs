@@ -86,8 +86,15 @@ public sealed class DeleteProductsCommandHandler
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
         messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
         IReadOnlyList<Guid> productIds = state.Products.Select(p => p.Id).ToList();
-        messages.Add(new ProductsBatchSoftDeletedNotification(
-            productIds, state.ActorId, state.DeletedAtUtc, Guid.NewGuid()));
+        if (productIds.Count > 0)
+            messages.Add(
+                new ProductsBatchSoftDeletedNotification(
+                    productIds,
+                    state.ActorId,
+                    state.DeletedAtUtc,
+                    Guid.NewGuid()
+                )
+            );
 
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
