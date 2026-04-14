@@ -20,7 +20,13 @@ public sealed class SendEmailMessageHandler
 
         try
         {
-            await pipeline.ExecuteAsync(ct => sender.SendAsync(message, ct), ct);
+            await pipeline.ExecuteAsync(
+                async token =>
+                {
+                    await sender.SendAsync(message, token);
+                },
+                ct
+            );
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

@@ -17,8 +17,8 @@ using ProductCatalog.GraphQL.Queries;
 using ProductCatalog.GraphQL.Types;
 using ProductCatalog.Persistence;
 using ProductCatalog.Repositories;
+using ProductCatalog.Infrastructure.Health;
 using ProductCatalog.Services;
-using ProductCatalog.SoftDelete;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Health;
@@ -49,7 +49,7 @@ public static class ProductCatalogModule
             .AddRepository<ICategoryRepository, CategoryRepository>()
             .AddRepository<IProductDataLinkRepository, ProductDataLinkRepository>()
             .AddRepository<IProductDataRepository, ProductDataRepository>()
-            .AddCascadeRule<ProductSoftDeleteCascadeRule>();
+;
 
         services.AddValidatorsFromAssemblyContaining<ProductCatalogDbMarker>(filter: registration =>
             !registration.ValidatorType.IsGenericTypeDefinition

@@ -1,6 +1,5 @@
 using Identity.Auth.Options;
 using Identity.Auth.Security.Keycloak;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
 namespace Identity.Auth.Security.Sessions;
@@ -12,30 +11,24 @@ namespace Identity.Auth.Security.Sessions;
 public sealed class BffTokenRefreshService : IBffTokenRefreshService
 {
     private readonly IBffRefreshCoordinator _refreshCoordinator;
-    private readonly IBffSessionRevocationService _revocationService;
     private readonly IBffSessionStore _sessionStore;
     private readonly IKeycloakService _keycloakService;
     private readonly BffOptions _options;
     private readonly TimeProvider _timeProvider;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public BffTokenRefreshService(
         IBffRefreshCoordinator refreshCoordinator,
         IBffSessionStore sessionStore,
-        IBffSessionRevocationService revocationService,
         IKeycloakService keycloakService,
         IOptions<BffOptions> options,
-        TimeProvider timeProvider,
-        IHttpContextAccessor httpContextAccessor
+        TimeProvider timeProvider
     )
     {
         _refreshCoordinator = refreshCoordinator;
         _sessionStore = sessionStore;
-        _revocationService = revocationService;
         _keycloakService = keycloakService;
         _options = options.Value;
         _timeProvider = timeProvider;
-        _httpContextAccessor = httpContextAccessor;
     }
 
     /// <inheritdoc />
@@ -46,16 +39,6 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
     {
         if (!IsRefreshRequired(session))
             return BffRefreshOutcome.NotRequired(session);
-
-        if (string.IsNullOrWhiteSpace(session.RefreshToken))
-        {
-            await _revocationService.RevokeAsync(
-                session.SessionId,
-                BffSessionRevocationReason.RefreshTokenMissing,
-                ct
-            );
-            return BffRefreshOutcome.Failed(BffSessionRevocationReason.RefreshTokenMissing);
-        }
 
         return await _refreshCoordinator.ExecuteAsync(
             session.SessionId,
@@ -76,12 +59,34 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         CancellationToken ct
     )
     {
-        // Re-check after acquiring the lock — another leader may have refreshed already.
-        if (!IsRefreshRequired(currentSession))
-            return BffRefreshOutcome.NotRequired(currentSession);
+        BffSessionRecord? latestSession = await _sessionStore.GetAsync(
+            currentSession.SessionId,
+            ct
+        );
+        if (latestSession is null)
+            return BffRefreshOutcome.Failed(BffSessionRevocationReason.SessionCorrupted);
+
+        if (latestSession.Status == BffSessionStatus.Revoked)
+        {
+            return BffRefreshOutcome.Failed(
+                latestSession.RevocationReason ?? BffSessionRevocationReason.RefreshRejected
+            );
+        }
+
+        if (!IsRefreshRequired(latestSession))
+            return BffRefreshOutcome.NotRequired(latestSession);
+
+        if (string.IsNullOrWhiteSpace(latestSession.RefreshToken))
+        {
+            return await RevokeOrReloadAsync(
+                latestSession,
+                BffSessionRevocationReason.RefreshTokenMissing,
+                ct
+            );
+        }
 
         KeycloakRefreshResult refreshResult = await _keycloakService.RefreshSessionAsync(
-            currentSession.RefreshToken,
+            latestSession.RefreshToken,
             ct
         );
 
@@ -96,7 +101,7 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
                     : BffSessionRevocationReason.ProviderSessionInvalid;
 
             if (_options.RevokeSessionOnRefreshFailure)
-                await _revocationService.RevokeAsync(currentSession.SessionId, reason, ct);
+                return await RevokeOrReloadAsync(latestSession, reason, ct);
 
             return BffRefreshOutcome.Failed(reason);
         }
@@ -106,29 +111,28 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         DateTimeOffset? refreshTokenExpiresAtUtc = refreshResult.TokenResponse.RefreshExpiresIn
             is > 0
             ? now.AddSeconds(refreshResult.TokenResponse.RefreshExpiresIn.Value)
-            : currentSession.RefreshTokenExpiresAtUtc;
+            : latestSession.RefreshTokenExpiresAtUtc;
 
-        BffSessionRecord updatedSession = currentSession with
+        BffSessionRecord updatedSession = latestSession with
         {
             AccessToken = refreshResult.TokenResponse.AccessToken,
-            RefreshToken = refreshResult.TokenResponse.RefreshToken ?? currentSession.RefreshToken,
+            RefreshToken = refreshResult.TokenResponse.RefreshToken ?? latestSession.RefreshToken,
             AccessTokenExpiresAtUtc = now.AddSeconds(refreshResult.TokenResponse.ExpiresIn),
             RefreshTokenExpiresAtUtc = refreshTokenExpiresAtUtc,
             LastRefreshedAtUtc = now,
             LastSeenAtUtc = now,
             Status = BffSessionStatus.Active,
-            Version = currentSession.Version + 1,
+            Version = latestSession.Version + 1,
         };
 
         bool updated = await _sessionStore.TryUpdateAsync(
             updatedSession,
-            currentSession.Version,
+            latestSession.Version,
             ct
         );
         if (!updated)
-            return await ReloadFollowerOutcomeAsync(currentSession.SessionId, ct);
+            return await ReloadFollowerOutcomeAsync(latestSession.SessionId, ct);
 
-        BffRequestScopedSessionCache.Invalidate(_httpContextAccessor, currentSession.SessionId);
         return BffRefreshOutcome.Success(updatedSession);
     }
 
@@ -149,8 +153,44 @@ public sealed class BffTokenRefreshService : IBffTokenRefreshService
         }
 
         if (IsRefreshRequired(reloadedSession))
-            return BffRefreshOutcome.Failed(BffSessionRevocationReason.RefreshRejected);
+        {
+            return HasAccessTokenExpired(reloadedSession)
+                ? BffRefreshOutcome.Failed(BffSessionRevocationReason.RefreshRejected)
+                : BffRefreshOutcome.NotRequired(reloadedSession);
+        }
 
         return BffRefreshOutcome.Success(reloadedSession);
+    }
+
+    private bool HasAccessTokenExpired(BffSessionRecord session)
+    {
+        return session.AccessTokenExpiresAtUtc <= _timeProvider.GetUtcNow();
+    }
+
+    private async Task<BffRefreshOutcome> RevokeOrReloadAsync(
+        BffSessionRecord expectedSession,
+        BffSessionRevocationReason reason,
+        CancellationToken ct
+    )
+    {
+        DateTimeOffset now = _timeProvider.GetUtcNow();
+        BffSessionRecord revokedSession = expectedSession with
+        {
+            Status = BffSessionStatus.Revoked,
+            RevokedAtUtc = now,
+            RevocationReason = reason,
+            LastSeenAtUtc = now,
+            Version = expectedSession.Version + 1,
+        };
+
+        bool updated = await _sessionStore.TryUpdateAsync(
+            revokedSession,
+            expectedSession.Version,
+            ct
+        );
+        if (updated)
+            return BffRefreshOutcome.Failed(reason);
+
+        return await ReloadFollowerOutcomeAsync(expectedSession.SessionId, ct);
     }
 }
