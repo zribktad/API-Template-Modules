@@ -1,7 +1,6 @@
+using BackgroundJobs.Domain;
 using BackgroundJobs.Logging;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Notifications.Contracts;
 using TickerQ.Utilities.Base;
 
 namespace BackgroundJobs.TickerQ.Jobs;
@@ -9,20 +8,17 @@ namespace BackgroundJobs.TickerQ.Jobs;
 public sealed class EmailRetryRecurringJob
 {
     private readonly IDistributedJobCoordinator _coordinator;
-    private readonly IEmailRetryService _emailRetryService;
+    private readonly IEmailRetryJobService _emailRetryJobService;
     private readonly ILogger<EmailRetryRecurringJob> _logger;
-    private readonly EmailRetryJobOptions _options;
 
     public EmailRetryRecurringJob(
-        IEmailRetryService emailRetryService,
+        IEmailRetryJobService emailRetryJobService,
         IDistributedJobCoordinator coordinator,
-        IOptions<BackgroundJobsOptions> options,
         ILogger<EmailRetryRecurringJob> logger
     )
     {
-        _emailRetryService = emailRetryService;
+        _emailRetryJobService = emailRetryJobService;
         _coordinator = coordinator;
-        _options = options.Value.EmailRetry;
         _logger = logger;
     }
 
@@ -35,18 +31,8 @@ public sealed class EmailRetryRecurringJob
             {
                 _logger.ExecutingEmailRetryRecurringJob(context.Id);
 
-                await _emailRetryService.RetryFailedEmailsAsync(
-                    _options.MaxRetryAttempts,
-                    _options.BatchSize,
-                    _options.ClaimLeaseMinutes,
-                    token
-                );
-                await _emailRetryService.DeadLetterExpiredAsync(
-                    _options.DeadLetterAfterHours,
-                    _options.BatchSize,
-                    _options.ClaimLeaseMinutes,
-                    token
-                );
+                await _emailRetryJobService.RetryFailedEmailsAsync(token);
+                await _emailRetryJobService.DeadLetterExpiredAsync(token);
             },
             ct
         );

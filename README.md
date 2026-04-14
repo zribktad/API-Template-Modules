@@ -236,24 +236,33 @@ flowchart LR
 flowchart LR
     subgraph BackgroundJobs
         BJ_H[EmailRetryRecurringJob]
+        BJ_SVC[IEmailRetryJobService]
     end
 
-    subgraph Notifications_Contracts ["Notifications.Contracts"]
-        ISVC[IEmailRetryService]
+    subgraph SharedKernel_Contracts ["SharedKernel.Contracts"]
+        CMD1[RetryFailedEmailsCommand]
+        CMD2[DeadLetterExpiredEmailsCommand]
     end
 
     subgraph Notifications
-        SVC_IMPL[EmailRetryService\nSMTP retry via IEmailSender]
+        NF_H1[RetryFailedEmailsHandler]
+        NF_H2[DeadLetterExpiredEmailsHandler]
+        NF_SVC[IEmailRetryService\nEmailRetryService]
     end
 
-    BJ_H -->|calls interface| ISVC
-    ISVC -.->|implemented by| SVC_IMPL
+    BJ_H -->|calls| BJ_SVC
+    BJ_SVC -->|InvokeAsync| CMD1
+    BJ_SVC -->|InvokeAsync| CMD2
+    CMD1 -->|Wolverine routes| NF_H1
+    CMD2 -->|Wolverine routes| NF_H2
+    NF_H1 -->|delegates to| NF_SVC
+    NF_H2 -->|delegates to| NF_SVC
 ```
 
 | Communication Style              | When to use                                                  | Example                                                        |
 |----------------------------------|--------------------------------------------------------------|----------------------------------------------------------------|
 | **SharedKernel event + Wolverine** | Domain events crossing module boundaries                   | `ProductSoftDeletedNotification` → cascade delete reviews      |
-| **Notifications.Contracts interface** | BackgroundJobs calling retry logic in Notifications module | `BackgroundJobs` → `IEmailRetryService`                        |
+| **Wolverine command (cross-module)** | BackgroundJobs triggering logic in another module        | `BackgroundJobs` → `RetryFailedEmailsCommand` → `Notifications` |
 | **Notifications.Contracts record**  | Passing email data through Wolverine pipeline              | `EmailMessage` routed to `SendEmailMessageHandler`             |
 
 ---
@@ -474,8 +483,8 @@ Modules → Contracts (interfaces only — no cross-module concrete references)
 APITemplate host → all Modules (DI registration only)
 ```
 
-- A handler in `ProductCatalog` calls `IEmailRetryService` (Contracts interface) — it never imports `EmailRetryService` (Notifications implementation).
-- `Notifications` implements `IEmailRetryService` and registers it in DI inside the host's composition root.
+- `BackgroundJobs` dispatches `RetryFailedEmailsCommand` via `IMessageBus` — it never imports `IEmailRetryService` or `EmailRetryService` from `Notifications`.
+- `Notifications` implements the Wolverine handlers and `IEmailRetryService`, registered in DI inside the host's composition root.
 - `APITemplate` host controllers reference only `IMessageBus` (Wolverine) — no direct dependency on any module's internal classes.
 
 ---

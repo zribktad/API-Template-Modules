@@ -61,6 +61,7 @@ public static class BackgroundJobsRuntimeBridge
 
         services.AddScoped<ICleanupService, CleanupService>();
         services.AddScoped<IReindexService, ReindexService>();
+        services.AddScoped<IEmailRetryJobService, EmailRetryJobService>();
         services.AddScoped<
             IExternalIntegrationSyncService,
             ExternalIntegrationSyncServicePreview
