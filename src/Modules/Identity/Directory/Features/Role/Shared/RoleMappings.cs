@@ -3,9 +3,6 @@ using Identity.Directory.Entities;
 
 namespace Identity.Directory.Features.Role.Shared;
 
-/// <summary>
-///     Provides LINQ-compatible projection expressions and in-process mapping helpers for <see cref="CustomRole" /> entities.
-/// </summary>
 public static class RoleMappings
 {
     /// <summary>
@@ -20,14 +17,11 @@ public static class RoleMappings
             role.Permissions.Select(p => p.Permission).ToList()
         );
 
-    private static readonly Func<CustomRole, RoleResponse> CompiledProjection =
-        Projection.Compile();
-
-    /// <summary>
-    ///     Maps a <see cref="CustomRole" /> entity to a <see cref="RoleResponse" /> using the pre-compiled projection.
-    /// </summary>
-    public static RoleResponse ToResponse(this CustomRole role)
-    {
-        return CompiledProjection(role);
-    }
+    public static RoleResponse ToResponse(this CustomRole role) =>
+        new(
+            role.Id,
+            role.Name,
+            role.IsImmutable,
+            role.Permissions.Select(p => p.Permission).ToList()
+        );
 }

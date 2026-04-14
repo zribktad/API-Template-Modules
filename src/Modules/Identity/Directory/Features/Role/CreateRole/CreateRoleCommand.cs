@@ -1,11 +1,6 @@
 using ErrorOr;
-using Identity.Auth.Security;
-using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.Shared;
-using Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
-using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Directory.Features.Role.CreateRole;
@@ -26,20 +21,10 @@ public sealed class CreateRoleCommandHandler
         CancellationToken ct
     )
     {
-        var user = httpContextAccessor.HttpContext?.User;
-        bool isPlatformAdmin =
-            user?.HasClaim(AuthConstants.Claims.Permission, Permission.Platform.Manage) == true;
+        bool isPlatformAdmin = httpContextAccessor.HttpContext?.User.IsPlatformAdmin() == true;
 
         if (!isPlatformAdmin && command.Request.Permissions.Contains(Permission.Platform.Manage))
-        {
-            return (
-                Error.Forbidden(
-                    "Role.Permissions",
-                    "TenantAdmin cannot grant Platform.Manage permission."
-                ),
-                OutgoingMessagesHelper.Empty
-            );
-        }
+            return (DomainErrors.Roles.CannotGrantPlatformManage(), OutgoingMessagesHelper.Empty);
 
         var role = new CustomRole
         {
@@ -52,14 +37,7 @@ public sealed class CreateRoleCommandHandler
 
         foreach (var perm in command.Request.Permissions)
         {
-            role.Permissions.Add(
-                new RolePermission
-                {
-                    RoleId = role.Id,
-                    Permission = perm,
-                    Role = role,
-                }
-            );
+            role.Permissions.Add(new RolePermission { RoleId = role.Id, Permission = perm });
         }
 
         await repository.AddAsync(role, ct);

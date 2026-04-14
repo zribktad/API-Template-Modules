@@ -388,4 +388,26 @@ internal static partial class IdentityLogs
         string sessionId,
         int maxAttempts
     );
+
+    // RolePermissionsInvalidatedEventHandler / UserPermissionsInvalidatedEventHandler (3060-3061)
+    [LoggerMessage(
+        EventId = 3060,
+        Level = LogLevel.Information,
+        Message = "Invalidated permissions cache for {Count} users assigned to RoleId {RoleId}"
+    )]
+    public static partial void PermissionCacheInvalidatedForRole(
+        this ILogger logger,
+        int count,
+        Guid roleId
+    );
+
+    [LoggerMessage(
+        EventId = 3061,
+        Level = LogLevel.Information,
+        Message = "Invalidated permissions cache for AppUserId {AppUserId}"
+    )]
+    public static partial void PermissionCacheInvalidatedForUser(
+        this ILogger logger,
+        Guid appUserId
+    );
 }

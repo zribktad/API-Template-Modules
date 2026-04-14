@@ -1,9 +1,6 @@
 using ErrorOr;
-using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.InvalidatePermissions;
 using Identity.Directory.Features.Role.Shared;
-using Identity.Directory.Interfaces;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Directory.Features.Role.DeleteRole;
@@ -20,9 +17,9 @@ public sealed class DeleteRoleCommandHandler
     {
         var role = await repository.FirstOrDefaultAsync(new RoleByIdSpecification(command.Id), ct);
         if (role == null)
-            return Error.NotFound("Role.NotFound", "Role not found.");
+            return DomainErrors.Roles.NotFound(command.Id);
         if (role.IsImmutable)
-            return Error.Validation("Role.Immutable", "Cannot modify built-in roles.");
+            return DomainErrors.Roles.Immutable();
         return role;
     }
 

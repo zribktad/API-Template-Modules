@@ -1,13 +1,8 @@
 using ErrorOr;
 using FluentValidation;
-using Identity.Auth.Security;
-using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.InvalidatePermissions;
 using Identity.Directory.Features.Role.Shared;
-using Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
-using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Directory.Features.Role.UpdateRole;
@@ -36,9 +31,9 @@ public sealed class UpdateRoleCommandHandler
     {
         var role = await repository.FirstOrDefaultAsync(new RoleByIdSpecification(command.Id), ct);
         if (role == null)
-            return Error.NotFound("Role.NotFound", "Role not found.");
+            return DomainErrors.Roles.NotFound(command.Id);
         if (role.IsImmutable)
-            return Error.Validation("Role.Immutable", "Cannot modify built-in roles.");
+            return DomainErrors.Roles.Immutable();
         return role;
     }
 
@@ -55,34 +50,17 @@ public sealed class UpdateRoleCommandHandler
             return (roleResult.Errors, OutgoingMessagesHelper.Empty);
         var role = roleResult.Value;
 
-        var user = httpContextAccessor.HttpContext?.User;
-        bool isPlatformAdmin =
-            user?.HasClaim(AuthConstants.Claims.Permission, Permission.Platform.Manage) == true;
+        bool isPlatformAdmin = httpContextAccessor.HttpContext?.User.IsPlatformAdmin() == true;
 
         if (!isPlatformAdmin && command.Request.Permissions.Contains(Permission.Platform.Manage))
-        {
-            return (
-                Error.Forbidden(
-                    "Role.Permissions",
-                    "TenantAdmin cannot grant Platform.Manage permission."
-                ),
-                OutgoingMessagesHelper.Empty
-            );
-        }
+            return (DomainErrors.Roles.CannotGrantPlatformManage(), OutgoingMessagesHelper.Empty);
 
         role.Name = command.Request.Name;
         role.Permissions.Clear();
 
         foreach (var perm in command.Request.Permissions)
         {
-            role.Permissions.Add(
-                new RolePermission
-                {
-                    RoleId = role.Id,
-                    Permission = perm,
-                    Role = role,
-                }
-            );
+            role.Permissions.Add(new RolePermission { RoleId = role.Id, Permission = perm });
         }
 
         await repository.UpdateAsync(role, ct);

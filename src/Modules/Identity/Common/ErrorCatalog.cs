@@ -20,7 +20,11 @@ public static class ErrorCatalog
 
     public static class Roles
     {
+        public const string NotFound = "ROL-0404";
+        public const string Immutable = "ROL-0422-IMMUTABLE";
+        public const string CannotGrantPlatformManage = "ROL-0403-PLATFORM";
         public const string CannotAssignForeignTenant = "ROL-0403-TENANT";
+        public const string InvalidRoles = "ROL-0422-INVALID";
     }
 
     public static class Tenants

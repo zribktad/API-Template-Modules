@@ -18,11 +18,11 @@ public sealed class GetRoleQueryHandler
     {
         var role = await repository.FirstOrDefaultAsync(new RoleByIdSpecification(query.Id), ct);
         if (role == null)
-            return Error.NotFound("Role.NotFound", "Role not found.");
+            return DomainErrors.Roles.NotFound(query.Id);
 
         bool visible = role.TenantId == null || role.TenantId == tenantProvider.TenantId;
         if (!visible)
-            return Error.NotFound("Role.NotFound", "Role not found.");
+            return DomainErrors.Roles.NotFound(query.Id);
 
         return role.ToResponse();
     }

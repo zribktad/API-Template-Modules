@@ -45,12 +45,7 @@ public sealed class AssignUserRolesCommandHandler
         );
 
         if (requestedRoles.Count != command.Request.RoleIds.Count)
-        {
-            return (
-                Error.Validation("Roles.Invalid", "One or more requested roles do not exist."),
-                OutgoingMessagesHelper.Empty
-            );
-        }
+            return (DomainErrors.Roles.InvalidRoles(), OutgoingMessagesHelper.Empty);
 
         if (requestedRoles.Any(r => r.TenantId != null && r.TenantId != user.TenantId))
         {
