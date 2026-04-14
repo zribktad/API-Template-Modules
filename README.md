@@ -144,16 +144,16 @@ graph TD
 
 Each module follows an internal **Clean Architecture** structure: Domain → Application (Features, Handlers) → Infrastructure (Persistence, Repositories, Services) — with no cross-module direct references. Modules expose behavior through **Contracts**.
 
-| Module             | Primary Responsibility                                         | Database             | Key Technologies                                 |
-|--------------------|----------------------------------------------------------------|----------------------|--------------------------------------------------|
-| **Identity**       | Auth, BFF sessions, user registration, roles, Keycloak sync   | PostgreSQL           | Keycloak OIDC, JWT, BFF Cookie, RedisTicketStore |
-| **ProductCatalog** | Products, categories, polymorphic media metadata, GraphQL      | PostgreSQL + MongoDB | EF Core, MongoDB.Driver, HotChocolate            |
-| **Reviews**        | Product reviews, rating aggregation                            | PostgreSQL           | EF Core, Ardalis.Specification                   |
-| **Notifications**  | Transactional email delivery via SMTP pipeline                 | PostgreSQL           | Wolverine, ISmtpSendPipelineProvider, FailedEmailStore |
-| **BackgroundJobs** | Recurring scheduled tasks (email retry, cleanup)               | PostgreSQL (TickerQ) | TickerQ, distributed leader election (Redis)     |
-| **FileStorage**    | Multipart file upload and streaming download                   | File system / blob   | ASP.NET Core streaming, IFormFile                |
-| **Webhooks**       | Outbound HTTP callbacks to registered consumer endpoints       | PostgreSQL           | HttpClient, Wolverine, retry resilience          |
-| **Chatting**       | Server-Sent Events push notifications to connected clients     | —                    | ASP.NET Core SSE, IAsyncEnumerable               |
+| Module             | Primary Responsibility                                                                         | Database             | Key Technologies                                         |
+|--------------------|------------------------------------------------------------------------------------------------|----------------------|----------------------------------------------------------|
+| **Identity**       | Auth, BFF sessions, user registration, roles, tenant invitations, Keycloak sync                | PostgreSQL           | Keycloak OIDC, JWT, BFF Cookie, RedisTicketStore         |
+| **ProductCatalog** | Products, categories, polymorphic media metadata, GraphQL                                      | PostgreSQL + MongoDB | EF Core, MongoDB.Driver, HotChocolate                    |
+| **Reviews**        | Product reviews, rating aggregation                                                            | PostgreSQL           | EF Core, Ardalis.Specification                           |
+| **Notifications**  | Transactional email delivery via SMTP pipeline, failed email store and retry                   | PostgreSQL           | Wolverine, ISmtpSendPipelineProvider, IFailedEmailStore  |
+| **BackgroundJobs** | Recurring scheduled tasks: email retry, data cleanup, FTS reindex, external sync, job queue    | PostgreSQL (TickerQ) | TickerQ, distributed leader election (Redis), IMessageBus |
+| **FileStorage**    | Multipart file upload and streaming download                                                   | File system / blob   | ASP.NET Core streaming, IFormFile                        |
+| **Webhooks**       | Outbound HTTP callbacks to registered consumer endpoints                                       | PostgreSQL           | HttpClient, Wolverine, HMAC signing, channel queue       |
+| **Chatting**       | Server-Sent Events push notifications to connected clients                                     | —                    | ASP.NET Core SSE, IAsyncEnumerable                       |
 
 ---
 
@@ -179,7 +179,11 @@ src/Modules/<ModuleName>/
 
 ## 🔗 Module Communication
 
-Modules never reference each other's internal types directly. Cross-module communication happens exclusively through **SharedKernel events** (typed notification records in `SharedKernel/Contracts/Events/`), **Notifications.Contracts interfaces**, and **Wolverine publish/subscribe**.
+Modules never reference each other's internal types directly. Cross-module communication happens through three mechanisms — all defined in `SharedKernel/Contracts/`:
+
+- **Events** (`SharedKernel.Contracts.Events`) — fire-and-forget domain notifications published with `IMessageBus.PublishAsync`
+- **Commands** (`SharedKernel.Contracts.Commands`) — targeted cross-module invocations dispatched with `IMessageBus.InvokeAsync`
+- **Notifications.Contracts records** — typed messages passed through the Wolverine pipeline inside the Notifications module
 
 ### Flow 1 — Cascade soft-delete across modules
 
@@ -203,16 +207,22 @@ flowchart LR
     EV2 -->|Wolverine routes| RV_H
 ```
 
-### Flow 2 — Transactional email on domain events
+### Flow 2 — Transactional emails on domain events
+
+Three domain events in `SharedKernel.Contracts.Events` each trigger a dedicated email handler in Notifications that assembles an `EmailMessage` and returns it as `OutgoingMessages` — Wolverine routes the message to `SendEmailMessageHandler` for delivery.
 
 ```mermaid
 flowchart LR
     subgraph SharedKernel_Events ["SharedKernel.Contracts.Events"]
         EV3[UserRegisteredNotification]
+        EV4[TenantInvitationCreatedNotification]
+        EV5[UserRoleChangedNotification]
     end
 
     subgraph Identity
-        ID_H[UserRegisteredHandler]
+        ID_H[ProvisionKeycloakUserHandler]
+        ID_H2[CreateTenantInvitationHandler]
+        ID_H3[ChangeUserRoleHandler]
     end
 
     subgraph Notifications_Contracts ["Notifications.Contracts"]
@@ -221,13 +231,21 @@ flowchart LR
 
     subgraph Notifications
         NF_H1[UserRegisteredEmailHandler]
-        NF_H2[SendEmailMessageHandler]
+        NF_H2[TenantInvitationEmailHandler]
+        NF_H3[UserRoleChangedEmailHandler]
+        NF_H4[SendEmailMessageHandler]
     end
 
     ID_H -->|PublishAsync| EV3
+    ID_H2 -->|PublishAsync| EV4
+    ID_H3 -->|PublishAsync| EV5
     EV3 -->|Wolverine routes| NF_H1
+    EV4 -->|Wolverine routes| NF_H2
+    EV5 -->|Wolverine routes| NF_H3
     NF_H1 -->|returns OutgoingMessages| MSG
-    MSG -->|Wolverine routes| NF_H2
+    NF_H2 -->|returns OutgoingMessages| MSG
+    NF_H3 -->|returns OutgoingMessages| MSG
+    MSG -->|Wolverine routes| NF_H4
 ```
 
 ### Flow 3 — Background email retry
@@ -239,7 +257,7 @@ flowchart LR
         BJ_SVC[IEmailRetryJobService]
     end
 
-    subgraph SharedKernel_Contracts ["SharedKernel.Contracts"]
+    subgraph SharedKernel_Commands ["SharedKernel.Contracts.Commands.Email"]
         CMD1[RetryFailedEmailsCommand]
         CMD2[DeadLetterExpiredEmailsCommand]
     end
@@ -259,11 +277,71 @@ flowchart LR
     NF_H2 -->|delegates to| NF_SVC
 ```
 
-| Communication Style              | When to use                                                  | Example                                                        |
-|----------------------------------|--------------------------------------------------------------|----------------------------------------------------------------|
-| **SharedKernel event + Wolverine** | Domain events crossing module boundaries                   | `ProductsBatchSoftDeletedNotification` → cascade delete reviews      |
-| **Wolverine command (cross-module)** | BackgroundJobs triggering logic in another module        | `BackgroundJobs` → `RetryFailedEmailsCommand` → `Notifications` |
-| **Notifications.Contracts record**  | Passing email data through Wolverine pipeline              | `EmailMessage` routed to `SendEmailMessageHandler`             |
+### Flow 4 — Scheduled data cleanup
+
+`CleanupRecurringJob` (TickerQ, leader-elected) calls `ICleanupService`, which fans out three cross-module Wolverine commands and runs soft-delete purge locally using registered `ISoftDeleteCleanupStrategy` implementations.
+
+```mermaid
+flowchart LR
+    subgraph BackgroundJobs
+        BJ_JOB[CleanupRecurringJob]
+        BJ_SVC[CleanupService\nimplements ICleanupService]
+    end
+
+    subgraph SharedKernel_Commands ["SharedKernel.Contracts.Commands.Cleanup"]
+        CMD3[CleanupExpiredInvitationsCommand]
+        CMD4[CleanupOrphanedProductDataCommand]
+        CMD5[CleanupExpiredBffSessionsCommand]
+    end
+
+    subgraph Identity
+        ID_C1[CleanupExpiredInvitationsHandler]
+        ID_C2[CleanupExpiredBffSessionsHandler]
+    end
+
+    subgraph ProductCatalog
+        PC_C1[CleanupOrphanedProductDataHandler]
+    end
+
+    BJ_JOB -->|calls| BJ_SVC
+    BJ_SVC -->|InvokeAsync| CMD3
+    BJ_SVC -->|InvokeAsync| CMD4
+    BJ_SVC -->|InvokeAsync| CMD5
+    CMD3 -->|Wolverine routes| ID_C1
+    CMD4 -->|Wolverine routes| PC_C1
+    CMD5 -->|Wolverine routes| ID_C2
+```
+
+### Flow 5 — Job completion webhook callback
+
+When a job finishes (success or failure), `JobProcessingBackgroundService` dispatches a `SendWebhookCallbackCommand` to the Webhooks module, which enqueues the payload for outgoing HTTP delivery.
+
+```mermaid
+flowchart LR
+    subgraph BackgroundJobs
+        BJ_PS[JobProcessingBackgroundService]
+    end
+
+    subgraph SharedKernel_Commands ["SharedKernel.Contracts.Commands.Webhooks"]
+        CMD6[SendWebhookCallbackCommand]
+    end
+
+    subgraph Webhooks
+        WH_H[SendWebhookCallbackHandler]
+        WH_Q[IOutgoingWebhookQueue]
+    end
+
+    BJ_PS -->|SendAsync on complete/fail| CMD6
+    CMD6 -->|Wolverine routes| WH_H
+    WH_H -->|EnqueueAsync| WH_Q
+```
+
+| Communication Style                    | When to use                                                          | Example                                                                     |
+|----------------------------------------|----------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| **SharedKernel event + PublishAsync**  | Domain events crossing module boundaries (fire-and-forget)          | `TenantSoftDeletedNotification` → cascade delete products & categories      |
+| **SharedKernel command + InvokeAsync** | BackgroundJobs or cross-module operations requiring a return/await   | `CleanupExpiredInvitationsCommand` → Identity cleans up invitations         |
+| **SharedKernel command + SendAsync**   | Fire-and-forget dispatch to another module's infrastructure          | `SendWebhookCallbackCommand` → Webhooks enqueues outgoing callback          |
+| **Notifications.Contracts record**     | Passing email data through the Wolverine pipeline inside Notifications | `EmailMessage` returned as `OutgoingMessages` → `SendEmailMessageHandler` |
 
 ---
 
