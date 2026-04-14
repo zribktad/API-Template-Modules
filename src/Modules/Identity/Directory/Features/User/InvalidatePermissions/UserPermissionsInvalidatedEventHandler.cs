@@ -1,11 +1,12 @@
 using Identity.Auth.Security;
-using Identity.Directory.Features.User.AssignRoles;
 using Identity.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Wolverine;
 
 namespace Identity.Directory.Features.User.InvalidatePermissions;
+
+public sealed record UserPermissionsInvalidatedEvent(Guid AppUserId, string? KeycloakUserId);
 
 public sealed class UserPermissionsInvalidatedEventHandler
 {

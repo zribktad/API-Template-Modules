@@ -95,7 +95,7 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
             );
         }
 
-        if (permissions != null && permissions.Count > 0)
+        if (permissions.Count > 0)
         {
             var identity = new ClaimsIdentity();
             foreach (var perm in permissions)

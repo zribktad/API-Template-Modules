@@ -1,10 +1,7 @@
 using ErrorOr;
-using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.Shared;
+using Identity.Directory.Features.User.InvalidatePermissions;
 using Identity.Directory.Features.User.Shared;
-using Identity.Directory.Interfaces;
-using Identity.Errors;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace Identity.Directory.Features.User.AssignRoles;
@@ -39,12 +36,13 @@ public sealed class AssignUserRolesCommandHandler
             return (userResult.Errors, OutgoingMessagesHelper.Empty);
         var user = userResult.Value;
 
+        var distinctRoleIds = command.Request.RoleIds.Distinct().ToList();
         var requestedRoles = await roleRepository.ListAsync(
-            new RolesByIdsSpecification(command.Request.RoleIds),
+            new RolesByIdsSpecification(distinctRoleIds),
             ct
         );
 
-        if (requestedRoles.Count != command.Request.RoleIds.Count)
+        if (requestedRoles.Count != distinctRoleIds.Count)
             return (DomainErrors.Roles.InvalidRoles(), OutgoingMessagesHelper.Empty);
 
         if (requestedRoles.Any(r => r.TenantId != null && r.TenantId != user.TenantId))
@@ -67,5 +65,3 @@ public sealed class AssignUserRolesCommandHandler
         return (Result.Success, messages);
     }
 }
-
-public sealed record UserPermissionsInvalidatedEvent(Guid AppUserId, string? KeycloakUserId);

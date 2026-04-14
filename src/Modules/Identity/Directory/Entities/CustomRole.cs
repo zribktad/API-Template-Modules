@@ -29,4 +29,11 @@ public sealed class CustomRole : IAuditableEntity, IHasId, ISoftDeletable
 
     public ICollection<AppUser> Users { get; set; } = new List<AppUser>();
     public ICollection<RolePermission> Permissions { get; set; } = new List<RolePermission>();
+
+    public void SetPermissions(IEnumerable<string> permissions)
+    {
+        Permissions.Clear();
+        foreach (var perm in permissions)
+            Permissions.Add(new RolePermission { RoleId = Id, Permission = perm });
+    }
 }

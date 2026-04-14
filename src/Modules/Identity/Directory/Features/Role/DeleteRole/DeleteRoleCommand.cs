@@ -9,19 +9,11 @@ public sealed record DeleteRoleCommand(Guid Id) : IHasId;
 
 public sealed class DeleteRoleCommandHandler
 {
-    public static async Task<ErrorOr<CustomRole>> LoadAsync(
+    public static Task<ErrorOr<CustomRole>> LoadAsync(
         DeleteRoleCommand command,
         IRoleRepository repository,
         CancellationToken ct
-    )
-    {
-        var role = await repository.FirstOrDefaultAsync(new RoleByIdSpecification(command.Id), ct);
-        if (role == null)
-            return DomainErrors.Roles.NotFound(command.Id);
-        if (role.IsImmutable)
-            return DomainErrors.Roles.Immutable();
-        return role;
-    }
+    ) => RoleLoader.LoadMutableAsync(command.Id, repository, ct);
 
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         DeleteRoleCommand command,

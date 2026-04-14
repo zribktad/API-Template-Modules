@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using ErrorOr;
 using Identity.Auth.Security;
+using Identity.Directory.Features.User.AssignRoles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
@@ -121,12 +122,12 @@ public sealed class UsersController(IMessageBus bus, ICurrentRequestUser current
     [RequirePermission(Permission.Users.Update)]
     public async Task<IActionResult> AssignRoles(
         Guid id,
-        Identity.Directory.Features.User.AssignRoles.AssignUserRolesRequest request,
+        AssignUserRolesRequest request,
         CancellationToken ct
     )
     {
         ErrorOr<Success> result = await bus.InvokeAsync<ErrorOr<Success>>(
-            new Identity.Directory.Features.User.AssignRoles.AssignUserRolesCommand(id, request),
+            new AssignUserRolesCommand(id, request),
             ct
         );
         return result.ToNoContentResult(this);

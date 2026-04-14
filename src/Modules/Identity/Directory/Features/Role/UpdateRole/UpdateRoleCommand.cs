@@ -23,19 +23,11 @@ public sealed record UpdateRoleCommand(Guid Id, UpdateRoleRequest Request) : IHa
 
 public sealed class UpdateRoleCommandHandler
 {
-    public static async Task<ErrorOr<CustomRole>> LoadAsync(
+    public static Task<ErrorOr<CustomRole>> LoadAsync(
         UpdateRoleCommand command,
         IRoleRepository repository,
         CancellationToken ct
-    )
-    {
-        var role = await repository.FirstOrDefaultAsync(new RoleByIdSpecification(command.Id), ct);
-        if (role == null)
-            return DomainErrors.Roles.NotFound(command.Id);
-        if (role.IsImmutable)
-            return DomainErrors.Roles.Immutable();
-        return role;
-    }
+    ) => RoleLoader.LoadMutableAsync(command.Id, repository, ct);
 
     public static async Task<(ErrorOr<RoleResponse>, OutgoingMessages)> HandleAsync(
         UpdateRoleCommand command,
@@ -56,12 +48,7 @@ public sealed class UpdateRoleCommandHandler
             return (DomainErrors.Roles.CannotGrantPlatformManage(), OutgoingMessagesHelper.Empty);
 
         role.Name = command.Request.Name;
-        role.Permissions.Clear();
-
-        foreach (var perm in command.Request.Permissions)
-        {
-            role.Permissions.Add(new RolePermission { RoleId = role.Id, Permission = perm });
-        }
+        role.SetPermissions(command.Request.Permissions);
 
         await repository.UpdateAsync(role, ct);
         await unitOfWork.CommitAsync(ct);

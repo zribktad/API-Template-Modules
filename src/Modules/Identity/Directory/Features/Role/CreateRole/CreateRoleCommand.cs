@@ -35,10 +35,7 @@ public sealed class CreateRoleCommandHandler
             IsImmutable = false,
         };
 
-        foreach (var perm in command.Request.Permissions)
-        {
-            role.Permissions.Add(new RolePermission { RoleId = role.Id, Permission = perm });
-        }
+        role.SetPermissions(command.Request.Permissions);
 
         await repository.AddAsync(role, ct);
         await unitOfWork.CommitAsync(ct);
