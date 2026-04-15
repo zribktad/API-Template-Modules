@@ -49,17 +49,27 @@ public sealed class ProductDataCascadeDeleteHandlerModuleTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrows_DoesNotRethrow()
+    public async Task HandleAsync_WhenRepositoryThrows_RethrowsForWolverineRetry()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        TenantSoftDeletedNotification notification = new(Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow);
+        TenantSoftDeletedNotification notification = new(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            DateTime.UtcNow
+        );
 
         _repositoryMock
-            .Setup(r => r.SoftDeleteByTenantAsync(
-                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<DateTime>(), ct))
+            .Setup(r =>
+                r.SoftDeleteByTenantAsync(
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    ct
+                )
+            )
             .ThrowsAsync(new InvalidOperationException("MongoDB connection failed"));
 
-        await Should.NotThrowAsync(() =>
+        await Should.ThrowAsync<InvalidOperationException>(() =>
             ProductDataCascadeDeleteHandler.HandleAsync(
                 notification,
                 _repositoryMock.Object,
@@ -71,34 +81,47 @@ public sealed class ProductDataCascadeDeleteHandlerModuleTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenRepositoryThrows_LogsError()
+    public async Task HandleAsync_WhenRepositoryThrows_LogsErrorBeforeRethrowing()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        TenantSoftDeletedNotification notification = new(Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow);
+        TenantSoftDeletedNotification notification = new(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            DateTime.UtcNow
+        );
         InvalidOperationException ex = new("MongoDB down");
 
         _repositoryMock
-            .Setup(r => r.SoftDeleteByTenantAsync(
-                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<DateTime>(), ct))
+            .Setup(r =>
+                r.SoftDeleteByTenantAsync(
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    ct
+                )
+            )
             .ThrowsAsync(ex);
 
-        await ProductDataCascadeDeleteHandler.HandleAsync(
-            notification,
-            _repositoryMock.Object,
-            _pipelineProviderMock.Object,
-            _loggerMock.Object,
-            ct
+        await Should.ThrowAsync<InvalidOperationException>(() =>
+            ProductDataCascadeDeleteHandler.HandleAsync(
+                notification,
+                _repositoryMock.Object,
+                _pipelineProviderMock.Object,
+                _loggerMock.Object,
+                ct
+            )
         );
 
         // EventId 4002 = ProductDataCascadeDeleteFailed (see ProductCatalogLogs.cs)
         _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Error,
-                It.Is<EventId>(e => e.Id == 4002),
-                It.IsAny<It.IsAnyType>(),
-                ex,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
+            l =>
+                l.Log(
+                    LogLevel.Error,
+                    It.Is<EventId>(e => e.Id == 4002),
+                    It.IsAny<It.IsAnyType>(),
+                    ex,
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                ),
             Times.Once
         );
     }
@@ -107,11 +130,21 @@ public sealed class ProductDataCascadeDeleteHandlerModuleTests
     public async Task HandleAsync_WhenSuccessful_LogsInformation()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        TenantSoftDeletedNotification notification = new(Guid.NewGuid(), Guid.NewGuid(), DateTime.UtcNow);
+        TenantSoftDeletedNotification notification = new(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            DateTime.UtcNow
+        );
 
         _repositoryMock
-            .Setup(r => r.SoftDeleteByTenantAsync(
-                It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<DateTime>(), ct))
+            .Setup(r =>
+                r.SoftDeleteByTenantAsync(
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    ct
+                )
+            )
             .ReturnsAsync(7);
 
         await ProductDataCascadeDeleteHandler.HandleAsync(
@@ -124,13 +157,14 @@ public sealed class ProductDataCascadeDeleteHandlerModuleTests
 
         // EventId 4001 = ProductDataCascadeDeleteSucceeded (see ProductCatalogLogs.cs)
         _loggerMock.Verify(
-            l => l.Log(
-                LogLevel.Information,
-                It.Is<EventId>(e => e.Id == 4001),
-                It.IsAny<It.IsAnyType>(),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
+            l =>
+                l.Log(
+                    LogLevel.Information,
+                    It.Is<EventId>(e => e.Id == 4001),
+                    It.IsAny<It.IsAnyType>(),
+                    null,
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                ),
             Times.Once
         );
     }

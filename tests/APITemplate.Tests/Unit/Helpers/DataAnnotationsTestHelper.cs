@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SharedKernel.Application.Validation;
 
 namespace APITemplate.Tests.Unit.Helpers;
 
@@ -13,12 +14,8 @@ internal static class DataAnnotationsTestHelper
         out List<ValidationResult> results
     )
     {
-        results = [];
-        return Validator.TryValidateObject(
-            instance,
-            new ValidationContext(instance),
-            results,
-            validateAllProperties: true
-        );
+        IReadOnlyList<ValidationResult> list = AttributedModelValidator.Validate(instance);
+        results = [.. list];
+        return results.Count == 0;
     }
 }

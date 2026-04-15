@@ -119,15 +119,6 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
         return await _dbContext
             .ProductDataLinks.IgnoreQueryFilters()
             .Where(link => link.TenantId == tenantId && !link.IsDeleted)
-            .ExecuteUpdateAsync(
-                setters =>
-                    setters
-                        .SetProperty(link => link.IsDeleted, true)
-                        .SetProperty(link => link.DeletedAtUtc, deletedAtUtc)
-                        .SetProperty(link => link.DeletedBy, actorId)
-                        .SetProperty(link => link.Audit.UpdatedAtUtc, deletedAtUtc)
-                        .SetProperty(link => link.Audit.UpdatedBy, actorId),
-                ct
-            );
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

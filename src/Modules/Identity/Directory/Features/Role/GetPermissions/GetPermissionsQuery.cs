@@ -1,7 +1,5 @@
 using ErrorOr;
-using Identity.Auth.Security;
 using Microsoft.AspNetCore.Http;
-using SharedKernel.Contracts.Security;
 
 namespace Identity.Directory.Features.Role.GetPermissions;
 
@@ -15,15 +13,12 @@ public sealed class GetPermissionsQueryHandler
         CancellationToken ct
     )
     {
-        var user = httpContextAccessor.HttpContext?.User;
-        var isPlatformAdmin =
-            user?.HasClaim(AuthConstants.Claims.Permission, Permission.Platform.Manage) == true;
+        bool isPlatformAdmin = httpContextAccessor.HttpContext?.User.IsPlatformAdmin() == true;
 
-        var allPermissions = Permission.All.ToList();
+        List<string> permissions = isPlatformAdmin
+            ? Permission.All.ToList()
+            : Permission.All.Where(p => p != Permission.Platform.Manage).ToList();
 
-        if (!isPlatformAdmin)
-            allPermissions.Remove(Permission.Platform.Manage);
-
-        return Task.FromResult<ErrorOr<IReadOnlyList<string>>>(allPermissions);
+        return Task.FromResult<ErrorOr<IReadOnlyList<string>>>(permissions);
     }
 }

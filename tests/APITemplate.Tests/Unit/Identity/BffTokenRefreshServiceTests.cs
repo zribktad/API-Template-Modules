@@ -2,6 +2,7 @@ using Identity.Auth.Options;
 using Identity.Auth.Security;
 using Identity.Auth.Security.Keycloak;
 using Identity.Auth.Security.Sessions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
@@ -16,6 +17,7 @@ public sealed class BffTokenRefreshServiceTests
     private readonly Mock<IBffRefreshCoordinator> _refreshCoordinator = new();
     private readonly Mock<IBffSessionStore> _sessionStore = new();
     private readonly Mock<IKeycloakService> _keycloakService = new();
+    private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
 
     [Fact]
     public async Task RefreshIfRequired_WhenNotRequired_ReturnsNotRequired()
@@ -172,6 +174,7 @@ public sealed class BffTokenRefreshServiceTests
             _refreshCoordinator.Object,
             _sessionStore.Object,
             _keycloakService.Object,
+            _httpContextAccessor.Object,
             Options.Create(new BffOptions { RefreshThresholdMinutes = 2 }),
             new FakeTimeProvider(Now)
         );

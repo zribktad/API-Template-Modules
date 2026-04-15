@@ -29,24 +29,14 @@ public static class ProductValidationRules
 }
 
 /// <summary>
-///     Abstract base validator for create/update product requests; applies the common field rules and adds the shared
-///     description-required-above-price-threshold rule.
+///     Abstract base validator for create/update product requests. Field-level Data Annotations on DTOs are enforced at
+///     the API boundary; this validator keeps only cross-field rules MVC cannot express.
 /// </summary>
 public abstract class ProductRequestValidatorBase<T> : AbstractValidator<T>
     where T : class, IProductRequest
 {
     protected ProductRequestValidatorBase()
     {
-        RuleFor(x => x.Name)
-            .NotEmpty()
-            .WithMessage("Product name is required.")
-            .MaximumLength(200)
-            .WithMessage("Product name must not exceed 200 characters.");
-
-        RuleFor(x => x.Price)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Price must be non-negative.");
-
         RuleFor(x => x.Description).RequiredAbovePriceThreshold(x => x.Price);
     }
 }

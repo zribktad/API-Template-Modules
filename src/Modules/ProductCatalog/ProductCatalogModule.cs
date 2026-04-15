@@ -15,9 +15,9 @@ using ProductCatalog.GraphQL.DataLoaders;
 using ProductCatalog.GraphQL.Mutations;
 using ProductCatalog.GraphQL.Queries;
 using ProductCatalog.GraphQL.Types;
+using ProductCatalog.Infrastructure.Health;
 using ProductCatalog.Persistence;
 using ProductCatalog.Repositories;
-using ProductCatalog.Infrastructure.Health;
 using ProductCatalog.Services;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
@@ -48,8 +48,7 @@ public static class ProductCatalogModule
             .AddRepository<ProductApplicationRepository, ProductRepository>()
             .AddRepository<ICategoryRepository, CategoryRepository>()
             .AddRepository<IProductDataLinkRepository, ProductDataLinkRepository>()
-            .AddRepository<IProductDataRepository, ProductDataRepository>()
-;
+            .AddRepository<IProductDataRepository, ProductDataRepository>();
 
         services.AddValidatorsFromAssemblyContaining<ProductCatalogDbMarker>(filter: registration =>
             !registration.ValidatorType.IsGenericTypeDefinition
@@ -92,7 +91,10 @@ public static class ProductCatalogModule
                 );
             }
         );
-        services.AddSingleton<IMongoProductDataDeletePipelineProvider, MongoProductDataDeletePipelineProvider>();
+        services.AddSingleton<
+            IMongoProductDataDeletePipelineProvider,
+            MongoProductDataDeletePipelineProvider
+        >();
 
         services.AddControllers().AddApplicationPart(typeof(ProductCatalogModule).Assembly);
 

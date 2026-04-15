@@ -1,10 +1,12 @@
 using Identity.Auth.Security;
-using Identity.Directory.Features.User.AssignRoles;
+using Identity.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Wolverine;
 
 namespace Identity.Directory.Features.User.InvalidatePermissions;
+
+public sealed record UserPermissionsInvalidatedEvent(Guid AppUserId, string? KeycloakUserId);
 
 public sealed class UserPermissionsInvalidatedEventHandler
 {
@@ -15,25 +17,25 @@ public sealed class UserPermissionsInvalidatedEventHandler
         CancellationToken ct
     )
     {
-        if (!string.IsNullOrEmpty(message.KeycloakUserId))
-        {
-            string cacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
-                message.KeycloakUserId
-            );
-            await cache.RemoveAsync(cacheKey, ct);
-            logger.LogInformation(
-                "Invalidated permissions cache for KeycloakUserId {KeycloakUserId}",
-                message.KeycloakUserId
-            );
-        }
-
-        string appUserCacheKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
+        string appUserKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
             message.AppUserId.ToString()
         );
-        await cache.RemoveAsync(appUserCacheKey, ct);
-        logger.LogInformation(
-            "Invalidated permissions cache for AppUserId {AppUserId}",
-            message.AppUserId
-        );
+
+        if (!string.IsNullOrEmpty(message.KeycloakUserId))
+        {
+            string keycloakKey = AuthConstants.DistributedCache.UserPermissionsCacheKey(
+                message.KeycloakUserId
+            );
+            await Task.WhenAll(
+                cache.RemoveAsync(keycloakKey, ct),
+                cache.RemoveAsync(appUserKey, ct)
+            );
+        }
+        else
+        {
+            await cache.RemoveAsync(appUserKey, ct);
+        }
+
+        logger.PermissionCacheInvalidatedForUser(message.AppUserId);
     }
 }

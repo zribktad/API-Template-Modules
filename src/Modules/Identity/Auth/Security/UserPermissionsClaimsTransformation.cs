@@ -1,8 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
-using Identity.Persistence;
+using Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,22 +35,16 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
 
         if (KeycloakServiceAccountClaims.IsServiceAccount(principal))
         {
-            var identity = new ClaimsIdentity();
-            foreach (var roleClaim in principal.FindAll(ClaimTypes.Role))
+            ClaimsIdentity identity = new ClaimsIdentity();
+            foreach (Claim roleClaim in principal.FindAll(ClaimTypes.Role))
             {
-                if (roleClaim.Value == "PlatformAdmin")
+                if (roleClaim.Value == AuthConstants.Policies.PlatformAdmin)
                     identity.AddClaim(
-                        new Claim(
-                            AuthConstants.Claims.Permission,
-                            SharedKernel.Contracts.Security.Permission.Platform.Manage
-                        )
+                        new Claim(AuthConstants.Claims.Permission, Permission.Platform.Manage)
                     );
-                else if (roleClaim.Value == "TenantAdmin")
+                else if (roleClaim.Value == AuthConstants.Policies.TenantAdmin)
                     identity.AddClaim(
-                        new Claim(
-                            AuthConstants.Claims.Permission,
-                            SharedKernel.Contracts.Security.Permission.Tenant.Manage
-                        )
+                        new Claim(AuthConstants.Claims.Permission, Permission.Tenant.Manage)
                     );
             }
             if (identity.Claims.Any())
@@ -77,18 +70,12 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
 
         if (permissions == null)
         {
-            bool isGuid = Guid.TryParse(sub, out Guid subGuid);
             using var scope = _serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+            var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
 
-            permissions = await dbContext
-                .Users.AsNoTracking()
-                .Where(u => u.KeycloakUserId == sub || (isGuid && u.Id == subGuid))
-                .SelectMany(u => u.Roles)
-                .SelectMany(r => r.Permissions)
-                .Select(rp => rp.Permission)
-                .Distinct()
-                .ToListAsync();
+            permissions = (
+                await userRepository.ListDistinctPermissionNamesBySubjectAsync(sub)
+            ).ToList();
 
             var cacheOptions = new DistributedCacheEntryOptions
             {
@@ -101,7 +88,7 @@ public sealed class UserPermissionsClaimsTransformation : IClaimsTransformation
             );
         }
 
-        if (permissions != null && permissions.Count > 0)
+        if (permissions.Count > 0)
         {
             var identity = new ClaimsIdentity();
             foreach (var perm in permissions)

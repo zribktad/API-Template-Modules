@@ -1,7 +1,7 @@
 namespace ProductCatalog.Features.Product.UpdateProducts;
 
 /// <summary>
-///     FluentValidation validator for <see cref="UpdateProductItem" />, reusing the shared
-///     product validation rules including the description-required-above-price-threshold rule.
+///     FluentValidation validator for batch <see cref="UpdateProductItem" /> rows: cross-field rules only; attribute
+///     constraints are applied by ASP.NET Core on the request body.
 /// </summary>
 public sealed class UpdateProductItemValidator : ProductRequestValidatorBase<UpdateProductItem>;

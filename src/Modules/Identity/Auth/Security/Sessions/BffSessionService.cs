@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Identity.Auth.Security.Sessions.Lifecycle;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -192,7 +193,7 @@ public sealed class BffSessionService : IBffSessionService, IBffSessionRevocatio
                 );
                 return null;
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new UnreachableException();
         }
     }
 }

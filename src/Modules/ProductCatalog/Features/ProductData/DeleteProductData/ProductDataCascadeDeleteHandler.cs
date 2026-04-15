@@ -35,6 +35,7 @@ public sealed class ProductDataCascadeDeleteHandler
         catch (Exception ex)
         {
             logger.ProductDataCascadeDeleteFailed(ex, @event.TenantId);
+            throw;
         }
     }
 }

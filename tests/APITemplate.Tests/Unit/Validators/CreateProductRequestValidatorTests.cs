@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using APITemplate.Tests.Unit.Helpers;
 using APITemplate.Tests.Unit.TestData;
 using ProductCatalog.Features.Product.CreateProducts;
 using Shouldly;
@@ -9,7 +11,7 @@ public class CreateProductRequestValidatorTests
 {
     private readonly CreateProductRequestValidator _sut = new();
 
-    // --- Data Annotation tests ([NotEmpty], [MaxLength], [Range]) via FluentValidation bridge ---
+    // --- Data Annotations ([NotEmpty], [MaxLength], [Range]) — same as ASP.NET model validation; not duplicated in FV ---
 
     [Theory]
     [InlineData(null)]
@@ -19,10 +21,13 @@ public class CreateProductRequestValidatorTests
     {
         var request = new CreateProductRequest(name!, null, 9.99m);
 
-        var result = _sut.Validate(request);
+        bool valid = DataAnnotationsTestHelper.TryValidateAllProperties(
+            request,
+            out List<ValidationResult> results
+        );
 
-        result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.PropertyName == "Name");
+        valid.ShouldBeFalse();
+        results.ShouldContain(r => r.MemberNames.Contains("Name"));
     }
 
     [Fact]
@@ -30,10 +35,13 @@ public class CreateProductRequestValidatorTests
     {
         var request = new CreateProductRequest(new string('A', 201), null, 9.99m);
 
-        var result = _sut.Validate(request);
+        bool valid = DataAnnotationsTestHelper.TryValidateAllProperties(
+            request,
+            out List<ValidationResult> results
+        );
 
-        result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.PropertyName == "Name");
+        valid.ShouldBeFalse();
+        results.ShouldContain(r => r.MemberNames.Contains("Name"));
     }
 
     [Theory]
@@ -45,10 +53,13 @@ public class CreateProductRequestValidatorTests
     {
         var request = new CreateProductRequest("Valid Name", null, price);
 
-        var result = _sut.Validate(request);
+        bool valid = DataAnnotationsTestHelper.TryValidateAllProperties(
+            request,
+            out List<ValidationResult> results
+        );
 
-        result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.PropertyName == "Price");
+        valid.ShouldBeFalse();
+        results.ShouldContain(r => r.MemberNames.Contains("Price"));
     }
 
     [Fact]
@@ -56,12 +67,16 @@ public class CreateProductRequestValidatorTests
     {
         var request = new CreateProductRequest("Valid Name", null, 0m);
 
-        var result = _sut.Validate(request);
+        bool valid = DataAnnotationsTestHelper.TryValidateAllProperties(
+            request,
+            out List<ValidationResult> results
+        );
 
-        result.Errors.ShouldNotContain(e => e.PropertyName == "Price");
+        valid.ShouldBeTrue();
+        results.ShouldNotContain(r => r.MemberNames.Contains("Price"));
     }
 
-    // --- FluentValidation tests (cross-field rules) ---
+    // --- FluentValidation (cross-field rules only) ---
 
     [Theory]
     [InlineData(1001, null, false, "Description")]
