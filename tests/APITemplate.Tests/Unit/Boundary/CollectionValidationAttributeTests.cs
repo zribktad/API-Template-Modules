@@ -31,7 +31,9 @@ public sealed class CollectionValidationAttributeTests
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out var results);
 
         isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage == "Values must not contain empty values.");
+        results.ShouldContain(r =>
+            r.ErrorMessage == "Values must not contain null or empty values."
+        );
         results.ShouldContain(r => r.MemberNames.Contains("Values"));
     }
 
@@ -43,7 +45,9 @@ public sealed class CollectionValidationAttributeTests
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out var results);
 
         isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage == "Values entries must not exceed 5 characters.");
+        results.ShouldContain(r =>
+            r.ErrorMessage == "Values entries must not exceed 5 characters."
+        );
         results.ShouldContain(r => r.MemberNames.Contains("Values"));
     }
 

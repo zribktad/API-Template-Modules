@@ -15,7 +15,9 @@ public sealed class BoundaryRequestValidationTests
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out var results);
 
         isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage == "Permissions must not contain empty values.");
+        results.ShouldContain(r =>
+            r.ErrorMessage == "Permissions must not contain null or empty values."
+        );
     }
 
     [Fact]
@@ -44,13 +46,16 @@ public sealed class BoundaryRequestValidationTests
     [Fact]
     public void UpdateRoleRequest_WhenPermissionTooLong_FailsValidation()
     {
-        var request = new UpdateRoleRequest("Tenant Admin", new List<string> { new string('A', 101) });
+        var request = new UpdateRoleRequest(
+            "Tenant Admin",
+            new List<string> { new string('A', 101) }
+        );
 
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out var results);
 
         isValid.ShouldBeFalse();
-        results.ShouldContain(
-            r => r.ErrorMessage == "Permissions entries must not exceed 100 characters."
+        results.ShouldContain(r =>
+            r.ErrorMessage == "Permissions entries must not exceed 100 characters."
         );
     }
 }
