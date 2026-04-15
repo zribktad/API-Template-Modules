@@ -2,7 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
+using Identity.Auth.Security;
 using Microsoft.AspNetCore.Mvc.Testing;
+using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 
@@ -26,9 +28,8 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             _client,
-            tenantId: Guid.NewGuid(),
-            role: "TenantAdmin",
-            permissions: new[] { "Roles.Create" }
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
+            permissions: [Permission.Roles.Create]
         );
 
         var response = await _client.PostAsJsonAsync(
@@ -51,9 +52,8 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             _client,
-            tenantId: Guid.NewGuid(),
-            role: "TenantAdmin",
-            permissions: new[] { "Roles.Create" }
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
+            permissions: [Permission.Roles.Create]
         );
 
         var response = await _client.PostAsJsonAsync(
@@ -76,7 +76,11 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
     public async Task ProductsController_InvalidQueryFilter_ReturnsUnifiedProblemDetails()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(_client, tenantId: Guid.NewGuid());
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
+            permissions: [Permission.Products.Read]
+        );
 
         var response = await _client.GetAsync(
             "/api/v1/products?sortBy=not-a-field&sortDirection=asc",
@@ -95,7 +99,11 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
     public async Task ProductsController_InvalidCategoryIdsFilter_ReturnsUnifiedProblemDetails()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(_client, tenantId: Guid.NewGuid());
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
+            permissions: [Permission.Products.Read]
+        );
 
         var response = await _client.GetAsync($"/api/v1/products?categoryIds={Guid.Empty}", ct);
 
@@ -113,7 +121,11 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
     public async Task ProductReviewsController_InvalidBody_ReturnsUnifiedProblemDetails()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(_client, tenantId: Guid.NewGuid());
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
+            permissions: [Permission.ProductReviews.Create]
+        );
 
         var response = await _client.PostAsJsonAsync(
             "/api/v1/product-reviews",
@@ -133,7 +145,11 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
     public async Task ProductReviewsController_InvalidQueryRange_ReturnsUnifiedProblemDetails()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(_client, tenantId: Guid.NewGuid());
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
+            permissions: [Permission.ProductReviews.Read]
+        );
 
         var response = await _client.GetAsync("/api/v1/product-reviews?minRating=0", ct);
 

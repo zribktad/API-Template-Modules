@@ -1,6 +1,7 @@
 using Identity.Logging;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Identity.Auth.Security.Sessions;
@@ -83,4 +84,22 @@ public sealed class CookieSessionRefresher : CookieAuthenticationEvents
 
     private static string? ResolveSessionId(CookieValidatePrincipalContext context) =>
         context.Properties.TryGetBffSessionId(out string? sessionId) ? sessionId : null;
+
+    public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
+    {
+        if (!context.Response.HasStarted)
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+        return Task.CompletedTask;
+    }
+
+    public override Task RedirectToAccessDenied(
+        RedirectContext<CookieAuthenticationOptions> context
+    )
+    {
+        if (!context.Response.HasStarted)
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        return Task.CompletedTask;
+    }
 }
