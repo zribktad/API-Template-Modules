@@ -18,7 +18,6 @@
     <PackageReference Include="MongoDB.Bson"/>
     <PackageReference Include="Ardalis.Specification"/>
     <PackageReference Include="ErrorOr"/>
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore"/>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
     <PackageReference Include="SystemTextJsonPatch"/>

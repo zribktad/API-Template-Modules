@@ -68,8 +68,8 @@ public class BatchControllerTests : IClassFixture<CustomWebApplicationFactory>
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(_client);
 
-        // Item[1] has price > 1000 but no description — fails the cross-field FluentValidation rule
-        // in BatchProductItemValidator (not DataAnnotations), so it reaches the handler's per-item validation
+        // Item[1] has price > 1000 but no description, so it passes HTTP boundary binding
+        // and fails during the handler's per-item DataAnnotations batch validation.
         var request = new
         {
             Items = new object[]

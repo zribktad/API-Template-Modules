@@ -1,7 +1,6 @@
 using ErrorOr;
-using FluentValidation;
-using FluentValidation.Results;
 using ProductCatalog.ValueObjects;
+using SharedKernel.Application.Validation;
 using SystemTextJsonPatch;
 using Wolverine;
 using IProductRepository = ProductCatalog.Interfaces.IProductRepository;
@@ -19,7 +18,6 @@ public sealed class PatchProductCommandHandler
         PatchProductCommand command,
         IProductRepository repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
-        IValidator<PatchableProductDto> validator,
         CancellationToken ct
     )
     {
@@ -47,12 +45,13 @@ public sealed class PatchProductCommandHandler
             );
         }
 
-        ValidationResult validationResult = await validator.ValidateAsync(dto, ct);
-        if (!validationResult.IsValid)
+        IReadOnlyList<System.ComponentModel.DataAnnotations.ValidationResult> validationResults =
+            AttributedModelValidator.Validate(dto);
+        if (validationResults.Count > 0)
         {
             return (
                 DomainErrors.Patch.InvalidPatchDocument(
-                    string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage))
+                    string.Join("; ", validationResults.Select(e => e.ErrorMessage))
                 ),
                 OutgoingMessagesHelper.Empty
             );

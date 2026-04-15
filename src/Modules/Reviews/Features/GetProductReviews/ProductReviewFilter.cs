@@ -13,8 +13,10 @@ public sealed record ProductReviewFilter(
     [Range(1, 5, ErrorMessage = "MinRating must be between 1 and 5.")]
     int? MinRating = null,
     [Range(1, 5, ErrorMessage = "MaxRating must be between 1 and 5.")]
+    [GreaterThanOrEqualToProperty(nameof(MinRating), ErrorMessage = "MaxRating must be greater than or equal to MinRating.")]
     int? MaxRating = null,
     DateTime? CreatedFrom = null,
+    [GreaterThanOrEqualToProperty(nameof(CreatedFrom), ErrorMessage = "CreatedTo must be greater than or equal to CreatedFrom.")]
     DateTime? CreatedTo = null,
     [AllowedValues("rating", "createdAt", ErrorMessage = "SortBy must be one of: rating, createdAt.")]
     string? SortBy = null,

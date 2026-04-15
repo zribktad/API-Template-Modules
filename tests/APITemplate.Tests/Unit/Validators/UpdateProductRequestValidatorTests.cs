@@ -8,9 +8,7 @@ namespace APITemplate.Tests.Unit.Validators;
 
 public class UpdateProductRequestValidatorTests
 {
-    private readonly UpdateProductRequestValidator _sut = new();
-
-    // --- Data Annotations — same as ASP.NET model validation; not duplicated in batch FV ---
+    // --- Data Annotations ---
 
     [Theory]
     [InlineData(null)]
@@ -73,29 +71,33 @@ public class UpdateProductRequestValidatorTests
         results.ShouldNotContain(r => r.MemberNames.Contains("Price"));
     }
 
-    // --- FluentValidation (cross-field rules only) ---
+    // --- Cross-field Data Annotations ---
 
     [Theory]
     [InlineData(1001, null, false, "Description")]
     [InlineData(1001, "Detailed description", true, null)]
     [InlineData(999, null, true, null)]
-    public void FluentValidation_DescriptionRule_BasedOnPrice(
+    public void Annotation_DescriptionRule_BasedOnPrice(
         decimal price,
         string? description,
         bool expectedIsValid,
         string? expectedErrorProperty
     )
     {
-        var result = _sut.Validate(new UpdateProductRequest("Any name", description, price));
+        var request = new UpdateProductRequest("Any name", description, price);
+        bool valid = DataAnnotationsTestHelper.TryValidateAllProperties(
+            request,
+            out List<ValidationResult> results
+        );
 
-        result.IsValid.ShouldBe(expectedIsValid);
+        valid.ShouldBe(expectedIsValid);
         if (expectedErrorProperty is null)
         {
-            result.Errors.ShouldNotContain(e => e.PropertyName == "Description");
+            results.ShouldNotContain(r => r.MemberNames.Contains("Description"));
         }
         else
         {
-            result.Errors.ShouldContain(e => e.PropertyName == expectedErrorProperty);
+            results.ShouldContain(r => r.MemberNames.Contains(expectedErrorProperty));
         }
     }
 }

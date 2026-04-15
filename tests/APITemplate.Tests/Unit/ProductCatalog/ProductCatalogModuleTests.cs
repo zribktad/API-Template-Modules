@@ -15,7 +15,7 @@ namespace APITemplate.Tests.Unit.ProductCatalog;
 public sealed class ProductCatalogModuleTests
 {
     [Fact]
-    public void AddProductCatalogModule_RegistersFluentValidationBatchRulesForBatchItemTypes()
+    public void AddProductCatalogModule_RegistersDataAnnotationsBatchRulesForBatchItemTypes()
     {
         ServiceCollection services = new();
         services.AddLogging();
@@ -45,6 +45,6 @@ public sealed class ProductCatalogModuleTests
     {
         scope
             .ServiceProvider.GetRequiredService<IBatchRule<T>>()
-            .ShouldBeOfType<FluentValidationBatchRule<T>>();
+            .ShouldBeOfType<DataAnnotationsBatchRule<T>>();
     }
 }

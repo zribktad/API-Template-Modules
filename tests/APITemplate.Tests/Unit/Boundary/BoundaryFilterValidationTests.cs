@@ -26,12 +26,11 @@ public sealed class BoundaryFilterValidationTests
     public void ProductFilter_WhenPriceRangeInverted_FailsValidation()
     {
         var filter = new ProductFilter(MinPrice: 10m, MaxPrice: 5m);
-        var validator = new ProductFilterValidator();
 
-        var results = validator.Validate(filter);
+        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 
-        results.IsValid.ShouldBeFalse();
-        results.Errors.ShouldContain(
+        isValid.ShouldBeFalse();
+        results.ShouldContain(
             r => r.ErrorMessage == "MaxPrice must be greater than or equal to MinPrice."
         );
     }
@@ -40,12 +39,11 @@ public sealed class BoundaryFilterValidationTests
     public void ProductReviewFilter_WhenRatingRangeInvalid_FailsValidation()
     {
         var filter = new ProductReviewFilter(MinRating: 5, MaxRating: 1);
-        var validator = new ProductReviewFilterValidator();
 
-        var results = validator.Validate(filter);
+        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 
-        results.IsValid.ShouldBeFalse();
-        results.Errors.ShouldContain(
+        isValid.ShouldBeFalse();
+        results.ShouldContain(
             r => r.ErrorMessage == "MaxRating must be greater than or equal to MinRating."
         );
     }
@@ -86,7 +84,7 @@ public sealed class BoundaryFilterValidationTests
     [Fact]
     public void CategoryFilter_WhenSortByAllowed_PassesValidation()
     {
-        var filter = new ProductCatalog.Features.Category.GetCategories.CategoryFilter(
+        var filter = new global::ProductCatalog.Features.Category.GetCategories.CategoryFilter(
             SortBy: "name",
             SortDirection: "asc"
         );

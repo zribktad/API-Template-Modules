@@ -19,7 +19,6 @@
     <PackageReference Include="Ardalis.Specification"/>
     <PackageReference Include="Ardalis.Specification.EntityFrameworkCore"/>
     <PackageReference Include="ErrorOr"/>
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>

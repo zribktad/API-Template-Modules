@@ -13,8 +13,10 @@ public sealed record ProductFilter(
     [Range(typeof(decimal), "0", "79228162514264337593543950335", ErrorMessage = "MinPrice must be greater than or equal to zero.")]
     decimal? MinPrice = null,
     [Range(typeof(decimal), "0", "79228162514264337593543950335", ErrorMessage = "MaxPrice must be greater than or equal to zero.")]
+    [GreaterThanOrEqualToProperty(nameof(MinPrice), ErrorMessage = "MaxPrice must be greater than or equal to MinPrice.")]
     decimal? MaxPrice = null,
     DateTime? CreatedFrom = null,
+    [GreaterThanOrEqualToProperty(nameof(CreatedFrom), ErrorMessage = "CreatedTo must be greater than or equal to CreatedFrom.")]
     DateTime? CreatedTo = null,
     [AllowedValues("name", "price", "createdAt", ErrorMessage = "SortBy must be one of: name, price, createdAt.")]
     string? SortBy = null,

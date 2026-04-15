@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.Product.PatchProduct;
 
@@ -13,6 +14,11 @@ public sealed class PatchableProductDto
     public string Name { get; set; } = string.Empty;
 
     [MaxLength(1000)]
+    [RequiredWhenDecimalPropertyExceeds(
+        nameof(Price),
+        1000,
+        ErrorMessage = "Description is required for products priced above 1000."
+    )]
     public string? Description { get; set; }
 
     [Range(0.0, double.MaxValue, ErrorMessage = "Price must be non-negative.")]

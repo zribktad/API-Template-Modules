@@ -10,7 +10,6 @@
   <ItemGroup>
     <PackageReference Include="ErrorOr" />
     <PackageReference Include="JasperFx" />
-    <PackageReference Include="FluentValidation" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
