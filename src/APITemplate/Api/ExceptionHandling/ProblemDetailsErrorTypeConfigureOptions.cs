@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using SharedKernel.Contracts.Api;
 
@@ -28,11 +29,19 @@ internal sealed class ProblemDetailsErrorTypeConfigureOptions
             IDictionary<string, object?> extensions = context.ProblemDetails.Extensions;
             extensions["traceId"] = context.HttpContext.TraceIdentifier;
 
-            string errorCode =
+            bool hasExplicitErrorCode =
                 extensions.TryGetValue("errorCode", out object? existingErrorCode)
                 && existingErrorCode is string existing
-                    ? existing
-                    : ErrorCatalog.General.Unknown;
+                && !string.IsNullOrWhiteSpace(existing);
+
+            bool isValidationProblem =
+                context.ProblemDetails is HttpValidationProblemDetails
+                || extensions.ContainsKey("errors");
+
+            string errorCode =
+                hasExplicitErrorCode ? (string)existingErrorCode!
+                : isValidationProblem ? ErrorCatalog.General.ValidationFailed
+                : ErrorCatalog.General.Unknown;
 
             extensions["errorCode"] = errorCode;
 

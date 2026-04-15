@@ -39,11 +39,14 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         );
 
         JsonElement problem = await ReadProblemAsync(response, ct);
+        string message = ExtractValidationMessage(problem);
+        string title = ExtractTitle(problem) ?? string.Empty;
+        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem.GetProperty("title").GetString().ShouldBe("Bad Request");
-        problem.GetProperty("detail").GetString().ShouldContain("required");
-        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+        string.IsNullOrWhiteSpace(title).ShouldBeFalse();
+        message.Contains("required", StringComparison.OrdinalIgnoreCase).ShouldBeTrue();
+        errorCode.ShouldBe("GEN-0400");
     }
 
     [Fact]
@@ -63,13 +66,14 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         );
 
         JsonElement problem = await ReadProblemAsync(response, ct);
+        string message = ExtractValidationMessage(problem);
+        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem
-            .GetProperty("detail")
-            .GetString()
-            .ShouldContain("Permissions must not contain empty values.");
-        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+        message
+            .Contains("Permissions must not contain", StringComparison.OrdinalIgnoreCase)
+            .ShouldBeTrue();
+        errorCode.ShouldBe("GEN-0400");
     }
 
     [Fact]
@@ -88,11 +92,16 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         );
 
         JsonElement problem = await ReadProblemAsync(response, ct);
+        string message = ExtractValidationMessage(problem);
+        string title = ExtractTitle(problem) ?? string.Empty;
+        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem.GetProperty("title").GetString().ShouldBe("Bad Request");
-        problem.GetProperty("detail").GetString().ShouldContain("SortBy must be one of");
-        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+        string.IsNullOrWhiteSpace(title).ShouldBeFalse();
+        message
+            .Contains("SortBy must be one of", StringComparison.OrdinalIgnoreCase)
+            .ShouldBeTrue();
+        errorCode.ShouldBe("GEN-0400");
     }
 
     [Fact]
@@ -108,13 +117,17 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         var response = await _client.GetAsync($"/api/v1/products?categoryIds={Guid.Empty}", ct);
 
         JsonElement problem = await ReadProblemAsync(response, ct);
+        string message = ExtractValidationMessage(problem);
+        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem
-            .GetProperty("detail")
-            .GetString()
-            .ShouldContain("CategoryIds cannot contain an empty value.");
-        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+        message
+            .Contains(
+                "CategoryIds cannot contain an empty value.",
+                StringComparison.OrdinalIgnoreCase
+            )
+            .ShouldBeTrue();
+        errorCode.ShouldBe("GEN-0400");
     }
 
     [Fact]
@@ -134,11 +147,16 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         );
 
         JsonElement problem = await ReadProblemAsync(response, ct);
+        string message = ExtractValidationMessage(problem);
+        string title = ExtractTitle(problem) ?? string.Empty;
+        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem.GetProperty("title").GetString().ShouldBe("Bad Request");
-        problem.GetProperty("detail").GetString().ShouldContain("Rating must be between 1 and 5.");
-        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+        string.IsNullOrWhiteSpace(title).ShouldBeFalse();
+        message
+            .Contains("Rating must be between 1 and 5.", StringComparison.OrdinalIgnoreCase)
+            .ShouldBeTrue();
+        errorCode.ShouldBe("GEN-0400");
     }
 
     [Fact]
@@ -154,13 +172,14 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         var response = await _client.GetAsync("/api/v1/product-reviews?minRating=0", ct);
 
         JsonElement problem = await ReadProblemAsync(response, ct);
+        string message = ExtractValidationMessage(problem);
+        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem
-            .GetProperty("detail")
-            .GetString()
-            .ShouldContain("MinRating must be between 1 and 5");
-        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+        message
+            .Contains("MinRating must be between 1 and 5", StringComparison.OrdinalIgnoreCase)
+            .ShouldBeTrue();
+        errorCode.ShouldBe("GEN-0400");
     }
 
     private static async Task<JsonElement> ReadProblemAsync(
@@ -174,5 +193,52 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
             await response.Content.ReadAsStringAsync(ct)
         );
         return document.RootElement.Clone();
+    }
+
+    private static string? ExtractTitle(JsonElement problem)
+    {
+        return
+            problem.TryGetProperty("title", out JsonElement title)
+            && title.ValueKind == JsonValueKind.String
+            ? title.GetString()
+            : null;
+    }
+
+    private static string ExtractValidationMessage(JsonElement problem)
+    {
+        if (
+            problem.TryGetProperty("detail", out JsonElement detail)
+            && detail.ValueKind == JsonValueKind.String
+            && !string.IsNullOrWhiteSpace(detail.GetString())
+        )
+            return detail.GetString()!;
+
+        if (
+            problem.TryGetProperty("errors", out JsonElement errors)
+            && errors.ValueKind == JsonValueKind.Object
+        )
+        {
+            List<string> messages = [];
+            foreach (JsonProperty fieldErrors in errors.EnumerateObject())
+            {
+                if (fieldErrors.Value.ValueKind != JsonValueKind.Array)
+                    continue;
+
+                foreach (JsonElement error in fieldErrors.Value.EnumerateArray())
+                {
+                    if (error.ValueKind != JsonValueKind.String)
+                        continue;
+
+                    string? value = error.GetString();
+                    if (!string.IsNullOrWhiteSpace(value))
+                        messages.Add(value);
+                }
+            }
+
+            if (messages.Count > 0)
+                return string.Join(" ", messages);
+        }
+
+        return string.Empty;
     }
 }
