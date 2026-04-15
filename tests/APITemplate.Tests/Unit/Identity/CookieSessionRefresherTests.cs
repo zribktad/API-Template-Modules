@@ -28,7 +28,7 @@ public sealed class CookieSessionRefresherTests
     }
 
     [Fact]
-    public async Task ValidatePrincipal_WhenRefreshNotRequired_UpdatesLastValidatedAndRenewsCookie()
+    public async Task ValidatePrincipal_WhenRefreshNotRequired_DoesNotRenewCookie()
     {
         CookieSessionRefresher sut = CreateSut();
         CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
@@ -48,13 +48,12 @@ public sealed class CookieSessionRefresherTests
 
         await sut.ValidatePrincipal(context);
 
-        context.ShouldRenew.ShouldBeTrue();
-        context.Properties.Items.ShouldContainKey(AuthConstants.CookieTokenNames.LastValidated);
+        context.ShouldRenew.ShouldBeFalse();
         context.Principal.ShouldNotBeNull();
     }
 
     [Fact]
-    public async Task ValidatePrincipal_WhenValidatedRecently_SkipsRefreshButStillChecksSession()
+    public async Task ValidatePrincipal_WhenLastValidatedExists_StillChecksRefresh()
     {
         CookieSessionRefresher sut = CreateSut();
         CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
@@ -66,6 +65,14 @@ public sealed class CookieSessionRefresherTests
         _sessionService
             .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
+        _refreshService
+            .Setup(x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(BffRefreshOutcome.NotRequired(session));
 
         await sut.ValidatePrincipal(context);
 
@@ -77,10 +84,10 @@ public sealed class CookieSessionRefresherTests
         _refreshService.Verify(
             x =>
                 x.RefreshIfRequiredAsync(
-                    It.IsAny<BffSessionRecord>(),
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
                     It.IsAny<CancellationToken>()
                 ),
-            Times.Never
+            Times.Once
         );
     }
 
