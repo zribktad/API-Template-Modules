@@ -11,6 +11,7 @@ using SharedKernel.Application.Errors;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Contracts.Api;
+using SharedKernel.Contracts.Api.Filters;
 using SharedKernel.Contracts.Api.Routing;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.OutputCache;
@@ -35,6 +36,7 @@ public static class ApiServiceCollectionExtensions
                 "ErrorDocumentation:ErrorTypeBaseUri must be an absolute http or https URI when set."
             );
         services.AddProblemDetails();
+        services.AddScoped<BoundaryValidationActionFilter>();
         services.ConfigureOptions<ProblemDetailsErrorTypeConfigureOptions>();
         services.AddExceptionHandler<ApiExceptionHandler>();
         services.Configure<MvcOptions>(options =>
@@ -42,6 +44,7 @@ public static class ApiServiceCollectionExtensions
             options.Conventions.Add(
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
+            options.Filters.AddService<BoundaryValidationActionFilter>();
         });
         services.Configure<ApiBehaviorOptions>(options =>
         {

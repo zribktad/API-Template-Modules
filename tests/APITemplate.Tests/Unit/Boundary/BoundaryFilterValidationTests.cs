@@ -1,5 +1,6 @@
-using APITemplate.Tests.Unit.Helpers;
+using Identity.Directory.Features.Tenant.Validation;
 using Identity.Directory.Features.Tenant.DTOs;
+using ProductCatalog.Features.Category.GetCategories;
 using ProductCatalog.Features.Product.GetProducts;
 using Reviews.Features;
 using Shouldly;
@@ -13,33 +14,40 @@ public sealed class BoundaryFilterValidationTests
     public void ProductFilter_WhenSortByUnknown_FailsValidation()
     {
         var filter = new ProductFilter(SortBy: "nope", SortDirection: "asc");
+        var validator = new ProductFilterValidator();
 
-        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
+        var results = validator.Validate(filter);
 
-        isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage == "SortBy must be one of: name, price, createdAt.");
+        results.IsValid.ShouldBeFalse();
+        results.Errors.ShouldContain(
+            r => r.ErrorMessage == "SortBy must be one of: name, price, createdAt."
+        );
     }
 
     [Fact]
     public void ProductFilter_WhenPriceRangeInverted_FailsValidation()
     {
         var filter = new ProductFilter(MinPrice: 10m, MaxPrice: 5m);
+        var validator = new ProductFilterValidator();
 
-        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
+        var results = validator.Validate(filter);
 
-        isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage == "MaxPrice must be greater than or equal to MinPrice.");
+        results.IsValid.ShouldBeFalse();
+        results.Errors.ShouldContain(
+            r => r.ErrorMessage == "MaxPrice must be greater than or equal to MinPrice."
+        );
     }
 
     [Fact]
     public void ProductReviewFilter_WhenRatingRangeInvalid_FailsValidation()
     {
         var filter = new ProductReviewFilter(MinRating: 5, MaxRating: 1);
+        var validator = new ProductReviewFilterValidator();
 
-        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
+        var results = validator.Validate(filter);
 
-        isValid.ShouldBeFalse();
-        results.ShouldContain(
+        results.IsValid.ShouldBeFalse();
+        results.Errors.ShouldContain(
             r => r.ErrorMessage == "MaxRating must be greater than or equal to MinRating."
         );
     }
@@ -48,10 +56,22 @@ public sealed class BoundaryFilterValidationTests
     public void TenantFilter_WhenSortDirectionInvalid_FailsValidation()
     {
         var filter = new TenantFilter(SortBy: "code", SortDirection: "sideways");
+        var validator = new TenantFilterValidator();
 
-        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
+        var results = validator.Validate(filter);
 
-        isValid.ShouldBeFalse();
-        results.ShouldContain(r => r.ErrorMessage == "SortDirection must be one of: asc, desc.");
+        results.IsValid.ShouldBeFalse();
+        results.Errors.ShouldContain(r => r.ErrorMessage == "SortDirection must be one of: asc, desc.");
+    }
+
+    [Fact]
+    public void CategoryFilter_WhenSortByAllowed_PassesValidation()
+    {
+        var filter = new CategoryFilter(SortBy: "name", SortDirection: "asc");
+        var validator = new CategoryFilterValidator();
+
+        var results = validator.Validate(filter);
+
+        results.IsValid.ShouldBeTrue();
     }
 }
