@@ -14,7 +14,7 @@ extend the project.
 | [Authentication](AUTHENTICATION.md)             | JWT login flow, protecting endpoints, and production guidance                             |
 | [Stored Procedures](stored-procedures.md)       | Add a PostgreSQL function and call it safely from C#                                      |
 | [MongoDB Polymorphism](mongodb-polymorphism.md) | Store multiple document subtypes in a single MongoDB collection                           |
-| [Validation](validation.md)                     | Add FluentValidation rules, cross-field rules, and shared validators                      |
+| [Validation](validation.md)                     | Data Annotations, cross-field attributes, batch validation, Wolverine middleware          |
 | [Specifications](specifications.md)             | Write reusable EF Core query specifications with Ardalis.Specification                    |
 | [Scalar & GraphQL UI](scalar-and-graphql-ui.md) | Use the Scalar REST explorer and Nitro GraphQL playground                                 |
 | [Testing](testing.md)                           | Write unit tests (services, validators, repositories) and integration tests               |

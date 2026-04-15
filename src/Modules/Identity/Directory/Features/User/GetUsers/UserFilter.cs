@@ -13,8 +13,7 @@ public sealed record UserFilter(
     bool? IsActive = null,
     Guid? RoleId = null,
     ProvisioningStatus? ProvisioningStatus = null,
-    [AllowedValues(
-        null,
+    [CaseInsensitiveAllowedValues(
         UserSortFields.UsernameToken,
         UserSortFields.EmailToken,
         UserSortFields.CreatedAtToken,

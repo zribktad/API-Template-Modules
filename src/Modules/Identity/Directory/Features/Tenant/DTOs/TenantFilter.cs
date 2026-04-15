@@ -9,8 +9,7 @@ namespace Identity.Directory.Features.Tenant.DTOs;
 /// </summary>
 public sealed record TenantFilter(
     string? Query = null,
-    [AllowedValues(
-        null,
+    [CaseInsensitiveAllowedValues(
         TenantSortFields.CodeToken,
         TenantSortFields.NameToken,
         TenantSortFields.CreatedAtToken,

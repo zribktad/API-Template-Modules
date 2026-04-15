@@ -119,50 +119,47 @@ public sealed record UpdateOrderRequest(
 
 ---
 
-## Step 3 – Add the FluentValidation Validators
+## Step 3 – Add validation attributes to the DTOs
 
-Validators live in `src/APITemplate.Application/Features/<Feature>/Validation/`. They are auto-discovered and invoked by Wolverine's FluentValidation middleware (`UseFluentValidation()`) before handlers run.
-
-```csharp
-// Application/Features/Order/Validation/OrderFilterValidator.cs
-using APITemplate.Application.Common.Validation;
-using FluentValidation;
-
-namespace APITemplate.Application.Features.Order.Validation;
-
-public sealed class OrderFilterValidator : AbstractValidator<OrderFilter>
-{
-    public OrderFilterValidator()
-    {
-        Include(new PaginationFilterValidator());
-        Include(new SortableFilterValidator<OrderFilter>(OrderSortFields.Map.AllowedNames));
-    }
-}
-```
-
-For request validators, use `AbstractValidator<T>` or inherit from a shared base when Create/Update share rules:
+Validation uses **Data Annotations** only. Place attributes directly on the DTO record parameters or class properties.
 
 ```csharp
-// Application/Features/Order/Validation/CreateOrderRequestValidator.cs
-using FluentValidation;
+// Application/Features/Order/DTOs/CreateOrderRequest.cs
+using System.ComponentModel.DataAnnotations;
+using SharedKernel.Application.Validation;
 
-namespace APITemplate.Application.Features.Order.Validation;
+namespace APITemplate.Application.Features.Order.DTOs;
 
-public sealed class CreateOrderRequestValidator : AbstractValidator<CreateOrderRequest>
-{
-    public CreateOrderRequestValidator()
-    {
-        RuleFor(x => x.CustomerName)
-            .NotEmpty().WithMessage("CustomerName is required.")
-            .MaximumLength(200).WithMessage("CustomerName must not exceed 200 characters.");
-
-        RuleFor(x => x.TotalAmount)
-            .GreaterThan(0).WithMessage("TotalAmount must be greater than zero.");
-    }
-}
+public sealed record CreateOrderRequest(
+    [NotEmpty(ErrorMessage = "CustomerName is required.")]
+    [MaxLength(200, ErrorMessage = "CustomerName must not exceed 200 characters.")]
+    string CustomerName,
+    [Range(typeof(decimal), "0.01", "79228162514264337593543950335",
+        ErrorMessage = "TotalAmount must be greater than zero.")]
+    decimal TotalAmount);
 ```
 
-Validation failures throw `Domain.Exceptions.ValidationException`, which is mapped to HTTP 400 by `ApiExceptionHandler`.
+For sort fields on filters use `[CaseInsensitiveAllowedValues]`:
+
+```csharp
+// Application/Features/Order/DTOs/OrderFilter.cs
+using SharedKernel.Application.Validation;
+
+public sealed record OrderFilter(
+    string? Query = null,
+    [CaseInsensitiveAllowedValues("customerName", "totalAmount", "createdAt",
+        ErrorMessage = "SortBy must be one of: customerName, totalAmount, createdAt.")]
+    string? SortBy = null,
+    [SortDirection]
+    string? SortDirection = null,
+    int PageNumber = 1,
+    int PageSize = PaginationFilter.DefaultPageSize
+) : PaginationFilter(PageNumber, PageSize), ISortableFilter;
+```
+
+ASP.NET Core's model binding runs these automatically on `[FromBody]` / `[FromQuery]` DTOs — no separate validator class or DI registration needed. Invalid model state returns HTTP 400 ProblemDetails before the action runs.
+
+For cross-field rules use: `[GreaterThanOrEqualToProperty]`, `[RequiredWhenDecimalPropertyExceeds]`. See [validation.md](validation.md) for the full attribute reference.
 
 ---
 
@@ -557,7 +554,7 @@ public static class Orders
 public const string Orders = "Orders";
 ```
 
-> Wolverine handlers and FluentValidation validators are auto-discovered from the assembly — no explicit registration needed. Wolverine is configured in `Program.cs` via `UseWolverine()` with `UseFluentValidation()` middleware.
+> Wolverine handlers are auto-discovered from the assembly — no explicit registration needed. Wolverine is configured in `Program.cs` via `UseWolverine()`. Validation uses Data Annotations — no DI registration required.
 
 ---
 
@@ -622,7 +619,7 @@ Application/Features/Order/
 
 - [ ] Domain entity implementing `IAuditableTenantEntity` in `Domain/Entities/`
 - [ ] Filter + Response + Request DTOs in `Application/Features/<Feature>/DTOs/`
-- [ ] FluentValidation validators in `Application/Features/<Feature>/Validation/`
+- [ ] Data Annotation attributes on request and filter DTOs
 - [ ] Expression projection mappings in `Application/Features/<Feature>/Mappings/`
 - [ ] Specifications (list, byId, filter criteria) in `Application/Features/<Feature>/Specifications/`
 - [ ] Sort field map in `Application/Features/<Feature>/`
@@ -648,7 +645,7 @@ Application/Features/Order/
 | `Application/Features/<Feature>/` | Wolverine commands, queries & handlers (static HandleAsync) |
 | `Application/Features/<Feature>/Specifications/` | Ardalis.Specification query logic |
 | `Application/Features/<Feature>/Mappings/` | Expression projections (Entity → DTO) |
-| `Application/Features/<Feature>/Validation/` | FluentValidation validators |
+| `Application/Features/<Feature>/DTOs/` | Request, filter, response DTOs with Data Annotation attributes |
 | `Application/Features/<Feature>/<Feature>SortFields.cs` | Sort field mappings |
 | `Application/Common/DTOs/` | `PagedResponse<T>`, `PaginationFilter` |
 | `Application/Common/Security/Permission.cs` | Permission constants |

@@ -417,7 +417,7 @@ curl -X POST -H "Authorization: Bearer <token>" \
 | Application | `Common/CQRS/BatchFailureContext.cs` + `Common/CQRS/Rules/*` | Reusable validation and existence-checking orchestration |
 
 ### Key implementation details
-- Individual item validation via FluentValidation — each item gets its own error list
+- Individual item validation via `DataAnnotationsBatchRule<TItem>` — each item gets its own error list
 - All-or-nothing: if validation fails for any item, the entire batch is rejected (no partial writes)
 - All valid items are persisted within a single `ExecuteInTransactionAsync` call
 - Bulk reference validation (categories, product data) in single DB queries

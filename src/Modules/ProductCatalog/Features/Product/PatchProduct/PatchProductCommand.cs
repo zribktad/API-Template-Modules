@@ -51,7 +51,9 @@ public sealed class PatchProductCommandHandler
         {
             return (
                 DomainErrors.Patch.InvalidPatchDocument(
-                    string.Join("; ", validationResults.Select(e => e.ErrorMessage))
+                    string.Join("; ", validationResults
+                        .Select(e => e.ErrorMessage)
+                        .Where(m => !string.IsNullOrWhiteSpace(m)))
                 ),
                 OutgoingMessagesHelper.Empty
             );

@@ -19,8 +19,7 @@ public sealed record ProductFilter(
     DateTime? CreatedFrom = null,
     [GreaterThanOrEqualToProperty(nameof(CreatedFrom), ErrorMessage = "CreatedTo must be greater than or equal to CreatedFrom.")]
     DateTime? CreatedTo = null,
-    [AllowedValues(
-        null,
+    [CaseInsensitiveAllowedValues(
         ProductSortFields.NameToken,
         ProductSortFields.PriceToken,
         ProductSortFields.CreatedAtToken,

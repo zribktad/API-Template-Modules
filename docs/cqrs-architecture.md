@@ -74,8 +74,10 @@ builder.Host.UseWolverine(opts =>
 {
     opts.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly); // Application
     opts.Discovery.IncludeAssembly(typeof(Program).Assembly);              // Api
-    opts.UseFluentValidation(RegistrationBehavior.ExplicitRegistration);
-    opts.Durability.Mode = DurabilityMode.Balanced;
+    opts.Policies.AddMiddleware(
+        typeof(DataAnnotationsValidationMiddleware),
+        chain => chain.ShouldApplyDataAnnotationsValidation()
+    );
 });
 ```
 
@@ -133,7 +135,7 @@ public sealed class DoSomethingCommandHandler
 }
 ```
 
-2. Add a `FluentValidation` validator for the request DTO if needed and register it in DI.
+2. Add Data Annotation attributes directly on the DTO for per-field rules; for cross-field rules use the custom attributes from `SharedKernel.Application.Validation`.
 
 3. Dispatch from controller:
 
@@ -220,11 +222,11 @@ Multiple handlers can subscribe to the same event -- Wolverine invokes all of th
 
 Validation operates at two levels:
 
-### Wolverine FluentValidation Middleware
+### Wolverine DataAnnotations Middleware
 
-`opts.UseFluentValidation(RegistrationBehavior.ExplicitRegistration)` registers a Wolverine middleware that runs any explicitly registered `IValidator<TMessage>` **before** the handler executes. If validation fails, an `ErrorOr` validation error is returned and the handler is never called.
+`DataAnnotationsValidationMiddleware` runs `AttributedModelValidator.Validate(message)` **before** the handler executes on any handler returning `ErrorOr<T>`. If validation fails, it returns `(HandlerContinuation.Stop, errors)` and the handler never runs.
 
-This covers all messages dispatched through `IMessageBus`.
+In practice this middleware matters for non-HTTP entry points (scheduled jobs, outbox retry) — for normal HTTP flows MVC already validated the DTO before the command was created, and commands themselves carry no DataAnnotation attributes.
 
 ### Batch Validation
 
@@ -242,7 +244,12 @@ if (context.HasFailures)
     return context.ToFailureResponse();
 ```
 
-`IBatchRule<T>` is registered as an open generic in each module's DI setup (e.g. `services.AddScoped(typeof(IBatchRule<>), typeof(FluentValidationBatchRule<>))`), so handlers receive it via constructor/method injection. Batch rules live in `Application/Common/Batch/Rules/` and include `FluentValidationBatchRule`, `MarkMissingByIdBatchRule`, and `MarkMissingIdsBatchRule`.
+`IBatchRule<T>` is registered once in the composition root (`AddApiFoundation`):
+```csharp
+services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
+```
+
+Handlers receive it via method injection. Batch rules live in `SharedKernel/Application/Batch/Rules/` and include `DataAnnotationsBatchRule`, `MarkMissingByIdBatchRule`, and `MarkMissingIdsBatchRule`.
 
 ---
 
@@ -255,14 +262,15 @@ builder.Host.UseWolverine(opts =>
 {
     opts.Discovery.IncludeAssembly(typeof(CreateProductsCommand).Assembly);
     opts.Discovery.IncludeAssembly(typeof(Program).Assembly);
-    opts.UseFluentValidation(RegistrationBehavior.ExplicitRegistration);
-    opts.Durability.Mode = DurabilityMode.Balanced;
+    opts.Policies.AddMiddleware(
+        typeof(DataAnnotationsValidationMiddleware),
+        chain => chain.ShouldApplyDataAnnotationsValidation()
+    );
 });
 ```
 
 - **Application assembly** -- contains all command/query handlers and event definitions.
 - **Api assembly** -- contains infrastructure handlers (e.g., `CacheInvalidationHandler`).
-- FluentValidation validators are registered separately in `AddApplicationServices()`.
 
 ---
 
@@ -361,7 +369,7 @@ If a handler has no messages to emit, return `OutgoingMessagesHelper.Empty` inst
 Batch commands (create/update/delete multiple entities) use a domain-level validation pipeline built on:
 
 - **`BatchFailureContext<TItem>`** -- accumulates per-index failures across multiple validation rules.
-- **`IBatchRule<TItem>`** -- interface for a single batch validation step (`FluentValidationBatchRule`, `MarkMissingByIdBatchRule`, `MarkMissingIdsBatchRule`).
+- **`IBatchRule<TItem>`** -- interface for a single batch validation step (`DataAnnotationsBatchRule`, `MarkMissingByIdBatchRule`, `MarkMissingIdsBatchRule`).
 - **`BatchFailureMerge`** -- merges failures from independent checks (e.g., category + product-data reference checks) into a single failure list by index.
 - **`BatchResponse`** -- returned to the caller with success count + per-item failure details.
 
@@ -382,14 +390,14 @@ All batch infrastructure lives in `Application/Common/Batch/`.
 | `CacheInvalidationHandler` | Api | Depends on `IOutputCacheInvalidationService` |
 | `UserRegisteredEmailHandler` | Application | Orchestrates email infrastructure |
 | Controllers, GraphQL resolvers | Api | Presentation -- dispatch via `IMessageBus` |
-| `ErrorOrValidationMiddleware` | Application | Wolverine middleware converting ErrorOr errors to HTTP responses |
+| `DataAnnotationsValidationMiddleware` | SharedKernel | Wolverine pre-handler middleware — validates message via DataAnnotations, short-circuits with ErrorOr errors |
 | Wolverine configuration (`UseWolverine`) | Api (`Program.cs`) | Infrastructure wiring |
 
 ---
 
 ## Key Decisions
 
-- **WolverineFx over MediatR** -- convention-based discovery eliminates boilerplate interfaces; method injection removes constructor noise; built-in FluentValidation middleware replaces manual decorator wiring.
+- **WolverineFx over MediatR** -- convention-based discovery eliminates boilerplate interfaces; method injection removes constructor noise; custom `DataAnnotationsValidationMiddleware` replaces manual decorator wiring.
 - **Durable local outbox** -- local cascading messages are persisted in PostgreSQL and flushed through Wolverine's EF Core transactional middleware.
 - **No marker interfaces** -- commands, queries, and events are plain records. Wolverine routes by type, not by interface.
 - **Convention over configuration** -- handler classes are discovered by naming convention (`*Handler` + `HandleAsync`), not by implementing `IRequestHandler<T>` or registering manually.

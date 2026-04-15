@@ -28,6 +28,9 @@ public sealed class MaxLengthItemsAttribute : ValidationAttribute
 
         foreach (object? item in enumerable)
         {
+            if (item is null)
+                continue;
+
             if (item is string s && s.Length > MaxLength)
             {
                 return new ValidationResult(

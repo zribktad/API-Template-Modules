@@ -9,8 +9,7 @@ namespace ProductCatalog.Features.Category.GetCategories;
 /// </summary>
 public sealed record CategoryFilter(
     string? Query = null,
-    [AllowedValues(
-        null,
+    [CaseInsensitiveAllowedValues(
         CategorySortFields.NameToken,
         CategorySortFields.CreatedAtToken,
         ErrorMessage = "SortBy must be one of: Name, CreatedAt."

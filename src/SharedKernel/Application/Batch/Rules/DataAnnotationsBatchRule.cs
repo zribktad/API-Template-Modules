@@ -9,6 +9,8 @@ public sealed class DataAnnotationsBatchRule<TItem> : IBatchRule<TItem>
     {
         for (int i = 0; i < context.Items.Count; i++)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (context.IsFailed(i))
                 continue;
 
