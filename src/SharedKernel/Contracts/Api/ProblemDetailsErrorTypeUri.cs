@@ -16,7 +16,10 @@ public static class ProblemDetailsErrorTypeUri
 
     public static string? BuildAbsoluteUri(string? errorTypeBaseUri, string errorCode)
     {
-        if (!TryGetTrimmedBase(errorTypeBaseUri, out string trimmedBase) || string.IsNullOrWhiteSpace(errorCode))
+        if (
+            !TryGetTrimmedBase(errorTypeBaseUri, out string trimmedBase)
+            || string.IsNullOrWhiteSpace(errorCode)
+        )
             return null;
 
         string encodedCode = Uri.EscapeDataString(errorCode);
@@ -25,6 +28,12 @@ public static class ProblemDetailsErrorTypeUri
         return Uri.TryCreate(combined, UriKind.Absolute, out Uri? absolute)
             ? absolute.AbsoluteUri
             : null;
+    }
+
+    public static string BuildFallbackUri(string scheme, string host, string errorCode)
+    {
+        string encodedCode = Uri.EscapeDataString(errorCode);
+        return $"{scheme}://{host}/errors/{encodedCode}";
     }
 
     private static bool TryGetTrimmedBase(string? baseUri, out string trimmed)

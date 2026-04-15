@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
 using Identity.Auth.Security;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedKernel.Contracts.Security;
 using Shouldly;
@@ -38,13 +39,12 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
             ct
         );
 
-        JsonElement problem = await ReadProblemAsync(response, ct);
+        var problem = await ReadProblemAsync(response, ct);
         string message = ExtractValidationMessage(problem);
-        string title = ExtractTitle(problem) ?? string.Empty;
-        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
+        string errorCode = ExtractErrorCode(problem);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        string.IsNullOrWhiteSpace(title).ShouldBeFalse();
+        problem.Title.ShouldNotBeNullOrWhiteSpace();
         message.Contains("required", StringComparison.OrdinalIgnoreCase).ShouldBeTrue();
         errorCode.ShouldBe("GEN-0400");
     }
@@ -65,9 +65,9 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
             ct
         );
 
-        JsonElement problem = await ReadProblemAsync(response, ct);
+        var problem = await ReadProblemAsync(response, ct);
         string message = ExtractValidationMessage(problem);
-        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
+        string errorCode = ExtractErrorCode(problem);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         message
@@ -91,13 +91,12 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
             ct
         );
 
-        JsonElement problem = await ReadProblemAsync(response, ct);
+        var problem = await ReadProblemAsync(response, ct);
         string message = ExtractValidationMessage(problem);
-        string title = ExtractTitle(problem) ?? string.Empty;
-        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
+        string errorCode = ExtractErrorCode(problem);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        string.IsNullOrWhiteSpace(title).ShouldBeFalse();
+        problem.Title.ShouldNotBeNullOrWhiteSpace();
         message
             .Contains("SortBy must be one of", StringComparison.OrdinalIgnoreCase)
             .ShouldBeTrue();
@@ -116,9 +115,9 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
 
         var response = await _client.GetAsync($"/api/v1/products?categoryIds={Guid.Empty}", ct);
 
-        JsonElement problem = await ReadProblemAsync(response, ct);
+        var problem = await ReadProblemAsync(response, ct);
         string message = ExtractValidationMessage(problem);
-        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
+        string errorCode = ExtractErrorCode(problem);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         message
@@ -146,13 +145,12 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
             ct
         );
 
-        JsonElement problem = await ReadProblemAsync(response, ct);
+        var problem = await ReadProblemAsync(response, ct);
         string message = ExtractValidationMessage(problem);
-        string title = ExtractTitle(problem) ?? string.Empty;
-        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
+        string errorCode = ExtractErrorCode(problem);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        string.IsNullOrWhiteSpace(title).ShouldBeFalse();
+        problem.Title.ShouldNotBeNullOrWhiteSpace();
         message
             .Contains("Rating must be between 1 and 5.", StringComparison.OrdinalIgnoreCase)
             .ShouldBeTrue();
@@ -171,9 +169,9 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
 
         var response = await _client.GetAsync("/api/v1/product-reviews?minRating=0", ct);
 
-        JsonElement problem = await ReadProblemAsync(response, ct);
+        var problem = await ReadProblemAsync(response, ct);
         string message = ExtractValidationMessage(problem);
-        string errorCode = problem.GetProperty("errorCode").GetString() ?? string.Empty;
+        string errorCode = ExtractErrorCode(problem);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         message
@@ -182,61 +180,34 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         errorCode.ShouldBe("GEN-0400");
     }
 
-    private static async Task<JsonElement> ReadProblemAsync(
+    private static async Task<HttpValidationProblemDetails> ReadProblemAsync(
         HttpResponseMessage response,
         CancellationToken ct
     )
     {
         response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
 
-        using JsonDocument document = JsonDocument.Parse(
-            await response.Content.ReadAsStringAsync(ct)
-        );
-        return document.RootElement.Clone();
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>(ct);
+        problem.ShouldNotBeNull();
+        return problem;
     }
 
-    private static string? ExtractTitle(JsonElement problem)
+    private static string ExtractErrorCode(HttpValidationProblemDetails problem)
     {
         return
-            problem.TryGetProperty("title", out JsonElement title)
-            && title.ValueKind == JsonValueKind.String
-            ? title.GetString()
-            : null;
+            problem.Extensions.TryGetValue("errorCode", out object? code) && code is JsonElement je
+            ? je.GetString() ?? string.Empty
+            : code?.ToString() ?? string.Empty;
     }
 
-    private static string ExtractValidationMessage(JsonElement problem)
+    private static string ExtractValidationMessage(HttpValidationProblemDetails problem)
     {
-        if (
-            problem.TryGetProperty("detail", out JsonElement detail)
-            && detail.ValueKind == JsonValueKind.String
-            && !string.IsNullOrWhiteSpace(detail.GetString())
-        )
-            return detail.GetString()!;
+        if (!string.IsNullOrWhiteSpace(problem.Detail))
+            return problem.Detail;
 
-        if (
-            problem.TryGetProperty("errors", out JsonElement errors)
-            && errors.ValueKind == JsonValueKind.Object
-        )
+        if (problem.Errors.Count > 0)
         {
-            List<string> messages = [];
-            foreach (JsonProperty fieldErrors in errors.EnumerateObject())
-            {
-                if (fieldErrors.Value.ValueKind != JsonValueKind.Array)
-                    continue;
-
-                foreach (JsonElement error in fieldErrors.Value.EnumerateArray())
-                {
-                    if (error.ValueKind != JsonValueKind.String)
-                        continue;
-
-                    string? value = error.GetString();
-                    if (!string.IsNullOrWhiteSpace(value))
-                        messages.Add(value);
-                }
-            }
-
-            if (messages.Count > 0)
-                return string.Join(" ", messages);
+            return string.Join(" ", problem.Errors.SelectMany(e => e.Value));
         }
 
         return string.Empty;

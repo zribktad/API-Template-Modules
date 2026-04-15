@@ -454,6 +454,17 @@ sequenceDiagram
 
 **Refresh coordination** prevents concurrent requests from all hitting Keycloak when the token expires:
 
+### 3b.1 Session validation cadence and revocation window
+
+`CookieSessionRefresher.ValidatePrincipal` stores the last successful validation timestamp (`.last_validated`) in cookie properties.
+
+- If the timestamp is younger than 1 minute, refresh checks are skipped for that request.
+- Server-side session presence is still validated on every request, so revoked/deleted sessions are rejected immediately.
+- This reduces database/cache pressure for high request rates.
+- Trade-off: Keycloak refresh/rotation checks are interval-based, not per-request.
+
+Use this behavior when you want immediate revocation enforcement while still reducing refresh pressure.
+
 | Role                             | Behavior                                                                                                                                                                                     |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Leader**                       | Acquires Redis distributed lock (`NX`, TTL = `RefreshLockTimeoutMilliseconds`), calls Keycloak, updates session with `TryUpdateAsync` (optimistic concurrency), writes outcome to result key |
@@ -497,15 +508,15 @@ This is intentional — keeping the record allows:
 
 **Revocation reasons:**
 
-| `BffSessionRevocationReason`  | Trigger                                                                                  |
-| ----------------------------- | ---------------------------------------------------------------------------------------- |
-| `Logout`                      | User-initiated sign-out via `/api/v1/bff/logout`                                         |
-| `RefreshRejected`             | Keycloak returned `invalid_grant` (e.g. refresh token rotated and old one reused)        |
-| `RefreshTokenMissing`         | Session record has no refresh token — cannot renew                                       |
-| `RefreshTokenReplaySuspected` | Suspicious refresh token reuse detected (reserved for future use)                        |
-| `SessionCorrupted`            | Session record is malformed — missing `SessionId`, `UserId`, `Subject`, or `AccessToken` |
-| `ProviderSessionInvalid`      | Keycloak HTTP/network error during refresh (non-`invalid_grant` failure)                 |
-| `AbsoluteLifetimeExceeded`    | `CreatedAtUtc + SessionAbsoluteLifetimeMinutes` (480 min) has passed                     |
+| `BffSessionRevocationReason`  | Trigger                                                                                                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Logout`                      | User-initiated sign-out via `/api/v1/bff/logout`                                                                                                                      |
+| `RefreshRejected`             | Keycloak returned `invalid_grant` (e.g. refresh token rotated and old one reused)                                                                                     |
+| `RefreshTokenMissing`         | Session record has no refresh token — cannot renew                                                                                                                    |
+| `RefreshTokenReplaySuspected` | Suspicious refresh token reuse detected (reserved for future use)                                                                                                     |
+| `SessionCorrupted`            | Session record is malformed — missing `SessionId`, `UserId`, `Subject`, or `AccessToken`                                                                              |
+| `ProviderSessionInvalid`      | Keycloak HTTP/network error during refresh (non-`invalid_grant` failure)                                                                                              |
+| `AbsoluteLifetimeExceeded`    | `CreatedAtUtc + SessionAbsoluteLifetimeMinutes` (480 min) has passed                                                                                                  |
 | `CredentialRotation`          | Password change or global sign-out: `POST /api/v1/account/password`, `POST /api/v1/account/sessions/revoke-all`, or `POST /internal/keycloak-events/password-changed` |
 
 **Account password change (`POST /api/v1/account/password`):** The handler verifies the current password by calling Keycloak’s token endpoint with the **resource-owner password grant** using the confidential client configured under `Keycloak:PasswordVerification` (`client_id` / `client_secret` in application settings; see realm client `api-template-password-verification` in the template). **Direct Access Grants must be enabled for that server-side client** in Keycloak. If this grant is disabled, `ValidateCredentialsAsync` will fail and password change returns a validation error even when the password is correct. Production realms that disable password grants for end-user clients should still allow them for this dedicated verification client only.
@@ -514,12 +525,12 @@ This is intentional — keeping the record allows:
 
 **PostgreSQL** is the primary durable session store (`BffPersistedSession` table). **Redis/DragonFly** acts as a read-through cache with short TTL (`CacheTtlMinutes`, default 10 min). This design supports offline sessions (`offline_access` scope) — the refresh token in PostgreSQL survives Redis restarts and long idle periods (up to 30 days).
 
-| Layer      | Key / Table                       | Content                                             | TTL                                          | Set by                           |
-| ---------- | --------------------------------- | --------------------------------------------------- | -------------------------------------------- | -------------------------------- |
-| PostgreSQL | `BffPersistedSession`             | Full session entity, tokens encrypted               | No TTL (cleanup job)                         | `PostgresCachedBffSessionStore`  |
-| Redis      | `bff:session:{id}`                | `BffSessionRecord` as JSON (tokens encrypted)       | `CacheTtlMinutes` (10 min), **sliding**      | `PostgresCachedBffSessionStore`  |
-| Redis      | `bff:session:{id}:refresh:lock`   | Lock owner identifier (`machine:pid:guid`)          | `RefreshLockTimeoutMilliseconds` (5s), fixed | `RedisBffRefreshCoordinator` |
-| Redis      | `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed   | `RedisBffRefreshCoordinator` |
+| Layer      | Key / Table                       | Content                                             | TTL                                          | Set by                          |
+| ---------- | --------------------------------- | --------------------------------------------------- | -------------------------------------------- | ------------------------------- |
+| PostgreSQL | `BffPersistedSession`             | Full session entity, tokens encrypted               | No TTL (cleanup job)                         | `PostgresCachedBffSessionStore` |
+| Redis      | `bff:session:{id}`                | `BffSessionRecord` as JSON (tokens encrypted)       | `CacheTtlMinutes` (10 min), **sliding**      | `PostgresCachedBffSessionStore` |
+| Redis      | `bff:session:{id}:refresh:lock`   | Lock owner identifier (`machine:pid:guid`)          | `RefreshLockTimeoutMilliseconds` (5s), fixed | `RedisBffRefreshCoordinator`    |
+| Redis      | `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed   | `RedisBffRefreshCoordinator`    |
 
 **Read path:** Redis cache hit → return. Cache miss → load from PostgreSQL → populate Redis cache → return.
 
@@ -682,14 +693,14 @@ JWT tokens must contain these claims:
 
 All under `/api/v1/bff/`:
 
-| Endpoint                      | Auth required | Description                                                                   |
-| ----------------------------- | ------------- | ----------------------------------------------------------------------------- |
-| `GET /bff/login`              | No            | Initiates OIDC login (Keycloak page), optional `?returnUrl=`                  |
-| `GET /bff/login/{idpHint}`    | No            | Direct redirect to named IdP (e.g. `google`), skips Keycloak UI               |
-| `GET /bff/external-providers` | No            | Lists registered social providers `[{idpHint, displayName}]`                  |
-| `GET /bff/logout`             | Cookie        | Same as POST; soft-deletes session, clears cache, signs out of Keycloak       |
-| `POST /bff/logout`            | Cookie        | Preferred for SPAs; same behavior as GET                                      |
-| `GET /bff/user`               | Cookie        | Returns current user claims as JSON                                           |
+| Endpoint                      | Auth required | Description                                                                                                                                                            |
+| ----------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /bff/login`              | No            | Initiates OIDC login (Keycloak page), optional `?returnUrl=`                                                                                                           |
+| `GET /bff/login/{idpHint}`    | No            | Direct redirect to named IdP (e.g. `google`), skips Keycloak UI                                                                                                        |
+| `GET /bff/external-providers` | No            | Lists registered social providers `[{idpHint, displayName}]`                                                                                                           |
+| `GET /bff/logout`             | Cookie        | Same as POST; soft-deletes session, clears cache, signs out of Keycloak                                                                                                |
+| `POST /bff/logout`            | Cookie        | Preferred for SPAs; same behavior as GET                                                                                                                               |
+| `GET /bff/user`               | Cookie        | Returns current user claims as JSON                                                                                                                                    |
 | `GET /bff/csrf`               | Cookie        | Returns `headerName`, Data Protection `headerValue`, and `tokenFormat: DataProtection` when the BFF session cookie is present; **401 Unauthorized** without a session. |
 
 `GET /bff/login/{idpHint}` returns `404` when the hint does not match any registered `IExternalIdentityProvider`.
@@ -718,7 +729,7 @@ Returns `401` (not redirect) when unauthenticated — SPA should redirect to `/a
 | Absolute session lifetime                   | 480 min (8h)                           | `Bff:SessionAbsoluteLifetimeMinutes` |
 | Proactive refresh threshold                 | 2 min before expiry                    | `Bff:RefreshThresholdMinutes`        |
 | Follower wait timeout                       | 10000 ms (see `BffOptions` default)    | `Bff:RefreshWaitTimeoutMilliseconds` |
-| Distributed lock TTL                        | 9000 ms (must be &lt; wait timeout)   | `Bff:RefreshLockTimeoutMilliseconds` |
+| Distributed lock TTL                        | 9000 ms (must be &lt; wait timeout)    | `Bff:RefreshLockTimeoutMilliseconds` |
 | Refresh result cache TTL                    | 15000 ms                               | `Bff:RefreshResultTtlMilliseconds`   |
 | Revoke on refresh failure                   | true                                   | `Bff:RevokeSessionOnRefreshFailure`  |
 | Scopes requested from OIDC                  | openid, profile, email, offline_access | `Bff:Scopes`                         |
@@ -812,14 +823,14 @@ The BFF session layer and Keycloak maintain **independent clocks** — neither k
 
 **What is independent (does not need synchronization):**
 
-| Setting                                                               | Why independent                                                                                                |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `RefreshLockTimeoutMilliseconds` (default 9000 ms)                     | Internal coordination between concurrent requests — Keycloak is not involved                                   |
-| `RefreshResultTtlMilliseconds` (default 15000 ms)                      | Internal leader/follower result sharing                                                                        |
-| `RefreshWaitTimeoutMilliseconds` (default 10000 ms)                    | How long followers wait — affects individual request latency, not session validity                             |
-| `RevokeSessionOnRefreshFailure`                                       | BFF-only policy decision                                                                                       |
-| `offlineSessionIdleTimeout` (30 days)                                 | Only relevant if a separate client uses offline tokens without the BFF layer (e.g. mobile app, background job) |
-| `offlineSessionMaxLifespan` (60 days)                                 | Same as above                                                                                                  |
+| Setting                                             | Why independent                                                                                                |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `RefreshLockTimeoutMilliseconds` (default 9000 ms)  | Internal coordination between concurrent requests — Keycloak is not involved                                   |
+| `RefreshResultTtlMilliseconds` (default 15000 ms)   | Internal leader/follower result sharing                                                                        |
+| `RefreshWaitTimeoutMilliseconds` (default 10000 ms) | How long followers wait — affects individual request latency, not session validity                             |
+| `RevokeSessionOnRefreshFailure`                     | BFF-only policy decision                                                                                       |
+| `offlineSessionIdleTimeout` (30 days)               | Only relevant if a separate client uses offline tokens without the BFF layer (e.g. mobile app, background job) |
+| `offlineSessionMaxLifespan` (60 days)               | Same as above                                                                                                  |
 
 **Single source of truth:** Keep `Bff:*` timeouts aligned with [infrastructure/keycloak/realms/api-template-realm.json](../infrastructure/keycloak/realms/api-template-realm.json) (`accessTokenLifespan`, `clientSessionIdleTimeout`, `clientSessionMaxLifespan`, etc.). The defaults in [BffOptions.cs](../src/Modules/Identity/Auth/Common/BffOptions.cs) and [appsettings.json](../src/APITemplate/Api/appsettings.json) are documented together in the Session & Token Lifecycle table above; changing one side without the other causes the failure modes listed under “What happens when constraints are violated”.
 | `ssoSessionIdleTimeout` (30 min)                                      | Governs Keycloak login page SSO (single sign-on across multiple clients), not the BFF refresh flow             |
@@ -927,15 +938,15 @@ Defaults match [src/APITemplate/Api/appsettings.json](../src/APITemplate/Api/app
 
 ### Production Environment Variables
 
-| Variable                        | Description                       |
-| ------------------------------- | --------------------------------- |
-| `KC_HOSTNAME`                   | Keycloak external hostname        |
-| `Keycloak__realm`               | Keycloak realm name               |
-| `Keycloak__resource`            | Client ID                         |
-| `Keycloak__credentials__secret` | Client secret                     |
-| `Redis__ConnectionString`   | Redis connection string (StackExchange.Redis) |
-| `GOOGLE_CLIENT_ID`              | Google OAuth2 Client ID           |
-| `GOOGLE_CLIENT_SECRET`          | Google OAuth2 Client Secret       |
+| Variable                        | Description                                   |
+| ------------------------------- | --------------------------------------------- |
+| `KC_HOSTNAME`                   | Keycloak external hostname                    |
+| `Keycloak__realm`               | Keycloak realm name                           |
+| `Keycloak__resource`            | Client ID                                     |
+| `Keycloak__credentials__secret` | Client secret                                 |
+| `Redis__ConnectionString`       | Redis connection string (StackExchange.Redis) |
+| `GOOGLE_CLIENT_ID`              | Google OAuth2 Client ID                       |
+| `GOOGLE_CLIENT_SECRET`          | Google OAuth2 Client Secret                   |
 
 ---
 
@@ -984,29 +995,29 @@ Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider
 
 ## Key Source Files
 
-| File | Description |
-| ---- | ----------- |
-| [src/APITemplate/Api/Extensions/ApplicationCompositionServiceCollectionExtensions.cs](../src/APITemplate/Api/Extensions/ApplicationCompositionServiceCollectionExtensions.cs) | JWT Bearer registration (authority, validation); authorization policies |
-| [src/APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs](../src/APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs) | Middleware order (`UseAuthentication`, CSRF, `UseAuthorization`) |
-| [src/Modules/Identity/IdentityModule.Auth.cs](../src/Modules/Identity/IdentityModule.Auth.cs) | BFF Cookie + OIDC, `PostConfigure<JwtBearerOptions>`, fallback authorization policies |
-| [src/Modules/Identity/Auth/Features/V1/BffController.cs](../src/Modules/Identity/Auth/Features/V1/BffController.cs) | BFF endpoints: login, logout, user, CSRF, external providers |
-| [src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs](../src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs) | CSRF header enforcement for cookie-authenticated mutating requests |
-| [src/APITemplate/Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs](../src/APITemplate/Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs) | Scalar/OpenAPI OAuth2 schemes |
-| [src/Modules/Identity/Auth/Common/BffOptions.cs](../src/Modules/Identity/Auth/Common/BffOptions.cs) | BFF configuration model |
-| [src/Modules/Identity/Auth/Common/Security/AuthConstants.cs](../src/Modules/Identity/Auth/Common/Security/AuthConstants.cs) | Schemes, claims, routes, CSRF constants |
-| [src/Modules/Identity/Auth/Security/IdentityTokenValidatedPipeline.cs](../src/Modules/Identity/Auth/Security/IdentityTokenValidatedPipeline.cs) | Post–token validation: claim mapping, tenant, user access |
-| [src/Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs](../src/Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs) | Keycloak → .NET claims |
-| [src/Modules/Identity/Auth/Security/Sessions/BffSessionService.cs](../src/Modules/Identity/Auth/Security/Sessions/BffSessionService.cs) | Session lifecycle, `GetTicketAsync` / `GetSessionAsync` |
-| [src/Modules/Identity/Auth/Security/Sessions/RedisTicketStore.cs](../src/Modules/Identity/Auth/Security/Sessions/RedisTicketStore.cs) | `ITicketStore` → `IBffSessionService` |
-| [src/Modules/Identity/Auth/Security/Sessions/CookieSessionRefresher.cs](../src/Modules/Identity/Auth/Security/Sessions/CookieSessionRefresher.cs) | Cookie `ValidatePrincipal`, refresh |
-| [src/Modules/Identity/Auth/Security/Sessions/BffTokenRefreshService.cs](../src/Modules/Identity/Auth/Security/Sessions/BffTokenRefreshService.cs) | Refresh orchestration |
-| [src/Modules/Identity/Auth/Security/Sessions/RedisBffRefreshCoordinator.cs](../src/Modules/Identity/Auth/Security/Sessions/RedisBffRefreshCoordinator.cs) | Leader/follower refresh coordination |
-| [src/Modules/Identity/Auth/Security/Sessions/BffSessionTokenProtector.cs](../src/Modules/Identity/Auth/Security/Sessions/BffSessionTokenProtector.cs) | Data Protection for tokens at rest |
-| [src/Modules/Identity/Auth/Security/Keycloak/KeycloakService.cs](../src/Modules/Identity/Auth/Security/Keycloak/KeycloakService.cs) | Keycloak token HTTP client |
-| [src/SharedKernel/Infrastructure/Health/KeycloakHealthCheck.cs](../src/SharedKernel/Infrastructure/Health/KeycloakHealthCheck.cs) | Keycloak discovery health probe |
-| [infrastructure/keycloak/realms/api-template-realm.json](../infrastructure/keycloak/realms/api-template-realm.json) | Realm import |
-| [src/Modules/Identity/Auth/Security/Sessions/BffCsrfTokenService.cs](../src/Modules/Identity/Auth/Security/Sessions/BffCsrfTokenService.cs) | CSRF token issue/validate (Data Protection) |
-| [src/Modules/Identity/Auth/Security/BffCookieSecurePostConfigure.cs](../src/Modules/Identity/Auth/Security/BffCookieSecurePostConfigure.cs) | `CookieSecurePolicy.Always` outside Development |
+| File                                                                                                                                                                          | Description                                                                           |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [src/APITemplate/Api/Extensions/ApplicationCompositionServiceCollectionExtensions.cs](../src/APITemplate/Api/Extensions/ApplicationCompositionServiceCollectionExtensions.cs) | JWT Bearer registration (authority, validation); authorization policies               |
+| [src/APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs](../src/APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs)                           | Middleware order (`UseAuthentication`, CSRF, `UseAuthorization`)                      |
+| [src/Modules/Identity/IdentityModule.Auth.cs](../src/Modules/Identity/IdentityModule.Auth.cs)                                                                                 | BFF Cookie + OIDC, `PostConfigure<JwtBearerOptions>`, fallback authorization policies |
+| [src/Modules/Identity/Auth/Features/V1/BffController.cs](../src/Modules/Identity/Auth/Features/V1/BffController.cs)                                                           | BFF endpoints: login, logout, user, CSRF, external providers                          |
+| [src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs](../src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs)                                                   | CSRF header enforcement for cookie-authenticated mutating requests                    |
+| [src/APITemplate/Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs](../src/APITemplate/Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs)                           | Scalar/OpenAPI OAuth2 schemes                                                         |
+| [src/Modules/Identity/Auth/Common/BffOptions.cs](../src/Modules/Identity/Auth/Common/BffOptions.cs)                                                                           | BFF configuration model                                                               |
+| [src/Modules/Identity/Auth/Common/Security/AuthConstants.cs](../src/Modules/Identity/Auth/Common/Security/AuthConstants.cs)                                                   | Schemes, claims, routes, CSRF constants                                               |
+| [src/Modules/Identity/Auth/Security/IdentityTokenValidatedPipeline.cs](../src/Modules/Identity/Auth/Security/IdentityTokenValidatedPipeline.cs)                               | Post–token validation: claim mapping, tenant, user access                             |
+| [src/Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs](../src/Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs)                                   | Keycloak → .NET claims                                                                |
+| [src/Modules/Identity/Auth/Security/Sessions/BffSessionService.cs](../src/Modules/Identity/Auth/Security/Sessions/BffSessionService.cs)                                       | Session lifecycle, `GetTicketAsync` / `GetSessionAsync`                               |
+| [src/Modules/Identity/Auth/Security/Sessions/RedisTicketStore.cs](../src/Modules/Identity/Auth/Security/Sessions/RedisTicketStore.cs)                                         | `ITicketStore` → `IBffSessionService`                                                 |
+| [src/Modules/Identity/Auth/Security/Sessions/CookieSessionRefresher.cs](../src/Modules/Identity/Auth/Security/Sessions/CookieSessionRefresher.cs)                             | Cookie `ValidatePrincipal`, refresh                                                   |
+| [src/Modules/Identity/Auth/Security/Sessions/BffTokenRefreshService.cs](../src/Modules/Identity/Auth/Security/Sessions/BffTokenRefreshService.cs)                             | Refresh orchestration                                                                 |
+| [src/Modules/Identity/Auth/Security/Sessions/RedisBffRefreshCoordinator.cs](../src/Modules/Identity/Auth/Security/Sessions/RedisBffRefreshCoordinator.cs)                     | Leader/follower refresh coordination                                                  |
+| [src/Modules/Identity/Auth/Security/Sessions/BffSessionTokenProtector.cs](../src/Modules/Identity/Auth/Security/Sessions/BffSessionTokenProtector.cs)                         | Data Protection for tokens at rest                                                    |
+| [src/Modules/Identity/Auth/Security/Keycloak/KeycloakService.cs](../src/Modules/Identity/Auth/Security/Keycloak/KeycloakService.cs)                                           | Keycloak token HTTP client                                                            |
+| [src/SharedKernel/Infrastructure/Health/KeycloakHealthCheck.cs](../src/SharedKernel/Infrastructure/Health/KeycloakHealthCheck.cs)                                             | Keycloak discovery health probe                                                       |
+| [infrastructure/keycloak/realms/api-template-realm.json](../infrastructure/keycloak/realms/api-template-realm.json)                                                           | Realm import                                                                          |
+| [src/Modules/Identity/Auth/Security/Sessions/BffCsrfTokenService.cs](../src/Modules/Identity/Auth/Security/Sessions/BffCsrfTokenService.cs)                                   | CSRF token issue/validate (Data Protection)                                           |
+| [src/Modules/Identity/Auth/Security/BffCookieSecurePostConfigure.cs](../src/Modules/Identity/Auth/Security/BffCookieSecurePostConfigure.cs)                                   | `CookieSecurePolicy.Always` outside Development                                       |
 
 ---
 
@@ -1020,11 +1031,11 @@ Covers: `GetExternalProviders` (empty/single/multi provider), `LoginWithProvider
 
 These are **not** required by the template but document common forks when scaling or changing threat models:
 
-| Direction | Trade-off |
-| --------- | --------- |
-| **Browser-only Bearer (no BFF cookie)** | SPA holds access tokens in memory; fewer server-side session components, different XSS responsibility. |
-| **Managed IdP (Entra ID, Auth0, …)** | Less Keycloak/realm operations; vendor lock-in and cost. |
-| **PostgreSQL-only BFF (no Redis)** | Supported when `Redis:ConnectionString` is unset (`PostgresDistributedCacheBffSessionStore` + in-process refresh lock); weaker horizontal scale unless you add another coordination mechanism. |
+| Direction                               | Trade-off                                                                                                                                                                                      |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Browser-only Bearer (no BFF cookie)** | SPA holds access tokens in memory; fewer server-side session components, different XSS responsibility.                                                                                         |
+| **Managed IdP (Entra ID, Auth0, …)**    | Less Keycloak/realm operations; vendor lock-in and cost.                                                                                                                                       |
+| **PostgreSQL-only BFF (no Redis)**      | Supported when `Redis:ConnectionString` is unset (`PostgresDistributedCacheBffSessionStore` + in-process refresh lock); weaker horizontal scale unless you add another coordination mechanism. |
 
 ---
 
