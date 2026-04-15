@@ -9,8 +9,7 @@ using Xunit;
 namespace APITemplate.Tests.Integration.Validation;
 
 [Trait("Category", "Integration.Docker")]
-public sealed class BoundaryValidationIntegrationTests
-    : IClassFixture<CustomWebApplicationFactory>
+public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
@@ -34,11 +33,7 @@ public sealed class BoundaryValidationIntegrationTests
 
         var response = await _client.PostAsJsonAsync(
             "/api/v1/roles",
-            new
-            {
-                Name = "",
-                Permissions = new[] { "Users.Read" },
-            },
+            new { Name = "", Permissions = new[] { "Users.Read" } },
             ct
         );
 
@@ -63,18 +58,17 @@ public sealed class BoundaryValidationIntegrationTests
 
         var response = await _client.PostAsJsonAsync(
             "/api/v1/roles",
-            new
-            {
-                Name = "Tenant Admin",
-                Permissions = new[] { "Users.Read", " " },
-            },
+            new { Name = "Tenant Admin", Permissions = new[] { "Users.Read", " " } },
             ct
         );
 
         JsonElement problem = await ReadProblemAsync(response, ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem.GetProperty("detail").GetString().ShouldContain("Permissions must not contain empty values.");
+        problem
+            .GetProperty("detail")
+            .GetString()
+            .ShouldContain("Permissions must not contain empty values.");
         problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
     }
 
@@ -103,15 +97,15 @@ public sealed class BoundaryValidationIntegrationTests
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(_client, tenantId: Guid.NewGuid());
 
-        var response = await _client.GetAsync(
-            $"/api/v1/products?categoryIds={Guid.Empty}",
-            ct
-        );
+        var response = await _client.GetAsync($"/api/v1/products?categoryIds={Guid.Empty}", ct);
 
         JsonElement problem = await ReadProblemAsync(response, ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem.GetProperty("detail").GetString().ShouldContain("CategoryIds cannot contain an empty value.");
+        problem
+            .GetProperty("detail")
+            .GetString()
+            .ShouldContain("CategoryIds cannot contain an empty value.");
         problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
     }
 
@@ -123,11 +117,7 @@ public sealed class BoundaryValidationIntegrationTests
 
         var response = await _client.PostAsJsonAsync(
             "/api/v1/product-reviews",
-            new
-            {
-                ProductId = Guid.NewGuid(),
-                Rating = 0,
-            },
+            new { ProductId = Guid.NewGuid(), Rating = 0 },
             ct
         );
 
@@ -145,15 +135,15 @@ public sealed class BoundaryValidationIntegrationTests
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(_client, tenantId: Guid.NewGuid());
 
-        var response = await _client.GetAsync(
-            "/api/v1/product-reviews?minRating=0",
-            ct
-        );
+        var response = await _client.GetAsync("/api/v1/product-reviews?minRating=0", ct);
 
         JsonElement problem = await ReadProblemAsync(response, ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        problem.GetProperty("detail").GetString().ShouldContain("MinRating must be between 1 and 5.");
+        problem
+            .GetProperty("detail")
+            .GetString()
+            .ShouldContain("MinRating must be between 1 and 5");
         problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
     }
 
@@ -164,7 +154,9 @@ public sealed class BoundaryValidationIntegrationTests
     {
         response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
 
-        using JsonDocument document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+        using JsonDocument document = JsonDocument.Parse(
+            await response.Content.ReadAsStringAsync(ct)
+        );
         return document.RootElement.Clone();
     }
 }
