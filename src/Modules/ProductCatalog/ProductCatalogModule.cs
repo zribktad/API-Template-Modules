@@ -69,7 +69,6 @@ public static class ProductCatalogModule
                 new MigrationOptions(mongoSettings.DatabaseName),
                 config => config.LoadMigrationsFromAssembly(typeof(ProductCatalogModule).Assembly)
             );
-            services.AddHealthChecks().AddCheck<MongoDbHealthCheck>(HealthCheckNames.MongoDb);
         }
 
         services.AddResiliencePipeline(
