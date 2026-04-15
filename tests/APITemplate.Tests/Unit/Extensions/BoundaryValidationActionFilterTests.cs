@@ -1,5 +1,5 @@
 using FluentValidation;
-using Identity.Directory.Features.Role.CreateRole;
+using ProductCatalog.Features.Product.GetProducts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -19,7 +19,7 @@ public sealed class BoundaryValidationActionFilterTests
     public async Task OnActionExecutionAsync_WhenValidatorFails_SetsProblemDetailsResult()
     {
         ServiceCollection services = new();
-        services.AddSingleton<IValidator<CreateRoleRequest>, CreateRoleRequestValidator>();
+        services.AddSingleton<IValidator<ProductFilter>, ProductFilterValidator>();
         using ServiceProvider provider = services.BuildServiceProvider();
 
         var filter = new BoundaryValidationActionFilter(provider);
@@ -36,7 +36,7 @@ public sealed class BoundaryValidationActionFilterTests
             new List<IFilterMetadata>(),
             new Dictionary<string, object?>
             {
-                ["request"] = new CreateRoleRequest("", new List<string> { "Users.Read" }),
+                ["request"] = new ProductFilter(MinPrice: 10m, MaxPrice: 5m),
             },
             controller: null
         );

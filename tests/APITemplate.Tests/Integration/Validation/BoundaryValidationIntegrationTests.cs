@@ -51,6 +51,34 @@ public sealed class BoundaryValidationIntegrationTests
     }
 
     [Fact]
+    public async Task RolesController_InvalidPermissionsItems_ReturnsUnifiedProblemDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            tenantId: Guid.NewGuid(),
+            role: "TenantAdmin",
+            permissions: new[] { "Roles.Create" }
+        );
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/roles",
+            new
+            {
+                Name = "Tenant Admin",
+                Permissions = new[] { "Users.Read", " " },
+            },
+            ct
+        );
+
+        JsonElement problem = await ReadProblemAsync(response, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        problem.GetProperty("detail").GetString().ShouldContain("Permissions must not contain empty values.");
+        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+    }
+
+    [Fact]
     public async Task ProductsController_InvalidQueryFilter_ReturnsUnifiedProblemDetails()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -66,6 +94,24 @@ public sealed class BoundaryValidationIntegrationTests
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         problem.GetProperty("title").GetString().ShouldBe("Bad Request");
         problem.GetProperty("detail").GetString().ShouldContain("SortBy must be one of");
+        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+    }
+
+    [Fact]
+    public async Task ProductsController_InvalidCategoryIdsFilter_ReturnsUnifiedProblemDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(_client, tenantId: Guid.NewGuid());
+
+        var response = await _client.GetAsync(
+            $"/api/v1/products?categoryIds={Guid.Empty}",
+            ct
+        );
+
+        JsonElement problem = await ReadProblemAsync(response, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        problem.GetProperty("detail").GetString().ShouldContain("CategoryIds cannot contain an empty value.");
         problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
     }
 
@@ -90,6 +136,24 @@ public sealed class BoundaryValidationIntegrationTests
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         problem.GetProperty("title").GetString().ShouldBe("Bad Request");
         problem.GetProperty("detail").GetString().ShouldContain("Rating must be between 1 and 5.");
+        problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
+    }
+
+    [Fact]
+    public async Task ProductReviewsController_InvalidQueryRange_ReturnsUnifiedProblemDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(_client, tenantId: Guid.NewGuid());
+
+        var response = await _client.GetAsync(
+            "/api/v1/product-reviews?minRating=0",
+            ct
+        );
+
+        JsonElement problem = await ReadProblemAsync(response, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        problem.GetProperty("detail").GetString().ShouldContain("MinRating must be between 1 and 5.");
         problem.GetProperty("errorCode").GetString().ShouldBe("GEN-0400");
     }
 

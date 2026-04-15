@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Features.Role.CreateRole;
 using Identity.Directory.Features.Role.UpdateRole;
 using Shouldly;
@@ -11,24 +12,20 @@ public sealed class BoundaryRequestValidationTests
     public void CreateRoleRequest_WhenPermissionsContainWhitespace_FailsValidation()
     {
         var request = new CreateRoleRequest("Tenant Admin", new List<string> { "Users.Read", " " });
-        var validator = new CreateRoleRequestValidator();
+        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out var results);
 
-        var results = validator.Validate(request);
-
-        results.IsValid.ShouldBeFalse();
-        results.Errors.ShouldContain(r => r.ErrorMessage.Contains("must not be empty"));
+        isValid.ShouldBeFalse();
+        results.ShouldContain(r => r.ErrorMessage == "Permissions must not contain empty values.");
     }
 
     [Fact]
     public void UpdateRoleRequest_WhenNameMissing_FailsValidation()
     {
         var request = new UpdateRoleRequest("", new List<string> { "Users.Read" });
-        var validator = new UpdateRoleRequestValidator();
+        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out var results);
 
-        var results = validator.Validate(request);
-
-        results.IsValid.ShouldBeFalse();
-        results.Errors.ShouldContain(r => r.PropertyName == "Name");
+        isValid.ShouldBeFalse();
+        results.ShouldContain(r => r.MemberNames.Contains("Name"));
     }
 
     [Fact]
@@ -38,11 +35,22 @@ public sealed class BoundaryRequestValidationTests
             "Tenant Admin",
             new List<string> { "Users.Read", "Roles.Update" }
         );
-        var validator = new CreateRoleRequestValidator();
+        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out var results);
 
-        var results = validator.Validate(request);
+        isValid.ShouldBeTrue();
+        results.ShouldBeEmpty();
+    }
 
-        results.IsValid.ShouldBeTrue();
-        results.Errors.ShouldBeEmpty();
+    [Fact]
+    public void UpdateRoleRequest_WhenPermissionTooLong_FailsValidation()
+    {
+        var request = new UpdateRoleRequest("Tenant Admin", new List<string> { new string('A', 101) });
+
+        bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(request, out var results);
+
+        isValid.ShouldBeFalse();
+        results.ShouldContain(
+            r => r.ErrorMessage == "Permissions entries must not exceed 100 characters."
+        );
     }
 }

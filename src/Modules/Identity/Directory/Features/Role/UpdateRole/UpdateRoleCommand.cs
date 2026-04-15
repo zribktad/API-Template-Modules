@@ -5,6 +5,7 @@ using Identity.Directory.Features.Role.InvalidatePermissions;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
+using SharedKernel.Application.Validation;
 using SharedKernel.Contracts.Security;
 using SharedKernel.Domain.Interfaces;
 using System.ComponentModel.DataAnnotations;
@@ -14,7 +15,10 @@ namespace Identity.Directory.Features.Role.UpdateRole;
 
 public sealed record UpdateRoleRequest(
     [NotEmpty] [MaxLength(100)] string Name,
-    [Required] List<string> Permissions
+    [Required]
+    [NoWhitespaceItems]
+    [MaxLengthItems(100)]
+        List<string> Permissions
 );
 
 public sealed record UpdateRoleCommand(Guid Id, UpdateRoleRequest Request) : IHasId;
