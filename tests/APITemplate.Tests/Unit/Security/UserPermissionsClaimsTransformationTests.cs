@@ -1,16 +1,11 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Identity.Auth.Security;
-using Identity.Directory.Entities;
-using Identity.Persistence;
-using Microsoft.EntityFrameworkCore;
+using Identity.Directory.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using SharedKernel.Application.Context;
 using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using Xunit;
 
@@ -23,7 +18,7 @@ public class UserPermissionsClaimsTransformationTests
     private readonly Mock<IServiceScopeFactory> _scopeFactory = new();
     private readonly Mock<IServiceScope> _scope = new();
     private readonly Mock<IServiceProvider> _scopedProvider = new();
-    private readonly IdentityDbContext _dbContext;
+    private readonly Mock<IUserRepository> _userRepository = new();
 
     public UserPermissionsClaimsTransformationTests()
     {
@@ -33,17 +28,18 @@ public class UserPermissionsClaimsTransformationTests
         _scopeFactory.Setup(s => s.CreateScope()).Returns(_scope.Object);
         _scope.Setup(s => s.ServiceProvider).Returns(_scopedProvider.Object);
 
-        var options = new DbContextOptionsBuilder<IdentityDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-        _dbContext = new IdentityDbContext(
-            options,
-            Mock.Of<ITenantProvider>(),
-            Mock.Of<IActorProvider>(),
-            TimeProvider.System,
-            Mock.Of<IAuditableEntityStateManager>()
-        );
-        _scopedProvider.Setup(s => s.GetService(typeof(IdentityDbContext))).Returns(_dbContext);
+        _scopedProvider
+            .Setup(s => s.GetService(typeof(IUserRepository)))
+            .Returns(_userRepository.Object);
+
+        _userRepository
+            .Setup(r =>
+                r.ListDistinctPermissionNamesBySubjectAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([]);
     }
 
     [Fact]
@@ -147,10 +143,19 @@ public class UserPermissionsClaimsTransformationTests
         extractedPermissions.Count.ShouldBe(2);
         extractedPermissions.ShouldContain("Test.Perm1");
         extractedPermissions.ShouldContain("Test.Perm2");
+
+        _userRepository.Verify(
+            r =>
+                r.ListDistinctPermissionNamesBySubjectAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
     }
 
     [Fact]
-    public async Task TransformAsync_WhenCacheContainsInvalidJson_RemovesKeyAndDoesNotThrow()
+    public async Task TransformAsync_WhenCacheContainsInvalidJson_RemovesKeyAndLoadsFromRepository()
     {
         var userId = Guid.NewGuid();
         var transformation = new UserPermissionsClaimsTransformation(
@@ -197,6 +202,15 @@ public class UserPermissionsClaimsTransformationTests
             c =>
                 c.RemoveAsync(
                     AuthConstants.DistributedCache.UserPermissionsCacheKey(userId.ToString()),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+
+        _userRepository.Verify(
+            r =>
+                r.ListDistinctPermissionNamesBySubjectAsync(
+                    userId.ToString(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
