@@ -7,11 +7,14 @@ namespace Reviews.Domain;
 /// </summary>
 public static class ProductReviewSortFields
 {
+    public const string RatingToken = nameof(Rating);
+    public const string CreatedAtToken = nameof(CreatedAt);
+
     /// <summary>Sort by review rating.</summary>
-    public static readonly SortField Rating = new("rating");
+    public static readonly SortField Rating = new(RatingToken);
 
     /// <summary>Sort by review creation timestamp.</summary>
-    public static readonly SortField CreatedAt = new("createdAt");
+    public static readonly SortField CreatedAt = new(CreatedAtToken);
 
     /// <summary>
     ///     The sort field map used to resolve and apply sorting to product review specifications.

@@ -13,7 +13,12 @@ public sealed record UserFilter(
     bool? IsActive = null,
     Guid? RoleId = null,
     ProvisioningStatus? ProvisioningStatus = null,
-    [AllowedValues("username", "email", "createdAt", ErrorMessage = "SortBy must be one of: username, email, createdAt.")]
+    [AllowedValues(
+        UserSortFields.UsernameToken,
+        UserSortFields.EmailToken,
+        UserSortFields.CreatedAtToken,
+        ErrorMessage = "SortBy must be one of: Username, Email, CreatedAt."
+    )]
     string? SortBy = null,
     [SortDirection]
     string? SortDirection = null,

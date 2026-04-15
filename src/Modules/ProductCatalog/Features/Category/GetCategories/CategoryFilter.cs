@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ProductCatalog.Features.Category.Shared;
 using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.Category.GetCategories;
@@ -8,7 +9,11 @@ namespace ProductCatalog.Features.Category.GetCategories;
 /// </summary>
 public sealed record CategoryFilter(
     string? Query = null,
-    [AllowedValues("name", "createdAt", ErrorMessage = "SortBy must be one of: name, createdAt.")]
+    [AllowedValues(
+        CategorySortFields.NameToken,
+        CategorySortFields.CreatedAtToken,
+        ErrorMessage = "SortBy must be one of: Name, CreatedAt."
+    )]
     string? SortBy = null,
     [SortDirection]
     string? SortDirection = null,

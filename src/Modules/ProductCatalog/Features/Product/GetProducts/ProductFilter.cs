@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ProductCatalog.Features.Product.Shared;
 using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.Product.GetProducts;
@@ -18,7 +19,12 @@ public sealed record ProductFilter(
     DateTime? CreatedFrom = null,
     [GreaterThanOrEqualToProperty(nameof(CreatedFrom), ErrorMessage = "CreatedTo must be greater than or equal to CreatedFrom.")]
     DateTime? CreatedTo = null,
-    [AllowedValues("name", "price", "createdAt", ErrorMessage = "SortBy must be one of: name, price, createdAt.")]
+    [AllowedValues(
+        ProductSortFields.NameToken,
+        ProductSortFields.PriceToken,
+        ProductSortFields.CreatedAtToken,
+        ErrorMessage = "SortBy must be one of: Name, Price, CreatedAt."
+    )]
     string? SortBy = null,
     [SortDirection]
     string? SortDirection = null,

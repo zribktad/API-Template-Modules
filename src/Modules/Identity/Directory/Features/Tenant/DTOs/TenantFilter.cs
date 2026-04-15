@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Identity.Directory.Features.Tenant;
 using SharedKernel.Application.Validation;
 
 namespace Identity.Directory.Features.Tenant.DTOs;
@@ -8,7 +9,12 @@ namespace Identity.Directory.Features.Tenant.DTOs;
 /// </summary>
 public sealed record TenantFilter(
     string? Query = null,
-    [AllowedValues("code", "name", "createdAt", ErrorMessage = "SortBy must be one of: code, name, createdAt.")]
+    [AllowedValues(
+        TenantSortFields.CodeToken,
+        TenantSortFields.NameToken,
+        TenantSortFields.CreatedAtToken,
+        ErrorMessage = "SortBy must be one of: Code, Name, CreatedAt."
+    )]
     string? SortBy = null,
     [SortDirection]
     string? SortDirection = null,

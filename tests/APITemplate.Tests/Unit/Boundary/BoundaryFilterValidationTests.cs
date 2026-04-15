@@ -18,7 +18,7 @@ public sealed class BoundaryFilterValidationTests
 
         isValid.ShouldBeFalse();
         results.ShouldContain(
-            r => r.ErrorMessage == "SortBy must be one of: name, price, createdAt."
+            r => r.ErrorMessage == "SortBy must be one of: Name, Price, CreatedAt."
         );
     }
 
@@ -62,7 +62,7 @@ public sealed class BoundaryFilterValidationTests
     [Fact]
     public void TenantFilter_WhenSortDirectionInvalid_FailsValidation()
     {
-        var filter = new TenantFilter(SortBy: "code", SortDirection: "sideways");
+        var filter = new TenantFilter(SortBy: "Code", SortDirection: "sideways");
 
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 
@@ -85,7 +85,7 @@ public sealed class BoundaryFilterValidationTests
     public void CategoryFilter_WhenSortByAllowed_PassesValidation()
     {
         var filter = new global::ProductCatalog.Features.Category.GetCategories.CategoryFilter(
-            SortBy: "name",
+            SortBy: "Name",
             SortDirection: "asc"
         );
 

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Reviews.Domain;
 using SharedKernel.Application.Validation;
 
 namespace Reviews.Features;
@@ -18,7 +19,11 @@ public sealed record ProductReviewFilter(
     DateTime? CreatedFrom = null,
     [GreaterThanOrEqualToProperty(nameof(CreatedFrom), ErrorMessage = "CreatedTo must be greater than or equal to CreatedFrom.")]
     DateTime? CreatedTo = null,
-    [AllowedValues("rating", "createdAt", ErrorMessage = "SortBy must be one of: rating, createdAt.")]
+    [AllowedValues(
+        ProductReviewSortFields.RatingToken,
+        ProductReviewSortFields.CreatedAtToken,
+        ErrorMessage = "SortBy must be one of: Rating, CreatedAt."
+    )]
     string? SortBy = null,
     [SortDirection]
     string? SortDirection = null,

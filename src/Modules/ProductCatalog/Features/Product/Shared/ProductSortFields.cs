@@ -8,9 +8,13 @@ namespace ProductCatalog.Features.Product.Shared;
 /// </summary>
 public static class ProductSortFields
 {
-    public static readonly SortField Name = new("name");
-    public static readonly SortField Price = new("price");
-    public static readonly SortField CreatedAt = new("createdAt");
+    public const string NameToken = nameof(Name);
+    public const string PriceToken = nameof(Price);
+    public const string CreatedAtToken = nameof(CreatedAt);
+
+    public static readonly SortField Name = new(NameToken);
+    public static readonly SortField Price = new(PriceToken);
+    public static readonly SortField CreatedAt = new(CreatedAtToken);
 
     public static readonly SortFieldMap<ProductEntity> Map = new SortFieldMap<ProductEntity>()
         .Add(Name, p => p.Name)
