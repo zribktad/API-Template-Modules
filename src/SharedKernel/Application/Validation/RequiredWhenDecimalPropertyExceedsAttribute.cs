@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
@@ -12,11 +13,15 @@ public sealed class RequiredWhenDecimalPropertyExceedsAttribute(
     double threshold
 ) : ValidationAttribute
 {
+    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> _propertyCache = new();
     private readonly decimal _threshold = (decimal)threshold;
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
-        PropertyInfo? otherProperty = validationContext.ObjectType.GetProperty(otherPropertyName);
+        PropertyInfo? otherProperty = _propertyCache.GetOrAdd(
+            (validationContext.ObjectType, otherPropertyName),
+            static key => key.Item1.GetProperty(key.Item2)
+        );
         if (otherProperty is null)
         {
             throw new ValidationException(

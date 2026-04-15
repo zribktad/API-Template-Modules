@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.OutputCaching.StackExchangeRedis;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
 using SharedKernel.Application.Errors;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Application.Options.Infrastructure;
@@ -35,6 +37,7 @@ public static class ApiServiceCollectionExtensions
                 "ErrorDocumentation:ErrorTypeBaseUri must be an absolute http or https URI when set."
             );
         services.AddProblemDetails();
+        services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
         Microsoft.Extensions.DependencyInjection.ValidationServiceCollectionExtensions.AddValidation(
             services
         );

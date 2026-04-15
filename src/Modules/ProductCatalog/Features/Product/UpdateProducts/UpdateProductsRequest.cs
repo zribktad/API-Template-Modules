@@ -26,7 +26,7 @@ public sealed record UpdateProductItem(
         ErrorMessage = "Description is required for products priced above 1000."
     )]
     string? Description,
-    [Range(0.0, double.MaxValue, ErrorMessage = "Price must be non-negative.")] decimal Price,
+    [Range(typeof(decimal), "0", "79228162514264337593543950335", ErrorMessage = "Price must be non-negative.")] decimal Price,
     Guid? CategoryId = null,
     IReadOnlyCollection<Guid>? ProductDataIds = null
 ) : IProductRequest, IHasId;

@@ -51,8 +51,6 @@ public static class ProductCatalogModule
             .AddRepository<IProductDataLinkRepository, ProductDataLinkRepository>()
             .AddRepository<IProductDataRepository, ProductDataRepository>();
 
-        services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
-
         services.Configure<MongoDbSettings>(
             configuration.GetSection(ConfigurationSections.MongoDB)
         );

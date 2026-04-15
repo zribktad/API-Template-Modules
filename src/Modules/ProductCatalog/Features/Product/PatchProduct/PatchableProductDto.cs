@@ -21,7 +21,7 @@ public sealed class PatchableProductDto
     )]
     public string? Description { get; set; }
 
-    [Range(0.0, double.MaxValue, ErrorMessage = "Price must be non-negative.")]
+    [Range(typeof(decimal), "0", "79228162514264337593543950335", ErrorMessage = "Price must be non-negative.")]
     public decimal Price { get; set; }
 
     public Guid? CategoryId { get; set; }

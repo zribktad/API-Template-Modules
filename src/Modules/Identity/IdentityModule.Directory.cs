@@ -35,10 +35,6 @@ public static partial class IdentityModule
         services.AddScoped<AuthBootstrapSeeder>();
     }
 
-    // ── Validators ────────────────────────────────────────────────────────────
-
-    private static void RegisterValidators(IServiceCollection services) { }
-
     // ── Controllers ───────────────────────────────────────────────────────────
 
     private static void RegisterControllers(IServiceCollection services)

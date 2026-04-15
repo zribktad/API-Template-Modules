@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
@@ -11,12 +12,17 @@ namespace SharedKernel.Application.Validation;
 public sealed class GreaterThanOrEqualToPropertyAttribute(string otherPropertyName)
     : ValidationAttribute
 {
+    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> _propertyCache = new();
+
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
         if (value is null)
             return ValidationResult.Success;
 
-        PropertyInfo? otherProperty = validationContext.ObjectType.GetProperty(otherPropertyName);
+        PropertyInfo? otherProperty = _propertyCache.GetOrAdd(
+            (validationContext.ObjectType, otherPropertyName),
+            static key => key.Item1.GetProperty(key.Item2)
+        );
         if (otherProperty is null)
         {
             throw new ValidationException(
@@ -34,6 +40,16 @@ public sealed class GreaterThanOrEqualToPropertyAttribute(string otherPropertyNa
                 $"{nameof(GreaterThanOrEqualToPropertyAttribute)} can only be used on comparable values."
             );
         }
+
+        if (comparableValue.GetType() != comparableOtherValue.GetType())
+        {
+
+            return new ValidationResult(
+                $"Cannot compare '{validationContext.MemberName}' to '{otherPropertyName}': type mismatch.",
+                [validationContext.MemberName!]
+            );
+        }
+
 
         if (comparableValue.CompareTo(comparableOtherValue) >= 0)
             return ValidationResult.Success;

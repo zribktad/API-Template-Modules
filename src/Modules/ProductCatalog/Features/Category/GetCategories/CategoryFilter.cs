@@ -10,6 +10,7 @@ namespace ProductCatalog.Features.Category.GetCategories;
 public sealed record CategoryFilter(
     string? Query = null,
     [AllowedValues(
+        null,
         CategorySortFields.NameToken,
         CategorySortFields.CreatedAtToken,
         ErrorMessage = "SortBy must be one of: Name, CreatedAt."

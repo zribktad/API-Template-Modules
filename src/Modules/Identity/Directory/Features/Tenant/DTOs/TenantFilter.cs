@@ -10,6 +10,7 @@ namespace Identity.Directory.Features.Tenant.DTOs;
 public sealed record TenantFilter(
     string? Query = null,
     [AllowedValues(
+        null,
         TenantSortFields.CodeToken,
         TenantSortFields.NameToken,
         TenantSortFields.CreatedAtToken,

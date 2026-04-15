@@ -14,6 +14,7 @@ public sealed record UserFilter(
     Guid? RoleId = null,
     ProvisioningStatus? ProvisioningStatus = null,
     [AllowedValues(
+        null,
         UserSortFields.UsernameToken,
         UserSortFields.EmailToken,
         UserSortFields.CreatedAtToken,

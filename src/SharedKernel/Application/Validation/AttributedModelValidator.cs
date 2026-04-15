@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
@@ -9,6 +10,27 @@ namespace SharedKernel.Application.Validation;
 /// </summary>
 public static class AttributedModelValidator
 {
+    private sealed record CachedParam(PropertyInfo Property, ValidationAttribute[] Attributes, string Name);
+
+    private static readonly ConcurrentDictionary<Type, IReadOnlyList<CachedParam>> _paramCache = new();
+
+    private static IReadOnlyList<CachedParam> GetCachedParams(Type type) =>
+        _paramCache.GetOrAdd(type, static t =>
+        {
+            ConstructorInfo? ctor = t.GetConstructors().FirstOrDefault();
+            if (ctor is null)
+                return [];
+
+            return ctor.GetParameters()
+                .Select(p => new CachedParam(
+                    t.GetProperty(p.Name!, BindingFlags.Public | BindingFlags.Instance)!,
+                    p.GetCustomAttributes<ValidationAttribute>().ToArray(),
+                    p.Name!
+                ))
+                .Where(x => x.Property is not null)
+                .ToArray();
+        });
+
     /// <summary>
     ///     Returns all validation failures for <paramref name="model" /> (empty if valid).
     /// </summary>
@@ -36,30 +58,21 @@ public static class AttributedModelValidator
     )
     {
         Type type = model.GetType();
-        ConstructorInfo? constructor = type.GetConstructors().FirstOrDefault();
-        if (constructor is null)
+        IReadOnlyList<CachedParam> cachedParams = GetCachedParams(type);
+        if (cachedParams.Count == 0)
             return;
 
         HashSet<string> existingMembers = new(results.SelectMany(r => r.MemberNames));
 
-        foreach (ParameterInfo parameter in constructor.GetParameters())
+        foreach (CachedParam param in cachedParams)
         {
-            if (existingMembers.Contains(parameter.Name ?? string.Empty))
+            if (existingMembers.Contains(param.Name))
                 continue;
 
-            IEnumerable<ValidationAttribute> validationAttributes =
-                parameter.GetCustomAttributes<ValidationAttribute>();
-            PropertyInfo? property = type.GetProperty(
-                parameter.Name!,
-                BindingFlags.Public | BindingFlags.Instance
-            );
-            if (property is null)
-                continue;
+            object? value = param.Property.GetValue(model);
+            ValidationContext validationContext = new(model) { MemberName = param.Name };
 
-            object? value = property.GetValue(model);
-            ValidationContext validationContext = new(model) { MemberName = parameter.Name };
-
-            foreach (ValidationAttribute attribute in validationAttributes)
+            foreach (ValidationAttribute attribute in param.Attributes)
             {
                 ValidationResult? result = attribute.GetValidationResult(value, validationContext);
                 if (result != ValidationResult.Success && result is not null)

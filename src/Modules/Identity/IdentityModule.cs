@@ -28,7 +28,6 @@ public static partial class IdentityModule
         RegisterDbInfrastructure(services, configuration);
         RegisterApplicationServices(services);
         RegisterKeycloakAdmin(services);
-        RegisterValidators(services);
         RegisterControllers(services);
 
         services.AddSingleton<IDatabaseStartupContributor, IdentityDatabaseStartupContributor>();
