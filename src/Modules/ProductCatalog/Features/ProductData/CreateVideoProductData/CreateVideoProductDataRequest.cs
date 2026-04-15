@@ -4,8 +4,7 @@ namespace ProductCatalog.Features.ProductData.CreateVideoProductData;
 
 /// <summary>
 ///     Payload for uploading video product data, including duration, resolution, format, and file size.
-///     Validation constraints are expressed via data annotations and enforced by
-///     <c>CreateVideoProductDataRequestValidator</c>.
+///     Validation constraints are expressed via data annotations at the HTTP boundary.
 /// </summary>
 public sealed record CreateVideoProductDataRequest(
     [NotEmpty(ErrorMessage = "Title is required.")]

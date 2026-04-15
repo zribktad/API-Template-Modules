@@ -1,4 +1,3 @@
-using FluentValidation;
 using Identity.Directory.Controllers.V1;
 using Identity.Directory.Repositories;
 using Identity.Persistence;
@@ -38,12 +37,7 @@ public static partial class IdentityModule
 
     // ── Validators ────────────────────────────────────────────────────────────
 
-    private static void RegisterValidators(IServiceCollection services)
-    {
-        services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>(filter: r =>
-            !r.ValidatorType.IsGenericTypeDefinition
-        );
-    }
+    private static void RegisterValidators(IServiceCollection services) { }
 
     // ── Controllers ───────────────────────────────────────────────────────────
 

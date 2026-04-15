@@ -1,5 +1,4 @@
 using ErrorOr;
-using FluentValidation;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.InvalidatePermissions;
@@ -8,19 +7,40 @@ using Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
 using SharedKernel.Contracts.Security;
 using SharedKernel.Domain.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using Wolverine;
 
 namespace Identity.Directory.Features.Role.UpdateRole;
 
-public sealed record UpdateRoleRequest(string Name, List<string> Permissions);
-
-public sealed class UpdateRoleRequestValidator : AbstractValidator<UpdateRoleRequest>
+public sealed record UpdateRoleRequest(
+    [NotEmpty] [MaxLength(100)] string Name,
+    [Required] List<string> Permissions
+) : IValidatableObject
 {
-    public UpdateRoleRequestValidator()
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Permissions).NotNull();
-        RuleForEach(x => x.Permissions).NotEmpty().MaximumLength(100);
+        if (Permissions is null)
+            yield break;
+
+        for (int i = 0; i < Permissions.Count; i++)
+        {
+            if (string.IsNullOrWhiteSpace(Permissions[i]))
+            {
+                yield return new ValidationResult(
+                    "Permissions must not contain empty values.",
+                    [$"{nameof(Permissions)}[{i}]"]
+                );
+                continue;
+            }
+
+            if (Permissions[i].Length > 100)
+            {
+                yield return new ValidationResult(
+                    "Permissions entries must not exceed 100 characters.",
+                    [$"{nameof(Permissions)}[{i}]"]
+                );
+            }
+        }
     }
 }
 

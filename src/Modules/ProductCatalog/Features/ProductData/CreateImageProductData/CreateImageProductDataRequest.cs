@@ -4,8 +4,7 @@ namespace ProductCatalog.Features.ProductData.CreateImageProductData;
 
 /// <summary>
 ///     Payload for uploading image product data, including dimensions, format, and file size.
-///     Validation constraints are expressed via data annotations and enforced by
-///     <c>CreateImageProductDataRequestValidator</c>.
+///     Validation constraints are expressed via data annotations at the HTTP boundary.
 /// </summary>
 public sealed record CreateImageProductDataRequest(
     [NotEmpty(ErrorMessage = "Title is required.")]

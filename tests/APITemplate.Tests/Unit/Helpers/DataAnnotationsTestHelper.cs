@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace APITemplate.Tests.Unit.Helpers;
 
 /// <summary>
-///     Shared DataAnnotations validation for tests (property-level <c>Validator.TryValidateObject</c>, aligned with
-///     <c>DataAnnotationsValidator&lt;T&gt;</c> in SharedKernel).
+///     Shared DataAnnotations validation for tests using <c>Validator.TryValidateObject</c> with
+///     <c>validateAllProperties: true</c>, matching the application's HTTP boundary validation behavior.
 /// </summary>
 internal static class DataAnnotationsTestHelper
 {

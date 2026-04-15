@@ -1,4 +1,3 @@
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,11 +25,6 @@ public static class ReviewsRuntimeBridge
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<ReviewsDbMarker>()
             .AddRepository<IProductReviewRepository, ProductReviewRepository>();
-
-        services.AddValidatorsFromAssemblyContaining<CreateProductReviewRequestValidator>(
-            filter: registration => !registration.ValidatorType.IsGenericTypeDefinition
-        );
-
         return services;
     }
 }
