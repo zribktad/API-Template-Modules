@@ -81,7 +81,7 @@ public sealed class EmailRetryService : IEmailRetryService
                     ct
                 );
 
-                await _repository.DeleteAsync(email, ct);
+                await _repository.DeleteAsync(email, CancellationToken.None);
                 stagedDeleteAfterSuccessfulSend = true;
                 _logger.EmailRetrySucceeded(email.To, email.RetryCount + 1);
             }
@@ -101,7 +101,10 @@ public sealed class EmailRetryService : IEmailRetryService
             try
             {
                 // Commit after each email to ensure durable progress — avoids duplicate sends on crash
-                await _unitOfWork.CommitAsync(ct);
+                // After the "point of no return" (successful SMTP), commit with None and surface OCE only to outer loop.
+                await _unitOfWork.CommitAsync(
+                    stagedDeleteAfterSuccessfulSend ? CancellationToken.None : ct
+                );
             }
             catch (DbUpdateConcurrencyException)
             {

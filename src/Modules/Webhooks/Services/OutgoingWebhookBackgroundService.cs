@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using SharedKernel.Infrastructure.BackgroundJobs.Services;
 using Webhooks.Contracts;
 using Webhooks.Logging;
+using Webhooks.Security;
 
 namespace Webhooks.Services;
 
@@ -92,7 +93,7 @@ public sealed class OutgoingWebhookBackgroundService
 
         foreach (IPAddress address in addresses)
         {
-            if (IsProhibitedAddress(address))
+            if (NetworkSecurity.IsProhibitedAddress(address))
             {
                 throw new InvalidOperationException(
                     $"Callback URL '{uri.Host}' resolves to a prohibited address ({address}). "
@@ -100,33 +101,5 @@ public sealed class OutgoingWebhookBackgroundService
                 );
             }
         }
-    }
-
-    private static bool IsProhibitedAddress(IPAddress address)
-    {
-        if (IPAddress.IsLoopback(address))
-            return true;
-
-        if (
-            address.AddressFamily == AddressFamily.InterNetworkV6
-            && (address.IsIPv6LinkLocal || address.IsIPv6UniqueLocal || address.IsIPv6SiteLocal)
-        )
-            return true;
-
-        byte[] bytes = address.GetAddressBytes();
-
-        if (address.AddressFamily == AddressFamily.InterNetwork && bytes.Length == 4)
-        {
-            return bytes[0] switch
-            {
-                10 => true, // 10.0.0.0/8
-                172 => bytes[1] >= 16 && bytes[1] <= 31, // 172.16.0.0/12
-                192 => bytes[1] == 168, // 192.168.0.0/16
-                169 => bytes[1] == 254, // 169.254.0.0/16 (link-local)
-                _ => false,
-            };
-        }
-
-        return false;
     }
 }
