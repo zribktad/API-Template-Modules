@@ -5,6 +5,7 @@ using BackgroundJobs;
 using Chatting;
 using FileStorage;
 using Identity;
+using NetArchTest.Rules;
 using Notifications;
 using ProductCatalog;
 using Reviews;
