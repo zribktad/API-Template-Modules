@@ -120,7 +120,12 @@ public sealed class PostgresTransactionTests(SharedPostgresContainer postgres)
             var ex = await Should.ThrowAsync<InvalidOperationException>(() =>
                 CreateProductReviewCommandHandler.HandleAsync(
                     new CreateProductReviewCommand(
-                        new CreateProductReviewRequest(product.Id, "rollback", 4)
+                        new CreateProductReviewRequest
+                        {
+                            ProductId = product.Id,
+                            Comment = "rollback",
+                            Rating = 4,
+                        }
                     ),
                     failingReviewRepository.Object,
                     productRepository,

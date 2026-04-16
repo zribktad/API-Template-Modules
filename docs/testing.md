@@ -116,7 +116,7 @@ public class OrderServiceTests
 
 ### Validator Unit Tests
 
-All validation uses **Data Annotations**. Use `DataAnnotationsTestHelper` (which delegates to `AttributedModelValidator`) to test attributes — this correctly handles `record` types where attributes are on primary constructor parameters.
+All validation uses **Data Annotations**. Use `DataAnnotationsTestHelper` (which delegates to `DataAnnotationsValidator`) to test attributes — this correctly handles `record` types where attributes are on primary constructor parameters.
 
 ```csharp
 // tests/APITemplate.Tests/Unit/Validators/CreateProductRequestValidatorTests.cs

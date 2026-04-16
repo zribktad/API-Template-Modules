@@ -3,7 +3,7 @@ using SharedKernel.Domain.Entities.Contracts;
 
 namespace SharedKernel.Application.Batch.Rules;
 
-public sealed class DataAnnotationsBatchRule<TItem> : IBatchRule<TItem>
+public sealed class DataAnnotationsBatchRule<TItem>(IValidator validator) : IBatchRule<TItem>
 {
     public Task ApplyAsync(BatchFailureContext<TItem> context, CancellationToken ct)
     {
@@ -15,7 +15,7 @@ public sealed class DataAnnotationsBatchRule<TItem> : IBatchRule<TItem>
                 continue;
 
             IReadOnlyList<System.ComponentModel.DataAnnotations.ValidationResult> validationResults =
-                AttributedModelValidator.Validate(context.Items[i]!);
+                validator.Validate(context.Items[i]!);
             if (validationResults.Count == 0)
                 continue;
 

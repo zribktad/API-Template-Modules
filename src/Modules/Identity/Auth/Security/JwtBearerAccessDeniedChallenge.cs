@@ -37,6 +37,7 @@ internal static class JwtBearerAccessDeniedChallenge
                 : string.Empty;
 
         context.HandleResponse();
+        http.Response.StatusCode = StatusCodes.Status401Unauthorized;
 
         IProblemDetailsService problemDetails =
             http.RequestServices.GetRequiredService<IProblemDetailsService>();

@@ -17,8 +17,8 @@ public sealed class BoundaryFilterValidationTests
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 
         isValid.ShouldBeFalse();
-        results.ShouldContain(
-            r => r.ErrorMessage == "SortBy must be one of: Name, Price, CreatedAt."
+        results.ShouldContain(r =>
+            r.ErrorMessage == "SortBy must be one of: Name, Price, CreatedAt."
         );
     }
 
@@ -30,8 +30,8 @@ public sealed class BoundaryFilterValidationTests
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 
         isValid.ShouldBeFalse();
-        results.ShouldContain(
-            r => r.ErrorMessage == "MaxPrice must be greater than or equal to MinPrice."
+        results.ShouldContain(r =>
+            r.ErrorMessage == "MaxPrice must be greater than or equal to MinPrice."
         );
     }
 
@@ -43,8 +43,8 @@ public sealed class BoundaryFilterValidationTests
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 
         isValid.ShouldBeFalse();
-        results.ShouldContain(
-            r => r.ErrorMessage == "MaxRating must be greater than or equal to MinRating."
+        results.ShouldContain(r =>
+            r.ErrorMessage == "MaxRating must be greater than or equal to MinRating."
         );
     }
 

@@ -7,6 +7,7 @@ using ProductCatalog.Features.Product.CreateProducts;
 using ProductCatalog.Features.Product.UpdateProducts;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
+using SharedKernel.Application.Validation;
 using Shouldly;
 using Xunit;
 
@@ -23,6 +24,7 @@ public sealed class ProductCatalogModuleTests
     {
         ServiceCollection services = new();
         services.AddLogging();
+        services.AddSingleton<IValidator, DataAnnotationsValidator>();
         services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
 
         using ServiceProvider provider = services.BuildServiceProvider();

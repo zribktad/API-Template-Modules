@@ -18,6 +18,7 @@ public sealed class PatchProductCommandHandler
         PatchProductCommand command,
         IProductRepository repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        IValidator validator,
         CancellationToken ct
     )
     {
@@ -46,14 +47,17 @@ public sealed class PatchProductCommandHandler
         }
 
         IReadOnlyList<System.ComponentModel.DataAnnotations.ValidationResult> validationResults =
-            AttributedModelValidator.Validate(dto);
+            validator.Validate(dto);
         if (validationResults.Count > 0)
         {
             return (
                 DomainErrors.Patch.InvalidPatchDocument(
-                    string.Join("; ", validationResults
-                        .Select(e => e.ErrorMessage)
-                        .Where(m => !string.IsNullOrWhiteSpace(m)))
+                    string.Join(
+                        "; ",
+                        validationResults
+                            .Select(e => e.ErrorMessage)
+                            .Where(m => !string.IsNullOrWhiteSpace(m))
+                    )
                 ),
                 OutgoingMessagesHelper.Empty
             );

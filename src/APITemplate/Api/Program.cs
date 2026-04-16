@@ -40,6 +40,7 @@ builder.Host.UseSerilog(
 );
 
 builder.Services.AddApiFoundation(builder.Configuration);
+builder.Services.AddWolverineHttp();
 builder.Services.AddModuleHealthChecks(
     builder.Configuration,
     builder.Environment,

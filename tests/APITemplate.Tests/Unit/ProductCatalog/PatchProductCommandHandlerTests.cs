@@ -8,6 +8,7 @@ using ProductCatalog.Features.Product.PatchProduct;
 using ProductCatalog.Features.Product.Shared;
 using ProductCatalog.Interfaces;
 using ProductCatalog.ValueObjects;
+using SharedKernel.Application.Validation;
 using SharedKernel.Contracts.Events;
 using SharedKernel.Domain.Interfaces;
 using SharedKernel.Domain.Options;
@@ -20,6 +21,8 @@ namespace APITemplate.Tests.Unit.ProductCatalog;
 
 public sealed class PatchProductCommandHandlerTests
 {
+    private static readonly IValidator Validator = new DataAnnotationsValidator();
+
     [Fact]
     public async Task HandleAsync_WhenPatchIsValid_ReturnsUpdatedProductAndCacheInvalidation()
     {
@@ -63,6 +66,7 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
+                Validator,
                 TestContext.Current.CancellationToken
             );
 
@@ -98,6 +102,7 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(productId, new JsonPatchDocument<PatchableProductDto>()),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
+                Validator,
                 TestContext.Current.CancellationToken
             );
 
@@ -142,6 +147,7 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
+                Validator,
                 TestContext.Current.CancellationToken
             );
 
@@ -187,12 +193,15 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
+                Validator,
                 TestContext.Current.CancellationToken
             );
 
         result.IsError.ShouldBeTrue();
         result.FirstError.Type.ShouldBe(ErrorType.Validation);
-        result.FirstError.Description.ShouldContain("Description is required for products priced above 1000.");
+        result.FirstError.Description.ShouldContain(
+            "Description is required for products priced above 1000."
+        );
         messages.ShouldBeEmpty();
     }
 }

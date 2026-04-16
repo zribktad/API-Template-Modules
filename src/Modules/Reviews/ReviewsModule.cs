@@ -18,7 +18,6 @@ public static class ReviewsModule
     )
     {
         services.AddReviewsRuntimeBridge(configuration);
-        services.AddControllers().AddApplicationPart(typeof(ProductReviewsController).Assembly);
 
         services.AddSingleton<IDatabaseStartupContributor, ReviewsDatabaseStartupContributor>();
         services.AddSingleton<
