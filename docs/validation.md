@@ -50,7 +50,8 @@ HTTP Request
 
 | # | Surface | Validates | When active |
 |---|---------|-----------|-------------|
-| **A** | ASP.NET Core model validation | Request/filter DTOs (Data Annotations) | Every HTTP request; automatic via `[ApiController]` |
+| **A** | ASP.NET Core model validation | Request/filter DTOs (Data Annotations) | Every MVC `[ApiController]` endpoint |
+| **A'** | Wolverine HTTP validation policy | Request/filter DTOs (Data Annotations) | Every Wolverine HTTP endpoint (`MapWolverineEndpoints` + `UseDataAnnotationsValidationProblemDetailMiddleware`) |
 | **B** | `DataAnnotationsValidationMiddleware` | Wolverine command/query objects | Handlers returning `ErrorOr<T>`; currently relevant for non-HTTP entry points |
 | **C** | `DataAnnotationsBatchRule<TItem>` via `IBatchRule<T>` | Batch item DTOs | Batch command handlers |
 | **D** | Handler / domain rules | Business invariants needing loaded state | Inside every handler that needs it |
@@ -85,6 +86,16 @@ Standard .NET attributes (`[Required]`, `[Range]`, `[MaxLength]`, `[MinLength]`)
 **Error response shape:**
 
 `ApiBehaviorOptions.InvalidModelStateResponseFactory` maps model-state errors to `Error.Validation(ErrorCatalog.General.ValidationFailed, ...)` and returns RFC 7807 ProblemDetails.
+
+### Record DTO convention (MVC vs. Wolverine HTTP)
+
+MVC (`[ApiController]`) reads validation attributes from **both** record primary-constructor parameters and from generated properties. Wolverine HTTP (`DataAnnotationsHttpValidationExecutor` → `Validator.TryValidateObject`) reads them **only from properties**. Pick the DTO style per endpoint host:
+
+| DTO role | Binding style | Recommended record shape |
+|----------|---------------|---------------------------|
+| Request **body** (`[FromBody]`) — any host | JSON deserialization (System.Text.Json) | `public sealed record Foo { [Range] public int X { get; init; } }` — attrs naturally on properties, `init` is honored by the JSON binder |
+| Query **filter** (`[FromQuery]`) — MVC | MVC model binder | Either primary-ctor `record Foo([Range] int X = 0)` **or** `{ get; init; }` — both work |
+| Query **filter** (`[FromQuery]`) — Wolverine HTTP | `QueryStringBindingFrame` | **Primary-ctor only**, with `[property: ...]` targets: `record Foo([property: Range] int X = 0)`. Wolverine codegen assigns `filter.X = value;` after `new`, which `init`-only setters reject at compile time — so class-style records break query binding. The `[property:]` target moves the attribute onto the generated property so the validation policy wires it up. |
 
 ---
 

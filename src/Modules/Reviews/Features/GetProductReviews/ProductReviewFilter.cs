@@ -6,6 +6,13 @@ namespace Reviews.Features;
 ///     Filter parameters for querying product reviews, supporting filtering by product, user, rating range, date range,
 ///     sorting, and pagination.
 /// </summary>
+/// <remarks>
+///     Query-string DTO for a Wolverine HTTP endpoint — must stay a primary-constructor record. Wolverine's
+///     <c>QueryStringBindingFrame</c> either binds through constructor parameters or generates post-<c>new</c>
+///     property assignments, so <c>{ get; init; }</c> would fail codegen. Validation attributes use the
+///     <c>[property: ...]</c> target so they land on the generated properties where Wolverine's HTTP validation
+///     policy (<c>Validator.TryValidateObject</c>) can see them. See <c>docs/validation.md</c> — Record DTO convention.
+/// </remarks>
 public sealed record ProductReviewFilter(
     Guid? ProductId = null,
     Guid? UserId = null,
