@@ -97,6 +97,8 @@ MVC (`[ApiController]`) reads validation attributes from **both** record primary
 | Query **filter** (`[FromQuery]`) — MVC | MVC model binder | Either primary-ctor `record Foo([Range] int X = 0)` **or** `{ get; init; }` — both work |
 | Query **filter** (`[FromQuery]`) — Wolverine HTTP | `QueryStringBindingFrame` | **Primary-ctor only**, with `[property: ...]` targets: `record Foo([property: Range] int X = 0)`. Wolverine codegen assigns `filter.X = value;` after `new`, which `init`-only setters reject at compile time — so class-style records break query binding. The `[property:]` target moves the attribute onto the generated property so the validation policy wires it up. |
 
+> **Known limitation — pagination on inherited filters:** `PaginationFilter` declares `[Range]` on its ctor parameters (no `[property:]` target) because moving them onto the generated properties breaks MVC validation for derived filters, and a derived primary-ctor param that shadows a base property cannot itself carry a `[property:]` target (CS0657). A Wolverine HTTP endpoint binding a `PaginationFilter`-derived filter therefore lets invalid `PageNumber`/`PageSize` values through the `DataAnnotations` policy. If pagination bounds matter at a Wolverine boundary, either duplicate the `[Range]` attribute on a non-shadowing derived property, or enforce the bounds inside the handler. When filter DTOs eventually migrate to class-style records this section goes away.
+
 ---
 
 ## B. Wolverine middleware — DataAnnotationsValidationMiddleware

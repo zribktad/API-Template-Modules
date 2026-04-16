@@ -13,14 +13,9 @@ namespace SharedKernel.Application.DTOs;
 ///     See <c>docs/validation.md</c> — Record DTO convention.
 /// </remarks>
 public record PaginationFilter(
-    [property: Range(
-        1,
-        int.MaxValue,
-        ErrorMessage = "PageNumber must be greater than or equal to 1."
-    )]
+    [Range(1, int.MaxValue, ErrorMessage = "PageNumber must be greater than or equal to 1.")]
         int PageNumber = 1,
-    [property: Range(1, 100, ErrorMessage = "PageSize must be between 1 and 100.")]
-        int PageSize = 20
+    [Range(1, 100, ErrorMessage = "PageSize must be between 1 and 100.")] int PageSize = 20
 )
 {
     /// <summary>Default page size applied when none is specified by the caller.</summary>
