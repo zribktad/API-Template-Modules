@@ -5,10 +5,11 @@ using System.Reflection;
 namespace SharedKernel.Application.Validation;
 
 /// <summary>
-///     Runs Data Annotations validation the same way as <see cref="DataAnnotationsValidator{T}" />: property validation
-///     via <see cref="Validator.TryValidateObject" /> plus constructor-parameter attributes for primary-constructor records.
+///     Default <see cref="IValidator" /> implementation: property validation via
+///     <see cref="Validator.TryValidateObject" /> plus constructor-parameter attributes for
+///     primary-constructor records, with one-level recursion into nested complex properties.
 /// </summary>
-public static class AttributedModelValidator
+public sealed class DataAnnotationsValidator : IValidator
 {
     private sealed record CachedParam(
         PropertyInfo Property,
@@ -16,44 +17,18 @@ public static class AttributedModelValidator
         string Name
     );
 
-    private static readonly ConcurrentDictionary<Type, IReadOnlyList<CachedParam>> _paramCache =
-        new();
+    private readonly ConcurrentDictionary<Type, IReadOnlyList<CachedParam>> _paramCache = new();
 
-    private static IReadOnlyList<CachedParam> GetCachedParams(Type type) =>
-        _paramCache.GetOrAdd(
-            type,
-            static t =>
-            {
-                ConstructorInfo? ctor = t.GetConstructors().FirstOrDefault();
-                if (ctor is null)
-                    return [];
-
-                return ctor.GetParameters()
-                    .Select(p => new CachedParam(
-                        t.GetProperty(p.Name!, BindingFlags.Public | BindingFlags.Instance)!,
-                        p.GetCustomAttributes<ValidationAttribute>().ToArray(),
-                        p.Name!
-                    ))
-                    .Where(x => x.Property is not null)
-                    .ToArray();
-            }
-        );
-
-    /// <summary>
-    ///     Returns all validation failures for <paramref name="model" /> (empty if valid).
-    /// </summary>
-    public static IReadOnlyList<ValidationResult> Validate(object model)
+    public IReadOnlyList<ValidationResult> Validate(object model)
     {
         List<ValidationResult> results = [];
         Validate(model, results, new HashSet<object>(ReferenceEqualityComparer.Instance));
         return results;
     }
 
-    private static void Validate(
-        object model,
-        List<ValidationResult> results,
-        HashSet<object> visited
-    )
+    public bool IsValid(object model) => Validate(model).Count == 0;
+
+    private void Validate(object model, List<ValidationResult> results, HashSet<object> visited)
     {
         if (!visited.Add(model))
             return;
@@ -112,16 +87,10 @@ public static class AttributedModelValidator
             return false;
         if (typeof(System.Collections.IEnumerable).IsAssignableFrom(underlying))
             return false;
-        // Only recurse into user-defined types (skip BCL types).
         return underlying.Assembly != typeof(object).Assembly;
     }
 
-    /// <summary>
-    ///     Returns <see langword="true" /> if <paramref name="model" /> has no validation errors.
-    /// </summary>
-    public static bool IsValid(object model) => Validate(model).Count == 0;
-
-    private static void AppendConstructorParameterAttributeResults(
+    private void AppendConstructorParameterAttributeResults(
         object model,
         List<ValidationResult> results
     )
@@ -149,4 +118,24 @@ public static class AttributedModelValidator
             }
         }
     }
+
+    private IReadOnlyList<CachedParam> GetCachedParams(Type type) =>
+        _paramCache.GetOrAdd(
+            type,
+            static t =>
+            {
+                ConstructorInfo? ctor = t.GetConstructors().FirstOrDefault();
+                if (ctor is null)
+                    return [];
+
+                return ctor.GetParameters()
+                    .Select(p => new CachedParam(
+                        t.GetProperty(p.Name!, BindingFlags.Public | BindingFlags.Instance)!,
+                        p.GetCustomAttributes<ValidationAttribute>().ToArray(),
+                        p.Name!
+                    ))
+                    .Where(x => x.Property is not null)
+                    .ToArray();
+            }
+        );
 }

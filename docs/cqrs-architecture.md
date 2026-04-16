@@ -224,7 +224,7 @@ Validation operates at two levels:
 
 ### Wolverine DataAnnotations Middleware
 
-`DataAnnotationsValidationMiddleware` runs `AttributedModelValidator.Validate(message)` **before** the handler executes on any handler returning `ErrorOr<T>`. If validation fails, it returns `(HandlerContinuation.Stop, errors)` and the handler never runs.
+`DataAnnotationsValidationMiddleware` runs `IValidator.Validate(message)` **before** the handler executes on any handler returning `ErrorOr<T>`. If validation fails, it returns `(HandlerContinuation.Stop, errors)` and the handler never runs.
 
 In practice this middleware matters for non-HTTP entry points (scheduled jobs, outbox retry) — for normal HTTP flows MVC already validated the DTO before the command was created, and commands themselves carry no DataAnnotation attributes.
 

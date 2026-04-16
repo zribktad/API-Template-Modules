@@ -12,6 +12,7 @@ using SharedKernel.Application.Batch.Rules;
 using SharedKernel.Application.Errors;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Application.Validation;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Api.Routing;
 using SharedKernel.Infrastructure.Configuration;
@@ -37,6 +38,7 @@ public static class ApiServiceCollectionExtensions
                 "ErrorDocumentation:ErrorTypeBaseUri must be an absolute http or https URI when set."
             );
         services.AddProblemDetails();
+        services.AddSingleton<IValidator, DataAnnotationsValidator>();
         services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
         Microsoft.Extensions.DependencyInjection.ValidationServiceCollectionExtensions.AddValidation(
             services

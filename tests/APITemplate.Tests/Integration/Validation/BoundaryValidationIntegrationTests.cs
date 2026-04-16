@@ -180,6 +180,57 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         errorCode.ShouldBe("GEN-0400");
     }
 
+    [Fact]
+    public async Task UsersController_CreateWithEmptyUsername_ReturnsUnifiedProblemDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
+            permissions: [Permission.Users.Create]
+        );
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/users",
+            new { Username = "", Email = "user@example.com" },
+            ct
+        );
+
+        var problem = await ReadProblemAsync(response, ct);
+        string message = ExtractValidationMessage(problem);
+        string errorCode = ExtractErrorCode(problem);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        problem.Title.ShouldNotBeNullOrWhiteSpace();
+        message.Contains("Username", StringComparison.OrdinalIgnoreCase).ShouldBeTrue(message);
+        errorCode.ShouldBe("GEN-0400");
+    }
+
+    [Fact]
+    public async Task UsersController_CreateWithInvalidEmail_ReturnsUnifiedProblemDetails()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
+            permissions: [Permission.Users.Create]
+        );
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/users",
+            new { Username = "valid-user", Email = "not-an-email" },
+            ct
+        );
+
+        var problem = await ReadProblemAsync(response, ct);
+        string message = ExtractValidationMessage(problem);
+        string errorCode = ExtractErrorCode(problem);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        message.Contains("Email", StringComparison.OrdinalIgnoreCase).ShouldBeTrue(message);
+        errorCode.ShouldBe("GEN-0400");
+    }
+
     private static async Task<HttpValidationProblemDetails> ReadProblemAsync(
         HttpResponseMessage response,
         CancellationToken ct

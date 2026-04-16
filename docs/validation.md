@@ -21,7 +21,7 @@ HTTP Request
   │
   ▼
 [3] Wolverine middleware — DataAnnotationsValidationMiddleware
-      Runs AttributedModelValidator.Validate(message) on the command/query object itself.
+      Runs IValidator.Validate(message) on the command/query object itself.
       Applied only to handlers whose return type is ErrorOr<T>.
       → Invalid: returns (HandlerContinuation.Stop, ErrorOr<T> errors) — handler never executes.
       NOTE: Commands currently have no DataAnnotation attributes → middleware is a no-op for HTTP flows.
@@ -66,7 +66,7 @@ Every controller inherits `ApiControllerBase` which applies `[ApiController]`. T
 
 **Validation runs:**
 - `Validator.TryValidateObject` with `validateAllProperties: true` — covers properties.
-- For `record` types: additionally runs attributes declared on primary constructor parameters (via `AttributedModelValidator`; standard MVC may miss these for records).
+- For `record` types: additionally runs attributes declared on primary constructor parameters (via `DataAnnotationsValidator`; standard MVC may miss these for records).
 
 **Custom attributes available in `SharedKernel.Application.Validation`:**
 
@@ -134,7 +134,7 @@ options.Policies.AddMiddleware(
 
 `ShouldApplyDataAnnotationsValidation()` returns `true` when the handler's return type is `ErrorOr<T>` (possibly wrapped in `Task`/`ValueTask`).
 
-**What it does:** calls `AttributedModelValidator.Validate(message)` on the Wolverine message. If there are failures it returns `(HandlerContinuation.Stop, errors)` and the handler never runs.
+**What it does:** calls `IValidator.Validate(message)` on the Wolverine message. If there are failures it returns `(HandlerContinuation.Stop, errors)` and the handler never runs.
 
 **Current state:** No command or query in the codebase has DataAnnotation attributes directly on its own parameters. The middleware therefore does nothing during normal HTTP flows (MVC already validated the DTO, and the Command is just a wrapper with no annotations).
 
@@ -154,7 +154,7 @@ For batch commands (`CreateProductsCommand`, `UpdateProductsCommand`, etc.) item
 services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
 ```
 
-`DataAnnotationsBatchRule<TItem>` calls `AttributedModelValidator.Validate(item)` for every item in the batch and accumulates failures by index in a `BatchFailureContext<TItem>`.
+`DataAnnotationsBatchRule<TItem>` calls `IValidator.Validate(item)` for every item in the batch and accumulates failures by index in a `BatchFailureContext<TItem>`.
 
 **Handler pattern:**
 ```csharp
@@ -173,7 +173,7 @@ public static async Task<ErrorOr<BatchResponse>> HandleAsync(
 }
 ```
 
-**Note on duplication:** For HTTP batch endpoints MVC already validated the outer request wrapper (`[FromBody] UpdateProductsRequest`). The batch rule re-validates each *item* inside using `AttributedModelValidator` — this is the same attribute set but applied per-item, not to the outer wrapper. There is no redundant double-validation of the same object.
+**Note on duplication:** For HTTP batch endpoints MVC already validated the outer request wrapper (`[FromBody] UpdateProductsRequest`). The batch rule re-validates each *item* inside using `IValidator` — this is the same attribute set but applied per-item, not to the outer wrapper. There is no redundant double-validation of the same object.
 
 ---
 
@@ -198,21 +198,44 @@ These errors flow through the same `ErrorOr` → ProblemDetails pipeline as vali
 
 ---
 
-## AttributedModelValidator — shared implementation
+## DataAnnotationsValidator (IValidator) — shared implementation
 
-`src/SharedKernel/Application/Validation/AttributedModelValidator.cs`
+`src/SharedKernel/Application/Validation/IValidator.cs`
+`src/SharedKernel/Application/Validation/DataAnnotationsValidator.cs`
 
-Single shared implementation of "run Data Annotations on a CLR object." Used by:
+Single shared implementation of "run Data Annotations on a CLR object," exposed via the
+`IValidator` abstraction and registered as a singleton in `AddApiFoundation`. Used by:
 - **Surface A** — MVC uses it internally for property-level validation.
-- **Surface B** — `DataAnnotationsValidationMiddleware` calls it on Wolverine messages.
-- **Surface C** — `DataAnnotationsBatchRule<TItem>` calls it per batch item.
-- **Unit tests** — `DataAnnotationsTestHelper` delegates to it so tests match production behavior exactly.
+- **Surface B** — `DataAnnotationsValidationMiddleware` receives `IValidator` as a Wolverine-resolved parameter and calls it on Wolverine messages.
+- **Surface C** — `DataAnnotationsBatchRule<TItem>` constructor-injects `IValidator` and calls it per batch item.
+- **Unit tests** — `DataAnnotationsTestHelper` holds a private `DataAnnotationsValidator` instance so tests match production behavior exactly.
 
 **What it runs:**
 1. `Validator.TryValidateObject` with `validateAllProperties: true` — property-level attributes.
 2. An additional pass over primary constructor parameters for `record` types — ensures attributes declared on positional parameters are evaluated (standard `TryValidateObject` may not cover them).
+3. One-level recursion into nested complex public properties (e.g. command wrappers like `CreateFooCommand(FooRequest Request)`).
 
-**Performance:** All reflection lookups (`GetConstructors`, `GetParameters`, `GetCustomAttributes`, `GetProperty`) are cached in `ConcurrentDictionary` keyed by `(Type, memberName)` so the cost is paid once per type.
+**Performance:** Reflection lookups (`GetConstructors`, `GetParameters`, `GetCustomAttributes`, `GetProperty`) are cached in a per-instance `ConcurrentDictionary` keyed by `Type`, so the cost is paid once per type for the lifetime of the singleton.
+
+---
+
+## .NET 10 `Microsoft.Extensions.Validation` — migration status
+
+The project already registers `services.AddValidation()` in `ApiServiceCollectionExtensions.cs`.
+One pilot DTO (`CreateUserRequest`) is annotated with `[ValidatableType]` (experimental,
+`ASP0029` suppressed locally) as a probe to check whether the .NET 10 source-generator
+validation pipeline fires for **Wolverine HTTP** endpoints.
+
+**Current status:** pilot marker applied; empirical runtime verdict pending (requires live
+API + invalid request to observe whether validation triggers via endpoint filter before
+Wolverine middleware runs).
+
+**Full migration (S3) deferred** until:
+- `[ValidatableType]` leaves experimental status (expected .NET 11 stable).
+- Wolverine ships native integration with `AddValidation()` (v5.29.0 does not have it).
+
+The `IValidator` abstraction is the migration seam — swapping implementations (e.g. to a
+source-generator-backed validator) will not require changes at any of the call sites.
 
 ---
 
@@ -230,7 +253,7 @@ Single shared implementation of "run Data Annotations on a CLR object." Used by:
 
 ## Testing validation
 
-**Data Annotations attributes** — use `DataAnnotationsTestHelper` which delegates to `AttributedModelValidator`:
+**Data Annotations attributes** — use `DataAnnotationsTestHelper` which delegates to `DataAnnotationsValidator`:
 
 ```csharp
 [Theory]
@@ -270,7 +293,8 @@ public void InvalidName_FailsValidation(string? name)
 
 | File | Purpose |
 |------|---------|
-| `src/SharedKernel/Application/Validation/AttributedModelValidator.cs` | Core: runs Data Annotations + record constructor param pass |
+| `src/SharedKernel/Application/Validation/IValidator.cs` | Abstraction for DI / swap-in of alternate implementations |
+| `src/SharedKernel/Application/Validation/DataAnnotationsValidator.cs` | Core: runs Data Annotations + record constructor param pass |
 | `src/SharedKernel/Application/Middleware/DataAnnotationsValidationMiddleware.cs` | Wolverine pre-handler middleware (surface B) |
 | `src/SharedKernel/Application/Batch/Rules/DataAnnotationsBatchRule.cs` | Per-item batch validation (surface C) |
 | `src/SharedKernel/Application/Validation/GreaterThanOrEqualToPropertyAttribute.cs` | Cross-field comparison attribute |
