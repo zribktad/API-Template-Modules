@@ -9,14 +9,16 @@ namespace Identity.ValueObjects;
 /// </summary>
 public readonly record struct Email
 {
-    private readonly string? _value;
-
     private Email(string value)
     {
-        _value = value;
+        Value = value;
     }
 
-    public string Value => _value ?? string.Empty;
+    public string Value
+    {
+        get => field ?? string.Empty;
+        private init;
+    }
 
     /// <summary>Creates an <see cref="Email" /> after trimming and validating the input.</summary>
     public static ErrorOr<Email> Create(string value)

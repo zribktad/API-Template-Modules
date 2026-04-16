@@ -1,6 +1,4 @@
-using System.Net;
 using System.Security.Claims;
-using System.Text.Json;
 using Identity.Auth.Security.Keycloak;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -16,14 +14,14 @@ public sealed class KeycloakClaimMapperTests
     public void MapKeycloakClaims_ShouldMapUsername_WhenPreferredUsernameClaimExists()
     {
         // Arrange
-        var identity = new ClaimsIdentity();
+        ClaimsIdentity identity = new();
         identity.AddClaim(new Claim("preferred_username", "testuser"));
 
         // Act
         KeycloakClaimMapper.MapKeycloakClaims(identity, _loggerMock.Object);
 
         // Assert
-        var nameClaim = identity.FindFirst(ClaimTypes.Name);
+        Claim? nameClaim = identity.FindFirst(ClaimTypes.Name);
         Assert.NotNull(nameClaim);
         Assert.Equal("testuser", nameClaim.Value);
     }
@@ -32,15 +30,15 @@ public sealed class KeycloakClaimMapperTests
     public void MapKeycloakClaims_ShouldMapRoles_WhenValidRealmAccessExists()
     {
         // Arrange
-        var identity = new ClaimsIdentity();
-        var realmAccessJson = "{\"roles\":[\"admin\", \"user\"]}";
+        ClaimsIdentity identity = new();
+        string realmAccessJson = "{\"roles\":[\"admin\", \"user\"]}";
         identity.AddClaim(new Claim("realm_access", realmAccessJson));
 
         // Act
         KeycloakClaimMapper.MapKeycloakClaims(identity, _loggerMock.Object);
 
         // Assert
-        var roles = identity.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+        List<string> roles = identity.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
         Assert.Contains("admin", roles);
         Assert.Contains("user", roles);
     }
@@ -49,8 +47,8 @@ public sealed class KeycloakClaimMapperTests
     public void MapKeycloakClaims_ShouldNotThrow_AndShouldLogWarning_WhenRealmAccessIsInvalidJson()
     {
         // Arrange
-        var identity = new ClaimsIdentity();
-        var invalidJson = "{ invalid }";
+        ClaimsIdentity identity = new();
+        string invalidJson = "{ invalid }";
         identity.AddClaim(new Claim("realm_access", invalidJson));
 
         // Act
@@ -77,8 +75,8 @@ public sealed class KeycloakClaimMapperTests
     public void MapKeycloakClaims_ShouldHandleNonArrayRoles_Gracefully()
     {
         // Arrange
-        var identity = new ClaimsIdentity();
-        var invalidRolesJson = "{\"roles\": \"not-an-array\"}";
+        ClaimsIdentity identity = new();
+        string invalidRolesJson = "{\"roles\": \"not-an-array\"}";
         identity.AddClaim(new Claim("realm_access", invalidRolesJson));
 
         // Act

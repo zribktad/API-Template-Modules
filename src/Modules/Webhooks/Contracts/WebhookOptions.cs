@@ -23,7 +23,7 @@ public sealed class WebhookOptions
     )]
     public bool AllowLocalRequests { get; set; } = false;
 
-    [Description("Maximum size, in bytes, of the webhook payload to read and validate.")]
+    [Description("Maximum size, in bytes, of the incoming webhook payload.")]
     [Range(1, 10 * 1024 * 1024)] // Default 10MB
     public int MaxBodyBytes { get; set; } = 10 * 1024 * 1024;
 }

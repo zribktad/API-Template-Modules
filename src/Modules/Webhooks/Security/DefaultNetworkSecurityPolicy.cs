@@ -17,7 +17,7 @@ internal sealed class DefaultNetworkSecurityPolicy(
 {
     public bool IsAllowed(IPAddress address)
     {
-        // Double-lock: Allow local requests ONLY in Development environment AND if explicitly enabled in config.
+        // Defense in depth: Allow local requests ONLY in Development environment AND if explicitly enabled in config.
         if (env.IsDevelopment() && options.Value.AllowLocalRequests)
             return true;
 
@@ -41,7 +41,8 @@ internal sealed class DefaultNetworkSecurityPolicy(
 
         if (ipv4.AddressFamily == AddressFamily.InterNetwork)
         {
-            byte[] bytes = ipv4.GetAddressBytes();
+            Span<byte> bytes = stackalloc byte[4];
+            ipv4.TryWriteBytes(bytes, out _);
 
             // Block private ranges and restricted networks
             return bytes[0] switch

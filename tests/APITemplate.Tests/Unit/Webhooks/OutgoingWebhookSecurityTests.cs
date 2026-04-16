@@ -18,7 +18,9 @@ public sealed class OutgoingWebhookSecurityTests
     )
     {
         _envMock.Setup(e => e.EnvironmentName).Returns(environment);
-        var options = Options.Create(new WebhookOptions { AllowLocalRequests = allowLocal });
+        IOptions<WebhookOptions> options = Options.Create(
+            new WebhookOptions { AllowLocalRequests = allowLocal }
+        );
         return new DefaultNetworkSecurityPolicy(_envMock.Object, options);
     }
 
@@ -36,11 +38,14 @@ public sealed class OutgoingWebhookSecurityTests
     public void IsAllowed_ShouldReturnFalse_ForRestrictedAddresses_InProduction(string ipAddress)
     {
         // Arrange
-        var policy = CreatePolicy(allowLocal: true, environment: "Production"); // allowLocal is true but env is Prod
-        var address = IPAddress.Parse(ipAddress);
+        DefaultNetworkSecurityPolicy policy = CreatePolicy(
+            allowLocal: true,
+            environment: "Production"
+        ); // allowLocal is true but env is Prod
+        IPAddress address = IPAddress.Parse(ipAddress);
 
         // Act
-        var result = policy.IsAllowed(address);
+        bool result = policy.IsAllowed(address);
 
         // Assert
         Assert.False(result, $"Address {ipAddress} should be blocked in Production.");
@@ -54,11 +59,14 @@ public sealed class OutgoingWebhookSecurityTests
     )
     {
         // Arrange
-        var policy = CreatePolicy(allowLocal: true, environment: "Development");
-        var address = IPAddress.Parse(ipAddress);
+        DefaultNetworkSecurityPolicy policy = CreatePolicy(
+            allowLocal: true,
+            environment: "Development"
+        );
+        IPAddress address = IPAddress.Parse(ipAddress);
 
         // Act
-        var result = policy.IsAllowed(address);
+        bool result = policy.IsAllowed(address);
 
         // Assert
         Assert.True(
@@ -71,11 +79,14 @@ public sealed class OutgoingWebhookSecurityTests
     public void IsAllowed_ShouldReturnFalse_ForLocalAddresses_InDevelopment_WhenDisabled()
     {
         // Arrange
-        var policy = CreatePolicy(allowLocal: false, environment: "Development");
-        var address = IPAddress.Parse("127.0.0.1");
+        DefaultNetworkSecurityPolicy policy = CreatePolicy(
+            allowLocal: false,
+            environment: "Development"
+        );
+        IPAddress address = IPAddress.Parse("127.0.0.1");
 
         // Act
-        var result = policy.IsAllowed(address);
+        bool result = policy.IsAllowed(address);
 
         // Assert
         Assert.False(result);
@@ -98,15 +109,18 @@ public sealed class OutgoingWebhookSecurityTests
     [InlineData("100.127.255.255", false)] // End of CGNAT
     [InlineData("100.128.0.0", true)] // Just after CGNAT
     [InlineData("0.0.0.0", false)] // Unspecified
-    [InlineData("255.255.255.255", true)] // Broadcast (technicky nie private, ale zvyčajne safe pre outbound)
+    [InlineData("255.255.255.255", true)] // Broadcast — not private; outbound is typically safe
     public void IsAllowed_ShouldBeExact_AtRangeBoundaries(string ipAddress, bool expected)
     {
         // Arrange
-        var policy = CreatePolicy(allowLocal: false, environment: "Production");
-        var address = IPAddress.Parse(ipAddress);
+        DefaultNetworkSecurityPolicy policy = CreatePolicy(
+            allowLocal: false,
+            environment: "Production"
+        );
+        IPAddress address = IPAddress.Parse(ipAddress);
 
         // Act
-        var result = policy.IsAllowed(address);
+        bool result = policy.IsAllowed(address);
 
         // Assert
         Assert.Equal(expected, result);
@@ -119,11 +133,14 @@ public sealed class OutgoingWebhookSecurityTests
     public void IsAllowed_ShouldHandleIPv6SpecialRanges(string ipAddress, bool expected)
     {
         // Arrange
-        var policy = CreatePolicy(allowLocal: false, environment: "Production");
-        var address = IPAddress.Parse(ipAddress);
+        DefaultNetworkSecurityPolicy policy = CreatePolicy(
+            allowLocal: false,
+            environment: "Production"
+        );
+        IPAddress address = IPAddress.Parse(ipAddress);
 
         // Act
-        var result = policy.IsAllowed(address);
+        bool result = policy.IsAllowed(address);
 
         // Assert
         Assert.Equal(expected, result);

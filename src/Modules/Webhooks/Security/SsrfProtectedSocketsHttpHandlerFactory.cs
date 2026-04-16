@@ -14,6 +14,8 @@ internal static class SsrfProtectedSocketsHttpHandlerFactory
     {
         return new SocketsHttpHandler
         {
+            // Bound connection pool age so DNS changes are re-resolved for long-lived HttpClient instances.
+            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
             ConnectCallback = async (context, ct) =>
             {
                 // 1. Resolve DNS authoritative results
@@ -48,10 +50,15 @@ internal static class SsrfProtectedSocketsHttpHandlerFactory
                         );
                         return new NetworkStream(socket, ownsSocket: true);
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (ex is not OperationCanceledException)
                     {
                         socket.Dispose();
                         lastException = ex;
+                    }
+                    catch
+                    {
+                        socket.Dispose();
+                        throw;
                     }
                 }
 
