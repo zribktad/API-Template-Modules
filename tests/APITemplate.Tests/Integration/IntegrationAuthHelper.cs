@@ -154,7 +154,7 @@ internal static class IntegrationAuthHelper
             Name = $"Tenant {username}",
         };
         if (!tenantIsActive)
-            tenant.Deactivate();
+            tenant.IsActive = false;
 
         Email emailVo = Email.FromPersistence(email);
 

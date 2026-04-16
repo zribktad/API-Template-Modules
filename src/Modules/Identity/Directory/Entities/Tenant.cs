@@ -19,7 +19,7 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
                 : value.Trim();
     }
 
-    public bool IsActive { get; private set; } = true;
+    public bool IsActive { get; set; } = true;
 
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();
@@ -37,15 +37,5 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
             Code = code,
             Name = name,
         };
-    }
-
-    public void Activate()
-    {
-        IsActive = true;
-    }
-
-    public void Deactivate()
-    {
-        IsActive = false;
     }
 }

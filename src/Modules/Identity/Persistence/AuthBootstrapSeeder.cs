@@ -74,7 +74,7 @@ public sealed class AuthBootstrapSeeder
     {
         if (tenant.IsActive)
             return false;
-        tenant.Activate();
+        tenant.IsActive = true;
         return true;
     }
 
