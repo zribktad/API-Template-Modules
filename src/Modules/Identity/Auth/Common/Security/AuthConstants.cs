@@ -48,6 +48,7 @@ public static class AuthConstants
         public const string IdToken = "id_token";
         public const string ExpiresAt = "expires_at";
         public const string ExpiresIn = "expires_in";
+        public const string LastValidated = ".last_validated";
     }
 
     /// <summary>Form parameter names used in OAuth2 token endpoint requests.</summary>

@@ -5,9 +5,13 @@ namespace Identity.Directory.Features.User;
 /// </summary>
 public static class UserSortFields
 {
-    public static readonly SortField Username = new("username");
-    public static readonly SortField Email = new("email");
-    public static readonly SortField CreatedAt = new("createdAt");
+    public const string UsernameToken = nameof(Username);
+    public const string EmailToken = nameof(Email);
+    public const string CreatedAtToken = nameof(CreatedAt);
+
+    public static readonly SortField Username = new(UsernameToken);
+    public static readonly SortField Email = new(EmailToken);
+    public static readonly SortField CreatedAt = new(CreatedAtToken);
 
     public static readonly SortFieldMap<AppUser> Map = new SortFieldMap<AppUser>()
         .Add(Username, u => u.Username)

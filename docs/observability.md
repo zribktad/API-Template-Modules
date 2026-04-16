@@ -242,7 +242,7 @@ The API records:
 
 Relevant code:
 
-- [ErrorOrValidationMiddleware.cs](../src/SharedKernel/Application/Middleware/ErrorOrValidationMiddleware.cs)
+- [DataAnnotationsValidationMiddleware.cs](../src/SharedKernel/Application/Middleware/DataAnnotationsValidationMiddleware.cs)
 - [ApiExceptionHandler.cs](../src/APITemplate/Api/ExceptionHandling/ApiExceptionHandler.cs)
 - [ValidationTelemetry.cs](../src/APITemplate/Infrastructure/Observability/ValidationTelemetry.cs)
 - [ConflictTelemetry.cs](../src/APITemplate/Infrastructure/Observability/ConflictTelemetry.cs)

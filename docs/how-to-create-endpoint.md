@@ -207,12 +207,12 @@ public sealed record CreateProductRequest(
     [MaxLength(200, ErrorMessage = "Product name must not exceed 200 characters.")]
     string Name,
     string? Description,
-    [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than zero.")]
+    [Range(typeof(decimal), "0", "79228162514264337593543950335", ErrorMessage = "Price must be non-negative.")]
     decimal Price,
     Guid? CategoryId = null) : IProductRequest;
 ```
 
-> Use **Data Annotations** for simple per-field validation. Use **FluentValidation** for cross-field rules.
+> Use **Data Annotations** for all validation — both simple per-field rules and cross-field rules (via custom attributes from `SharedKernel.Application.Validation`). No FluentValidation.
 
 **Response DTO**:
 
@@ -364,73 +364,40 @@ internal static class ProductFilterCriteria
 
 ---
 
-### 8. Validators
+### 8. Validation
 
-Use FluentValidation for cross-field rules. Data Annotations handle simple per-field validation.
+Validation uses **Data Annotations** only — no FluentValidation. Place attributes directly on the DTO record parameters.
 
-**Shared request validator base** (for rules shared between Create and Update):
-
-```csharp
-using FluentValidation;
-
-namespace APITemplate.Application.Features.Product.Validation;
-
-public abstract class ProductRequestValidatorBase<T> : AbstractValidator<T>
-    where T : IProductRequest
-{
-    protected ProductRequestValidatorBase()
-    {
-        // Cross-field rule: cannot be expressed via Data Annotations
-        RuleFor(x => x.Description)
-            .NotEmpty().WithMessage("Description is required for products priced above 1000.")
-            .When(x => x.Price > 1000);
-    }
-}
-```
-
-**Create/Update validators** (inherit shared rules):
+**Simple per-field rules** — standard attributes:
 
 ```csharp
-namespace APITemplate.Application.Features.Product.Validation;
+using System.ComponentModel.DataAnnotations;
+using SharedKernel.Application.Validation;
 
-public sealed class CreateProductRequestValidator : ProductRequestValidatorBase<CreateProductRequest>;
-public sealed class UpdateProductRequestValidator : ProductRequestValidatorBase<UpdateProductRequest>;
+public sealed record CreateProductRequest(
+    [NotEmpty(ErrorMessage = "Product name is required.")]
+    [MaxLength(200, ErrorMessage = "Product name must not exceed 200 characters.")]
+    string Name,
+    [RequiredWhenDecimalPropertyExceeds(
+        nameof(Price), 1000,
+        ErrorMessage = "Description is required for products priced above 1000.")]
+    string? Description,
+    [Range(typeof(decimal), "0", "79228162514264337593543950335",
+        ErrorMessage = "Price must be non-negative.")]
+    decimal Price,
+    Guid? CategoryId = null) : IProductRequest;
 ```
 
-**Filter validator**:
+**Cross-field rules** — use the custom attributes from `SharedKernel.Application.Validation`:
 
-```csharp
-using APITemplate.Application.Common.Validation;
-using FluentValidation;
+| Rule | Attribute |
+|------|-----------|
+| Value ≥ other property | `[GreaterThanOrEqualToProperty(nameof(Other))]` |
+| Required when decimal exceeds threshold | `[RequiredWhenDecimalPropertyExceeds(nameof(Prop), threshold)]` |
+| Allowed string values (case-insensitive, null OK) | `[CaseInsensitiveAllowedValues("a", "b")]` |
+| Non-empty string / collection | `[NotEmpty]` |
 
-namespace APITemplate.Application.Features.Product.Validation;
-
-public sealed class ProductFilterValidator : AbstractValidator<ProductFilter>
-{
-    public ProductFilterValidator()
-    {
-        Include(new PaginationFilterValidator());
-        Include(new DateRangeFilterValidator<ProductFilter>());
-        Include(new SortableFilterValidator<ProductFilter>(ProductSortFields.Map.AllowedNames));
-
-        // Feature-specific filter rules
-        RuleFor(x => x.MinPrice)
-            .GreaterThanOrEqualTo(0).WithMessage("MinPrice must be >= 0.")
-            .When(x => x.MinPrice.HasValue);
-
-        RuleFor(x => x.MaxPrice)
-            .GreaterThanOrEqualTo(0).WithMessage("MaxPrice must be >= 0.")
-            .When(x => x.MaxPrice.HasValue);
-
-        RuleFor(x => x.MaxPrice)
-            .GreaterThanOrEqualTo(x => x.MinPrice!.Value)
-            .WithMessage("MaxPrice must be >= MinPrice.")
-            .When(x => x.MinPrice.HasValue && x.MaxPrice.HasValue);
-    }
-}
-```
-
-> Validators are auto-discovered and registered via `AddValidatorsFromAssemblyContaining<>()` in DI. No manual registration needed.
+ASP.NET Core's model binding runs these automatically on any `[FromBody]` / `[FromQuery]` DTO — no separate validator class needed. See [validation.md](validation.md) for the full picture.
 
 ---
 
@@ -500,7 +467,6 @@ public sealed class GetProductByIdQueryHandler
 ```csharp
 using APITemplate.Application.Common.Batch;
 using APITemplate.Domain.Interfaces;
-using FluentValidation;
 using Wolverine;
 using ProductEntity = APITemplate.Domain.Entities.Product;
 
@@ -555,7 +521,7 @@ public sealed class CreateProductsCommandHandler
 
 > **Key patterns**:
 > - Repository tracks changes, `IUnitOfWork` persists them. Never call `SaveChangesAsync` in repositories.
-> - `IValidator<T>` is method-injected for per-item validation inside batch commands.
+> - `IBatchRule<TItem>` is method-injected; `DataAnnotationsBatchRule<TItem>` runs Data Annotation attributes on each item.
 > - Return `(TResult, OutgoingMessages)` from the handler to dispatch transactional notifications (e.g., cache invalidation) through Wolverine's durable outbox.
 
 ---
@@ -655,7 +621,7 @@ public sealed class ProductsController(IMessageBus bus) : ApiControllerBase
 > - `bus.InvokeAsync<TResponse>(message, ct)` dispatches to the matching handler and returns the result.
 > - `ApiControllerBase` provides the `[ApiController]` attribute, versioned route template, and helper methods (`OkOrNotFound`, `OkOrUnprocessable`, `CreatedAtGetById`).
 > - Authorization uses `[RequirePermission(...)]` instead of `[Authorize]`.
-> - Validation of request DTOs is handled by Wolverine's FluentValidation middleware before the handler runs.
+> - Validation of request DTOs is handled by ASP.NET Core model validation (Data Annotations) before the action runs. The Wolverine `DataAnnotationsValidationMiddleware` additionally validates the command/query object itself for non-HTTP entry points.
 
 ---
 
@@ -670,7 +636,7 @@ services.AddScoped<IProductRepository, ProductRepository>();
 
 That's it. **No handler or service registration needed** — Wolverine auto-discovers all handlers by naming convention (`{Message}Handler` with `HandleAsync`). Validators are auto-registered via `AddValidatorsFromAssemblyContaining<>()`.
 
-> If your feature adds a new repository, that is the only DI registration you need to add. Wolverine and FluentValidation handle everything else.
+> If your feature adds a new repository, that is the only DI registration you need to add. Wolverine handles handler discovery automatically. Data Annotation validation needs no DI registration.
 
 ---
 
@@ -711,9 +677,9 @@ dotnet ef migrations add Add{Feature} --project src/APITemplate
 | **Soft delete** | `Remove()` → sets `IsDeleted = true` | `AppDbContext.SaveChangesAsync` |
 | **Audit trail** | Auto-stamps `CreatedAtUtc`, `CreatedBy`, `UpdatedAtUtc`, `UpdatedBy` | `AppDbContext.SaveChangesAsync` |
 | **Concurrency** | PostgreSQL `xmin` system column as concurrency token → HTTP 409 on conflict | `ApiExceptionHandler` |
-| **Command validation** | FluentValidation via Wolverine's `UseFluentValidation()` middleware | Wolverine pipeline |
-| **Controller DTO validation** | Data Annotations + FluentValidation via Wolverine middleware | Wolverine pipeline |
-| **Error handling** | `ErrorOr<T>` result pattern → RFC 7807 ProblemDetails | `ErrorOrValidationMiddleware`, `ApiExceptionHandler` |
+| **Command/query validation** | `DataAnnotationsValidationMiddleware` (for non-HTTP entry points; commands carry no attributes today) | Wolverine pipeline |
+| **Controller DTO validation** | Data Annotations via ASP.NET Core model binding (`[ApiController]`) | MVC pipeline, before action runs |
+| **Error handling** | `ErrorOr<T>` result pattern → RFC 7807 ProblemDetails | `DataAnnotationsValidationMiddleware`, `ApiExceptionHandler` |
 | **Handler discovery** | Wolverine auto-discovers `{Message}Handler` classes | `UseWolverine()` in host setup |
 | **JWT auth** | `[RequirePermission]` + tenant claim validation | Authorization middleware |
 
@@ -729,7 +695,7 @@ HTTP Request
         → Authorization Middleware (checks [RequirePermission])
           → Controller action
               → IMessageBus.InvokeAsync (Wolverine dispatch)
-                → Wolverine middleware (FluentValidation for commands)
+                → Wolverine middleware (DataAnnotations on command — non-HTTP only)
                   → Handler.HandleAsync (business logic)
                     → Repository (data access via Specification)
                       → AppDbContext (auditing, tenancy, soft-delete)

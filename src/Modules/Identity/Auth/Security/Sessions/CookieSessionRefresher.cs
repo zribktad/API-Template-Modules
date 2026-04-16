@@ -1,6 +1,7 @@
 using Identity.Logging;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Identity.Auth.Security.Sessions;
@@ -65,6 +66,7 @@ public sealed class CookieSessionRefresher : CookieAuthenticationEvents
 
         context.Principal = _principalFactory.CreatePrincipal(refreshOutcome.Session);
         context.HttpContext.User = context.Principal;
+        context.ShouldRenew = true;
 
         context.Properties.UpdateTokenValue(
             AuthConstants.CookieTokenNames.AccessToken,
@@ -78,9 +80,23 @@ public sealed class CookieSessionRefresher : CookieAuthenticationEvents
             AuthConstants.CookieTokenNames.ExpiresAt,
             refreshOutcome.Session.AccessTokenExpiresAtUtc.ToString("o")
         );
-        context.ShouldRenew = true;
     }
 
     private static string? ResolveSessionId(CookieValidatePrincipalContext context) =>
         context.Properties.TryGetBffSessionId(out string? sessionId) ? sessionId : null;
+
+    public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context) =>
+        ApplyStatusCodeIfNotStarted(context.Response, StatusCodes.Status401Unauthorized);
+
+    public override Task RedirectToAccessDenied(
+        RedirectContext<CookieAuthenticationOptions> context
+    ) => ApplyStatusCodeIfNotStarted(context.Response, StatusCodes.Status403Forbidden);
+
+    private static Task ApplyStatusCodeIfNotStarted(HttpResponse response, int statusCode)
+    {
+        if (!response.HasStarted)
+            response.StatusCode = statusCode;
+
+        return Task.CompletedTask;
+    }
 }

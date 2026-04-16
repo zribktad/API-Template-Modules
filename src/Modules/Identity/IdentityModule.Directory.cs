@@ -1,4 +1,3 @@
-using FluentValidation;
 using Identity.Directory.Controllers.V1;
 using Identity.Directory.Repositories;
 using Identity.Persistence;
@@ -34,15 +33,6 @@ public static partial class IdentityModule
             .AddRepository<IRoleRepository, RoleRepository>();
 
         services.AddScoped<AuthBootstrapSeeder>();
-    }
-
-    // ── Validators ────────────────────────────────────────────────────────────
-
-    private static void RegisterValidators(IServiceCollection services)
-    {
-        services.AddValidatorsFromAssemblyContaining<CreateUserRequestValidator>(filter: r =>
-            !r.ValidatorType.IsGenericTypeDefinition
-        );
     }
 
     // ── Controllers ───────────────────────────────────────────────────────────

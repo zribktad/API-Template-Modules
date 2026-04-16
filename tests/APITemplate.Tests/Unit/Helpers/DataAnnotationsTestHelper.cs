@@ -4,7 +4,9 @@ using SharedKernel.Application.Validation;
 namespace APITemplate.Tests.Unit.Helpers;
 
 /// <summary>
-///     Data Annotations validation aligned with <see cref="AttributedModelValidator" /> / <see cref="DataAnnotationsValidator{T}" />.
+///     Shared DataAnnotations validation for tests using <see cref="AttributedModelValidator.Validate" />,
+///     which covers both property attributes (<see cref="System.ComponentModel.DataAnnotations.Validator.TryValidateObject" />)
+///     and constructor-parameter attributes for primary-constructor records.
 /// </summary>
 internal static class DataAnnotationsTestHelper
 {

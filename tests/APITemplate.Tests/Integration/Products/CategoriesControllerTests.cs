@@ -209,7 +209,7 @@ public class CategoriesControllerTests : IClassFixture<CustomWebApplicationFacto
         );
 
         var response = await _client.GetAsync(
-            "/api/v1/categories?pageNumber=1&pageSize=1&sortBy=name&sortDirection=asc",
+            "/api/v1/categories?pageNumber=1&pageSize=1&sortBy=Name&sortDirection=asc",
             ct
         );
         response.StatusCode.ShouldBe(HttpStatusCode.OK);

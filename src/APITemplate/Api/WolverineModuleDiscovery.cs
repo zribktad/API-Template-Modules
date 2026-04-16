@@ -14,31 +14,24 @@ using Webhooks.Features.SendWebhookCallback;
 namespace APITemplate.Api;
 
 /// <summary>
-///     Central list of module assemblies for Wolverine handler discovery and ErrorOr validation middleware.
+///     Central list of module assemblies for Wolverine handler discovery.
 /// </summary>
 public static class WolverineModuleDiscovery
 {
     /// <summary>
-    ///     Assemblies whose FluentValidation validators should run in <see cref="SharedKernel.Application.Middleware.ErrorOrValidationMiddleware" />.
-    /// </summary>
-    public static IReadOnlyList<Assembly> ErrorOrValidationAssemblies { get; } =
-        ImmutableArray.Create(
-            typeof(CreateUserCommand).Assembly,
-            typeof(CreateProductsCommand).Assembly,
-            typeof(CreateProductReviewCommand).Assembly,
-            typeof(UploadFileCommand).Assembly,
-            typeof(SubmitJobCommand).Assembly
-        );
-
-    /// <summary>
-    ///     All module assemblies scanned for Wolverine handlers (includes <see cref="ErrorOrValidationAssemblies" /> plus handler-only assemblies).
+    ///     All module assemblies scanned for Wolverine handlers.
     /// </summary>
     public static IReadOnlyList<Assembly> HandlerAssemblies { get; } = BuildHandlerAssemblies();
 
     private static ImmutableArray<Assembly> BuildHandlerAssemblies()
     {
-        Assembly[] supplemental =
+        Assembly[] assemblies =
         [
+            typeof(CreateUserCommand).Assembly,
+            typeof(CreateProductsCommand).Assembly,
+            typeof(CreateProductReviewCommand).Assembly,
+            typeof(UploadFileCommand).Assembly,
+            typeof(SubmitJobCommand).Assembly,
             typeof(CleanupExpiredInvitationsHandler).Assembly,
             typeof(CleanupOrphanedProductDataHandler).Assembly,
             typeof(SendWebhookCallbackHandler).Assembly,
@@ -46,6 +39,6 @@ public static class WolverineModuleDiscovery
             typeof(UserRegisteredEmailHandler).Assembly,
         ];
 
-        return ErrorOrValidationAssemblies.Concat(supplemental).Distinct().ToImmutableArray();
+        return assemblies.Distinct().ToImmutableArray();
     }
 }

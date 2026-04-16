@@ -7,9 +7,13 @@ namespace Identity.Directory.Features.Tenant;
 /// </summary>
 public static class TenantSortFields
 {
-    public static readonly SortField Code = new("code");
-    public static readonly SortField Name = new("name");
-    public static readonly SortField CreatedAt = new("createdAt");
+    public const string CodeToken = nameof(Code);
+    public const string NameToken = nameof(Name);
+    public const string CreatedAtToken = nameof(CreatedAt);
+
+    public static readonly SortField Code = new(CodeToken);
+    public static readonly SortField Name = new(NameToken);
+    public static readonly SortField CreatedAt = new(CreatedAtToken);
 
     public static readonly SortFieldMap<TenantEntity> Map = new SortFieldMap<TenantEntity>()
         .Add(Code, t => (string)t.Code)

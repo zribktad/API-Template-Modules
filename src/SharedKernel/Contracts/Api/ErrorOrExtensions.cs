@@ -143,14 +143,18 @@ public static class ErrorOrExtensions
             Instance = httpContext.Request.Path,
             Type =
                 configuredType
-                ?? $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/errors/{Uri.EscapeDataString(errorCode)}",
+                ?? ProblemDetailsErrorTypeUri.BuildFallbackUri(
+                    httpContext.Request.Scheme,
+                    httpContext.Request.Host.ToString(),
+                    errorCode
+                ),
         };
 
-        problemDetails.Extensions["errorCode"] = firstError.Code;
-        problemDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
+        problemDetails.Extensions[ProblemDetailsConstants.ErrorCode] = firstError.Code;
+        problemDetails.Extensions[ProblemDetailsConstants.TraceId] = httpContext.TraceIdentifier;
 
         if (firstError.Metadata is { Count: > 0 })
-            problemDetails.Extensions["metadata"] = firstError.Metadata;
+            problemDetails.Extensions[ProblemDetailsConstants.Metadata] = firstError.Metadata;
 
         return problemDetails;
     }

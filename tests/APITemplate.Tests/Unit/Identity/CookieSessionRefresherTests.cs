@@ -28,7 +28,7 @@ public sealed class CookieSessionRefresherTests
     }
 
     [Fact]
-    public async Task ValidatePrincipal_WhenRefreshNotRequired_DoesNothing()
+    public async Task ValidatePrincipal_WhenRefreshNotRequired_DoesNotRenewCookie()
     {
         CookieSessionRefresher sut = CreateSut();
         CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
@@ -50,6 +50,75 @@ public sealed class CookieSessionRefresherTests
 
         context.ShouldRenew.ShouldBeFalse();
         context.Principal.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public async Task ValidatePrincipal_WhenLastValidatedExists_StillChecksRefresh()
+    {
+        CookieSessionRefresher sut = CreateSut();
+        CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
+        BffSessionRecord session = CreateSession("access-1", "refresh-1");
+        context.Properties.Items[AuthConstants.CookieTokenNames.LastValidated] = DateTimeOffset
+            .UtcNow.AddSeconds(-30)
+            .ToString("o");
+
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _refreshService
+            .Setup(x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(BffRefreshOutcome.NotRequired(session));
+
+        await sut.ValidatePrincipal(context);
+
+        context.ShouldRenew.ShouldBeFalse();
+        _sessionService.Verify(
+            x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _refreshService.Verify(
+            x =>
+                x.RefreshIfRequiredAsync(
+                    It.Is<BffSessionRecord>(s => s.SessionId == "session-1"),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task ValidatePrincipal_WhenValidatedRecentlyAndSessionMissing_RejectsPrincipal()
+    {
+        CookieSessionRefresher sut = CreateSut();
+        CookieValidatePrincipalContext context = CreateContext(sessionId: "session-1");
+        context.Properties.Items[AuthConstants.CookieTokenNames.LastValidated] = DateTimeOffset
+            .UtcNow.AddSeconds(-30)
+            .ToString("o");
+
+        _sessionService
+            .Setup(x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((BffSessionRecord?)null);
+
+        await sut.ValidatePrincipal(context);
+
+        context.Principal.ShouldBeNull();
+        _sessionService.Verify(
+            x => x.GetSessionAsync("session-1", It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _refreshService.Verify(
+            x =>
+                x.RefreshIfRequiredAsync(
+                    It.IsAny<BffSessionRecord>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
     }
 
     [Fact]

@@ -116,69 +116,49 @@ public class OrderServiceTests
 
 ### Validator Unit Tests
 
-Two approaches are used depending on the validation source:
-
-**FluentValidation rules** — call `validator.Validate()` directly:
+All validation uses **Data Annotations**. Use `DataAnnotationsTestHelper` (which delegates to `AttributedModelValidator`) to test attributes — this correctly handles `record` types where attributes are on primary constructor parameters.
 
 ```csharp
-// tests/APITemplate.Tests/Unit/Validators/CreateOrderRequestValidatorTests.cs
-using APITemplate.Application.DTOs;
-using APITemplate.Application.Validators;
+// tests/APITemplate.Tests/Unit/Validators/CreateProductRequestValidatorTests.cs
+using APITemplate.Tests.Unit.Helpers;
+using ProductCatalog.Features.Product.CreateProducts;
 using Shouldly;
 using Xunit;
 
-public class CreateOrderRequestValidatorTests
+public class CreateProductRequestValidatorTests
 {
-    private readonly CreateOrderRequestValidator _sut = new();
-
     [Fact]
     public void ValidRequest_PassesValidation()
     {
-        var result = _sut.Validate(new CreateOrderRequest(Guid.NewGuid(), 49.99m));
+        IReadOnlyList<ValidationResult> results =
+            DataAnnotationsTestHelper.Validate(new CreateProductRequest("Widget", null, 9.99m));
 
-        result.IsValid.ShouldBeTrue();
+        results.ShouldBeEmpty();
     }
 
     [Theory]
-    [InlineData(0)]
+    [InlineData(null)]
+    [InlineData("")]
+    public void EmptyName_FailsValidation(string? name)
+    {
+        IReadOnlyList<ValidationResult> results =
+            DataAnnotationsTestHelper.Validate(new CreateProductRequest(name!, null, 9.99m));
+
+        results.ShouldContain(r => r.MemberNames.Contains("Name"));
+    }
+
     [InlineData(-1)]
-    public void NegativeOrZeroAmount_FailsValidation(decimal amount)
+    public void NegativePrice_FailsValidation(decimal price)
     {
-        var result = _sut.Validate(new CreateOrderRequest(Guid.NewGuid(), amount));
+        IReadOnlyList<ValidationResult> results =
+            DataAnnotationsTestHelper.Validate(new CreateProductRequest("Widget", null, price));
 
-        result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.PropertyName == "TotalAmount");
-    }
-
-    [Fact]
-    public void EmptyCustomerId_FailsValidation()
-    {
-        var result = _sut.Validate(new CreateOrderRequest(Guid.Empty, 10m));
-
-        result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.PropertyName == "CustomerId");
+        results.ShouldContain(r => r.MemberNames.Contains("Price"));
     }
 }
 ```
 
-**Data annotation rules** (`[Required]`, `[MaxLength]`, `[Range]`) — use `System.ComponentModel.DataAnnotations.Validator`:
-
-```csharp
-[Theory]
-[InlineData(null)]
-[InlineData("")]
-public void Annotation_InvalidName_IsInvalid(string? name)
-{
-    var request = new CreateProductRequest(name!, null, 9.99m);
-    var results = new List<ValidationResult>();
-
-    var isValid = Validator.TryValidateObject(
-        request, new ValidationContext(request), results, validateAllProperties: true);
-
-    isValid.ShouldBeFalse();
-    results.ShouldContain(r => r.MemberNames.Contains("Name"));
-}
-```
+> Do **not** use `Validator.TryValidateObject` directly in tests — it misses attributes on primary constructor parameters of `record` types. Always use `DataAnnotationsTestHelper`.
 
 ---
 

@@ -2,7 +2,7 @@ namespace ProductCatalog.Features.Product.Shared;
 
 /// <summary>
 ///     Shared contract for create and update product command requests, enabling reuse of
-///     FluentValidation rules across both operations without duplicating property declarations.
+///     shared validation rules across both operations without duplicating property declarations.
 /// </summary>
 public interface IProductRequest
 {

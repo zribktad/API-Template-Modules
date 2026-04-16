@@ -1,19 +1,13 @@
-using FluentValidation;
+using System.ComponentModel.DataAnnotations;
+using SharedKernel.Application.Validation;
 
 namespace Identity.Directory.Features.Role.CreateRole;
 
 public sealed record CreateRoleRequest(
-    string Name,
-    List<string> Permissions,
+    [NotEmpty] [MaxLength(100)] string Name,
+    [Required]
+    [NoWhitespaceItems]
+    [MaxLengthItems(100)]
+        List<string> Permissions,
     Guid? TenantId = null
 );
-
-public sealed class CreateRoleRequestValidator : AbstractValidator<CreateRoleRequest>
-{
-    public CreateRoleRequestValidator()
-    {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Permissions).NotNull();
-        RuleForEach(x => x.Permissions).NotEmpty().MaximumLength(100);
-    }
-}

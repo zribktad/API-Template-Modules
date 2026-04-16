@@ -14,23 +14,16 @@ namespace APITemplate.Tests.Unit.ProductCatalog;
 
 public sealed class ProductCatalogModuleTests
 {
+    /// <summary>
+    ///     IBatchRule&lt;T&gt; is registered in the composition root (AddApiFoundation), not per-module.
+    ///     This test verifies that once the generic registration is present, all ProductCatalog item types resolve.
+    /// </summary>
     [Fact]
-    public void AddProductCatalogModule_RegistersFluentValidationBatchRulesForBatchItemTypes()
+    public void DataAnnotationsBatchRule_ResolvesForProductCatalogBatchItemTypes()
     {
         ServiceCollection services = new();
         services.AddLogging();
-
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string?>
-                {
-                    ["ConnectionStrings:DefaultConnection"] =
-                        "Host=localhost;Database=test;Username=test;Password=test",
-                }
-            )
-            .Build();
-
-        services.AddProductCatalogModule(configuration);
+        services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
 
         using ServiceProvider provider = services.BuildServiceProvider();
         using IServiceScope scope = provider.CreateScope();
@@ -45,6 +38,6 @@ public sealed class ProductCatalogModuleTests
     {
         scope
             .ServiceProvider.GetRequiredService<IBatchRule<T>>()
-            .ShouldBeOfType<FluentValidationBatchRule<T>>();
+            .ShouldBeOfType<DataAnnotationsBatchRule<T>>();
     }
 }

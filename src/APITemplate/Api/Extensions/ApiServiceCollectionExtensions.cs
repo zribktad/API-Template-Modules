@@ -1,11 +1,15 @@
 using APITemplate.Api.Cache;
 using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
+using ErrorOr;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.OutputCaching.StackExchangeRedis;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
+using SharedKernel.Application.Errors;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Contracts.Api;
@@ -33,6 +37,10 @@ public static class ApiServiceCollectionExtensions
                 "ErrorDocumentation:ErrorTypeBaseUri must be an absolute http or https URI when set."
             );
         services.AddProblemDetails();
+        services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
+        Microsoft.Extensions.DependencyInjection.ValidationServiceCollectionExtensions.AddValidation(
+            services
+        );
         services.ConfigureOptions<ProblemDetailsErrorTypeConfigureOptions>();
         services.AddExceptionHandler<ApiExceptionHandler>();
         services.Configure<MvcOptions>(options =>
@@ -40,6 +48,42 @@ public static class ApiServiceCollectionExtensions
             options.Conventions.Add(
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
+        });
+        services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.InvalidModelStateResponseFactory = context =>
+            {
+                List<Error> errors = context
+                    .ModelState.Where(kvp => kvp.Value is { Errors.Count: > 0 })
+                    .SelectMany(kvp =>
+                        kvp.Value!.Errors.Select(error =>
+                        {
+                            Dictionary<string, object> metadata = [];
+                            if (!string.IsNullOrWhiteSpace(kvp.Key))
+                                metadata["propertyName"] = kvp.Key;
+
+                            return Error.Validation(
+                                ErrorCatalog.General.ValidationFailed,
+                                string.IsNullOrWhiteSpace(error.ErrorMessage)
+                                    ? "The request is invalid."
+                                    : error.ErrorMessage,
+                                metadata.Count > 0 ? metadata : null
+                            );
+                        })
+                    )
+                    .ToList();
+
+                if (errors.Count == 0)
+                    errors.Add(
+                        Error.Validation(
+                            ErrorCatalog.General.ValidationFailed,
+                            "The request is invalid."
+                        )
+                    );
+
+                ProblemDetails problemDetails = errors.ToProblemDetails(context.HttpContext);
+                return new ObjectResult(problemDetails) { StatusCode = problemDetails.Status };
+            };
         });
 
         ConfigurationOptions? redisConfiguration = null;

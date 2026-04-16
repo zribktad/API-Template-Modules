@@ -7,8 +7,8 @@ namespace ProductCatalog.Features.Category.UpdateCategories;
 public sealed record UpdateCategoriesCommand(UpdateCategoriesRequest Request);
 
 /// <summary>
-///     Handles <see cref="UpdateCategoriesCommand" /> by validating all items, loading categories in bulk, and
-///     updating in a single transaction.
+///     Handles <see cref="UpdateCategoriesCommand" /> by loading categories in bulk and updating them in a single
+///     transaction. Item field validation is enforced at the HTTP boundary via data annotations.
 /// </summary>
 public sealed class UpdateCategoriesCommandHandler
 {
@@ -19,13 +19,11 @@ public sealed class UpdateCategoriesCommandHandler
     )> LoadAsync(
         UpdateCategoriesCommand command,
         ICategoryRepository repository,
-        IBatchRule<UpdateCategoryItem> itemValidationRule,
         CancellationToken ct
     )
     {
         IReadOnlyList<UpdateCategoryItem> items = command.Request.Items;
         BatchFailureContext<UpdateCategoryItem> context = new(items);
-        await context.ApplyRulesAsync(ct, itemValidationRule);
 
         // Load all target categories and mark missing ones as failed
         HashSet<Guid> requestedIds = items

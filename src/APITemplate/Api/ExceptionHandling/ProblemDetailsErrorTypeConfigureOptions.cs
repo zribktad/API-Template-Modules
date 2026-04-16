@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using SharedKernel.Contracts.Api;
 
@@ -26,19 +27,33 @@ internal sealed class ProblemDetailsErrorTypeConfigureOptions
         options.CustomizeProblemDetails = context =>
         {
             IDictionary<string, object?> extensions = context.ProblemDetails.Extensions;
-            extensions["traceId"] = context.HttpContext.TraceIdentifier;
 
-            string errorCode =
-                extensions.TryGetValue("errorCode", out object? existingErrorCode)
+            bool hasExplicitErrorCode =
+                extensions.TryGetValue(
+                    ProblemDetailsConstants.ErrorCode,
+                    out object? existingErrorCode
+                )
                 && existingErrorCode is string existing
-                    ? existing
+                && !string.IsNullOrWhiteSpace(existing);
+
+            if (!hasExplicitErrorCode)
+            {
+                bool isValidationProblem =
+                    context.ProblemDetails is HttpValidationProblemDetails
+                    || extensions.ContainsKey(ProblemDetailsConstants.Errors);
+
+                string errorCode = isValidationProblem
+                    ? ErrorCatalog.General.ValidationFailed
                     : ErrorCatalog.General.Unknown;
 
-            extensions["errorCode"] = errorCode;
+                extensions[ProblemDetailsConstants.ErrorCode] = errorCode;
+            }
+
+            string errorCodeToUse = (string)extensions[ProblemDetailsConstants.ErrorCode]!;
 
             string? typeUri = ProblemDetailsErrorTypeUri.BuildAbsoluteUri(
                 _errorDocumentation.Value.ErrorTypeBaseUri,
-                errorCode
+                errorCodeToUse
             );
             // When ErrorTypeBaseUri is set, use our documentation URI (overrides host defaults).
             // When unset, leave Type unchanged so RFC 9110 defaults can apply.

@@ -1,6 +1,4 @@
 using ErrorOr;
-using FluentValidation;
-using FluentValidation.Results;
 using Identity.ValueObjects;
 using Moq;
 using ProductCatalog;
@@ -27,7 +25,6 @@ public sealed class PatchProductCommandHandlerTests
     {
         Mock<IProductRepository> repositoryMock = new();
         Mock<IUnitOfWork<ProductCatalogDbMarker>> unitOfWorkMock = new();
-        Mock<IValidator<PatchableProductDto>> validatorMock = new();
 
         Product product = new()
         {
@@ -61,21 +58,11 @@ public sealed class PatchProductCommandHandlerTests
                 async (action, _, _) => await action()
             );
 
-        validatorMock
-            .Setup(validator =>
-                validator.ValidateAsync(
-                    It.IsAny<PatchableProductDto>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new ValidationResult());
-
         (ErrorOr<ProductResponse> result, OutgoingMessages messages) =
             await PatchProductCommandHandler.HandleAsync(
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
-                validatorMock.Object,
                 TestContext.Current.CancellationToken
             );
 
@@ -100,7 +87,6 @@ public sealed class PatchProductCommandHandlerTests
     {
         Mock<IProductRepository> repositoryMock = new();
         Mock<IUnitOfWork<ProductCatalogDbMarker>> unitOfWorkMock = new();
-        Mock<IValidator<PatchableProductDto>> validatorMock = new();
         Guid productId = Guid.NewGuid();
 
         repositoryMock
@@ -112,7 +98,6 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(productId, new JsonPatchDocument<PatchableProductDto>()),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
-                validatorMock.Object,
                 TestContext.Current.CancellationToken
             );
 
@@ -135,7 +120,6 @@ public sealed class PatchProductCommandHandlerTests
     {
         Mock<IProductRepository> repositoryMock = new();
         Mock<IUnitOfWork<ProductCatalogDbMarker>> unitOfWorkMock = new();
-        Mock<IValidator<PatchableProductDto>> validatorMock = new();
 
         Product product = new()
         {
@@ -153,21 +137,11 @@ public sealed class PatchProductCommandHandlerTests
             .Setup(repository => repository.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(product);
 
-        validatorMock
-            .Setup(validator =>
-                validator.ValidateAsync(
-                    It.IsAny<PatchableProductDto>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new ValidationResult());
-
         (ErrorOr<ProductResponse> result, OutgoingMessages messages) =
             await PatchProductCommandHandler.HandleAsync(
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
-                validatorMock.Object,
                 TestContext.Current.CancellationToken
             );
 
@@ -184,6 +158,42 @@ public sealed class PatchProductCommandHandlerTests
                 ),
             Times.Never
         );
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenPatchMakesDescriptionRequired_ReturnsValidationError()
+    {
+        Mock<IProductRepository> repositoryMock = new();
+        Mock<IUnitOfWork<ProductCatalogDbMarker>> unitOfWorkMock = new();
+
+        Product product = new()
+        {
+            Id = Guid.NewGuid(),
+            Name = "Product",
+            Description = null,
+            Price = Price.FromPersistence(10m),
+            CategoryId = Guid.NewGuid(),
+        };
+
+        JsonPatchDocument<PatchableProductDto> patchDocument = new();
+        patchDocument.Replace(p => p.Price, 1500m);
+
+        repositoryMock
+            .Setup(repository => repository.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(product);
+
+        (ErrorOr<ProductResponse> result, OutgoingMessages messages) =
+            await PatchProductCommandHandler.HandleAsync(
+                new PatchProductCommand(product.Id, patchDocument),
+                repositoryMock.Object,
+                unitOfWorkMock.Object,
+                TestContext.Current.CancellationToken
+            );
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Validation);
+        result.FirstError.Description.ShouldContain("Description is required for products priced above 1000.");
+        messages.ShouldBeEmpty();
     }
 }
 

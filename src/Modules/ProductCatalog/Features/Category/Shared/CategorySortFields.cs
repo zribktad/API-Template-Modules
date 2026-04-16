@@ -7,11 +7,14 @@ namespace ProductCatalog.Features.Category.Shared;
 /// </summary>
 public static class CategorySortFields
 {
+    public const string NameToken = nameof(Name);
+    public const string CreatedAtToken = nameof(CreatedAt);
+
     /// <summary>Sort by category name.</summary>
-    public static readonly SortField Name = new("name");
+    public static readonly SortField Name = new(NameToken);
 
     /// <summary>Sort by creation timestamp.</summary>
-    public static readonly SortField CreatedAt = new("createdAt");
+    public static readonly SortField CreatedAt = new(CreatedAtToken);
 
     /// <summary>
     ///     The sort field map used to resolve and apply sorting to category specifications.

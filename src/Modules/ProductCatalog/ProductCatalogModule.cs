@@ -1,4 +1,3 @@
-using FluentValidation;
 using Kot.MongoDB.Migrations;
 using Kot.MongoDB.Migrations.DI;
 using Microsoft.AspNetCore.Builder;
@@ -19,6 +18,8 @@ using ProductCatalog.Infrastructure.Health;
 using ProductCatalog.Persistence;
 using ProductCatalog.Repositories;
 using ProductCatalog.Services;
+using SharedKernel.Application.Batch;
+using SharedKernel.Application.Batch.Rules;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Health;
@@ -50,11 +51,6 @@ public static class ProductCatalogModule
             .AddRepository<IProductDataLinkRepository, ProductDataLinkRepository>()
             .AddRepository<IProductDataRepository, ProductDataRepository>();
 
-        services.AddValidatorsFromAssemblyContaining<ProductCatalogDbMarker>(filter: registration =>
-            !registration.ValidatorType.IsGenericTypeDefinition
-        );
-        services.AddScoped(typeof(IBatchRule<>), typeof(FluentValidationBatchRule<>));
-
         services.Configure<MongoDbSettings>(
             configuration.GetSection(ConfigurationSections.MongoDB)
         );
@@ -73,7 +69,6 @@ public static class ProductCatalogModule
                 new MigrationOptions(mongoSettings.DatabaseName),
                 config => config.LoadMigrationsFromAssembly(typeof(ProductCatalogModule).Assembly)
             );
-            services.AddHealthChecks().AddCheck<MongoDbHealthCheck>(HealthCheckNames.MongoDb);
         }
 
         services.AddResiliencePipeline(

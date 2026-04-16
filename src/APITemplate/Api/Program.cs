@@ -1,5 +1,6 @@
 using System.Reflection;
 using APITemplate.Api;
+using APITemplate.Api.Extensions;
 using BackgroundJobs;
 using Chatting;
 using FileStorage;
@@ -86,23 +87,15 @@ builder.Host.UseWolverine(options =>
         options.Discovery.IncludeAssembly(assembly);
 
     options.Policies.AddMiddleware(
-        typeof(ErrorOrValidationMiddleware),
-        chain =>
-            chain.ShouldApplyErrorOrValidation(WolverineModuleDiscovery.ErrorOrValidationAssemblies)
+        typeof(DataAnnotationsValidationMiddleware),
+        chain => chain.ShouldApplyDataAnnotationsValidation()
     );
 
     // Retry policy for transient HTTP failures (e.g. Keycloak temporarily unavailable).
     // Applies only to queue-delivered messages (outbox workers) — NOT to InvokeAsync calls.
     // After all retries are exhausted the message moves to wolverine_dead_letters in PostgreSQL.
-    options
-        .OnException<HttpRequestException>()
-        .ScheduleRetry(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5))
-        .Then.MoveToErrorQueue();
-
-    options
-        .OnException<MongoException>()
-        .ScheduleRetry(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5))
-        .Then.MoveToErrorQueue();
+    options.AddDurableRetryPolicy<HttpRequestException>();
+    options.AddDurableRetryPolicy<MongoException>();
 });
 
 WebApplication app = builder.Build();

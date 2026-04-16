@@ -1,23 +1,25 @@
 using ErrorOr;
-using FluentValidation;
+using Identity.Auth.Security;
+using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.InvalidatePermissions;
 using Identity.Directory.Features.Role.Shared;
 using Microsoft.AspNetCore.Http;
+using Identity.Directory.Interfaces;
+using SharedKernel.Application.Validation;
+using SharedKernel.Contracts.Security;
+using SharedKernel.Domain.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using Wolverine;
 
 namespace Identity.Directory.Features.Role.UpdateRole;
 
-public sealed record UpdateRoleRequest(string Name, List<string> Permissions);
-
-public sealed class UpdateRoleRequestValidator : AbstractValidator<UpdateRoleRequest>
-{
-    public UpdateRoleRequestValidator()
-    {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Permissions).NotNull();
-        RuleForEach(x => x.Permissions).NotEmpty().MaximumLength(100);
-    }
-}
+public sealed record UpdateRoleRequest(
+    [NotEmpty] [MaxLength(100)] string Name,
+    [Required]
+    [NoWhitespaceItems]
+    [MaxLengthItems(100)]
+        List<string> Permissions
+);
 
 public sealed record UpdateRoleCommand(Guid Id, UpdateRoleRequest Request) : IHasId;
 

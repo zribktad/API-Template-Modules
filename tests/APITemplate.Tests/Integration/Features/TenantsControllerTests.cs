@@ -154,7 +154,7 @@ public class TenantsControllerTests : IClassFixture<CustomWebApplicationFactory>
         await CreateTenantAsync(Code("P2"), "Paged Tenant B", ct);
 
         var response = await _client.GetAsync(
-            "/api/v1/tenants?pageNumber=1&pageSize=1&sortBy=code&sortDirection=asc",
+            "/api/v1/tenants?pageNumber=1&pageSize=1&sortBy=Code&sortDirection=asc",
             ct
         );
 
@@ -198,7 +198,7 @@ public class TenantsControllerTests : IClassFixture<CustomWebApplicationFactory>
         var c = await CreateTenantAsync(Code("DP3"), "Disjoint C", ct);
 
         var page1Response = await _client.GetAsync(
-            "/api/v1/tenants?pageNumber=1&pageSize=2&sortBy=code&sortDirection=asc",
+            "/api/v1/tenants?pageNumber=1&pageSize=2&sortBy=Code&sortDirection=asc",
             ct
         );
         var page1 = await page1Response.Content.ReadFromJsonAsync<PagedResponse<TenantResponse>>(
@@ -207,7 +207,7 @@ public class TenantsControllerTests : IClassFixture<CustomWebApplicationFactory>
         );
 
         var page2Response = await _client.GetAsync(
-            "/api/v1/tenants?pageNumber=2&pageSize=2&sortBy=code&sortDirection=asc",
+            "/api/v1/tenants?pageNumber=2&pageSize=2&sortBy=Code&sortDirection=asc",
             ct
         );
         var page2 = await page2Response.Content.ReadFromJsonAsync<PagedResponse<TenantResponse>>(

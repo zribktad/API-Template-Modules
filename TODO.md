@@ -173,6 +173,8 @@ DB handles cascade automatically. Breaks current event-driven architecture, hard
 - [x] Add `AuthorizationResponsesOperationTransformer` for OpenAPI — automatically document 401/403 on `[Authorize]`
   endpoints.
 - [x] Add `BearerSecuritySchemeDocumentTransformer` — dynamic Keycloak OAuth2 authorization code flow in OpenAPI.
+- [ ] Optional alternative for high-traffic deployments: evaluate hybrid BFF validation where session presence is still
+  verified on every request, but refresh checks are throttled (for example via a short `.last_validated` interval).
 
 ## Exception Handling Enhancements
 

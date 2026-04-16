@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using SharedKernel.Application.Validation;
+
 namespace Identity.Directory.Features.User;
 
 /// <summary>
@@ -10,7 +13,14 @@ public sealed record UserFilter(
     bool? IsActive = null,
     Guid? RoleId = null,
     ProvisioningStatus? ProvisioningStatus = null,
+    [CaseInsensitiveAllowedValues(
+        UserSortFields.UsernameToken,
+        UserSortFields.EmailToken,
+        UserSortFields.CreatedAtToken,
+        ErrorMessage = "SortBy must be one of: Username, Email, CreatedAt."
+    )]
     string? SortBy = null,
+    [SortDirection]
     string? SortDirection = null,
     int PageNumber = 1,
     int PageSize = PaginationFilter.DefaultPageSize

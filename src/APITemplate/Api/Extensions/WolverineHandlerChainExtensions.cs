@@ -1,16 +1,11 @@
-using System.Reflection;
 using Wolverine.Runtime.Handlers;
 
 namespace APITemplate.Api.Extensions;
 
 public static class WolverineHandlerChainExtensions
 {
-    public static bool ShouldApplyErrorOrValidation(
-        this HandlerChain chain,
-        IReadOnlyList<Assembly> validatorAssemblies
-    )
+    public static bool ShouldApplyDataAnnotationsValidation(this HandlerChain chain)
     {
-        return validatorAssemblies.Any(chain.MessageType.HasValidatorIn)
-            && chain.Handlers.Any(handler => handler.Method.ReturnType.IsErrorOrReturnType());
+        return chain.Handlers.Any(handler => handler.Method.ReturnType.IsErrorOrReturnType());
     }
 }

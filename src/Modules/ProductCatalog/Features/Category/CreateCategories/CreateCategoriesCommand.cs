@@ -7,7 +7,9 @@ namespace ProductCatalog.Features.Category.CreateCategories;
 /// <summary>Creates multiple categories in a single batch operation.</summary>
 public sealed record CreateCategoriesCommand(CreateCategoriesRequest Request);
 
-/// <summary>Handles <see cref="CreateCategoriesCommand" /> by validating all items and persisting in a single transaction.</summary>
+/// <summary>
+///     Handles <see cref="CreateCategoriesCommand" /> by persisting validated request items in a single transaction.
+/// </summary>
 public sealed class CreateCategoriesCommandHandler
 {
     public static async Task<(
@@ -16,22 +18,10 @@ public sealed class CreateCategoriesCommandHandler
         OutgoingMessages
     )> LoadAsync(
         CreateCategoriesCommand command,
-        IBatchRule<CreateCategoryRequest> itemValidationRule,
         CancellationToken ct
     )
     {
         IReadOnlyList<CreateCategoryRequest> items = command.Request.Items;
-        BatchFailureContext<CreateCategoryRequest> context = new(items);
-
-        await context.ApplyRulesAsync(ct, itemValidationRule);
-
-        if (context.HasFailures)
-        {
-            OutgoingMessages failureMessages = new();
-            failureMessages.RespondToSender(context.ToFailureResponse());
-            return (HandlerContinuation.Stop, null, failureMessages);
-        }
-
         List<CategoryEntity> entities = items
             .Select(item => CategoryEntity.Create(item.Name, item.Description))
             .ToList();

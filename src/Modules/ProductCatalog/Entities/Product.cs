@@ -8,7 +8,7 @@ namespace ProductCatalog.Entities;
 /// </summary>
 public sealed class Product : IAuditableTenantEntity, IHasId
 {
-    /// <summary>Display name of the product. Required, max 200 characters (enforced by EF config + FluentValidation).</summary>
+    /// <summary>Display name of the product. Required, max 200 characters (enforced by EF config + request validation).</summary>
     public required string Name
     {
         get => field;
