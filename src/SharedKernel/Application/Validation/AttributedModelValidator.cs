@@ -10,26 +10,34 @@ namespace SharedKernel.Application.Validation;
 /// </summary>
 public static class AttributedModelValidator
 {
-    private sealed record CachedParam(PropertyInfo Property, ValidationAttribute[] Attributes, string Name);
+    private sealed record CachedParam(
+        PropertyInfo Property,
+        ValidationAttribute[] Attributes,
+        string Name
+    );
 
-    private static readonly ConcurrentDictionary<Type, IReadOnlyList<CachedParam>> _paramCache = new();
+    private static readonly ConcurrentDictionary<Type, IReadOnlyList<CachedParam>> _paramCache =
+        new();
 
     private static IReadOnlyList<CachedParam> GetCachedParams(Type type) =>
-        _paramCache.GetOrAdd(type, static t =>
-        {
-            ConstructorInfo? ctor = t.GetConstructors().FirstOrDefault();
-            if (ctor is null)
-                return [];
+        _paramCache.GetOrAdd(
+            type,
+            static t =>
+            {
+                ConstructorInfo? ctor = t.GetConstructors().FirstOrDefault();
+                if (ctor is null)
+                    return [];
 
-            return ctor.GetParameters()
-                .Select(p => new CachedParam(
-                    t.GetProperty(p.Name!, BindingFlags.Public | BindingFlags.Instance)!,
-                    p.GetCustomAttributes<ValidationAttribute>().ToArray(),
-                    p.Name!
-                ))
-                .Where(x => x.Property is not null)
-                .ToArray();
-        });
+                return ctor.GetParameters()
+                    .Select(p => new CachedParam(
+                        t.GetProperty(p.Name!, BindingFlags.Public | BindingFlags.Instance)!,
+                        p.GetCustomAttributes<ValidationAttribute>().ToArray(),
+                        p.Name!
+                    ))
+                    .Where(x => x.Property is not null)
+                    .ToArray();
+            }
+        );
 
     /// <summary>
     ///     Returns all validation failures for <paramref name="model" /> (empty if valid).
@@ -37,6 +45,19 @@ public static class AttributedModelValidator
     public static IReadOnlyList<ValidationResult> Validate(object model)
     {
         List<ValidationResult> results = [];
+        Validate(model, results, new HashSet<object>(ReferenceEqualityComparer.Instance));
+        return results;
+    }
+
+    private static void Validate(
+        object model,
+        List<ValidationResult> results,
+        HashSet<object> visited
+    )
+    {
+        if (!visited.Add(model))
+            return;
+
         Validator.TryValidateObject(
             model,
             new ValidationContext(model),
@@ -44,7 +65,55 @@ public static class AttributedModelValidator
             validateAllProperties: true
         );
         AppendConstructorParameterAttributeResults(model, results);
-        return results;
+
+        // Recurse one step into complex, non-primitive public properties (e.g. command wrappers
+        // like CreateFooCommand(FooRequest Request) or GetFooQuery(FooFilter Filter)). This matches
+        // what [ApiController] model validation did for nested bound types at the MVC boundary.
+        foreach (
+            PropertyInfo property in model
+                .GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        )
+        {
+            if (!IsValidatableComplexType(property.PropertyType))
+                continue;
+
+            object? value;
+            try
+            {
+                value = property.GetValue(model);
+            }
+            catch
+            {
+                continue;
+            }
+
+            if (value is null)
+                continue;
+
+            Validate(value, results, visited);
+        }
+    }
+
+    private static bool IsValidatableComplexType(Type type)
+    {
+        Type underlying = Nullable.GetUnderlyingType(type) ?? type;
+        if (underlying.IsPrimitive || underlying.IsEnum)
+            return false;
+        if (
+            underlying == typeof(string)
+            || underlying == typeof(decimal)
+            || underlying == typeof(DateTime)
+            || underlying == typeof(DateTimeOffset)
+            || underlying == typeof(TimeSpan)
+            || underlying == typeof(Guid)
+            || underlying == typeof(Uri)
+        )
+            return false;
+        if (typeof(System.Collections.IEnumerable).IsAssignableFrom(underlying))
+            return false;
+        // Only recurse into user-defined types (skip BCL types).
+        return underlying.Assembly != typeof(object).Assembly;
     }
 
     /// <summary>
