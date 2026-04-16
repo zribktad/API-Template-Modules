@@ -159,7 +159,10 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
             .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((byte[]?)null);
 
-        BffSessionRecord? result = await _sut.GetAsync(session.SessionId);
+        BffSessionRecord? result = await _sut.GetAsync(
+            session.SessionId,
+            TestContext.Current.CancellationToken
+        );
 
         result.ShouldNotBeNull();
         result.SessionId.ShouldBe(session.SessionId);
@@ -186,7 +189,10 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
             .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((byte[]?)null);
 
-        BffSessionRecord? result = await _sut.GetAsync("nonexistent-session");
+        BffSessionRecord? result = await _sut.GetAsync(
+            "nonexistent-session",
+            TestContext.Current.CancellationToken
+        );
 
         result.ShouldBeNull();
     }
@@ -212,7 +218,10 @@ public sealed class PostgresCachedBffSessionStoreTests : IDisposable
             .Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((byte[]?)null);
 
-        BffSessionRecord? result = await _sut.GetAsync(session.SessionId);
+        BffSessionRecord? result = await _sut.GetAsync(
+            session.SessionId,
+            TestContext.Current.CancellationToken
+        );
 
         result.ShouldBeNull();
     }
