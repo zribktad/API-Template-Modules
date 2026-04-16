@@ -38,7 +38,7 @@ public sealed class BoundaryFilterValidationTests
     [Fact]
     public void ProductReviewFilter_WhenRatingRangeInvalid_FailsValidation()
     {
-        ProductReviewFilter filter = new() { MinRating = 5, MaxRating = 1 };
+        var filter = new ProductReviewFilter(MinRating: 5, MaxRating: 1);
 
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 
@@ -51,7 +51,7 @@ public sealed class BoundaryFilterValidationTests
     [Fact]
     public void ProductReviewFilter_WhenMinRatingOutOfRange_FailsValidation()
     {
-        ProductReviewFilter filter = new() { MinRating = 0 };
+        var filter = new ProductReviewFilter(MinRating: 0);
 
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 

@@ -23,19 +23,18 @@ public class ProductReviewQueries
         CancellationToken ct
     )
     {
-        ProductReviewFilter filter = new()
-        {
-            ProductId = input?.ProductId,
-            UserId = input?.UserId,
-            MinRating = input?.MinRating,
-            MaxRating = input?.MaxRating,
-            CreatedFrom = input?.CreatedFrom,
-            CreatedTo = input?.CreatedTo,
-            SortBy = input?.SortBy,
-            SortDirection = input?.SortDirection,
-            PageNumber = input?.PageNumber ?? 1,
-            PageSize = input?.PageSize ?? 20,
-        };
+        ProductReviewFilter filter = new(
+            input?.ProductId,
+            input?.UserId,
+            input?.MinRating,
+            input?.MaxRating,
+            input?.CreatedFrom,
+            input?.CreatedTo,
+            input?.SortBy,
+            input?.SortDirection,
+            input?.PageNumber ?? 1,
+            input?.PageSize ?? 20
+        );
 
         ErrorOr<PagedResponse<ProductReviewResponse>> result = await bus.InvokeAsync<
             ErrorOr<PagedResponse<ProductReviewResponse>>
@@ -65,12 +64,7 @@ public class ProductReviewQueries
         CancellationToken ct
     )
     {
-        ProductReviewFilter filter = new()
-        {
-            ProductId = productId,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-        };
+        ProductReviewFilter filter = new(productId, PageNumber: pageNumber, PageSize: pageSize);
         ErrorOr<PagedResponse<ProductReviewResponse>> result = await bus.InvokeAsync<
             ErrorOr<PagedResponse<ProductReviewResponse>>
         >(new GetProductReviewsQuery(filter), ct);
