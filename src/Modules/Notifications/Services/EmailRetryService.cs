@@ -85,6 +85,10 @@ public sealed class EmailRetryService : IEmailRetryService
                 stagedDeleteAfterSuccessfulSend = true;
                 _logger.EmailRetrySucceeded(email.To, email.RetryCount + 1);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 email.RetryCount++;

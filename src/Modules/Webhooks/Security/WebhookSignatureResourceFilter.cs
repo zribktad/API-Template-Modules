@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using SharedKernel.Application.Errors;
 using Webhooks.Contracts;
@@ -13,19 +12,19 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
     // Threshold above which ASP.NET Core spills the buffered request body to disk. 64 KB is the framework default.
     private const int BufferThresholdBytes = 64 * 1024;
 
+    // Hardcoded limit matching [RequestSizeLimit(1024 * 1024)] on the controller.
+    private const int MaxBodyBytes = 1024 * 1024;
+
     private readonly IProblemDetailsService _problemDetailsService;
     private readonly IWebhookPayloadValidator _validator;
-    private readonly IOptions<WebhookOptions> _options;
 
     public WebhookSignatureResourceFilter(
         IWebhookPayloadValidator validator,
-        IProblemDetailsService problemDetailsService,
-        IOptions<WebhookOptions> options
+        IProblemDetailsService problemDetailsService
     )
     {
         _validator = validator;
         _problemDetailsService = problemDetailsService;
-        _options = options;
     }
 
     public async Task OnResourceExecutionAsync(
@@ -44,12 +43,11 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
         }
 
         HttpRequest request = context.HttpContext.Request;
-        int maxBodyBytes = _options.Value.MaxBodyBytes;
 
         // Fail fast on Content-Length to avoid buffering oversized payloads.
-        if (request.ContentLength is long declared && declared > maxBodyBytes)
+        if (request.ContentLength is long declared && declared > MaxBodyBytes)
         {
-            await WritePayloadTooLargeAsync(context, maxBodyBytes);
+            await WritePayloadTooLargeAsync(context, MaxBodyBytes);
             return;
         }
 
@@ -69,7 +67,7 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
         }
 
         // bufferLimit throws InvalidDataException when body exceeds the limit during read.
-        request.EnableBuffering(bufferThreshold: BufferThresholdBytes, bufferLimit: maxBodyBytes);
+        request.EnableBuffering(bufferThreshold: BufferThresholdBytes, bufferLimit: MaxBodyBytes);
         string body;
         try
         {
@@ -78,7 +76,7 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
         }
         catch (InvalidDataException)
         {
-            await WritePayloadTooLargeAsync(context, maxBodyBytes);
+            await WritePayloadTooLargeAsync(context, MaxBodyBytes);
             return;
         }
         request.Body.Position = 0;

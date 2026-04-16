@@ -18,11 +18,15 @@ internal static class SsrfProtectedSocketsHttpHandlerFactory
             PooledConnectionLifetime = TimeSpan.FromMinutes(2),
             ConnectCallback = async (context, ct) =>
             {
-                // 1. Resolve DNS authoritative results
-                IPAddress[] addresses = await Dns.GetHostAddressesAsync(
-                    context.DnsEndPoint.Host,
-                    ct
-                );
+                // 1. Resolve addresses (handles both DNS names and IP strings)
+                // We prefer RequestUri but fall back to DnsEndPoint.
+                // context.DnsEndPoint can throw InvalidCastException if the internal endpoint
+                // is already an IPEndPoint, so we try to use RequestUri first.
+                Uri? uri = context.InitialRequestMessage?.RequestUri;
+                string host = uri?.Host ?? context.DnsEndPoint.Host;
+                int port = uri?.Port ?? context.DnsEndPoint.Port;
+
+                IPAddress[] addresses = await Dns.GetHostAddressesAsync(host, ct);
 
                 // 2. Filter addresses through the security policy
                 List<IPAddress> allowedAddresses = addresses
@@ -32,8 +36,8 @@ internal static class SsrfProtectedSocketsHttpHandlerFactory
                 if (allowedAddresses.Count == 0)
                 {
                     throw new InvalidOperationException(
-                        $"Connection to '{context.DnsEndPoint.Host}' is prohibited. "
-                            + $"All resolved addresses ({string.Join(", ", (IEnumerable<IPAddress>)addresses)}) are restricted by the network security policy."
+                        $"Connection to '{host}' is prohibited. "
+                            + $"All resolved addresses ({string.Join(", ", addresses)}) are restricted by the network security policy."
                     );
                 }
 
@@ -44,10 +48,7 @@ internal static class SsrfProtectedSocketsHttpHandlerFactory
                     Socket socket = new(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
                     try
                     {
-                        await socket.ConnectAsync(
-                            new IPEndPoint(address, context.DnsEndPoint.Port),
-                            ct
-                        );
+                        await socket.ConnectAsync(new IPEndPoint(address, port), ct);
                         return new NetworkStream(socket, ownsSocket: true);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
@@ -63,7 +64,7 @@ internal static class SsrfProtectedSocketsHttpHandlerFactory
                 }
 
                 throw new InvalidOperationException(
-                    $"Failed to connect to any of the allowed IP addresses for '{context.DnsEndPoint.Host}'.",
+                    $"Failed to connect to any of the allowed IP addresses for '{host}'.",
                     lastException
                 );
             },

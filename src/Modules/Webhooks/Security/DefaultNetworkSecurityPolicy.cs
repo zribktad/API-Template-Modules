@@ -48,7 +48,7 @@ internal sealed class DefaultNetworkSecurityPolicy(
             return bytes[0] switch
             {
                 10 => false, // 10.0.0.0/8 (Private)
-                100 => (bytes[1] & 0xC0) != 64, // 100.64.0.0/10 (Carrier-grade NAT) - block if it IS 64
+                100 => bytes[1] < 64 || bytes[1] > 127, // 100.64.0.0/10 (Carrier-grade NAT) - block if second octet is 64-127
                 172 => bytes[1] < 16 || bytes[1] > 31, // 172.16.0.0/12 (Private) - block if in range
                 192 => bytes[1] != 168, // 192.168.0.0/16 (Private) - block if 168
                 169 => bytes[1] != 254, // 169.254.0.0/16 (Link-local) - block if 254
