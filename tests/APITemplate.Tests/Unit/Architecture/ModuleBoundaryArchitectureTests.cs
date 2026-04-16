@@ -5,7 +5,6 @@ using BackgroundJobs;
 using Chatting;
 using FileStorage;
 using Identity;
-using NetArchTest.Rules;
 using Notifications;
 using ProductCatalog;
 using Reviews;
@@ -24,20 +23,12 @@ public sealed class ModuleBoundaryArchitectureTests
 
         foreach (ModuleDefinition module in ModuleArchitecture.Modules)
         {
-            foreach (string forbiddenRootNamespace in ModuleArchitecture.GetForbiddenModuleDependencies(
+            foreach (string forbiddenModuleName in ModuleArchitecture.GetForbiddenModuleDependencies(
                 module.Name
             ))
             {
-                bool result = Types
-                    .InAssembly(module.Assembly)
-                    .ShouldNot()
-                    .HaveDependencyOn(forbiddenRootNamespace)
-                    .GetResult();
-
-                if (!result)
-                {
-                    failures.Add($"{module.Name} must not depend on {forbiddenRootNamespace}.");
-                }
+                if (ModuleArchitecture.HasDirectAssemblyReference(module.Assembly, forbiddenModuleName))
+                    failures.Add($"{module.Name} must not depend on {forbiddenModuleName}.");
             }
         }
 
@@ -47,13 +38,11 @@ public sealed class ModuleBoundaryArchitectureTests
     [Fact]
     public void ProductCatalog_TemporaryExceptionToReviews_ShouldRemainExplicitUntilRefactored()
     {
-        bool result = Types
-            .InAssembly(ModuleArchitecture.GetModule("ProductCatalog").Assembly)
-            .Should()
-            .HaveDependencyOn(ModuleArchitecture.Reviews.RootNamespace)
-            .GetResult();
+        string repoRoot = GetRepoRoot();
+        List<string> interModuleReferences = GetInterModuleProjectReferences(repoRoot);
 
-        result.ShouldBeTrue(
+        interModuleReferences.ShouldContain(
+            "ProductCatalog -> Reviews",
             "ProductCatalog -> Reviews is the only temporary cross-module exception. "
                 + "If this dependency is removed, delete the whitelist entry and this test."
         );
@@ -64,16 +53,10 @@ public sealed class ModuleBoundaryArchitectureTests
     {
         List<string> failures = new();
 
-        foreach (string moduleRootNamespace in ModuleArchitecture.Modules.Select(x => x.RootNamespace))
+        foreach (string moduleName in ModuleArchitecture.Modules.Select(x => x.Name))
         {
-            bool result = Types
-                .InAssembly(ModuleArchitecture.SharedKernelAssembly)
-                .ShouldNot()
-                .HaveDependencyOn(moduleRootNamespace)
-                .GetResult();
-
-            if (!result)
-                failures.Add($"SharedKernel must not depend on module {moduleRootNamespace}.");
+            if (ModuleArchitecture.HasDirectAssemblyReference(ModuleArchitecture.SharedKernelAssembly, moduleName))
+                failures.Add($"SharedKernel must not depend on module {moduleName}.");
         }
 
         failures.ShouldBeEmpty(string.Join(Environment.NewLine, failures));
@@ -105,18 +88,23 @@ public sealed class ModuleBoundaryArchitectureTests
     public void ModuleProjectReferences_ShouldOnlyContainTheExplicitTemporaryException()
     {
         string repoRoot = GetRepoRoot();
-        string modulesRoot = Path.Combine(repoRoot, "src", "Modules");
-
-        List<string> interModuleReferences = Directory
-            .GetFiles(modulesRoot, "*.csproj", SearchOption.TopDirectoryOnly)
-            .SelectMany(ParseInterModuleProjectReferences)
-            .OrderBy(x => x, StringComparer.Ordinal)
-            .ToList();
+        List<string> interModuleReferences = GetInterModuleProjectReferences(repoRoot);
 
         interModuleReferences.ShouldBe(
             ["ProductCatalog -> Reviews"],
             "Only the temporary ProductCatalog -> Reviews module reference should exist."
         );
+    }
+
+    private static List<string> GetInterModuleProjectReferences(string repoRoot)
+    {
+        string modulesRoot = Path.Combine(repoRoot, "src", "Modules");
+
+        return Directory
+            .GetFiles(modulesRoot, "*.csproj", SearchOption.AllDirectories)
+            .SelectMany(ParseInterModuleProjectReferences)
+            .OrderBy(x => x, StringComparer.Ordinal)
+            .ToList();
     }
 
     private static IEnumerable<string> ParseInterModuleProjectReferences(string projectPath)
@@ -130,9 +118,12 @@ public sealed class ModuleBoundaryArchitectureTests
             .Select(node => (string?)node.Attribute("Include"))
             .Where(include => !string.IsNullOrWhiteSpace(include))
             .Select(include => include!)
+            .Select(include => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectPath)!, include)))
             .Where(include =>
-                include.Contains("..\\", StringComparison.Ordinal)
-                && include.Contains("\\Modules\\", StringComparison.Ordinal)
+                include.Contains(
+                    $"{Path.DirectorySeparatorChar}Modules{Path.DirectorySeparatorChar}",
+                    StringComparison.Ordinal
+                )
             )
             .Select(include => Path.GetFileNameWithoutExtension(include))
             .Where(targetModule => !string.Equals(sourceModule, targetModule, StringComparison.Ordinal))
@@ -227,6 +218,15 @@ public sealed class ModuleBoundaryArchitectureTests
             return Modules.Single(module => string.Equals(module.Name, name, StringComparison.Ordinal));
         }
 
+        public static bool HasDirectAssemblyReference(Assembly assembly, string referencedAssemblyName)
+        {
+            return assembly
+                .GetReferencedAssemblies()
+                .Any(reference =>
+                    string.Equals(reference.Name, referencedAssemblyName, StringComparison.Ordinal)
+                );
+        }
+
         public static IReadOnlyList<string> GetForbiddenModuleDependencies(string moduleName)
         {
             IReadOnlySet<string> allowedDependencies = _allowedModuleDependencies.TryGetValue(
@@ -238,8 +238,8 @@ public sealed class ModuleBoundaryArchitectureTests
 
             return Modules
                 .Where(module => !string.Equals(module.Name, moduleName, StringComparison.Ordinal))
-                .Select(module => module.RootNamespace)
-                .Where(rootNamespace => !allowedDependencies.Contains(rootNamespace))
+                .Select(module => module.Name)
+                .Where(moduleDependency => !allowedDependencies.Contains(moduleDependency))
                 .ToList();
         }
     }
