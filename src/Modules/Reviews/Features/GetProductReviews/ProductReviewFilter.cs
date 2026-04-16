@@ -21,13 +21,13 @@ public sealed record ProductReviewFilter(
         int? MinRating = null,
     [property: Range(1, 5, ErrorMessage = "MaxRating must be between 1 and 5.")]
     [property: GreaterThanOrEqualToProperty(
-        "MinRating",
+        nameof(ProductReviewFilter.MinRating),
         ErrorMessage = "MaxRating must be greater than or equal to MinRating."
     )]
         int? MaxRating = null,
     DateTime? CreatedFrom = null,
     [property: GreaterThanOrEqualToProperty(
-        "CreatedFrom",
+        nameof(ProductReviewFilter.CreatedFrom),
         ErrorMessage = "CreatedTo must be greater than or equal to CreatedFrom."
     )]
         DateTime? CreatedTo = null,
