@@ -22,7 +22,7 @@ public sealed class ValidationAttributeTests
     [Fact]
     public void GreaterThanOrEqualToProperty_WhenOnlyLowerBoundExists_Passes()
     {
-        ProductReviewFilter filter = new(MinRating: 3, MaxRating: null);
+        ProductReviewFilter filter = new() { MinRating = 3, MaxRating = null };
 
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 
@@ -33,7 +33,7 @@ public sealed class ValidationAttributeTests
     [Fact]
     public void GreaterThanOrEqualToProperty_WhenRangeIsReversed_FailsWithMemberName()
     {
-        ProductReviewFilter filter = new(MinRating: 5, MaxRating: 1);
+        ProductReviewFilter filter = new() { MinRating = 5, MaxRating = 1 };
 
         bool isValid = DataAnnotationsTestHelper.TryValidateAllProperties(filter, out var results);
 

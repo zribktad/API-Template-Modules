@@ -6,8 +6,13 @@ namespace Reviews.Features;
 ///     Payload for submitting a new product review, including the target product, an optional comment, and a 1–5 star
 ///     rating.
 /// </summary>
-public sealed record CreateProductReviewRequest(
-    [NotEmpty(ErrorMessage = "ProductId is required.")] Guid ProductId,
-    string? Comment,
-    [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")] int Rating
-);
+public sealed record CreateProductReviewRequest
+{
+    [NotEmpty(ErrorMessage = "ProductId is required.")]
+    public Guid ProductId { get; init; }
+
+    public string? Comment { get; init; }
+
+    [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
+    public int Rating { get; init; }
+}

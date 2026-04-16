@@ -153,7 +153,12 @@ public class ProductReviewRequestHandlersTests
             Price = 10m,
             Audit = new() { CreatedAtUtc = DateTime.UtcNow },
         };
-        var request = new CreateProductReviewRequest(product.Id, "Great!", 5);
+        var request = new CreateProductReviewRequest
+        {
+            ProductId = product.Id,
+            Comment = "Great!",
+            Rating = 5,
+        };
 
         _productRepoMock
             .Setup(r => r.GetByIdAsync(product.Id, It.IsAny<CancellationToken>()))
@@ -215,7 +220,12 @@ public class ProductReviewRequestHandlersTests
             .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Product?)null);
 
-        var request = new CreateProductReviewRequest(Guid.NewGuid(), null, 3);
+        var request = new CreateProductReviewRequest
+        {
+            ProductId = Guid.NewGuid(),
+            Comment = null,
+            Rating = 3,
+        };
 
         var result = await CreateProductReviewCommandHandler.HandleAsync(
             new CreateProductReviewCommand(request),
