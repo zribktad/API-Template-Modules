@@ -26,8 +26,6 @@ public sealed class DataAnnotationsValidator : IValidator
         return results;
     }
 
-    public bool IsValid(object model) => Validate(model).Count == 0;
-
     private void Validate(object model, List<ValidationResult> results, HashSet<object> visited)
     {
         if (!visited.Add(model))
@@ -100,11 +98,12 @@ public sealed class DataAnnotationsValidator : IValidator
         if (cachedParams.Count == 0)
             return;
 
-        HashSet<string> existingMembers = new(results.SelectMany(r => r.MemberNames));
+        HashSet<string>? existingMembers =
+            results.Count == 0 ? null : [.. results.SelectMany(r => r.MemberNames)];
 
         foreach (CachedParam param in cachedParams)
         {
-            if (existingMembers.Contains(param.Name))
+            if (existingMembers is not null && existingMembers.Contains(param.Name))
                 continue;
 
             object? value = param.Property.GetValue(model);

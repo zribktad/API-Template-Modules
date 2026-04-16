@@ -21,6 +21,8 @@ namespace APITemplate.Tests.Unit.ProductCatalog;
 
 public sealed class PatchProductCommandHandlerTests
 {
+    private static readonly IValidator Validator = new DataAnnotationsValidator();
+
     [Fact]
     public async Task HandleAsync_WhenPatchIsValid_ReturnsUpdatedProductAndCacheInvalidation()
     {
@@ -64,7 +66,7 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
-                new DataAnnotationsValidator(),
+                Validator,
                 TestContext.Current.CancellationToken
             );
 
@@ -100,7 +102,7 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(productId, new JsonPatchDocument<PatchableProductDto>()),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
-                new DataAnnotationsValidator(),
+                Validator,
                 TestContext.Current.CancellationToken
             );
 
@@ -145,7 +147,7 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
-                new DataAnnotationsValidator(),
+                Validator,
                 TestContext.Current.CancellationToken
             );
 
@@ -191,7 +193,7 @@ public sealed class PatchProductCommandHandlerTests
                 new PatchProductCommand(product.Id, patchDocument),
                 repositoryMock.Object,
                 unitOfWorkMock.Object,
-                new DataAnnotationsValidator(),
+                Validator,
                 TestContext.Current.CancellationToken
             );
 

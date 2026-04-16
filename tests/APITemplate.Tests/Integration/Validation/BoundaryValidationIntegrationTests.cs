@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using APITemplate.Tests.Integration.Helpers;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -180,8 +179,14 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
         errorCode.ShouldBe("GEN-0400");
     }
 
-    [Fact]
-    public async Task UsersController_CreateWithEmptyUsername_ReturnsUnifiedProblemDetails()
+    [Theory]
+    [InlineData("", "user@example.com", "Username")]
+    [InlineData("valid-user", "not-an-email", "Email")]
+    public async Task UsersController_CreateWithInvalidField_ReturnsUnifiedProblemDetails(
+        string username,
+        string email,
+        string expectedFieldInMessage
+    )
     {
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
@@ -192,7 +197,7 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
 
         var response = await _client.PostAsJsonAsync(
             "/api/v1/users",
-            new { Username = "", Email = "user@example.com" },
+            new { Username = username, Email = email },
             ct
         );
 
@@ -202,32 +207,9 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         problem.Title.ShouldNotBeNullOrWhiteSpace();
-        message.Contains("Username", StringComparison.OrdinalIgnoreCase).ShouldBeTrue(message);
-        errorCode.ShouldBe("GEN-0400");
-    }
-
-    [Fact]
-    public async Task UsersController_CreateWithInvalidEmail_ReturnsUnifiedProblemDetails()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            _client,
-            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}boundary-validation",
-            permissions: [Permission.Users.Create]
-        );
-
-        var response = await _client.PostAsJsonAsync(
-            "/api/v1/users",
-            new { Username = "valid-user", Email = "not-an-email" },
-            ct
-        );
-
-        var problem = await ReadProblemAsync(response, ct);
-        string message = ExtractValidationMessage(problem);
-        string errorCode = ExtractErrorCode(problem);
-
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        message.Contains("Email", StringComparison.OrdinalIgnoreCase).ShouldBeTrue(message);
+        message
+            .Contains(expectedFieldInMessage, StringComparison.OrdinalIgnoreCase)
+            .ShouldBeTrue(message);
         errorCode.ShouldBe("GEN-0400");
     }
 

@@ -9,6 +9,4 @@ namespace SharedKernel.Application.Validation;
 public interface IValidator
 {
     IReadOnlyList<ValidationResult> Validate(object model);
-
-    bool IsValid(object model);
 }
