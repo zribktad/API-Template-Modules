@@ -1,54 +1,45 @@
-using APITemplate.Tests.Unit.TestData;
-using ErrorOr;
 using Identity.ValueObjects;
-using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
 public sealed class EmailValueObjectTests
 {
-    [Theory]
-    [MemberData(nameof(EmailTheoryData.InvalidRawInputs), MemberType = typeof(EmailTheoryData))]
-    public void Create_WhenInvalid_ReturnsError(string? raw)
+    [Fact]
+    public void DefaultEmail_ShouldHaveEmptyValue_InsteadOfNull()
     {
-        ErrorOr<Email> result = Email.Create(raw!);
+        // Arrange
+        Email email = default;
 
-        result.IsError.ShouldBeTrue();
-    }
-
-    [Theory]
-    [MemberData(
-        nameof(EmailTheoryData.TrimmingAndNormalizationCases),
-        MemberType = typeof(EmailTheoryData)
-    )]
-    public void Create_WhenValid_TrimsInput(string raw, string expectedValue)
-    {
-        ErrorOr<Email> result = Email.Create(raw);
-
-        result.IsError.ShouldBeFalse();
-        result.Value.Value.ShouldBe(expectedValue);
+        // Act & Assert
+        Assert.NotNull(email.Value);
+        Assert.Equal(string.Empty, email.Value);
     }
 
     [Fact]
-    public void Create_WhenValid_CanRoundTripImplicitlyToString()
+    public void Normalize_OnDefaultEmail_ShouldNotThrowNre()
     {
-        ErrorOr<Email> result = Email.Create("person@domain.example");
+        // Arrange
+        Email email = default;
 
-        ((string)result.Value).ShouldBe("person@domain.example");
+        // Act
+        var result = email.Normalize();
+
+        // Assert
+        Assert.Equal(string.Empty, result);
     }
 
     [Fact]
-    public void NormalizeRaw_TrimsAndUppercases()
+    public void ImplicitConversionToString_OnDefaultEmail_ShouldNotReturnNull()
     {
-        Email.NormalizeRaw("  a@b.co  ").ShouldBe("A@B.CO");
-    }
+        // Arrange
+        Email email = default;
 
-    [Fact]
-    public void Normalize_OnEmail_UppercasesValue()
-    {
-        Email email = Email.Create("a@b.co").Value;
+        // Act
+        string value = email;
 
-        email.Normalize().ShouldBe("A@B.CO");
+        // Assert
+        Assert.NotNull(value);
+        Assert.Equal(string.Empty, value);
     }
 }

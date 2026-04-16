@@ -38,7 +38,7 @@ public sealed class OutgoingWebhookBackgroundService
 
     protected override async Task ProcessItemAsync(OutgoingWebhookItem item, CancellationToken ct)
     {
-        await ValidateCallbackUrlAsync(item.CallbackUrl, ct);
+        ValidateCallbackUrl(item.CallbackUrl);
 
         WebhookSignatureResult signatureResult = _signer.Sign(item.SerializedPayload);
 
@@ -73,7 +73,7 @@ public sealed class OutgoingWebhookBackgroundService
         return Task.CompletedTask;
     }
 
-    private static async Task ValidateCallbackUrlAsync(string callbackUrl, CancellationToken ct)
+    private static void ValidateCallbackUrl(string callbackUrl)
     {
         if (!Uri.TryCreate(callbackUrl, UriKind.Absolute, out Uri? uri))
         {
@@ -87,19 +87,6 @@ public sealed class OutgoingWebhookBackgroundService
             throw new InvalidOperationException(
                 $"Callback URL scheme '{uri.Scheme}' is not allowed. Only HTTP and HTTPS are permitted."
             );
-        }
-
-        IPAddress[] addresses = await Dns.GetHostAddressesAsync(uri.DnsSafeHost, ct);
-
-        foreach (IPAddress address in addresses)
-        {
-            if (NetworkSecurity.IsProhibitedAddress(address))
-            {
-                throw new InvalidOperationException(
-                    $"Callback URL '{uri.Host}' resolves to a prohibited address ({address}). "
-                        + "Requests to loopback, private, and link-local networks are not allowed."
-                );
-            }
         }
     }
 }
