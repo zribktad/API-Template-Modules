@@ -97,6 +97,37 @@ public sealed class ModuleBoundaryArchitectureTests
         );
     }
 
+    [Fact]
+    public void ParseInterModuleProjectReferences_ShouldNormalizeWindowsStyleSeparators()
+    {
+        string tempRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        string sourceProject = Path.Combine(tempRoot, "src", "Modules", "ProductCatalog", "ProductCatalog.csproj");
+
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(sourceProject)!);
+            Directory.CreateDirectory(Path.Combine(tempRoot, "src", "Modules", "Reviews"));
+
+            File.WriteAllText(
+                sourceProject,
+                """
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <ItemGroup>
+                    <ProjectReference Include="..\Reviews\Reviews.csproj" />
+                  </ItemGroup>
+                </Project>
+                """
+            );
+
+            ParseInterModuleProjectReferences(sourceProject).ShouldBe(["ProductCatalog -> Reviews"]);
+        }
+        finally
+        {
+            if (Directory.Exists(tempRoot))
+                Directory.Delete(tempRoot, recursive: true);
+        }
+    }
+
     private static List<string> GetInterModuleProjectReferences(string repoRoot)
     {
         string modulesRoot = Path.Combine(repoRoot, "src", "Modules");
@@ -119,7 +150,7 @@ public sealed class ModuleBoundaryArchitectureTests
             .Select(node => (string?)node.Attribute("Include"))
             .Where(include => !string.IsNullOrWhiteSpace(include))
             .Select(include => include!)
-            .Select(include => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectPath)!, include)))
+            .Select(include => NormalizeProjectReferencePath(projectPath, include))
             .Where(include =>
                 include.Contains(
                     $"{Path.DirectorySeparatorChar}Modules{Path.DirectorySeparatorChar}",
@@ -129,6 +160,15 @@ public sealed class ModuleBoundaryArchitectureTests
             .Select(include => Path.GetFileNameWithoutExtension(include))
             .Where(targetModule => !string.Equals(sourceModule, targetModule, StringComparison.Ordinal))
             .Select(targetModule => $"{sourceModule} -> {targetModule}");
+    }
+
+    private static string NormalizeProjectReferencePath(string projectPath, string include)
+    {
+        string normalizedInclude = include
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+
+        return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectPath)!, normalizedInclude));
     }
 
     private static string GetRepoRoot()
