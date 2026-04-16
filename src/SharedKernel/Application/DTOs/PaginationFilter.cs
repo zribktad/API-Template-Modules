@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SharedKernel.Application.Contracts;
 
 namespace SharedKernel.Application.DTOs;
 
@@ -9,8 +10,9 @@ namespace SharedKernel.Application.DTOs;
 public record PaginationFilter(
     [Range(1, int.MaxValue, ErrorMessage = "PageNumber must be greater than or equal to 1.")]
         int PageNumber = 1,
-    [Range(1, 100, ErrorMessage = "PageSize must be between 1 and 100.")] int PageSize = 20
-)
+    [Range(1, PaginationFilter.MaxPageSize, ErrorMessage = "PageSize must be between 1 and 100.")]
+        int PageSize = PaginationFilter.DefaultPageSize
+) : IPagedFilter
 {
     /// <summary>Default page size applied when none is specified by the caller.</summary>
     public const int DefaultPageSize = 20;

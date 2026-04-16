@@ -101,6 +101,23 @@ MVC (`[ApiController]`) reads validation attributes from **both** record primary
 
 > **Current workaround:** Wolverine filters that need `PageNumber`/`PageSize` validation declare those fields inline on their own primary ctor with `[property: Range]` instead of inheriting `PaginationFilter`. MVC-bound filters keep inheriting `PaginationFilter` unchanged. See `ProductReviewFilter` as the reference.
 
+#### Why every inheritance/composition variant fails on Wolverine
+
+Ruled-out options (each validated empirically before landing on the inline fix):
+
+| Attempt | Why it fails |
+|---------|--------------|
+| Inherit `PaginationFilter`; re-declare `PageNumber`/`PageSize` in derived primary ctor with `[property: Range]` | **CS0657** — a shadowed ctor param cannot carry a `[property:]` target |
+| Inherit `PaginationFilter`; move its `[Range]` attributes to `[property: Range]` | Breaks MVC validation for every other derived filter (ctor-param shadowing vs. attributed base property) — existing 400-for-invalid-query tests start returning 500 |
+| Inherit `PaginationFilter`; duplicate attributes as both `[param: Range]` and `[property: Range]` on base ctor params | Same MVC breakage as above |
+| Inherit `PaginationFilter`; derived primary ctor omits `PageNumber`/`PageSize` | Wolverine `QueryStringBindingFrame` iterates only the derived ctor params, so inherited base properties are never bound from the query string — `?pageNumber=2` is silently ignored |
+| Compose via nested `PaginationFilter Pagination` ctor param with a dedicated `[PaginationFilterValidator(...)]` attribute | Wolverine's `TryFindOrCreateQuerystringValue` handles only `string`, `string[]`, and nullable primitives; a complex-typed ctor param produces a null `HttpElementVariable`, then codegen NREs on `x.Usage`. Validation would work, but binding doesn't |
+
+Escape hatches that *would* restore inheritance/composition but were deferred as YAGNI at one Wolverine filter:
+
+- Write a custom `IHttpPolicy` that replaces `QueryStringBindingFrame` to either flatten nested records from flat query strings, or to bind inherited `init` properties alongside ctor params.
+- Migrate all filter DTOs (and `PaginationFilter`) to class-style records with `{ get; init; }` properties plus the custom policy above (Wolverine's default codegen assigns `filter.X = value;` after `new`, which `init` rejects).
+
 ---
 
 ## B. Wolverine middleware — DataAnnotationsValidationMiddleware
