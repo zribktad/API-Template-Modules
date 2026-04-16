@@ -280,38 +280,35 @@ public sealed class WolverineHttpValidationTests
         results.ShouldContain(r => r.ErrorMessage == "SortDirection must be one of: asc, desc.");
     }
 
-    // -------------------- Inherited PaginationFilter members --------------------
+    // -------------------- Pagination --------------------
 
-    // Known limitation: PaginationFilter declares [Range] on its primary ctor params without a
-    // [property:] target. Moving the attribute onto the base property breaks MVC validation for
-    // every derived filter (ctor-param shadowing vs. hidden base property), and a derived
-    // primary-ctor param that shadows a base property cannot carry a [property:] target itself
-    // (CS0657). Consequence: when a Wolverine HTTP endpoint binds a PaginationFilter-derived
-    // filter, PageNumber/PageSize pass through the DataAnnotations policy unvalidated.
-    //
-    // Fast path for reviewers: if pagination bounds matter at a Wolverine HTTP boundary, either
-    // repeat [Range] directly on non-shadowing properties on the derived filter, or check page
-    // values explicitly in the handler until we migrate shared filter DTOs to class-style records.
-
-    [Fact]
-    public void ProductReviewFilter_PageNumberValidation_IsNotEnforcedByTryValidateObject()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public void ProductReviewFilter_WhenPageNumberInvalid_FailsValidation(int pageNumber)
     {
-        var filter = new ProductReviewFilter(PageNumber: 0);
+        var filter = new ProductReviewFilter(PageNumber: pageNumber);
 
         bool isValid = TryValidateLikeWolverineHttp(filter, out var results);
 
-        isValid.ShouldBeTrue();
-        results.ShouldBeEmpty();
+        isValid.ShouldBeFalse();
+        results.ShouldContain(r =>
+            r.ErrorMessage == "PageNumber must be greater than or equal to 1."
+        );
     }
 
-    [Fact]
-    public void ProductReviewFilter_PageSizeValidation_IsNotEnforcedByTryValidateObject()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(101)]
+    [InlineData(1_000)]
+    public void ProductReviewFilter_WhenPageSizeInvalid_FailsValidation(int pageSize)
     {
-        var filter = new ProductReviewFilter(PageSize: 101);
+        var filter = new ProductReviewFilter(PageSize: pageSize);
 
         bool isValid = TryValidateLikeWolverineHttp(filter, out var results);
 
-        isValid.ShouldBeTrue();
-        results.ShouldBeEmpty();
+        isValid.ShouldBeFalse();
+        results.ShouldContain(r => r.ErrorMessage == "PageSize must be between 1 and 100.");
     }
 }

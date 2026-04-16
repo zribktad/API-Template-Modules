@@ -7,11 +7,12 @@ namespace Reviews.Features;
 ///     sorting, and pagination.
 /// </summary>
 /// <remarks>
-///     Query-string DTO for a Wolverine HTTP endpoint — must stay a primary-constructor record. Wolverine's
-///     <c>QueryStringBindingFrame</c> either binds through constructor parameters or generates post-<c>new</c>
-///     property assignments, so <c>{ get; init; }</c> would fail codegen. Validation attributes use the
-///     <c>[property: ...]</c> target so they land on the generated properties where Wolverine's HTTP validation
-///     policy (<c>Validator.TryValidateObject</c>) can see them. See <c>docs/validation.md</c> — Record DTO convention.
+///     Wolverine HTTP filter DTO. Stays a primary-constructor record (query-string binding uses ctor params) and
+///     uses <c>[property: ...]</c> targets so <c>Validator.TryValidateObject</c> sees the attributes. Pagination
+///     fields are inlined instead of inherited from <c>PaginationFilter</c>: inheriting would shadow the base
+///     property and forbid a <c>[property:]</c> target on the derived ctor param (CS0657). Composing pagination
+///     as a nested <c>PaginationFilter</c> ctor param also fails — Wolverine's query-string binder only handles
+///     primitive/string types. See <c>docs/validation.md</c> — Record DTO convention.
 /// </remarks>
 public sealed record ProductReviewFilter(
     Guid? ProductId = null,
@@ -37,6 +38,12 @@ public sealed record ProductReviewFilter(
     )]
         string? SortBy = null,
     [property: SortDirection] string? SortDirection = null,
-    int PageNumber = 1,
-    int PageSize = PaginationFilter.DefaultPageSize
-) : PaginationFilter(PageNumber, PageSize), IDateRangeFilter, ISortableFilter;
+    [property: Range(
+        1,
+        int.MaxValue,
+        ErrorMessage = "PageNumber must be greater than or equal to 1."
+    )]
+        int PageNumber = 1,
+    [property: Range(1, 100, ErrorMessage = "PageSize must be between 1 and 100.")]
+        int PageSize = PaginationFilter.DefaultPageSize
+) : IDateRangeFilter, ISortableFilter;
