@@ -1,5 +1,6 @@
 using APITemplate.Api.Middleware;
 using Chatting;
+using Wolverine.Http;
 using FileStorage;
 using HealthChecks.UI.Client;
 using Identity.Auth.Security;
@@ -91,6 +92,10 @@ public static class ApplicationBuilderExtensions
         }
 
         app.MapControllers();
+        app.MapWolverineEndpoints(opts =>
+        {
+            opts.UseDataAnnotationsValidationProblemDetailMiddleware();
+        });
         app.MapProductCatalogEndpoints();
         app.MapFileStorageEndpoints();
         app.MapChattingEndpoints();
