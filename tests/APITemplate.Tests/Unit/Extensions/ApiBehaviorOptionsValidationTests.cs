@@ -49,6 +49,7 @@ public sealed class ApiBehaviorOptionsValidationTests
 
         result.StatusCode.ShouldBe(StatusCodes.Status400BadRequest);
         problem.Title.ShouldBe("Bad Request");
+        problem.Detail.ShouldNotBeNull();
         problem.Detail.ShouldContain("Rating must be between 1 and 5.");
         problem.Extensions["errorCode"].ShouldBe("GEN-0400");
         ((Dictionary<string, object>)problem.Extensions["metadata"]!).ShouldContainKey("propertyName");
