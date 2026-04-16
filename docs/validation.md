@@ -219,23 +219,104 @@ Single shared implementation of "run Data Annotations on a CLR object," exposed 
 
 ---
 
-## .NET 10 `Microsoft.Extensions.Validation` — migration status
+## .NET 10 `Microsoft.Extensions.Validation` — how it works
 
-The project already registers `services.AddValidation()` in `ApiServiceCollectionExtensions.cs`.
-One pilot DTO (`CreateUserRequest`) is annotated with `[ValidatableType]` (experimental,
-`ASP0029` suppressed locally) as a probe to check whether the .NET 10 source-generator
-validation pipeline fires for **Wolverine HTTP** endpoints.
+### What it is
 
-**Current status:** pilot marker applied; empirical runtime verdict pending (requires live
-API + invalid request to observe whether validation triggers via endpoint filter before
-Wolverine middleware runs).
+`Microsoft.Extensions.Validation` is a new validation infrastructure shipped in .NET 10
+(still **experimental** — emits `ASP0029`). Unlike the reflection-based
+`Validator.TryValidateObject`, it relies on a **Roslyn source generator** that reads Data
+Annotations attributes at compile time and generates strongly-typed validators. The result:
 
-**Full migration (S3) deferred** until:
-- `[ValidatableType]` leaves experimental status (expected .NET 11 stable).
-- Wolverine ships native integration with `AddValidation()` (v5.29.0 does not have it).
+- **No reflection at runtime** — faster, AOT-compatible
+- **Records with attributes on primary-constructor parameters work correctly** — this is
+  the exact gap that our custom `DataAnnotationsValidator` fills today
+- **Nested `[ValidatableType]` objects are traversed** by the generator without manual recursion
 
-The `IValidator` abstraction is the migration seam — swapping implementations (e.g. to a
-source-generator-backed validator) will not require changes at any of the call sites.
+### How to opt a type in
+
+```csharp
+using Microsoft.Extensions.Validation;
+
+#pragma warning disable ASP0029 // experimental until .NET 11
+[ValidatableType]
+public sealed record CreateUserRequest(
+    [NotEmpty] [MaxLength(100)] string Username,
+    [NotEmpty] [MaxLength(320)] [EmailAddress] string Email
+);
+#pragma warning restore ASP0029
+```
+
+The source generator scans the compilation for `[ValidatableType]` and emits an
+`IValidatableInfoResolver` implementation that knows how to validate each annotated type
+without reflection. Standard `System.ComponentModel.DataAnnotations` attributes (`[Required]`,
+`[MaxLength]`, `[Range]`, `[EmailAddress]`, …) and custom `ValidationAttribute` derivatives
+(our `[NotEmpty]`, `[GreaterThanOrEqualToProperty]`, `[CaseInsensitiveAllowedValues]`, …)
+all work transparently as long as they derive from `ValidationAttribute`.
+
+### How to wire it up
+
+Register once at startup:
+
+```csharp
+// src/APITemplate/Api/Extensions/ApiServiceCollectionExtensions.cs
+services.AddValidation();
+```
+
+`AddValidation()` registers:
+- The generated resolvers into DI as `IValidatableInfoResolver` (keyed per annotated type)
+- A root `IValidatableInfo` / validation orchestrator that composes them
+- An **endpoint filter** for ASP.NET Core **Minimal API** that intercepts requests bound
+  to `[ValidatableType]` parameters, validates them before the handler executes, and
+  short-circuits with `ValidationProblemDetails` (HTTP 400) on failure
+
+### What it does NOT do (today)
+
+- **MVC controllers** — the endpoint filter is a Minimal API concept. MVC controllers
+  keep going through `ModelState` / `InvalidModelStateResponseFactory`.
+  In this project every HTTP entry point is an MVC controller (`[HttpPost]`, `[HttpGet]`,
+  …) or a Wolverine HTTP attribute endpoint (`[WolverinePost]`, …), so adding
+  `[ValidatableType]` alone does **not** change the request-time validation path.
+- **Wolverine messages** — no native integration in Wolverine 5.29. Wolverine middleware
+  (`DataAnnotationsValidationMiddleware`) still runs `IValidator.Validate(message)`.
+- **Programmatic validation of an arbitrary object** outside endpoint binding — e.g. the
+  JSON-Patch flow in `PatchProductCommandHandler` that validates the patched DTO — has
+  no public API on `AddValidation()`. It must continue to use `IValidator`.
+- **`IEnumerable<T>` where `T` is `[ValidatableType]`** — item-level validation of
+  collections is not guaranteed. Batch rules (`DataAnnotationsBatchRule<TItem>`) keep
+  driving per-item validation through `IValidator`.
+
+### Current state in this project
+
+| Component | Uses |
+|-----------|------|
+| `services.AddValidation()` registration | Active (`ApiServiceCollectionExtensions.cs`) |
+| `[ValidatableType]` on DTOs | **Pilot only** — `CreateUserRequest` |
+| MVC request validation | `ModelState` + `IValidator` (unchanged) |
+| Wolverine middleware validation | `IValidator` (unchanged) |
+| Batch validation | `IValidator` via `DataAnnotationsBatchRule<TItem>` (unchanged) |
+| JSON-Patch DTO validation | `IValidator` in `PatchProductCommandHandler` (unchanged) |
+
+### Migration plan (deferred)
+
+Full replacement of `DataAnnotationsValidator` by the source generator is deferred until:
+
+1. `[ValidatableType]` graduates from experimental (expected .NET 11 stable — no more
+   `ASP0029` suppression)
+2. Wolverine ships native integration with `AddValidation()` for handler messages
+3. A public programmatic API for validating an arbitrary object exists
+   (`IValidatableInfoResolver` / equivalent)
+
+The `IValidator` abstraction is the migration seam — swapping implementations to a
+source-generator-backed validator later will not require changes at the call sites
+(middleware, batch rule, patch handler, test helper).
+
+### Why suppress `ASP0029` locally rather than globally
+
+The analyzer warning is the only signal telling us that the API may break before .NET 11.
+Suppressing it globally (csproj-level `NoWarn`) would hide that signal across every new
+annotation. Keeping the suppression next to each `[ValidatableType]` makes the experimental
+surface visible in diff-review and easy to delete when the API stabilizes.
 
 ---
 
