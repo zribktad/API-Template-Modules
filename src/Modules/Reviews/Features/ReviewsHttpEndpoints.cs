@@ -59,9 +59,7 @@ public static class ReviewsHttpEndpoints
     {
         ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<
             ErrorOr<ProductReviewResponse>>(new CreateProductReviewCommand(request), ct);
-        return result.IsError
-            ? result.ToHttpResult(httpContext)
-            : result.ToHttpCreatedResult(httpContext, $"{BaseRoute}/{result.Value.Id}");
+        return result.ToHttpCreatedResult(httpContext, v => $"{BaseRoute}/{v.Id}");
     }
 
     [WolverineDelete(ByIdRoute)]

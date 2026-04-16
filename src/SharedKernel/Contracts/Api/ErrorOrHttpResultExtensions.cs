@@ -1,6 +1,5 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
-using SharedKernel.Application.Errors;
 
 namespace SharedKernel.Contracts.Api;
 
@@ -11,10 +10,13 @@ public static class ErrorOrHttpResultExtensions
             ? Results.Problem(result.Errors.ToProblemDetails(httpContext))
             : TypedResults.Ok(result.Value);
 
-    public static IResult ToHttpCreatedResult<T>(this ErrorOr<T> result, HttpContext httpContext, string location)
+    public static IResult ToHttpCreatedResult<T>(
+        this ErrorOr<T> result,
+        HttpContext httpContext,
+        Func<T, string> locationFactory)
         => result.IsError
             ? Results.Problem(result.Errors.ToProblemDetails(httpContext))
-            : TypedResults.Created(location, result.Value);
+            : TypedResults.Created(locationFactory(result.Value), result.Value);
 
     public static IResult ToHttpNoContentResult(this ErrorOr<Success> result, HttpContext httpContext)
         => result.IsError
