@@ -213,7 +213,7 @@ public sealed class ModuleBoundaryArchitectureTests
         public static Assembly SharedKernelAssembly => typeof(SharedKernel.Application.Errors.AppException)
             .Assembly;
 
-        private static readonly IReadOnlyDictionary<string, IReadOnlySet<string>> AllowedModuleDependencies =
+        private static readonly IReadOnlyDictionary<string, IReadOnlySet<string>> _allowedModuleDependencies =
             new Dictionary<string, IReadOnlySet<string>>(StringComparer.Ordinal)
             {
                 [ProductCatalog.Name] = new HashSet<string>(StringComparer.Ordinal)
@@ -229,7 +229,7 @@ public sealed class ModuleBoundaryArchitectureTests
 
         public static IReadOnlyList<string> GetForbiddenModuleDependencies(string moduleName)
         {
-            IReadOnlySet<string> allowedDependencies = AllowedModuleDependencies.TryGetValue(
+            IReadOnlySet<string> allowedDependencies = _allowedModuleDependencies.TryGetValue(
                 moduleName,
                 out IReadOnlySet<string>? allowed
             )
