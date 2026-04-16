@@ -8,8 +8,9 @@
 - [ ] **Stabilize soft-delete cascade semantics**  
   There is still overlap between multiple cascade mechanisms, and category delete still has no dedicated integration event. Decide on one authoritative cascade path, add `CategorySoftDeletedNotification` if cross-module reactions are expected, and resolve the `ClearCategoryAsync()` tracker hazard around `ExecuteUpdateAsync`.
 
-- [ ] **Add architecture tests for module boundaries**  
-  Modularization is largely in place, but there is no automated guardrail such as `NetArchTest` / `ArchUnitNET` to stop accidental cross-module coupling from creeping back in.
+- [x] **Add architecture tests for module boundaries**  
+  Added `NetArchTest`-based guardrails in `tests/APITemplate.Tests/Unit/Architecture` to block new direct module-to-module coupling.
+  Temporary exception remains explicit: `ProductCatalog -> Reviews` is still allowed until that dependency is refactored away.
 
 ## Medium Priority
 
