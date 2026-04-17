@@ -13,6 +13,8 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
     private const int BufferThresholdBytes = 64 * 1024;
 
     // Hardcoded limit matching [RequestSizeLimit(1024 * 1024)] on the controller.
+    // Keep in sync with the controller attribute — see the note above EnableBuffering below
+    // for why both layers exist.
     private const int MaxBodyBytes = 1024 * 1024;
 
     private readonly IProblemDetailsService _problemDetailsService;
@@ -44,13 +46,6 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
 
         HttpRequest request = context.HttpContext.Request;
 
-        // Fail fast on Content-Length to avoid buffering oversized payloads.
-        if (request.ContentLength is long declared && declared > MaxBodyBytes)
-        {
-            await WritePayloadTooLargeAsync(context, MaxBodyBytes);
-            return;
-        }
-
         if (
             !request.Headers.TryGetValue(
                 WebhookConstants.SignatureHeader,
@@ -66,7 +61,15 @@ public sealed class WebhookSignatureResourceFilter : IAsyncResourceFilter
             return;
         }
 
-        // bufferLimit throws InvalidDataException when body exceeds the limit during read.
+        // Two-layer size defense (intentional):
+        //   1) [RequestSizeLimit] on the controller — Kestrel rejects oversized bodies at the
+        //      server level before any buffering happens (cheap, short-circuit, generic 413).
+        //   2) bufferLimit here — authoritative application-level guard that measures the real
+        //      stream regardless of the Content-Length header; protects this filter even if a
+        //      future endpoint forgets the attribute or the attribute value drifts.
+        // Both limits are kept identical on purpose: Kestrel normally wins first, this layer
+        // exists as a safety net. No ProblemDetails is produced by the server layer — that's
+        // accepted; the application layer responds via WritePayloadTooLargeAsync when reached.
         request.EnableBuffering(bufferThreshold: BufferThresholdBytes, bufferLimit: MaxBodyBytes);
         string body;
         try

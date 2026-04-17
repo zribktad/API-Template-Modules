@@ -20,6 +20,10 @@ public sealed class WebhooksController : ApiControllerBase
     [HttpPost]
     [AllowAnonymous]
     [ValidateWebhookSignature]
+    // Primary size guard: Kestrel rejects oversized bodies at the server level before they
+    // are buffered — cheaper and earlier than the application-layer check in
+    // WebhookSignatureResourceFilter (which keeps an identical bufferLimit as a safety net).
+    // Keep this value in sync with WebhookSignatureResourceFilter.MaxBodyBytes.
     [RequestSizeLimit(1024 * 1024)]
     public async Task<IActionResult> Receive(
         [FromBody] WebhookPayload payload,
