@@ -28,6 +28,7 @@ internal sealed class ProductBatchFactory(
             await referenceValidator.CheckReferencesAsync(items, context.FailedIndices, ct)
         );
 
+        Price[] prices = new Price[items.Count];
         for (int i = 0; i < items.Count; i++)
         {
             if (context.IsFailed(i))
@@ -35,23 +36,31 @@ internal sealed class ProductBatchFactory(
 
             ErrorOr<Price> priceResult = Price.Create(items[i].Price);
             if (priceResult.IsError)
+            {
                 context.AddFailure(i, null, priceResult.FirstError.Description);
+                continue;
+            }
+
+            prices[i] = priceResult.Value;
         }
 
         if (context.HasFailures)
             return new ProductBatchCreateResult(null, context.ToFailureResponse());
 
-        List<ProductEntity> entities = items
-            .Select(item =>
+        List<ProductEntity> entities = new(items.Count);
+        for (int i = 0; i < items.Count; i++)
+        {
+            CreateProductRequest item = items[i];
+            entities.Add(
                 ProductEntity.Create(
                     item.Name,
                     item.Description,
-                    Price.FromPersistence(item.Price),
+                    prices[i],
                     item.CategoryId,
                     item.ProductDataIds
                 )
-            )
-            .ToList();
+            );
+        }
 
         return new ProductBatchCreateResult(entities, null);
     }

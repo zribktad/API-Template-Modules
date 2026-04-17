@@ -18,9 +18,11 @@ internal sealed class FileUploadWorkflow(
     {
         FileStorageOptions opts = options.Value;
 
-        string? extension = Path.GetExtension(request.FileName)?.ToLowerInvariant();
+        string extension = Path.GetExtension(request.FileName).ToLowerInvariant();
         if (string.IsNullOrEmpty(extension) || !opts.AllowedExtensions.Contains(extension))
-            return DomainErrors.Files.InvalidFileType(extension ?? "none");
+            return DomainErrors.Files.InvalidFileType(
+                string.IsNullOrEmpty(extension) ? "none" : extension
+            );
 
         if (request.SizeBytes > opts.MaxFileSizeBytes)
             return DomainErrors.Files.FileTooLarge(opts.MaxFileSizeBytes);
