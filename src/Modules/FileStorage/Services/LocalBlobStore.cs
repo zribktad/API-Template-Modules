@@ -17,7 +17,6 @@ namespace FileStorage.Services;
 /// </summary>
 internal sealed class LocalBlobStore : IBlobStore
 {
-    // 81920 mirrors Stream.CopyToAsync default; large enough to amortise hash updates and FS syscalls.
     private const int CopyBufferSize = 81920;
 
     private readonly FileStorageOptions _options;
@@ -70,7 +69,6 @@ internal sealed class LocalBlobStore : IBlobStore
                     sizeBytes += read;
                     if (sizeBytes > maxBytes)
                     {
-                        // Abort before any more bytes hit disk — close + delete the partial file.
                         await output.DisposeAsync();
                         File.Delete(stagingPath);
                         throw new FileTooLargeException(maxBytes);
@@ -83,17 +81,13 @@ internal sealed class LocalBlobStore : IBlobStore
         }
         catch
         {
-            // Best-effort cleanup: any exception from the stream loop leaves no partial staging file.
-            if (File.Exists(stagingPath))
+            try
             {
-                try
-                {
-                    File.Delete(stagingPath);
-                }
-                catch (IOException)
-                { /* swallow — cleanup is best-effort */
-                }
+                File.Delete(stagingPath);
             }
+            catch (FileNotFoundException) { }
+            catch (DirectoryNotFoundException) { }
+            catch (IOException) { }
             throw;
         }
         finally
@@ -121,16 +115,15 @@ internal sealed class LocalBlobStore : IBlobStore
 
         Directory.CreateDirectory(Path.GetDirectoryName(committedPath)!);
 
-        if (File.Exists(committedPath))
+        FileInfo committedInfo = new(committedPath);
+        if (committedInfo.Exists)
         {
-            long existingSize = new FileInfo(committedPath).Length;
-            if (existingSize != expectedSize)
+            if (committedInfo.Length != expectedSize)
                 throw new InvalidOperationException(
-                    $"Blob {sha256} already exists for tenant {tenantId} with size {existingSize}, "
+                    $"Blob {sha256} already exists for tenant {tenantId} with size {committedInfo.Length}, "
                         + $"but staging expects {expectedSize}. Refusing to overwrite."
                 );
 
-            // Idempotent success: duplicate content within tenant. Drop staging copy.
             await DeleteStagingAsync(stagingPath, ct);
             return committedPath;
         }
@@ -141,7 +134,6 @@ internal sealed class LocalBlobStore : IBlobStore
         }
         catch (IOException) when (File.Exists(committedPath))
         {
-            // Concurrent promote of identical content landed first; treat as success.
             long existingSize = new FileInfo(committedPath).Length;
             if (existingSize != expectedSize)
                 throw new InvalidOperationException(
@@ -178,8 +170,6 @@ internal sealed class LocalBlobStore : IBlobStore
     {
         string blobsRoot = _options.ResolveBlobsPath();
         string committedPath = BuildCommittedPath(blobsRoot, tenantId, sha256);
-        // Path-traversal guard runs OUTSIDE the try/catch so a UnauthorizedAccessException surfaces
-        // rather than being silently swallowed as a "transient delete failure".
         ValidatePathWithin(blobsRoot, committedPath);
 
         ResiliencePipeline pipeline = _deletePipelineProvider.Get();
@@ -188,8 +178,12 @@ internal sealed class LocalBlobStore : IBlobStore
             await pipeline.ExecuteAsync(
                 _ =>
                 {
-                    if (File.Exists(committedPath))
+                    try
+                    {
                         File.Delete(committedPath);
+                    }
+                    catch (FileNotFoundException) { }
+                    catch (DirectoryNotFoundException) { }
                     return ValueTask.CompletedTask;
                 },
                 ct
@@ -197,12 +191,10 @@ internal sealed class LocalBlobStore : IBlobStore
         }
         catch (OperationCanceledException)
         {
-            // Respect cooperative cancellation.
             throw;
         }
         catch (IOException ex)
         {
-            // Only transient I/O failures are swallowed — surfaces as orphan for the reaper to clean up.
             _logger.LogWarning(
                 ex,
                 "Failed to delete blob {Sha256} for tenant {TenantId} after retries; may be orphaned.",
@@ -216,8 +208,12 @@ internal sealed class LocalBlobStore : IBlobStore
     {
         ValidatePathWithin(_options.ResolveStagingPath(), stagingPath);
 
-        if (File.Exists(stagingPath))
+        try
+        {
             File.Delete(stagingPath);
+        }
+        catch (FileNotFoundException) { }
+        catch (DirectoryNotFoundException) { }
 
         return Task.CompletedTask;
     }

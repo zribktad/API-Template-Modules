@@ -30,7 +30,6 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
             BlobRetentionHours = 24,
             BackendKey = "local",
             AllowedExtensions = [".txt"],
-            OrphanReaperCron = "0 0 * * * ?",
         };
     }
 

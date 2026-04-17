@@ -54,9 +54,9 @@ public sealed class FileUploadSaga : Saga
     public Guid? StoredFileId { get; set; }
 
     /// <summary>
-    ///     Creates the saga row. The timeout is scheduled separately by
-    ///     <c>BeginUploadEndpointCommandHandler</c> via <c>IMessageBus.ScheduleAsync</c> — returning the
-    ///     timeout as a cascading message would dispatch it immediately (no delay), which was a previous bug.
+    ///     Creates the saga row. The staging-timeout message is scheduled separately by
+    ///     <c>BeginUploadEndpointCommandHandler</c> via <c>IMessageBus.ScheduleAsync</c>; a cascading
+    ///     return would be dispatched immediately with no delay.
     /// </summary>
     public static FileUploadSaga Start(
         BeginUploadCommand command,
@@ -92,7 +92,6 @@ public sealed class FileUploadSaga : Saga
     {
         if (Status == FileUploadStatus.Committed && StoredFileId.HasValue)
         {
-            // Redelivery after successful commit — return the existing stored file as idempotent reply.
             logger.LogInformation(
                 "CommitUploadCommand redelivered for already-committed saga {UploadToken}",
                 Id
@@ -140,6 +139,8 @@ public sealed class FileUploadSaga : Saga
             SizeBytes,
             command.Description
         );
+        // Ambient ITenantProvider may not be populated on the Wolverine worker; stamp from saga state.
+        entity.TenantId = TenantId;
         dbContext.StoredFiles.Add(entity);
 
         StoredFileId = entity.Id;
@@ -175,13 +176,8 @@ public sealed class FileUploadSaga : Saga
         CancellationToken ct
     )
     {
-        _ = command;
-
         if (Status == FileUploadStatus.Committed)
-        {
-            // Commit won the race — no compensation needed.
             return;
-        }
 
         if (Status != FileUploadStatus.Staged)
             return;

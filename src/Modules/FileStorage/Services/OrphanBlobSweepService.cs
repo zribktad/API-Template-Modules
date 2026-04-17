@@ -69,10 +69,12 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
             .AddMinutes(-2 * _options.StagingTtlMinutes);
 
         int deleted = 0;
-        IEnumerable<string> candidates;
+        DirectoryInfo dir = new(stagingDir);
+
+        IEnumerable<FileInfo> candidates;
         try
         {
-            candidates = Directory.EnumerateFiles(stagingDir).ToList();
+            candidates = dir.EnumerateFiles();
         }
         catch (DirectoryNotFoundException)
         {
@@ -88,20 +90,20 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
             return 0;
         }
 
-        foreach (string path in candidates)
+        foreach (FileInfo info in candidates)
         {
             try
             {
-                FileInfo info = new(path);
-                if (info.Exists && info.LastWriteTimeUtc < cutoff.UtcDateTime)
+                if (info.LastWriteTimeUtc < cutoff.UtcDateTime)
                 {
                     info.Delete();
                     deleted++;
                 }
             }
+            catch (FileNotFoundException) { }
             catch (IOException ex)
             {
-                _logger.LogWarning(ex, "Failed to delete staging file {Path}", path);
+                _logger.LogWarning(ex, "Failed to delete staging file {Path}", info.FullName);
             }
         }
 
@@ -118,10 +120,10 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
 
         int deleted = 0;
 
-        List<string> tenantDirs;
+        IEnumerable<string> tenantDirs;
         try
         {
-            tenantDirs = Directory.EnumerateDirectories(blobsRoot).ToList();
+            tenantDirs = Directory.EnumerateDirectories(blobsRoot);
         }
         catch (IOException ex)
         {
@@ -142,7 +144,6 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
             if (candidates.Count == 0)
                 continue;
 
-            // One batched refcount query per tenant instead of N+1 per-blob AnyAsync calls.
             HashSet<string> liveShas = await LoadLiveShasAsync(tenantId, candidates, ct);
 
             foreach ((string blobPath, string sha) in candidates)
@@ -156,9 +157,7 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
                     File.Delete(blobPath);
                     deleted++;
                 }
-                catch (FileNotFoundException)
-                { /* already gone — idempotent */
-                }
+                catch (FileNotFoundException) { }
                 catch (IOException ex)
                 {
                     _logger.LogWarning(ex, "Failed to delete orphan blob {Path}", blobPath);
@@ -176,10 +175,10 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
     {
         List<(string, string)> result = new();
 
-        IEnumerable<string> shaPrefixDirs;
+        IEnumerable<DirectoryInfo> shaPrefixDirs;
         try
         {
-            shaPrefixDirs = Directory.EnumerateDirectories(tenantDir).ToList();
+            shaPrefixDirs = new DirectoryInfo(tenantDir).EnumerateDirectories();
         }
         catch (DirectoryNotFoundException)
         {
@@ -190,12 +189,12 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
             return result;
         }
 
-        foreach (string shaPrefixDir in shaPrefixDirs)
+        foreach (DirectoryInfo shaPrefixDir in shaPrefixDirs)
         {
-            IEnumerable<string> blobPaths;
+            IEnumerable<FileInfo> blobs;
             try
             {
-                blobPaths = Directory.EnumerateFiles(shaPrefixDir).ToList();
+                blobs = shaPrefixDir.EnumerateFiles();
             }
             catch (DirectoryNotFoundException)
             {
@@ -206,14 +205,12 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
                 continue;
             }
 
-            foreach (string blobPath in blobPaths)
+            foreach (FileInfo info in blobs)
             {
-                FileInfo info = new(blobPath);
-                if (!info.Exists || info.LastWriteTimeUtc >= cutoffUtc)
+                if (info.LastWriteTimeUtc >= cutoffUtc)
                     continue;
 
-                string sha = Path.GetFileName(blobPath);
-                result.Add((blobPath, sha));
+                result.Add((info.FullName, info.Name));
             }
         }
 
@@ -231,13 +228,13 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
 
         for (int offset = 0; offset < allShas.Count; offset += RefcountQueryBatchSize)
         {
-            List<string> chunk = allShas.Skip(offset).Take(RefcountQueryBatchSize).ToList();
+            int take = Math.Min(RefcountQueryBatchSize, allShas.Count - offset);
+            List<string> chunk = allShas.GetRange(offset, take);
 
             List<string> live = await _dbContext
                 .StoredFiles.AsNoTracking()
                 .Where(f => f.TenantId == tenantId && !f.IsDeleted && chunk.Contains(f.Sha256))
                 .Select(f => f.Sha256)
-                .Distinct()
                 .ToListAsync(ct);
 
             foreach (string sha in live)

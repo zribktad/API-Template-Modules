@@ -47,8 +47,6 @@ public sealed class BeginUploadEndpointCommandHandler
                 string.IsNullOrEmpty(extension) ? "none" : extension
             );
 
-        // Client-declared size is trusted only as a fast-fail; LocalBlobStore.WriteStagingAsync enforces
-        // MaxFileSizeBytes during the stream read to prevent disk-fill DoS from a lying client.
         if (request.SizeBytes > opts.MaxFileSizeBytes)
             return DomainErrors.Files.FileTooLarge(opts.MaxFileSizeBytes);
 
@@ -75,12 +73,9 @@ public sealed class BeginUploadEndpointCommandHandler
             opts.BackendKey
         );
 
-        // InvokeAsync (not PublishAsync) awaits saga creation before returning — avoids a race where the
-        // client receives a token before the saga row is persisted, then posts /commit and hits "not found".
+        // InvokeAsync awaits saga persistence so a follow-up /commit cannot race the saga row.
         await bus.InvokeAsync(sagaStart, ct);
 
-        // Schedule the timeout explicitly; returning it from Saga.Start as a cascading message would
-        // dispatch immediately with no delay.
         await bus.ScheduleAsync(
             new TimeoutUploadCommand(uploadToken),
             TimeSpan.FromMinutes(opts.StagingTtlMinutes)

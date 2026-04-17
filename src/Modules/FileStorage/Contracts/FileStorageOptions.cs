@@ -61,14 +61,6 @@ public sealed class FileStorageOptions
     [Range(1, 720)]
     public int BlobRetentionHours { get; set; } = 24;
 
-    [Description("Quartz-style cron expression for the orphan-blob reaper. Defaults to hourly.")]
-    [Required]
-    [MinLength(1)]
-    public string OrphanReaperCron { get; set; } = "0 0 * * * ?";
-
-    [Description("Whether the orphan-blob recurring job is enabled.")]
-    public bool OrphanReaperEnabled { get; set; } = true;
-
     public string ResolveStagingPath() =>
         string.IsNullOrWhiteSpace(StagingPath) ? Path.Combine(BasePath, "staging") : StagingPath;
 

@@ -35,7 +35,6 @@ public sealed class LocalBlobStoreTests : IDisposable
             AllowedExtensions = [".txt"],
             StagingTtlMinutes = 30,
             BackendKey = "local",
-            OrphanReaperCron = "0 0 * * * ?",
         };
     }
 
