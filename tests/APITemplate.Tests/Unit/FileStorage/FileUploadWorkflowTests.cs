@@ -2,6 +2,7 @@ using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain;
 using FileStorage.Domain.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
@@ -21,7 +22,11 @@ public sealed class FileUploadWorkflowTests
 
     private FileUploadWorkflow CreateSut()
     {
-        return new FileUploadWorkflow(_storage.Object, Options.Create(_options));
+        return new FileUploadWorkflow(
+            _storage.Object,
+            Options.Create(_options),
+            NullLogger<FileUploadWorkflow>.Instance
+        );
     }
 
     private static UploadFileRequest RequestFor(
@@ -118,5 +123,18 @@ public sealed class FileUploadWorkflowTests
         ErrorOr<StoredFile> result = await CreateSut().PrepareAsync(request, ct);
 
         result.IsError.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task RollbackAsync_WhenStorageDeleteThrows_SwallowsExceptionToPreserveOriginal()
+    {
+        StoredFile entity = StoredFile.Create("file.png", "/tmp/file.png", "image/png", 100, null);
+        _storage
+            .Setup(s => s.DeleteAsync("/tmp/file.png", CancellationToken.None))
+            .ThrowsAsync(new IOException("storage gone"));
+
+        await Should.NotThrowAsync(() => CreateSut().RollbackAsync(entity));
+
+        _storage.Verify(s => s.DeleteAsync("/tmp/file.png", CancellationToken.None), Times.Once);
     }
 }

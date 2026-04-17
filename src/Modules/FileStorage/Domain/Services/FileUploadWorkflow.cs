@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FileStorage.Domain.Services;
@@ -8,7 +9,8 @@ namespace FileStorage.Domain.Services;
 /// </summary>
 internal sealed class FileUploadWorkflow(
     IFileStorageService storage,
-    IOptions<FileStorageOptions> options
+    IOptions<FileStorageOptions> options,
+    ILogger<FileUploadWorkflow> logger
 ) : IFileUploadWorkflow
 {
     public async Task<ErrorOr<StoredFile>> PrepareAsync(
@@ -42,8 +44,21 @@ internal sealed class FileUploadWorkflow(
         );
     }
 
-    public Task RollbackAsync(StoredFile storedFile)
+    public async Task RollbackAsync(StoredFile storedFile)
     {
-        return storage.DeleteAsync(storedFile.StoragePath, CancellationToken.None);
+        try
+        {
+            await storage.DeleteAsync(storedFile.StoragePath, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            // Best-effort: must not throw or the caller's original commit-failure exception is lost.
+            // Surface as a warning so orphaned storage payloads are observable.
+            logger.LogWarning(
+                ex,
+                "Failed to roll back stored file at {StoragePath}; payload may be orphaned.",
+                storedFile.StoragePath
+            );
+        }
     }
 }
