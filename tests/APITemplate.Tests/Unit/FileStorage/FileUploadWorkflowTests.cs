@@ -5,6 +5,10 @@ using FileStorage.Domain.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using Polly;
+using Polly.Registry;
+using Polly.Retry;
+using SharedKernel.Application.Resilience;
 using Shouldly;
 using Xunit;
 
@@ -22,9 +26,25 @@ public sealed class FileUploadWorkflowTests
 
     private FileUploadWorkflow CreateSut()
     {
+        ResiliencePipelineRegistry<string> registry = new();
+        registry.TryAddBuilder(
+            ResiliencePipelineKeys.FileStorageDelete,
+            (builder, _) =>
+                builder.AddRetry(
+                    new RetryStrategyOptions
+                    {
+                        MaxRetryAttempts = 3,
+                        Delay = TimeSpan.Zero,
+                        BackoffType = DelayBackoffType.Constant,
+                    }
+                )
+        );
+        FileStorageDeletePipelineProvider deleteProvider = new(registry);
+
         return new FileUploadWorkflow(
             _storage.Object,
             Options.Create(_options),
+            deleteProvider,
             NullLogger<FileUploadWorkflow>.Instance
         );
     }
@@ -130,11 +150,34 @@ public sealed class FileUploadWorkflowTests
     {
         StoredFile entity = StoredFile.Create("file.png", "/tmp/file.png", "image/png", 100, null);
         _storage
-            .Setup(s => s.DeleteAsync("/tmp/file.png", CancellationToken.None))
+            .Setup(s => s.DeleteAsync("/tmp/file.png", It.IsAny<CancellationToken>()))
             .ThrowsAsync(new IOException("storage gone"));
 
         await Should.NotThrowAsync(() => CreateSut().RollbackAsync(entity));
 
-        _storage.Verify(s => s.DeleteAsync("/tmp/file.png", CancellationToken.None), Times.Once);
+        _storage.Verify(
+            s => s.DeleteAsync("/tmp/file.png", It.IsAny<CancellationToken>()),
+            Times.AtLeastOnce
+        );
+    }
+
+    [Fact]
+    public async Task RollbackAsync_WhenTransientFailure_RetriesViaPipeline()
+    {
+        StoredFile entity = StoredFile.Create("file.png", "/tmp/file.png", "image/png", 100, null);
+        int calls = 0;
+        _storage
+            .Setup(s => s.DeleteAsync("/tmp/file.png", It.IsAny<CancellationToken>()))
+            .Returns<string, CancellationToken>(
+                (_, _) =>
+                {
+                    calls++;
+                    return calls < 2 ? throw new IOException("flaky") : Task.CompletedTask;
+                }
+            );
+
+        await CreateSut().RollbackAsync(entity);
+
+        calls.ShouldBe(2);
     }
 }
