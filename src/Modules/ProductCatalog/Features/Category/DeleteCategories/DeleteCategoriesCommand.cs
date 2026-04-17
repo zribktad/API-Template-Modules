@@ -46,11 +46,13 @@ public sealed class DeleteCategoriesCommandHandler
             ct
         );
 
+        HashSet<Guid> existingIds = categories.Select(c => c.Id).ToHashSet();
+
         await context.ApplyRulesAsync(
             ct,
             new MarkMissingByIdBatchRule<Guid>(
                 id => id,
-                categories.Select(c => c.Id).ToHashSet(),
+                existingIds,
                 ErrorCatalog.Categories.NotFoundMessage
             )
         );
@@ -65,7 +67,7 @@ public sealed class DeleteCategoriesCommandHandler
         return (
             HandlerContinuation.Continue,
             new DeleteCategoriesState(
-                categories.Select(c => c.Id).ToList(),
+                [.. existingIds],
                 actorProvider.ActorId,
                 timeProvider.GetUtcNow().UtcDateTime
             ),

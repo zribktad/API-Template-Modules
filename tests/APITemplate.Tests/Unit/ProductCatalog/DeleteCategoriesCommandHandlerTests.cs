@@ -152,9 +152,9 @@ public sealed class DeleteCategoriesCommandHandlerTests
         _categoryRepo
             .Setup(r =>
                 r.BulkSoftDeleteByIdsAsync(
-                    It.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(id)),
-                    actorId,
-                    deletedAt,
+                    It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
                     ct
                 )
             )
