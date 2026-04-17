@@ -24,11 +24,18 @@ public sealed class ModuleBoundaryArchitectureTests
 
         foreach (ModuleDefinition module in ModuleArchitecture.Modules)
         {
-            foreach (string forbiddenModuleName in ModuleArchitecture.GetForbiddenModuleDependencies(
-                module.Name
-            ))
+            foreach (
+                string forbiddenModuleName in ModuleArchitecture.GetForbiddenModuleDependencies(
+                    module.Name
+                )
+            )
             {
-                if (ModuleArchitecture.HasDirectAssemblyReference(module.Assembly, forbiddenModuleName))
+                if (
+                    ModuleArchitecture.HasDirectAssemblyReference(
+                        module.Assembly,
+                        forbiddenModuleName
+                    )
+                )
                     failures.Add($"{module.Name} must not depend on {forbiddenModuleName}.");
             }
         }
@@ -56,7 +63,12 @@ public sealed class ModuleBoundaryArchitectureTests
 
         foreach (string moduleName in ModuleArchitecture.Modules.Select(x => x.Name))
         {
-            if (ModuleArchitecture.HasDirectAssemblyReference(ModuleArchitecture.SharedKernelAssembly, moduleName))
+            if (
+                ModuleArchitecture.HasDirectAssemblyReference(
+                    ModuleArchitecture.SharedKernelAssembly,
+                    moduleName
+                )
+            )
                 failures.Add($"SharedKernel must not depend on module {moduleName}.");
         }
 
@@ -76,10 +88,13 @@ public sealed class ModuleBoundaryArchitectureTests
                 .ResideInNamespace($"{module.RootNamespace}.Features")
                 .ShouldNot()
                 .HaveDependencyOn(ModuleArchitecture.ApiRootNamespace)
-                .GetResult();
+                .GetResult()
+                .IsSuccessful;
 
             if (!result)
-                failures.Add($"{module.Name}.Features must not depend on {ModuleArchitecture.ApiRootNamespace}.");
+                failures.Add(
+                    $"{module.Name}.Features must not depend on {ModuleArchitecture.ApiRootNamespace}."
+                );
         }
 
         failures.ShouldBeEmpty(string.Join(Environment.NewLine, failures));
@@ -101,7 +116,13 @@ public sealed class ModuleBoundaryArchitectureTests
     public void ParseInterModuleProjectReferences_ShouldNormalizeWindowsStyleSeparators()
     {
         string tempRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-        string sourceProject = Path.Combine(tempRoot, "src", "Modules", "ProductCatalog", "ProductCatalog.csproj");
+        string sourceProject = Path.Combine(
+            tempRoot,
+            "src",
+            "Modules",
+            "ProductCatalog",
+            "ProductCatalog.csproj"
+        );
 
         try
         {
@@ -119,7 +140,8 @@ public sealed class ModuleBoundaryArchitectureTests
                 """
             );
 
-            ParseInterModuleProjectReferences(sourceProject).ShouldBe(["ProductCatalog -> Reviews"]);
+            ParseInterModuleProjectReferences(sourceProject)
+                .ShouldBe(["ProductCatalog -> Reviews"]);
         }
         finally
         {
@@ -158,7 +180,9 @@ public sealed class ModuleBoundaryArchitectureTests
                 )
             )
             .Select(include => Path.GetFileNameWithoutExtension(include))
-            .Where(targetModule => !string.Equals(sourceModule, targetModule, StringComparison.Ordinal))
+            .Where(targetModule =>
+                !string.Equals(sourceModule, targetModule, StringComparison.Ordinal)
+            )
             .Select(targetModule => $"{sourceModule} -> {targetModule}");
     }
 
@@ -168,12 +192,16 @@ public sealed class ModuleBoundaryArchitectureTests
             .Replace('\\', Path.DirectorySeparatorChar)
             .Replace('/', Path.DirectorySeparatorChar);
 
-        return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectPath)!, normalizedInclude));
+        return Path.GetFullPath(
+            Path.Combine(Path.GetDirectoryName(projectPath)!, normalizedInclude)
+        );
     }
 
     private static string GetRepoRoot()
     {
-        return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+        return Path.GetFullPath(
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..")
+        );
     }
 
     private sealed record ModuleDefinition(string Name, string RootNamespace, Assembly Assembly);
@@ -242,24 +270,33 @@ public sealed class ModuleBoundaryArchitectureTests
             Webhooks,
         ];
 
-        public static Assembly SharedKernelAssembly => typeof(SharedKernel.Application.Errors.AppException)
-            .Assembly;
+        public static Assembly SharedKernelAssembly =>
+            typeof(SharedKernel.Application.Errors.AppException).Assembly;
 
-        private static readonly IReadOnlyDictionary<string, IReadOnlySet<string>> _allowedModuleDependencies =
-            new Dictionary<string, IReadOnlySet<string>>(StringComparer.Ordinal)
+        private static readonly IReadOnlyDictionary<
+            string,
+            IReadOnlySet<string>
+        > _allowedModuleDependencies = new Dictionary<string, IReadOnlySet<string>>(
+            StringComparer.Ordinal
+        )
+        {
+            [ProductCatalog.Name] = new HashSet<string>(StringComparer.Ordinal)
             {
-                [ProductCatalog.Name] = new HashSet<string>(StringComparer.Ordinal)
-                {
-                    Reviews.RootNamespace,
-                },
-            };
+                Reviews.RootNamespace,
+            },
+        };
 
         public static ModuleDefinition GetModule(string name)
         {
-            return Modules.Single(module => string.Equals(module.Name, name, StringComparison.Ordinal));
+            return Modules.Single(module =>
+                string.Equals(module.Name, name, StringComparison.Ordinal)
+            );
         }
 
-        public static bool HasDirectAssemblyReference(Assembly assembly, string referencedAssemblyName)
+        public static bool HasDirectAssemblyReference(
+            Assembly assembly,
+            string referencedAssemblyName
+        )
         {
             return assembly
                 .GetReferencedAssemblies()
