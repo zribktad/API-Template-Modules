@@ -1,3 +1,4 @@
+using FileStorage.Domain.Services;
 using FileStorage.Features;
 using FileStorage.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -60,6 +61,7 @@ public static class FileStorageModule
     private static void RegisterApplicationServices(IServiceCollection services)
     {
         services.AddTransient<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IFileUploadWorkflow, FileUploadWorkflow>();
     }
 
     private static void RegisterControllers(IServiceCollection services)

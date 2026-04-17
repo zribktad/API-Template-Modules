@@ -1,4 +1,5 @@
 using ErrorOr;
+using Identity.Directory.Domain.Services;
 using Identity.ValueObjects;
 using Wolverine;
 
@@ -11,6 +12,7 @@ public sealed class UpdateUserCommandHandler
     public static async Task<ErrorOr<(AppUser User, Email Email)>> ValidateAsync(
         UpdateUserCommand command,
         IUserRepository repository,
+        IUserUniquenessChecker uniqueness,
         CancellationToken ct
     )
     {
@@ -30,11 +32,7 @@ public sealed class UpdateUserCommandHandler
 
         if (!string.Equals(user.Email.Value, newEmail.Value, StringComparison.OrdinalIgnoreCase))
         {
-            ErrorOr<Success> emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
-                repository,
-                command.Request.Email,
-                ct
-            );
+            ErrorOr<Success> emailResult = await uniqueness.EnsureEmailUniqueAsync(newEmail, ct);
             if (emailResult.IsError)
                 return emailResult.Errors;
         }
@@ -42,12 +40,10 @@ public sealed class UpdateUserCommandHandler
         string normalizedNew = AppUser.NormalizeUsername(command.Request.Username);
         if (!string.Equals(user.NormalizedUsername, normalizedNew, StringComparison.Ordinal))
         {
-            ErrorOr<Success> usernameResult =
-                await UserValidationHelper.ValidateUsernameUniqueAsync(
-                    repository,
-                    command.Request.Username,
-                    ct
-                );
+            ErrorOr<Success> usernameResult = await uniqueness.EnsureUsernameUniqueAsync(
+                command.Request.Username,
+                ct
+            );
             if (usernameResult.IsError)
                 return usernameResult.Errors;
         }

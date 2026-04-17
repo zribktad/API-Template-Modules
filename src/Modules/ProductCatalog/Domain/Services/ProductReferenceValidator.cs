@@ -1,17 +1,17 @@
-namespace ProductCatalog.Features.Product.Shared;
+namespace ProductCatalog.Domain.Services;
 
-/// <summary>Shared validation methods for product commands.</summary>
-internal static class ProductValidationHelper
+/// <summary>
+///     Default <see cref="IProductReferenceValidator" />. Fetches referenced categories and product-data in bulk,
+///     then maps missing IDs to per-item <see cref="BatchResultItem" /> failures.
+/// </summary>
+internal sealed class ProductReferenceValidator(
+    ICategoryRepository categoryRepository,
+    IProductDataRepository productDataRepository
+) : IProductReferenceValidator
 {
-    /// <summary>
-    ///     Checks all product references (category and product data) in a single call, merging
-    ///     per-item failures from both checks. Items in <paramref name="failedIndices" /> are skipped.
-    /// </summary>
-    internal static async Task<List<BatchResultItem>> CheckProductReferencesAsync<T>(
+    public async Task<List<BatchResultItem>> CheckReferencesAsync<T>(
         IReadOnlyList<T> items,
-        ICategoryRepository categoryRepository,
-        IProductDataRepository productDataRepository,
-        IReadOnlySet<int> failedIndices,
+        IReadOnlySet<int> skipIndices,
         CancellationToken ct
     )
         where T : IProductRequest
@@ -20,43 +20,34 @@ internal static class ProductValidationHelper
         // connections, so they can safely run in parallel.
         Task<List<BatchResultItem>> categoryTask = CheckCategoryReferencesAsync(
             items,
-            item => item.CategoryId,
-            categoryRepository,
-            failedIndices,
+            skipIndices,
             ct
         );
         Task<List<BatchResultItem>> productDataTask = CheckProductDataReferencesAsync(
             items,
-            item => item.ProductDataIds,
-            productDataRepository,
-            failedIndices,
+            skipIndices,
             ct
         );
         await Task.WhenAll(categoryTask, productDataTask);
         return BatchFailureMerge.MergeByIndex(categoryTask.Result, productDataTask.Result);
     }
 
-    /// <summary>
-    ///     Checks that all referenced category IDs exist and returns per-item failures for items
-    ///     that reference a missing category. Items in <paramref name="failedIndices" /> are skipped.
-    /// </summary>
-    internal static async Task<List<BatchResultItem>> CheckCategoryReferencesAsync<T>(
+    private async Task<List<BatchResultItem>> CheckCategoryReferencesAsync<T>(
         IReadOnlyList<T> items,
-        Func<T, Guid?> categoryIdSelector,
-        ICategoryRepository categoryRepository,
-        IReadOnlySet<int> failedIndices,
+        IReadOnlySet<int> skipIndices,
         CancellationToken ct
     )
+        where T : IProductRequest
     {
         HashSet<Guid> allCategoryIds = items
-            .Where(item => categoryIdSelector(item).HasValue)
-            .Select(item => categoryIdSelector(item)!.Value)
+            .Where(item => item.CategoryId.HasValue)
+            .Select(item => item.CategoryId!.Value)
             .ToHashSet();
 
         if (allCategoryIds.Count == 0)
             return [];
 
-        List<Entities.Category> existing = await categoryRepository.ListAsync(
+        List<Category> existing = await categoryRepository.ListAsync(
             new CategoriesByIdsSpecification(allCategoryIds),
             ct
         );
@@ -69,10 +60,10 @@ internal static class ProductValidationHelper
 
         for (int i = 0; i < items.Count; i++)
         {
-            if (failedIndices.Contains(i))
+            if (skipIndices.Contains(i))
                 continue;
 
-            Guid? categoryId = categoryIdSelector(items[i]);
+            Guid? categoryId = items[i].CategoryId;
             if (categoryId.HasValue && allCategoryIds.Contains(categoryId.Value))
             {
                 Guid? failureId = items[i] is IHasId hasId ? hasId.Id : null;
@@ -89,21 +80,16 @@ internal static class ProductValidationHelper
         return failures;
     }
 
-    /// <summary>
-    ///     Checks that all referenced product-data IDs exist and returns per-item failures for items
-    ///     that reference missing product data. Items in <paramref name="failedIndices" /> are skipped.
-    /// </summary>
-    internal static async Task<List<BatchResultItem>> CheckProductDataReferencesAsync<T>(
+    private async Task<List<BatchResultItem>> CheckProductDataReferencesAsync<T>(
         IReadOnlyList<T> items,
-        Func<T, IReadOnlyCollection<Guid>?> productDataIdsSelector,
-        IProductDataRepository productDataRepository,
-        IReadOnlySet<int> failedIndices,
+        IReadOnlySet<int> skipIndices,
         CancellationToken ct
     )
+        where T : IProductRequest
     {
         Guid[] allProductDataIds = items
-            .Where(item => productDataIdsSelector(item) is { Count: > 0 })
-            .SelectMany(item => productDataIdsSelector(item)!)
+            .Where(item => item.ProductDataIds is { Count: > 0 })
+            .SelectMany(item => item.ProductDataIds!)
             .Distinct()
             .ToArray();
 
@@ -127,10 +113,10 @@ internal static class ProductValidationHelper
 
         for (int i = 0; i < items.Count; i++)
         {
-            if (failedIndices.Contains(i))
+            if (skipIndices.Contains(i))
                 continue;
 
-            IReadOnlyCollection<Guid>? pdIds = productDataIdsSelector(items[i]);
+            IReadOnlyCollection<Guid>? pdIds = items[i].ProductDataIds;
             if (pdIds is not { Count: > 0 })
                 continue;
 

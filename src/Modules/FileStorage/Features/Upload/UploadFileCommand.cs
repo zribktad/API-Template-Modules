@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+using FileStorage.Domain.Services;
 
 namespace FileStorage.Features.Upload;
 
@@ -8,34 +8,20 @@ public sealed class UploadFileCommandHandler
 {
     public static async Task<ErrorOr<FileUploadResponse>> HandleAsync(
         UploadFileCommand command,
+        IFileUploadWorkflow workflow,
         IStoredFileRepository repository,
         IFileStorageService storage,
         IUnitOfWork<FileStorageDbMarker> unitOfWork,
-        IOptions<FileStorageOptions> options,
         CancellationToken ct
     )
     {
-        UploadFileRequest req = command.Request;
-        FileStorageOptions opts = options.Value;
-        string? extension = Path.GetExtension(req.FileName)?.ToLowerInvariant();
-        if (string.IsNullOrEmpty(extension) || !opts.AllowedExtensions.Contains(extension))
-            return DomainErrors.Files.InvalidFileType(extension ?? "none");
-
-        if (req.SizeBytes > opts.MaxFileSizeBytes)
-            return DomainErrors.Files.FileTooLarge(opts.MaxFileSizeBytes);
-
-        FileStorageResult storageResult = await storage.SaveAsync(req.FileStream, req.FileName, ct);
+        ErrorOr<StoredFile> prepared = await workflow.PrepareAsync(command.Request, ct);
+        if (prepared.IsError)
+            return prepared.Errors;
+        StoredFile entity = prepared.Value;
 
         try
         {
-            StoredFile entity = StoredFile.Create(
-                req.FileName,
-                storageResult.StoragePath,
-                req.ContentType,
-                storageResult.SizeBytes,
-                req.Description
-            );
-
             await unitOfWork.ExecuteInTransactionAsync(
                 async () =>
                 {
@@ -55,7 +41,7 @@ public sealed class UploadFileCommandHandler
         }
         catch
         {
-            await storage.DeleteAsync(storageResult.StoragePath, CancellationToken.None);
+            await storage.DeleteAsync(entity.StoragePath, CancellationToken.None);
             throw;
         }
     }

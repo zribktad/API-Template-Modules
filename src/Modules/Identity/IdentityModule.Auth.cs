@@ -6,6 +6,7 @@ using Identity.Auth.Security.Keycloak;
 using Identity.Auth.Security.Sessions;
 using Identity.Auth.Security.Sessions.Lifecycle;
 using Identity.Common.Email;
+using Identity.Directory.Domain.Services;
 using Keycloak.AuthServices.Sdk;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -204,6 +205,7 @@ public static partial class IdentityModule
         services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
         services.AddSingleton<IKeycloakService, KeycloakService>();
         services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
+        services.AddScoped<IUserUniquenessChecker, UserUniquenessChecker>();
     }
 
     // ── Keycloak Admin ────────────────────────────────────────────────────────

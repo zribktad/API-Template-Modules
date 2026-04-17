@@ -1,4 +1,5 @@
 using ErrorOr;
+using ProductCatalog.Domain.Services;
 using ProductCatalog.ValueObjects;
 using Wolverine;
 using ProductEntity = ProductCatalog.Entities.Product;
@@ -26,8 +27,7 @@ public sealed class UpdateProductsCommandHandler
     )> LoadAsync(
         UpdateProductsCommand command,
         ProductRepositoryContract repository,
-        ICategoryRepository categoryRepository,
-        IProductDataRepository productDataRepository,
+        IProductReferenceValidator referenceValidator,
         IBatchRule<UpdateProductItem> itemValidationRule,
         CancellationToken ct
     )
@@ -55,13 +55,7 @@ public sealed class UpdateProductsCommandHandler
         );
 
         context.AddFailures(
-            await ProductValidationHelper.CheckProductReferencesAsync(
-                items,
-                categoryRepository,
-                productDataRepository,
-                context.FailedIndices,
-                ct
-            )
+            await referenceValidator.CheckReferencesAsync(items, context.FailedIndices, ct)
         );
 
         for (int i = 0; i < items.Count; i++)

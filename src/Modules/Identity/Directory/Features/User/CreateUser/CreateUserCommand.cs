@@ -1,4 +1,5 @@
 using ErrorOr;
+using Identity.Directory.Domain.Services;
 using Identity.ValueObjects;
 using Wolverine;
 
@@ -10,31 +11,23 @@ public sealed class CreateUserCommandHandler
 {
     public static async Task<ErrorOr<Email>> ValidateAsync(
         CreateUserCommand command,
-        IUserRepository repository,
+        IUserUniquenessChecker uniqueness,
         CancellationToken ct
     )
     {
-        ErrorOr<Email> emailValueResult = Email.Create(command.Request.Email);
-        if (emailValueResult.IsError)
-            return emailValueResult.Errors;
-
-        ErrorOr<Success> emailResult = await UserValidationHelper.ValidateEmailUniqueAsync(
-            repository,
-            command.Request.Email,
-            ct
-        );
+        ErrorOr<Email> emailResult = Email.Create(command.Request.Email);
         if (emailResult.IsError)
             return emailResult.Errors;
 
-        ErrorOr<Success> usernameResult = await UserValidationHelper.ValidateUsernameUniqueAsync(
-            repository,
+        ErrorOr<Success> uniqueResult = await uniqueness.EnsureUniqueAsync(
             command.Request.Username,
+            emailResult.Value,
             ct
         );
-        if (usernameResult.IsError)
-            return usernameResult.Errors;
+        if (uniqueResult.IsError)
+            return uniqueResult.Errors;
 
-        return emailValueResult.Value;
+        return emailResult.Value;
     }
 
     public static async Task<(ErrorOr<UserResponse>, OutgoingMessages)> HandleAsync(

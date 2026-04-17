@@ -1,5 +1,6 @@
 using ErrorOr;
 using Identity.Auth.Entities;
+using Identity.Directory.Domain.Services;
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Features.User;
@@ -20,6 +21,7 @@ public class UserRequestHandlersTests
 {
     private readonly Mock<IUserRepository> _repositoryMock = new();
     private readonly Mock<IdentityUnitOfWork> _unitOfWorkMock = new();
+    private IUserUniquenessChecker Uniqueness => new UserUniquenessChecker(_repositoryMock.Object);
 
     // --- GetByIdAsync ---
 
@@ -157,7 +159,12 @@ public class UserRequestHandlersTests
         );
 
         ErrorOr<(AppUser User, Email Email)> validation =
-            await UpdateUserCommandHandler.ValidateAsync(command, _repositoryMock.Object, ct);
+            await UpdateUserCommandHandler.ValidateAsync(
+                command,
+                _repositoryMock.Object,
+                Uniqueness,
+                ct
+            );
         (ErrorOr<Success> result, OutgoingMessages messages) =
             await UpdateUserCommandHandler.HandleAsync(
                 command,
@@ -193,6 +200,7 @@ public class UserRequestHandlersTests
             await UpdateUserCommandHandler.ValidateAsync(
                 command,
                 _repositoryMock.Object,
+                Uniqueness,
                 TestContext.Current.CancellationToken
             );
         (ErrorOr<Success> result, OutgoingMessages messages) =
@@ -229,6 +237,7 @@ public class UserRequestHandlersTests
             await UpdateUserCommandHandler.ValidateAsync(
                 command,
                 _repositoryMock.Object,
+                Uniqueness,
                 TestContext.Current.CancellationToken
             );
         (ErrorOr<Success> result, _) = await UpdateUserCommandHandler.HandleAsync(
@@ -263,6 +272,7 @@ public class UserRequestHandlersTests
             await UpdateUserCommandHandler.ValidateAsync(
                 command,
                 _repositoryMock.Object,
+                Uniqueness,
                 TestContext.Current.CancellationToken
             );
 
