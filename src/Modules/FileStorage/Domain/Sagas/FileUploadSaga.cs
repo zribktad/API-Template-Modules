@@ -37,7 +37,7 @@ public enum FileUploadStatus
 ///         <see cref="FileUploadStatus.Committed" /> (timeout lost the race to commit).
 ///     </para>
 /// </summary>
-public sealed class FileUploadSaga : Wolverine.Saga
+public sealed class FileUploadSaga : Saga
 {
     /// <summary>Upload token (a Guid rendered as "N") — doubles as the saga correlation key.</summary>
     public string? Id { get; set; }
@@ -175,6 +175,8 @@ public sealed class FileUploadSaga : Wolverine.Saga
         CancellationToken ct
     )
     {
+        _ = command;
+
         if (Status == FileUploadStatus.Committed)
         {
             // Commit won the race — no compensation needed.

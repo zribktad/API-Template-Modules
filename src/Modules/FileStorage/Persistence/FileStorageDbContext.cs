@@ -1,3 +1,4 @@
+using FileStorage.Domain.Sagas;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Application.Context;
 using SharedKernel.Infrastructure.Auditing;
@@ -17,6 +18,7 @@ public sealed class FileStorageDbContext : ModuleDbContext
         : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager) { }
 
     public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
+    public DbSet<FileUploadSaga> FileUploadSagas => Set<FileUploadSaga>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -291,6 +291,21 @@ public async Task CreateOrderWithDataAsync(
 
 ---
 
+## Cascading Side-Effects (Saga + Outbox)
+
+Wolverine's EF Core saga support and `UseDurableOutboxOnAllSendingEndpoints` together provide **transactional cascading**: a handler that returns an event or command alongside its primary reply gets that message persisted to the outbox **in the same DB transaction** as the domain write. After commit the message dispatches from the outbox exactly-once.
+
+The canonical example is the **`FileUploadSaga`** in the FileStorage module — it demonstrates:
+
+- Two-phase atomic uploads (staging → commit) where bytes must not orphan on crash.
+- Scheduled timeout messages via `DeliverIn` that survive process restarts.
+- Compensating actions on timeout (delete staging, mark `Failed`).
+- Refcount-based blob delete cascaded via `MaybeDeleteBlobCommand`.
+
+See [File Upload Saga](file-upload-saga.md) for the full walkthrough.
+
+---
+
 ## Key Files Reference
 
 | File | Purpose |

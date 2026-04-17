@@ -13,10 +13,12 @@ internal sealed class StoredFileConfiguration : IEntityTypeConfiguration<StoredF
         builder.ConfigureTenantAuditable();
 
         builder.Property(x => x.OriginalFileName).IsRequired().HasMaxLength(255);
-        builder.Property(x => x.StoragePath).IsRequired().HasMaxLength(1000);
+        builder.Property(x => x.Sha256).IsRequired().HasMaxLength(64).IsFixedLength();
+        builder.Property(x => x.BackendKey).IsRequired().HasMaxLength(32);
         builder.Property(x => x.ContentType).IsRequired().HasMaxLength(100);
         builder.Property(x => x.Description).HasMaxLength(500);
 
-        builder.HasIndex(x => x.StoragePath).IsUnique();
+        // Compound index supports refcount query: COUNT(*) WHERE Sha256=@s AND TenantId=@t AND !IsDeleted.
+        builder.HasIndex(x => new { x.Sha256, x.TenantId });
     }
 }

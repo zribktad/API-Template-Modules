@@ -17,7 +17,8 @@ internal sealed class ProductReferenceValidator(
         where T : IProductRequest
     {
         // Category (EF Core / PostgreSQL) and product-data (MongoDB) checks use independent
-        // connections, so they can safely run in parallel.
+        // connections, so they can safely run in parallel. Sharing an EF DbContext across the two
+        // branches would be unsafe — keep them on separate scopes/providers if that ever changes.
         Task<List<BatchResultItem>> categoryTask = CheckCategoryReferencesAsync(
             items,
             skipIndices,
@@ -29,7 +30,7 @@ internal sealed class ProductReferenceValidator(
             ct
         );
         await Task.WhenAll(categoryTask, productDataTask);
-        return BatchFailureMerge.MergeByIndex(categoryTask.Result, productDataTask.Result);
+        return BatchFailureMerge.MergeByIndex(await categoryTask, await productDataTask);
     }
 
     private async Task<List<BatchResultItem>> CheckCategoryReferencesAsync<T>(
@@ -40,7 +41,7 @@ internal sealed class ProductReferenceValidator(
         where T : IProductRequest
     {
         HashSet<Guid> allCategoryIds = items
-            .Where(item => item.CategoryId.HasValue)
+            .Where((item, i) => !skipIndices.Contains(i) && item.CategoryId.HasValue)
             .Select(item => item.CategoryId!.Value)
             .ToHashSet();
 
@@ -88,7 +89,7 @@ internal sealed class ProductReferenceValidator(
         where T : IProductRequest
     {
         Guid[] allProductDataIds = items
-            .Where(item => item.ProductDataIds is { Count: > 0 })
+            .Where((item, i) => !skipIndices.Contains(i) && item.ProductDataIds is { Count: > 0 })
             .SelectMany(item => item.ProductDataIds!)
             .Distinct()
             .ToArray();

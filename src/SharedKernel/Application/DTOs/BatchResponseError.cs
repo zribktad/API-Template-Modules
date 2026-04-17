@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using ErrorOr;
 
 namespace SharedKernel.Application.DTOs;
@@ -24,9 +25,36 @@ public static class BatchResponseError
 
     /// <summary>
     ///     Extracts the originating <see cref="BatchResponse" /> from an error produced by <see cref="From" />.
+    ///     Throws <see cref="InvalidOperationException" /> when called with any other <see cref="Error" />.
     /// </summary>
     public static BatchResponse Unwrap(Error error)
     {
-        return (BatchResponse)error.Metadata![MetadataKey];
+        if (!TryUnwrap(error, out BatchResponse? response))
+            throw new InvalidOperationException(
+                $"Error with code '{error.Code}' was not produced by {nameof(BatchResponseError)}.{nameof(From)}."
+            );
+
+        return response;
+    }
+
+    /// <summary>
+    ///     Attempts to extract the originating <see cref="BatchResponse" /> from <paramref name="error" />.
+    ///     Returns <c>false</c> when the error was not produced by <see cref="From" />.
+    /// </summary>
+    public static bool TryUnwrap(Error error, [NotNullWhen(true)] out BatchResponse? response)
+    {
+        if (
+            error.Code == Code
+            && error.Metadata is { } metadata
+            && metadata.TryGetValue(MetadataKey, out object? value)
+            && value is BatchResponse wrapped
+        )
+        {
+            response = wrapped;
+            return true;
+        }
+
+        response = null;
+        return false;
     }
 }

@@ -29,15 +29,32 @@ public sealed class UpdateProductsCommandHandler
         UpdateProductsCommand command,
         ProductRepositoryContract repository,
         IProductBatchValidator<UpdateProductItem> validator,
+        IBatchRule<UpdateProductItem> itemValidationRule,
         CancellationToken ct
     )
     {
         IReadOnlyList<UpdateProductItem> items = command.Request.Items;
 
-        HashSet<Guid> requestedIds = items.Select(item => item.Id).ToHashSet();
-        Dictionary<Guid, ProductEntity> productMap = (
-            await repository.ListAsync(new ProductsByIdsWithLinksSpecification(requestedIds), ct)
-        ).ToDictionary(product => product.Id);
+        // Pre-apply item validation so malformed rows (e.g. Guid.Empty Id) are skipped before
+        // hitting the repository. The validator re-runs the same rule later as part of the full
+        // batch validation — that's an idempotent in-memory check, so the duplication is cheap.
+        BatchFailureContext<UpdateProductItem> preValidation = new(items);
+        await preValidation.ApplyRulesAsync(ct, itemValidationRule);
+
+        HashSet<Guid> requestedIds = items
+            .Where((item, i) => !preValidation.IsFailed(i) && item.Id != Guid.Empty)
+            .Select(item => item.Id)
+            .ToHashSet();
+
+        Dictionary<Guid, ProductEntity> productMap =
+            requestedIds.Count == 0
+                ? []
+                : (
+                    await repository.ListAsync(
+                        new ProductsByIdsWithLinksSpecification(requestedIds),
+                        ct
+                    )
+                ).ToDictionary(product => product.Id);
 
         MarkMissingByIdBatchRule<UpdateProductItem> missingRule = new(
             item => item.Id,
