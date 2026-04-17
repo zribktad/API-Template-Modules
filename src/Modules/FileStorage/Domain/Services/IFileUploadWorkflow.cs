@@ -5,8 +5,8 @@ namespace FileStorage.Domain.Services;
 ///     persists the binary payload via <see cref="IFileStorageService" />, producing a <see cref="StoredFile" />
 ///     entity ready for database persistence.
 ///     <para>
-///         The caller (command handler) remains responsible for the DB transaction and compensating storage
-///         cleanup on commit failure — the workflow owns only pre-DB steps.
+///         The caller (command handler) remains responsible for the DB transaction; on commit failure it MUST
+///         invoke <see cref="RollbackAsync" /> so the storage write is removed.
 ///     </para>
 /// </summary>
 public interface IFileUploadWorkflow
@@ -20,4 +20,11 @@ public interface IFileUploadWorkflow
         UploadFileRequest request,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Compensating action for a failed DB persist: removes the storage payload created by
+    ///     <see cref="PrepareAsync" />. Best-effort — uses <see cref="CancellationToken.None" /> internally so the
+    ///     cleanup runs even when the original request is being cancelled.
+    /// </summary>
+    Task RollbackAsync(StoredFile storedFile);
 }

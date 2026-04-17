@@ -6,47 +6,23 @@ using ProductEntity = ProductCatalog.Entities.Product;
 namespace ProductCatalog.Domain.Services;
 
 /// <summary>
-///     Default <see cref="IProductBatchFactory" />. Aggregates per-item failures into a single
-///     <see cref="BatchFailureContext{T}" /> so each index can collect errors from multiple validation layers
-///     (fluent rule, reference check, price value-object) before being rejected.
+///     Default <see cref="IProductBatchFactory" />. Delegates the validation pipeline to
+///     <see cref="IProductBatchValidator{T}" /> and uses the validated <see cref="Price" /> values to construct
+///     not-yet-persisted <see cref="ProductEntity" /> aggregates.
 /// </summary>
-internal sealed class ProductBatchFactory(
-    IProductReferenceValidator referenceValidator,
-    IBatchRule<CreateProductRequest> itemValidationRule
-) : IProductBatchFactory
+internal sealed class ProductBatchFactory(IProductBatchValidator<CreateProductRequest> validator)
+    : IProductBatchFactory
 {
-    public async Task<ProductBatchCreateResult> CreateAsync(
+    public async Task<ErrorOr<IReadOnlyList<ProductEntity>>> CreateAsync(
         IReadOnlyList<CreateProductRequest> items,
         CancellationToken ct
     )
     {
-        BatchFailureContext<CreateProductRequest> context = new(items);
+        ErrorOr<IReadOnlyList<Price>> validation = await validator.ValidateAsync(items, ct);
+        if (validation.IsError)
+            return validation.Errors;
 
-        await context.ApplyRulesAsync(ct, itemValidationRule);
-
-        context.AddFailures(
-            await referenceValidator.CheckReferencesAsync(items, context.FailedIndices, ct)
-        );
-
-        Price[] prices = new Price[items.Count];
-        for (int i = 0; i < items.Count; i++)
-        {
-            if (context.IsFailed(i))
-                continue;
-
-            ErrorOr<Price> priceResult = Price.Create(items[i].Price);
-            if (priceResult.IsError)
-            {
-                context.AddFailure(i, null, priceResult.FirstError.Description);
-                continue;
-            }
-
-            prices[i] = priceResult.Value;
-        }
-
-        if (context.HasFailures)
-            return new ProductBatchCreateResult(null, context.ToFailureResponse());
-
+        IReadOnlyList<Price> prices = validation.Value;
         List<ProductEntity> entities = new(items.Count);
         for (int i = 0; i < items.Count; i++)
         {
@@ -62,6 +38,6 @@ internal sealed class ProductBatchFactory(
             );
         }
 
-        return new ProductBatchCreateResult(entities, null);
+        return entities;
     }
 }

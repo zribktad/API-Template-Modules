@@ -4,7 +4,7 @@ namespace FileStorage.Domain.Services;
 
 /// <summary>
 ///     Default <see cref="IFileUploadWorkflow" />. Enforces extension whitelist and size limit before delegating
-///     to <see cref="IFileStorageService" /> for the physical write.
+///     to <see cref="IFileStorageService" /> for the physical write, and owns the compensating delete on rollback.
 /// </summary>
 internal sealed class FileUploadWorkflow(
     IFileStorageService storage,
@@ -40,5 +40,10 @@ internal sealed class FileUploadWorkflow(
             result.SizeBytes,
             request.Description
         );
+    }
+
+    public Task RollbackAsync(StoredFile storedFile)
+    {
+        return storage.DeleteAsync(storedFile.StoragePath, CancellationToken.None);
     }
 }

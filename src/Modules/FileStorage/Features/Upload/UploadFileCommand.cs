@@ -10,7 +10,6 @@ public sealed class UploadFileCommandHandler
         UploadFileCommand command,
         IFileUploadWorkflow workflow,
         IStoredFileRepository repository,
-        IFileStorageService storage,
         IUnitOfWork<FileStorageDbMarker> unitOfWork,
         CancellationToken ct
     )
@@ -41,7 +40,7 @@ public sealed class UploadFileCommandHandler
         }
         catch
         {
-            await storage.DeleteAsync(entity.StoragePath, CancellationToken.None);
+            await workflow.RollbackAsync(entity);
             throw;
         }
     }

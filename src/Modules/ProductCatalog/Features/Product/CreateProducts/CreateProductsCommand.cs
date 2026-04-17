@@ -21,16 +21,19 @@ public sealed class CreateProductsCommandHandler
         OutgoingMessages
     )> LoadAsync(CreateProductsCommand command, IProductBatchFactory factory, CancellationToken ct)
     {
-        ProductBatchCreateResult result = await factory.CreateAsync(command.Request.Items, ct);
+        ErrorOr<IReadOnlyList<ProductEntity>> result = await factory.CreateAsync(
+            command.Request.Items,
+            ct
+        );
 
-        if (result.Failure is not null)
+        if (result.IsError)
         {
             OutgoingMessages failureMessages = new();
-            failureMessages.RespondToSender(result.Failure);
+            failureMessages.RespondToSender(BatchResponseError.Unwrap(result.FirstError));
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 
-        return (HandlerContinuation.Continue, result.Entities, OutgoingMessagesHelper.Empty);
+        return (HandlerContinuation.Continue, result.Value, OutgoingMessagesHelper.Empty);
     }
 
     public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(

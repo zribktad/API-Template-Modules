@@ -53,6 +53,7 @@ public static class ProductCatalogModule
             .AddRepository<IProductDataRepository, ProductDataRepository>();
 
         services.AddScoped<IProductReferenceValidator, ProductReferenceValidator>();
+        services.AddScoped(typeof(IProductBatchValidator<>), typeof(ProductBatchValidator<>));
         services.AddScoped<IProductBatchFactory, ProductBatchFactory>();
 
         services.Configure<MongoDbSettings>(
