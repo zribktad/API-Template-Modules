@@ -26,4 +26,17 @@ public interface ICategoryRepository : IRepository<Category>
         DateTime deletedAtUtc,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Bulk soft-deletes the specified categories by ID via a single <c>ExecuteUpdateAsync</c>
+    ///     SQL statement (zero entity materialization). Only non-deleted categories are affected.
+    ///     No <c>CategorySoftDeletedNotification</c> is published — no module currently subscribes
+    ///     to category deletion events; add the notification if a cross-module consumer is introduced.
+    /// </summary>
+    Task<int> BulkSoftDeleteByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    );
 }
