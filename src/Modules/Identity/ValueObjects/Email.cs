@@ -14,7 +14,11 @@ public readonly record struct Email
         Value = value;
     }
 
-    public string Value { get; }
+    public string Value
+    {
+        get => field ?? string.Empty;
+        private init;
+    }
 
     /// <summary>Creates an <see cref="Email" /> after trimming and validating the input.</summary>
     public static ErrorOr<Email> Create(string value)

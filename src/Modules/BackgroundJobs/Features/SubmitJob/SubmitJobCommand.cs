@@ -32,7 +32,7 @@ public sealed class SubmitJobCommandHandler
         {
             await jobQueue.EnqueueAsync(entity.Id, ct);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             entity.MarkFailed($"Failed to enqueue job for processing: {ex.Message}", timeProvider);
 

@@ -106,7 +106,12 @@ public static class IdentityTokenValidatedPipeline
     {
         // Step 1 — Normalize claims from Keycloak into the claim types the rest of the app expects.
         if (principal?.Identity is ClaimsIdentity identity)
-            KeycloakClaimMapper.MapKeycloakClaims(identity);
+        {
+            ILoggerFactory loggerFactory =
+                httpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            ILogger logger = loggerFactory.CreateLogger(typeof(KeycloakClaimMapper));
+            KeycloakClaimMapper.MapKeycloakClaims(identity, logger);
+        }
 
         bool isServiceAccount = KeycloakServiceAccountClaims.IsServiceAccount(principal);
 

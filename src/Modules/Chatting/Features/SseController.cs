@@ -36,7 +36,7 @@ public sealed class SseController(IMessageBus bus) : ApiControllerBase
         await foreach (SseNotificationItem item in stream.WithCancellation(ct))
         {
             string json = JsonSerializer.Serialize(item, JsonSerializerOptions.Web);
-            await writer.WriteAsync($"{SseDataPrefix}{json}\n\n");
+            await writer.WriteAsync($"{SseDataPrefix}{json}\n\n".AsMemory(), ct);
             await writer.FlushAsync(ct);
         }
     }

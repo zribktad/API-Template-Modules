@@ -17,4 +17,9 @@ public sealed class WebhookOptions
     [Description("Maximum tolerated clock skew, in seconds, when validating webhook timestamps.")]
     [Range(0, int.MaxValue)]
     public int TimestampToleranceSeconds { get; set; } = 300; // 5 minutes
+
+    [Description(
+        "Whether to allow outbound webhook requests to local and private networks (intended for development)."
+    )]
+    public bool AllowLocalRequests { get; set; } = false;
 }

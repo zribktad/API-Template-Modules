@@ -42,6 +42,7 @@ public static class WebhooksRuntimeBridge
 
     private static void AddOutgoingWebhookServices(IServiceCollection services)
     {
+        services.AddSingleton<INetworkSecurityPolicy, DefaultNetworkSecurityPolicy>();
         services.AddSingleton<IWebhookPayloadSigner, HmacWebhookPayloadSigner>();
         services.AddQueueWithConsumer<
             ChannelOutgoingWebhookQueue,
@@ -52,6 +53,11 @@ public static class WebhooksRuntimeBridge
 
         services
             .AddHttpClient(WebhookConstants.OutgoingHttpClientName)
+            .ConfigurePrimaryHttpMessageHandler(sp =>
+                SsrfProtectedSocketsHttpHandlerFactory.Create(
+                    sp.GetRequiredService<INetworkSecurityPolicy>()
+                )
+            )
             .AddResilienceHandler(
                 ResiliencePipelineKeys.OutgoingWebhook,
                 builder =>

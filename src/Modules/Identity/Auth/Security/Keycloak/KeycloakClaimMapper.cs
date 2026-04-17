@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Identity.Auth.Security.Keycloak;
 
@@ -11,10 +12,10 @@ namespace Identity.Auth.Security.Keycloak;
 public static class KeycloakClaimMapper
 {
     /// <summary>Maps both the preferred username and realm roles from the Keycloak token into standard .NET claims.</summary>
-    public static void MapKeycloakClaims(ClaimsIdentity identity)
+    public static void MapKeycloakClaims(ClaimsIdentity identity, ILogger? logger = null)
     {
         MapUsername(identity);
-        MapRealmRoles(identity);
+        MapRealmRoles(identity, logger);
     }
 
     private static void MapUsername(ClaimsIdentity identity)
@@ -27,21 +28,35 @@ public static class KeycloakClaimMapper
             identity.AddClaim(new Claim(ClaimTypes.Name, preferred.Value));
     }
 
-    private static void MapRealmRoles(ClaimsIdentity identity)
+    private static void MapRealmRoles(ClaimsIdentity identity, ILogger? logger)
     {
         Claim? realmAccess = identity.FindFirst(AuthConstants.Claims.RealmAccess);
         if (realmAccess == null)
             return;
 
-        using JsonDocument doc = JsonDocument.Parse(realmAccess.Value);
-        if (!doc.RootElement.TryGetProperty(AuthConstants.Claims.Roles, out JsonElement roles))
-            return;
-
-        foreach (JsonElement role in roles.EnumerateArray())
+        try
         {
-            string? value = role.GetString();
-            if (!string.IsNullOrEmpty(value))
-                identity.AddClaim(new Claim(ClaimTypes.Role, value));
+            using JsonDocument doc = JsonDocument.Parse(realmAccess.Value);
+            if (
+                !doc.RootElement.TryGetProperty(AuthConstants.Claims.Roles, out JsonElement roles)
+                || roles.ValueKind != JsonValueKind.Array
+            )
+                return;
+
+            foreach (JsonElement role in roles.EnumerateArray())
+            {
+                string? value = role.GetString();
+                if (!string.IsNullOrEmpty(value))
+                    identity.AddClaim(new Claim(ClaimTypes.Role, value));
+            }
+        }
+        catch (JsonException ex)
+        {
+            logger?.LogWarning(
+                ex,
+                "Failed to parse Keycloak 'realm_access' claim as JSON. Skipping role mapping. Raw value: {RawValue}",
+                realmAccess.Value
+            );
         }
     }
 }
