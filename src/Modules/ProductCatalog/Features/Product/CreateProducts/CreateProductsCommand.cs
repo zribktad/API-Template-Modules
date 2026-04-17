@@ -1,5 +1,5 @@
 using ErrorOr;
-using ProductCatalog.ValueObjects;
+using ProductCatalog.Domain.Services;
 using Wolverine;
 using ProductEntity = ProductCatalog.Entities.Product;
 using ProductRepositoryContract = ProductCatalog.Interfaces.IProductRepository;
@@ -10,8 +10,8 @@ namespace ProductCatalog.Features.Product.CreateProducts;
 public sealed record CreateProductsCommand(CreateProductsRequest Request);
 
 /// <summary>
-///     Handles <see cref="CreateProductsCommand" /> by validating all items, bulk-validating references, and
-///     persisting in a single transaction.
+///     Handles <see cref="CreateProductsCommand" /> by delegating validation and entity construction to
+///     <see cref="IProductBatchFactory" /> and persisting in a single transaction.
 /// </summary>
 public sealed class CreateProductsCommandHandler
 {
@@ -19,63 +19,21 @@ public sealed class CreateProductsCommandHandler
         HandlerContinuation,
         IReadOnlyList<ProductEntity>?,
         OutgoingMessages
-    )> LoadAsync(
-        CreateProductsCommand command,
-        ICategoryRepository categoryRepository,
-        IProductDataRepository productDataRepository,
-        IBatchRule<CreateProductRequest> itemValidationRule,
-        CancellationToken ct
-    )
+    )> LoadAsync(CreateProductsCommand command, IProductBatchFactory factory, CancellationToken ct)
     {
-        IReadOnlyList<CreateProductRequest> items = command.Request.Items;
-        BatchFailureContext<CreateProductRequest> context = new(items);
-
-        await context.ApplyRulesAsync(ct, itemValidationRule);
-
-        // Reference checks skip only fluent-validation failures so both category and
-        // product-data issues can be reported for the same index (merged into one failure row).
-        context.AddFailures(
-            await ProductValidationHelper.CheckProductReferencesAsync(
-                items,
-                categoryRepository,
-                productDataRepository,
-                context.FailedIndices,
-                ct
-            )
+        ErrorOr<IReadOnlyList<ProductEntity>> result = await factory.CreateAsync(
+            command.Request.Items,
+            ct
         );
 
-        for (int i = 0; i < items.Count; i++)
-        {
-            if (context.IsFailed(i))
-                continue;
-
-            ErrorOr<Price> priceResult = Price.Create(items[i].Price);
-            if (priceResult.IsError)
-                context.AddFailure(i, null, priceResult.FirstError.Description);
-        }
-
-        if (context.HasFailures)
+        if (result.IsError)
         {
             OutgoingMessages failureMessages = new();
-            failureMessages.RespondToSender(context.ToFailureResponse());
+            failureMessages.RespondToSender(BatchResponseError.Unwrap(result.FirstError));
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 
-        List<ProductEntity> entities = items
-            .Select(item =>
-            {
-                Price price = Price.FromPersistence(item.Price);
-                return ProductEntity.Create(
-                    item.Name,
-                    item.Description,
-                    price,
-                    item.CategoryId,
-                    item.ProductDataIds
-                );
-            })
-            .ToList();
-
-        return (HandlerContinuation.Continue, entities, OutgoingMessagesHelper.Empty);
+        return (HandlerContinuation.Continue, result.Value, OutgoingMessagesHelper.Empty);
     }
 
     public static async Task<(ErrorOr<BatchResponse>, OutgoingMessages)> HandleAsync(

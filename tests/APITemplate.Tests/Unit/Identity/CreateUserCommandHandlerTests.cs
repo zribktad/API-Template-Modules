@@ -1,7 +1,9 @@
 using ErrorOr;
 using Identity.Auth.Entities;
+using Identity.Directory.Domain.Services;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
+using Identity.Errors;
 using Identity.ValueObjects;
 using Moq;
 using SharedKernel.Contracts.Events;
@@ -22,6 +24,7 @@ namespace APITemplate.Tests.Unit.Identity;
 public sealed class CreateUserCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _repository = new();
+    private readonly Mock<IUserUniquenessChecker> _uniqueness = new();
     private readonly Mock<IdentityUnitOfWork> _unitOfWork = new();
 
     [Fact]
@@ -31,10 +34,9 @@ public sealed class CreateUserCommandHandlerTests
         CreateUserRequest request = new("alice", "alice@example.com");
         CreateUserCommand command = new(request);
 
-        _repository.Setup(r => r.ExistsByEmailAsync(request.Email, ct)).ReturnsAsync(false);
-        _repository
-            .Setup(r => r.ExistsByUsernameAsync(AppUser.NormalizeUsername(request.Username), ct))
-            .ReturnsAsync(false);
+        _uniqueness
+            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<Email>(), ct))
+            .ReturnsAsync(Result.Success);
 
         AppUser? addedUser = null;
         _repository
@@ -44,7 +46,7 @@ public sealed class CreateUserCommandHandlerTests
 
         ErrorOr<Email> validation = await CreateUserCommandHandler.ValidateAsync(
             command,
-            _repository.Object,
+            _uniqueness.Object,
             ct
         );
         (ErrorOr<UserResponse> response, OutgoingMessages messages) =
@@ -87,11 +89,13 @@ public sealed class CreateUserCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         CreateUserRequest request = new("bob", "taken@example.com");
 
-        _repository.Setup(r => r.ExistsByEmailAsync(request.Email, ct)).ReturnsAsync(true);
+        _uniqueness
+            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<Email>(), ct))
+            .ReturnsAsync(DomainErrors.Users.EmailAlreadyExists(request.Email));
 
         ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
             new CreateUserCommand(request),
-            _repository.Object,
+            _uniqueness.Object,
             ct
         );
 
@@ -106,14 +110,13 @@ public sealed class CreateUserCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         CreateUserRequest request = new("existinguser", "new@example.com");
 
-        _repository.Setup(r => r.ExistsByEmailAsync(request.Email, ct)).ReturnsAsync(false);
-        _repository
-            .Setup(r => r.ExistsByUsernameAsync(AppUser.NormalizeUsername(request.Username), ct))
-            .ReturnsAsync(true);
+        _uniqueness
+            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<Email>(), ct))
+            .ReturnsAsync(DomainErrors.Users.UsernameAlreadyExists(request.Username));
 
         ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
             new CreateUserCommand(request),
-            _repository.Object,
+            _uniqueness.Object,
             ct
         );
 
@@ -130,7 +133,7 @@ public sealed class CreateUserCommandHandlerTests
 
         ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
             new CreateUserCommand(request),
-            _repository.Object,
+            _uniqueness.Object,
             ct
         );
 

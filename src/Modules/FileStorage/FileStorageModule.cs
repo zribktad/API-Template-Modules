@@ -1,3 +1,4 @@
+using FileStorage.Domain.Services;
 using FileStorage.Features;
 using FileStorage.Persistence;
 using Microsoft.AspNetCore.Builder;
@@ -5,6 +6,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Polly.Retry;
+using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Registration;
 using SharedKernel.Infrastructure.Startup;
@@ -60,6 +64,27 @@ public static class FileStorageModule
     private static void RegisterApplicationServices(IServiceCollection services)
     {
         services.AddTransient<IFileStorageService, LocalFileStorageService>();
+        services.AddScoped<IFileUploadWorkflow, FileUploadWorkflow>();
+
+        services.AddResiliencePipeline(
+            ResiliencePipelineKeys.FileStorageDelete,
+            builder =>
+            {
+                builder.AddRetry(
+                    new RetryStrategyOptions
+                    {
+                        MaxRetryAttempts = 3,
+                        BackoffType = DelayBackoffType.Exponential,
+                        Delay = TimeSpan.FromMilliseconds(200),
+                        UseJitter = true,
+                    }
+                );
+            }
+        );
+        services.AddSingleton<
+            IFileStorageDeletePipelineProvider,
+            FileStorageDeletePipelineProvider
+        >();
     }
 
     private static void RegisterControllers(IServiceCollection services)

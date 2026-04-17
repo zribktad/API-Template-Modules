@@ -1,4 +1,5 @@
 using ErrorOr;
+using ProductCatalog.Domain.Services;
 using ProductCatalog.ValueObjects;
 using Wolverine;
 using ProductEntity = ProductCatalog.Entities.Product;
@@ -10,14 +11,15 @@ namespace ProductCatalog.Features.Product.UpdateProducts;
 public sealed record UpdateProductsCommand(UpdateProductsRequest Request);
 
 /// <summary>
-///     Handles <see cref="UpdateProductsCommand" /> by validating all items, loading products in bulk, and updating
-///     in a single transaction.
+///     Handles <see cref="UpdateProductsCommand" /> by delegating validation to
+///     <see cref="IProductBatchValidator{T}" />, loading affected products in bulk, and updating in a single
+///     transaction.
 /// </summary>
 public sealed class UpdateProductsCommandHandler
 {
     /// <summary>
-    ///     Wolverine compound-handler load step: validates and loads products, short-circuiting the
-    ///     handler pipeline with a failure response when any validation rule fails.
+    ///     Wolverine compound-handler load step: pre-loads existing products, validates the batch (including
+    ///     "missing id" detection) and short-circuits the pipeline with a failure response when any rule fails.
     /// </summary>
     public static async Task<(
         HandlerContinuation,
@@ -26,59 +28,33 @@ public sealed class UpdateProductsCommandHandler
     )> LoadAsync(
         UpdateProductsCommand command,
         ProductRepositoryContract repository,
-        ICategoryRepository categoryRepository,
-        IProductDataRepository productDataRepository,
-        IBatchRule<UpdateProductItem> itemValidationRule,
+        IProductBatchValidator<UpdateProductItem> validator,
         CancellationToken ct
     )
     {
         IReadOnlyList<UpdateProductItem> items = command.Request.Items;
-        BatchFailureContext<UpdateProductItem> context = new(items);
 
-        await context.ApplyRulesAsync(ct, itemValidationRule);
-
-        HashSet<Guid> requestedIds = items
-            .Where((_, i) => !context.IsFailed(i))
-            .Select(item => item.Id)
-            .ToHashSet();
+        HashSet<Guid> requestedIds = items.Select(item => item.Id).ToHashSet();
         Dictionary<Guid, ProductEntity> productMap = (
             await repository.ListAsync(new ProductsByIdsWithLinksSpecification(requestedIds), ct)
         ).ToDictionary(product => product.Id);
 
-        await context.ApplyRulesAsync(
+        MarkMissingByIdBatchRule<UpdateProductItem> missingRule = new(
+            item => item.Id,
+            productMap.Keys.ToHashSet(),
+            ErrorCatalog.Products.NotFoundMessage
+        );
+
+        ErrorOr<IReadOnlyList<Price>> validation = await validator.ValidateAsync(
+            items,
             ct,
-            new MarkMissingByIdBatchRule<UpdateProductItem>(
-                item => item.Id,
-                productMap.Keys.ToHashSet(),
-                ErrorCatalog.Products.NotFoundMessage
-            )
+            missingRule
         );
-
-        context.AddFailures(
-            await ProductValidationHelper.CheckProductReferencesAsync(
-                items,
-                categoryRepository,
-                productDataRepository,
-                context.FailedIndices,
-                ct
-            )
-        );
-
-        for (int i = 0; i < items.Count; i++)
-        {
-            if (context.IsFailed(i))
-                continue;
-
-            ErrorOr<Price> priceResult = Price.Create(items[i].Price);
-            if (priceResult.IsError)
-                context.AddFailure(i, items[i].Id, priceResult.FirstError.Description);
-        }
 
         OutgoingMessages messages = new();
-
-        if (context.HasFailures)
+        if (validation.IsError)
         {
-            messages.RespondToSender(context.ToFailureResponse());
+            messages.RespondToSender(BatchResponseError.Unwrap(validation.FirstError));
             return (HandlerContinuation.Stop, null, messages);
         }
 
@@ -109,6 +85,8 @@ public sealed class UpdateProductsCommandHandler
                     UpdateProductItem item = items[i];
                     ProductEntity product = productMap[item.Id];
 
+                    // Price was validated in LoadAsync via IProductBatchValidator; FromPersistence bypasses
+                    // re-validation safely.
                     Price price = Price.FromPersistence(item.Price);
                     product.UpdateDetails(item.Name, item.Description, price, item.CategoryId);
 

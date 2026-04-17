@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
 using ProductCatalog.Configuration;
+using ProductCatalog.Domain.Services;
 using ProductCatalog.GraphQL.DataLoaders;
 using ProductCatalog.GraphQL.Mutations;
 using ProductCatalog.GraphQL.Queries;
@@ -50,6 +51,10 @@ public static class ProductCatalogModule
             .AddRepository<ICategoryRepository, CategoryRepository>()
             .AddRepository<IProductDataLinkRepository, ProductDataLinkRepository>()
             .AddRepository<IProductDataRepository, ProductDataRepository>();
+
+        services.AddScoped<IProductReferenceValidator, ProductReferenceValidator>();
+        services.AddScoped(typeof(IProductBatchValidator<>), typeof(ProductBatchValidator<>));
+        services.AddScoped<IProductBatchFactory, ProductBatchFactory>();
 
         services.Configure<MongoDbSettings>(
             configuration.GetSection(ConfigurationSections.MongoDB)
