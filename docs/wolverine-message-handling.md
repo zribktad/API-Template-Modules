@@ -214,3 +214,27 @@ Wolverine uses `SELECT ... FOR UPDATE SKIP LOCKED` — each message is processed
 | Crash recovery | `UseDurableLocalQueues` | All local events |
 | Idempotency | Inside the handler itself | Protection against duplicate delivery |
 | Inline processing | `bus.InvokeAsync()` in controller | Direct command handlers |
+
+---
+
+## 11. Sagas (Stateful Orchestration)
+
+Wolverine's saga support persists state between messages, letting a workflow survive process restarts and enforce ordered transitions. EF Core sagas need only a `DbSet<TSaga>` on a registered `DbContext` — Wolverine discovers it automatically when `UseEntityFrameworkCoreTransactions()` is active.
+
+Pattern (see `FileUploadSaga` in the FileStorage module):
+
+```csharp
+public sealed class FileUploadSaga : Wolverine.Saga
+{
+    public string? Id { get; set; }           // correlation key
+    public FileUploadStatus Status { get; set; }
+
+    // Starts a new saga; returns cascading messages (scheduled timeouts, events)
+    public static (FileUploadSaga, TimeoutUploadCommand) Start(BeginUploadCommand cmd, ...) { ... }
+
+    // Transition; idempotent on redelivery by checking Status first
+    public async Task<(ErrorOr<Reply>, Notification?)> Handle(CommitUploadCommand cmd, ...) { ... }
+}
+```
+
+See [File Upload Saga](file-upload-saga.md) for the full reference, including scheduled timeouts, compensating actions, and redelivery handling.

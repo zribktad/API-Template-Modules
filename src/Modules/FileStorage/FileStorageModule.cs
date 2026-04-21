@@ -1,6 +1,8 @@
 using FileStorage.Domain.Services;
+using FileStorage.Domain.Storage;
 using FileStorage.Features;
 using FileStorage.Persistence;
+using FileStorage.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +44,15 @@ public static class FileStorageModule
     private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)
     {
         services.AddValidatedOptions<FileStorageOptions>(configuration);
+
+        // Normalize extensions once so call sites can do straightforward ordinal lookups regardless
+        // of the casing supplied in configuration (e.g. ".PNG" vs ".png").
+        services.PostConfigure<FileStorageOptions>(opts =>
+        {
+            opts.AllowedExtensions = opts
+                .AllowedExtensions.Select(e => e.ToLowerInvariant())
+                .ToArray();
+        });
     }
 
     private static void RegisterDbInfrastructure(
@@ -63,8 +74,15 @@ public static class FileStorageModule
 
     private static void RegisterApplicationServices(IServiceCollection services)
     {
-        services.AddTransient<IFileStorageService, LocalFileStorageService>();
-        services.AddScoped<IFileUploadWorkflow, FileUploadWorkflow>();
+        // Blob store backends — today just "local"; future backends register additional KeyedBlobStore entries.
+        services.AddScoped<LocalBlobStore>();
+        services.AddScoped(sp => new KeyedBlobStore(
+            "local",
+            sp.GetRequiredService<LocalBlobStore>()
+        ));
+        services.AddScoped<IBlobStoreFactory, BlobStoreFactory>();
+
+        services.AddScoped<IOrphanBlobSweepService, OrphanBlobSweepService>();
 
         services.AddResiliencePipeline(
             ResiliencePipelineKeys.FileStorageDelete,

@@ -42,7 +42,36 @@ The `AppDbContext` (`Infrastructure/Persistence/AppDbContext.cs`) picks up the c
 
 ---
 
-## Step 3 – Add the Migration
+## Adding Migrations Per Module
+
+The template uses a mixed approach:
+
+- **Migrations-based modules:** `Notifications`, `FileStorage`. These use `Database.MigrateAsync()` in their `IDatabaseStartupContributor` and ship EF migrations under `Persistence/Migrations/`. Each has a `*DbContextDesignTimeFactory` that enables `dotnet ef` to connect at migration-time via `DesignTimeConnectionStringResolver`.
+- **EnsureCreated modules:** all others call `EnsureCreatedAndTablesAsync()` which creates tables on first run but does **not alter** existing schemas. Fine for greenfield/template use; switch to migrations when schema evolution matters.
+
+Per-module migration command:
+
+```bash
+dotnet ef migrations add <MigrationName> \
+    --project src/Modules/<Module>/<Module>.csproj \
+    --startup-project src/APITemplate/Api \
+    --context <Module>DbContext \
+    --output-dir Persistence/Migrations
+```
+
+Example (FileStorage):
+
+```bash
+dotnet ef migrations add AddSomething \
+    --project src/Modules/FileStorage \
+    --startup-project src/APITemplate/Api \
+    --context FileStorageDbContext \
+    --output-dir Persistence/Migrations
+```
+
+---
+
+## Step 3 – Add the Migration (legacy single-context flow)
 
 Run from the solution root (where `APITemplate.slnx` lives) or from the project folder.  
 The `--project` flag points to the project that owns `AppDbContext`.

@@ -1,4 +1,5 @@
 using System.Reflection;
+using BackgroundJobs.Contracts;
 using BackgroundJobs.Persistence;
 using BackgroundJobs.Repositories;
 using BackgroundJobs.Services;
@@ -62,6 +63,7 @@ public static class BackgroundJobsRuntimeBridge
         services.AddScoped<ICleanupService, CleanupService>();
         services.AddScoped<IReindexService, ReindexService>();
         services.AddScoped<IEmailRetryJobService, EmailRetryJobService>();
+        services.AddScoped<IOrphanBlobJobService, OrphanBlobJobService>();
         services.AddScoped<
             IExternalIntegrationSyncService,
             ExternalIntegrationSyncServicePreview
@@ -118,7 +120,14 @@ public static class BackgroundJobsRuntimeBridge
         >();
         services.AddScoped<IRecurringBackgroundJobRegistration, CleanupRecurringJobRegistration>();
         services.AddScoped<IRecurringBackgroundJobRegistration, ReindexRecurringJobRegistration>();
-        services.AddScoped<IRecurringBackgroundJobRegistration, EmailRetryRecurringJobRegistration>();
+        services.AddScoped<
+            IRecurringBackgroundJobRegistration,
+            EmailRetryRecurringJobRegistration
+        >();
+        services.AddScoped<
+            IRecurringBackgroundJobRegistration,
+            OrphanBlobRecurringJobRegistration
+        >();
 
         services.AddTickerQ(tickerOptions =>
         {

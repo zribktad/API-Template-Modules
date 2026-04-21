@@ -1,6 +1,7 @@
 global using ErrorOr;
 global using FileStorage.Contracts;
 global using FileStorage.Domain;
+global using FileStorage.Persistence;
 global using FileStorage.Services;
 global using SharedKernel.Application.DTOs;
 global using SharedKernel.Contracts.Api;

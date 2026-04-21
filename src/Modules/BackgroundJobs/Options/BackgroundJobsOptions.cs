@@ -33,4 +33,9 @@ public sealed class BackgroundJobsOptions
     [Required]
     [ValidateObjectMembers]
     public EmailRetryJobOptions EmailRetry { get; set; } = new();
+
+    [Description("Configuration for the recurring orphan-blob reaper job.")]
+    [Required]
+    [ValidateObjectMembers]
+    public OrphanBlobJobOptions OrphanBlob { get; set; } = new();
 }

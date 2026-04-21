@@ -1,3 +1,4 @@
+global using BackgroundJobs.Contracts;
 global using BackgroundJobs.Domain;
 global using BackgroundJobs.Features;
 global using BackgroundJobs.Options;

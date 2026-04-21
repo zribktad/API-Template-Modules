@@ -1,3 +1,5 @@
+using FileStorage.Domain.Storage;
+
 namespace FileStorage.Features.Download;
 
 public sealed record DownloadFileQuery(DownloadFileRequest Request);
@@ -9,7 +11,7 @@ public sealed class DownloadFileQueryHandler
     public static async Task<ErrorOr<FileDownloadResult>> HandleAsync(
         DownloadFileQuery query,
         IStoredFileRepository repository,
-        IFileStorageService storage,
+        IBlobStoreFactory blobStoreFactory,
         CancellationToken ct
     )
     {
@@ -17,7 +19,8 @@ public sealed class DownloadFileQueryHandler
         if (entity is null)
             return DomainErrors.Files.FileNotFound(query.Request.Id.ToString());
 
-        Stream? stream = await storage.OpenReadAsync(entity.StoragePath, ct);
+        IBlobStore store = blobStoreFactory.Get(entity.BackendKey);
+        Stream? stream = await store.OpenReadAsync(entity.TenantId, entity.Sha256, ct);
         if (stream is null)
             return DomainErrors.Files.FileNotFound(entity.OriginalFileName);
 

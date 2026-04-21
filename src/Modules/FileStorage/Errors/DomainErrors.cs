@@ -45,5 +45,21 @@ public static class DomainErrors
                 "Required webhook headers are missing."
             );
         }
+
+        public static Error UploadTokenNotFound(string token)
+        {
+            return Error.NotFound(
+                ErrorCatalog.Files.UploadTokenNotFound,
+                $"Upload token '{token}' not found or expired."
+            );
+        }
+
+        public static Error CommitAfterTerminalState(string token)
+        {
+            return Error.Conflict(
+                ErrorCatalog.Files.CommitAfterTerminalState,
+                $"Upload '{token}' can no longer be committed (timed out or already processed)."
+            );
+        }
     }
 }
