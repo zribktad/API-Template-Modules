@@ -18,8 +18,6 @@ public sealed record DeleteCategoriesCommand(BatchDeleteRequest Request);
 ///             <description>
 ///                 <c>HandleAsync</c> uses two <c>ExecuteUpdateAsync</c> statements inside one transaction:
 ///                 first clears <c>CategoryId</c> on affected products, then bulk-soft-deletes the categories.
-///                 The order is required — products must be un-linked before categories become invisible
-///                 to queries via the soft-delete global filter.
 ///             </description>
 ///         </item>
 ///     </list>
@@ -87,8 +85,6 @@ public sealed class DeleteCategoriesCommandHandler
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                // Products must be un-linked before categories are soft-deleted; the global query
-                // filter would otherwise hide products whose CategoryId matches a deleted category.
                 await productRepository.ClearCategoryAsync(state.CategoryIds, ct);
                 await repository.BulkSoftDeleteByIdsAsync(
                     state.CategoryIds,

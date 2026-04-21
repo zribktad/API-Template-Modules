@@ -1,7 +1,6 @@
 using Moq;
 using Reviews.Domain;
 using Reviews.Features.ProductSoftDelete;
-using SharedKernel.Application.Events;
 using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;
@@ -20,6 +19,7 @@ public sealed class ProductsBatchSoftDeletedHandlerTests
         ProductsBatchSoftDeletedNotification notification = new(
             productIds,
             Guid.NewGuid(),
+            Guid.NewGuid(),
             DateTime.UtcNow,
             Guid.NewGuid()
         );
@@ -28,6 +28,7 @@ public sealed class ProductsBatchSoftDeletedHandlerTests
             .Setup(r =>
                 r.BulkSoftDeleteByProductIdsAsync(
                     notification.ProductIds,
+                    notification.TenantId,
                     notification.ActorId,
                     notification.DeletedAtUtc,
                     It.IsAny<CancellationToken>()
@@ -45,6 +46,7 @@ public sealed class ProductsBatchSoftDeletedHandlerTests
             r =>
                 r.BulkSoftDeleteByProductIdsAsync(
                     notification.ProductIds,
+                    notification.TenantId,
                     notification.ActorId,
                     notification.DeletedAtUtc,
                     It.IsAny<CancellationToken>()
@@ -61,6 +63,7 @@ public sealed class ProductsBatchSoftDeletedHandlerTests
         ProductsBatchSoftDeletedNotification notification = new(
             [Guid.NewGuid()],
             Guid.NewGuid(),
+            Guid.NewGuid(),
             DateTime.UtcNow,
             Guid.NewGuid()
         );
@@ -69,6 +72,7 @@ public sealed class ProductsBatchSoftDeletedHandlerTests
             .Setup(r =>
                 r.BulkSoftDeleteByProductIdsAsync(
                     It.IsAny<IReadOnlyList<Guid>>(),
+                    It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<DateTime>(),
                     It.IsAny<CancellationToken>()

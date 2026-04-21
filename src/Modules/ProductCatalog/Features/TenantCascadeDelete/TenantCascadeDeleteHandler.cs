@@ -60,8 +60,15 @@ public static class TenantCascadeDeleteHandler
 
         if (productIds.Count > 0)
         {
-            messages.Add(new ProductsBatchSoftDeletedNotification(
-                productIds, notification.ActorId, notification.DeletedAtUtc, Guid.NewGuid()));
+            messages.Add(
+                new ProductsBatchSoftDeletedNotification(
+                    productIds,
+                    notification.TenantId,
+                    notification.ActorId,
+                    notification.DeletedAtUtc,
+                    Guid.NewGuid()
+                )
+            );
         }
 
         return messages;

@@ -65,8 +65,7 @@ public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepo
     )
     {
         return await _dbContext
-            .Categories.IgnoreQueryFilters()
-            .Where(c => ids.Contains(c.Id) && !c.IsDeleted)
+            .Categories.Where(c => ids.Contains(c.Id))
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

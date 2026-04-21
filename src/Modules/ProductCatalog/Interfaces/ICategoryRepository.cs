@@ -28,8 +28,11 @@ public interface ICategoryRepository : IRepository<Category>
     );
 
     /// <summary>
-    ///     Bulk soft-deletes the specified categories by ID via a single <c>ExecuteUpdateAsync</c>
-    ///     SQL statement (zero entity materialization). Only non-deleted categories are affected.
+    ///     Bulk soft-deletes the specified categories by ID within the current tenant's scope via
+    ///     a single <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization). Tenant
+    ///     isolation and soft-delete exclusion are enforced by the global query filters configured
+    ///     in <c>ModuleDbContext</c>; system-tenant cascade flows must use
+    ///     <see cref="BulkSoftDeleteByTenantAsync"/> with an explicit tenant ID instead.
     ///     No <c>CategorySoftDeletedNotification</c> is published — no module currently subscribes
     ///     to category deletion events; add the notification if a cross-module consumer is introduced.
     /// </summary>

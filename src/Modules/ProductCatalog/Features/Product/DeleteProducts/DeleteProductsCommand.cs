@@ -90,6 +90,7 @@ public sealed class DeleteProductsCommandHandler
             messages.Add(
                 new ProductsBatchSoftDeletedNotification(
                     productIds,
+                    state.Products[0].TenantId,
                     state.ActorId,
                     state.DeletedAtUtc,
                     Guid.NewGuid()
