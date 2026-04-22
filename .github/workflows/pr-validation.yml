@@ -68,7 +68,7 @@ jobs:
           --results-directory ./test-results/unit
 
       - name: Publish unit test results
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: always()
         with:
           name: Unit Test Results
@@ -115,7 +115,7 @@ jobs:
           -- RunConfiguration.TestCaseFilter="Category=Smoke"
 
       - name: Publish smoke test results
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: always()
         with:
           name: Smoke Test Results
@@ -154,7 +154,7 @@ jobs:
           -- RunConfiguration.TestCaseFilter="Category=Integration.Docker"
 
       - name: Publish integration test results
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         if: always()
         with:
           name: Integration Test Results
