@@ -1,4 +1,3 @@
-using APITemplate.Tests.Unit.Helpers;
 using ErrorOr;
 using Notifications.Contracts;
 using Notifications.Services;

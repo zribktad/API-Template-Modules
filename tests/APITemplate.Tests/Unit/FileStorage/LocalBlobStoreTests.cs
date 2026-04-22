@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using APITemplate.Tests.Unit.Helpers;
 using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain.Services;
@@ -11,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Registry;
 using Polly.Retry;
+using SharedKernel.Application.Errors;
 using SharedKernel.Application.Resilience;
 using Shouldly;
 using Xunit;
@@ -104,12 +104,22 @@ public sealed class LocalBlobStoreTests : IDisposable
 
         StagingResult first = (await sut.WriteStagingAsync(Payload("dup"))).Value;
         string committed1 = (
-            await sut.PromoteToCommittedAsync(tenant, first.Sha256, first.SizeBytes, first.StagingPath)
+            await sut.PromoteToCommittedAsync(
+                tenant,
+                first.Sha256,
+                first.SizeBytes,
+                first.StagingPath
+            )
         ).Value;
 
         StagingResult second = (await sut.WriteStagingAsync(Payload("dup"))).Value;
         string committed2 = (
-            await sut.PromoteToCommittedAsync(tenant, second.Sha256, second.SizeBytes, second.StagingPath)
+            await sut.PromoteToCommittedAsync(
+                tenant,
+                second.Sha256,
+                second.SizeBytes,
+                second.StagingPath
+            )
         ).Value;
 
         committed1.ShouldBe(committed2);
@@ -151,7 +161,12 @@ public sealed class LocalBlobStoreTests : IDisposable
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
         StagingResult staging = (await sut.WriteStagingAsync(Payload("readback"))).Value;
-        await sut.PromoteToCommittedAsync(tenant, staging.Sha256, staging.SizeBytes, staging.StagingPath);
+        await sut.PromoteToCommittedAsync(
+            tenant,
+            staging.Sha256,
+            staging.SizeBytes,
+            staging.StagingPath
+        );
 
         await using Stream stream = (await sut.OpenReadAsync(tenant, staging.Sha256))!;
         using StreamReader reader = new(stream);
@@ -179,8 +194,12 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), "..", "..", "escape");
-
-        ErrorOr<string> result = await sut.PromoteToCommittedAsync(Guid.NewGuid(), ExpectedSha("x"), 1, evil);
+        ErrorOr<string> result = await sut.PromoteToCommittedAsync(
+            Guid.NewGuid(),
+            ExpectedSha("x"),
+            1,
+            evil
+        );
 
         result.IsError.ShouldBeTrue();
         result.FirstError.Code.ShouldBe(FS.Files.PathTraversal);
@@ -232,7 +251,12 @@ public sealed class LocalBlobStoreTests : IDisposable
         Guid tenant = Guid.NewGuid();
         StagingResult staging = (await sut.WriteStagingAsync(Payload("prefix-check"))).Value;
         string committed = (
-            await sut.PromoteToCommittedAsync(tenant, staging.Sha256, staging.SizeBytes, staging.StagingPath)
+            await sut.PromoteToCommittedAsync(
+                tenant,
+                staging.Sha256,
+                staging.SizeBytes,
+                staging.StagingPath
+            )
         ).Value;
 
         string expectedPrefixDir = Path.Combine(
@@ -252,12 +276,22 @@ public sealed class LocalBlobStoreTests : IDisposable
 
         StagingResult stagingA = (await sut.WriteStagingAsync(Payload("same-content"))).Value;
         string committedA = (
-            await sut.PromoteToCommittedAsync(tenantA, stagingA.Sha256, stagingA.SizeBytes, stagingA.StagingPath)
+            await sut.PromoteToCommittedAsync(
+                tenantA,
+                stagingA.Sha256,
+                stagingA.SizeBytes,
+                stagingA.StagingPath
+            )
         ).Value;
 
         StagingResult stagingB = (await sut.WriteStagingAsync(Payload("same-content"))).Value;
         string committedB = (
-            await sut.PromoteToCommittedAsync(tenantB, stagingB.Sha256, stagingB.SizeBytes, stagingB.StagingPath)
+            await sut.PromoteToCommittedAsync(
+                tenantB,
+                stagingB.Sha256,
+                stagingB.SizeBytes,
+                stagingB.StagingPath
+            )
         ).Value;
 
         committedA.ShouldNotBe(committedB);
@@ -274,7 +308,12 @@ public sealed class LocalBlobStoreTests : IDisposable
         Guid tenant = Guid.NewGuid();
         StagingResult staging = (await sut.WriteStagingAsync(Payload("bye"))).Value;
         string committed = (
-            await sut.PromoteToCommittedAsync(tenant, staging.Sha256, staging.SizeBytes, staging.StagingPath)
+            await sut.PromoteToCommittedAsync(
+                tenant,
+                staging.Sha256,
+                staging.SizeBytes,
+                staging.StagingPath
+            )
         ).Value;
         File.Exists(committed).ShouldBeTrue();
 
@@ -290,9 +329,10 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), suffix);
-        await ((Func<Task>)(() => sut.DeleteStagingAsync(evil))).ShouldThrowAppExceptionAsync(
-            FS.Files.PathTraversal
+        AppException exception = await Should.ThrowAsync<AppException>(async () =>
+            await sut.DeleteStagingAsync(evil)
         );
+        exception.ErrorCode.ShouldBe(FS.Files.PathTraversal);
     }
 
     public void Dispose()
