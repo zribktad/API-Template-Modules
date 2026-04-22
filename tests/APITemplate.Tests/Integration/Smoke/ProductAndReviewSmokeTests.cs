@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text;
-using Identity.Auth.Security;
 using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
@@ -11,8 +10,6 @@ namespace APITemplate.Tests.Integration.Smoke;
 [Trait("Category", "Smoke")]
 public sealed class ProductAndReviewSmokeTests
 {
-    private const string ServiceAccountUsername =
-        $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}smoke-products";
     private readonly CustomWebApplicationFactory _factory;
     private HttpClient? _client;
 
@@ -24,11 +21,7 @@ public sealed class ProductAndReviewSmokeTests
     public async Task GetProducts_ReturnsOk()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            Client,
-            username: ServiceAccountUsername,
-            permissions: [Permission.Products.Read]
-        );
+        IntegrationAuthHelper.Authenticate(Client);
         var response = await Client.GetAsync("/api/v1/products", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -37,11 +30,7 @@ public sealed class ProductAndReviewSmokeTests
     public async Task GetCategories_ReturnsOk()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            Client,
-            username: ServiceAccountUsername,
-            permissions: [Permission.Categories.Read]
-        );
+        IntegrationAuthHelper.Authenticate(Client);
         var response = await Client.GetAsync("/api/v1/categories", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -50,11 +39,7 @@ public sealed class ProductAndReviewSmokeTests
     public async Task GetProductData_ReturnsOk()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            Client,
-            username: ServiceAccountUsername,
-            permissions: [Permission.ProductData.Read]
-        );
+        IntegrationAuthHelper.Authenticate(Client);
         var response = await Client.GetAsync("/api/v1/product-data", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -63,11 +48,7 @@ public sealed class ProductAndReviewSmokeTests
     public async Task GetProductReviews_ReturnsOk()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            Client,
-            username: ServiceAccountUsername,
-            permissions: [Permission.ProductReviews.Read]
-        );
+        IntegrationAuthHelper.Authenticate(Client);
         var response = await Client.GetAsync("/api/v1/product-reviews", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -76,11 +57,7 @@ public sealed class ProductAndReviewSmokeTests
     public async Task GraphQL_BasicRequest_ReturnsOk()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            Client,
-            username: ServiceAccountUsername,
-            permissions: [Permission.Products.Read]
-        );
+        IntegrationAuthHelper.Authenticate(Client);
         var content = new StringContent(
             """{"query":"{ __typename }"}""",
             Encoding.UTF8,
