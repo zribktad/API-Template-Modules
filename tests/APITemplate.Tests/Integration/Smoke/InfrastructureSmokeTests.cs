@@ -11,10 +11,9 @@ namespace APITemplate.Tests.Integration.Smoke;
 public sealed class InfrastructureSmokeTests
 {
     private readonly CustomWebApplicationFactory _factory;
-    private HttpClient? _client;
 
     private HttpClient Client =>
-        _client ??= _factory.CreateClient(
+        field ??= _factory.CreateClient(
             new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }
         );
 

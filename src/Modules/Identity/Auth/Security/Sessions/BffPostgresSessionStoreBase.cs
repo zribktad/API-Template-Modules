@@ -17,7 +17,6 @@ namespace Identity.Auth.Security.Sessions;
 /// </summary>
 public abstract class BffPostgresSessionStoreBase : IBffSessionStore
 {
-    private readonly IDistributedCache _distributedCache;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IBffSessionTokenProtector _tokenProtector;
     private readonly TimeProvider _timeProvider;
@@ -31,7 +30,7 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
         IOptions<BffOptions> options
     )
     {
-        _distributedCache = cache;
+        DistributedCache = cache;
         _scopeFactory = scopeFactory;
         _tokenProtector = tokenProtector;
         _timeProvider = timeProvider;
@@ -40,7 +39,7 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
         _cacheEntryOptions = new DistributedCacheEntryOptions { SlidingExpiration = cacheTtl };
     }
 
-    protected IDistributedCache DistributedCache => _distributedCache;
+    protected IDistributedCache DistributedCache { get; }
 
     /// <summary>Sliding TTL for cache entries; used by Redis Lua read-through in subclasses.</summary>
     protected TimeSpan CacheTtl { get; }
@@ -150,7 +149,7 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
             await dbContext.SaveChangesAsync(ct);
         }
 
-        await _distributedCache.RemoveAsync(GetCacheKey(sessionId), ct);
+        await DistributedCache.RemoveAsync(GetCacheKey(sessionId), ct);
     }
 
     /// <inheritdoc />
@@ -218,7 +217,7 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
             );
 
         foreach (string sessionId in sessionIds)
-            await _distributedCache.RemoveAsync(GetCacheKey(sessionId), ct);
+            await DistributedCache.RemoveAsync(GetCacheKey(sessionId), ct);
 
         return sessionIds;
     }
@@ -240,7 +239,7 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
 
     private Task SetCacheAsync(string cacheKey, string payload, CancellationToken ct)
     {
-        return _distributedCache.SetStringAsync(cacheKey, payload, _cacheEntryOptions, ct);
+        return DistributedCache.SetStringAsync(cacheKey, payload, _cacheEntryOptions, ct);
     }
 
     private static string GetCacheKey(string sessionId) =>

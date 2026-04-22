@@ -13,13 +13,12 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
     private const string ServiceAccountUsername =
         $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}smoke-identity";
     private readonly CustomWebApplicationFactory _factory;
-    private HttpClient? _client;
     private string _seededEmail = string.Empty;
     private string _seededKeycloakUserId = string.Empty;
     private Guid _seededTenantId;
     private string _seededUsername = string.Empty;
 
-    private HttpClient Client => _client ??= _factory.CreateClient();
+    private HttpClient Client => field ??= _factory.CreateClient();
 
     public IdentityModuleSmokeTests(CustomWebApplicationFactory factory) => _factory = factory;
 

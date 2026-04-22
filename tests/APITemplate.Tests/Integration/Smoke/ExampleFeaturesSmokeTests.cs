@@ -14,9 +14,8 @@ public sealed class ExampleFeaturesSmokeTests
     private const string ServiceAccountUsername =
         $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}smoke-examples";
     private readonly CustomWebApplicationFactory _factory;
-    private HttpClient? _client;
 
-    private HttpClient Client => _client ??= _factory.CreateClient();
+    private HttpClient Client => field ??= _factory.CreateClient();
 
     public ExampleFeaturesSmokeTests(CustomWebApplicationFactory factory) => _factory = factory;
 

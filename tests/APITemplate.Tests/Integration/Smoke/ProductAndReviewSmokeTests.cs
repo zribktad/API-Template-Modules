@@ -11,9 +11,8 @@ namespace APITemplate.Tests.Integration.Smoke;
 public sealed class ProductAndReviewSmokeTests
 {
     private readonly CustomWebApplicationFactory _factory;
-    private HttpClient? _client;
 
-    private HttpClient Client => _client ??= _factory.CreateClient();
+    private HttpClient Client => field ??= _factory.CreateClient();
 
     public ProductAndReviewSmokeTests(CustomWebApplicationFactory factory) => _factory = factory;
 

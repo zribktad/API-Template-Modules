@@ -13,13 +13,12 @@ namespace APITemplate.Tests.Integration.Features;
 public sealed class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
-    private HttpClient? _client;
 
     /// <summary>
     ///     Lazy client: test class ctor can run before the fixture's <see cref="IAsyncLifetime.InitializeAsync" />,
     ///     so we must not call <see cref="WebApplicationFactory{Program}.CreateClient" /> in the ctor.
     /// </summary>
-    private HttpClient Client => _client ??= _factory.CreateClient();
+    private HttpClient Client => field ??= _factory.CreateClient();
 
     public WebhooksControllerTests(CustomWebApplicationFactory factory) => _factory = factory;
 
