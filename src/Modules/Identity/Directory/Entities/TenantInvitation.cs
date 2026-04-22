@@ -67,6 +67,21 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
         Status = InvitationStatus.Revoked;
     }
 
+    /// <summary>
+    ///     Guards the resend preconditions: invitation must be <see cref="InvitationStatus.Pending" /> and not yet expired.
+    ///     Returns an error if either condition is violated; otherwise returns success.
+    /// </summary>
+    public ErrorOr<Success> TryResend(TimeProvider timeProvider)
+    {
+        if (Status != InvitationStatus.Pending)
+            return IdentityDomainErrors.Invitations.NotPending();
+
+        if (IsExpired(timeProvider))
+            return IdentityDomainErrors.Invitations.ExpiredCreateNew();
+
+        return Result.Success;
+    }
+
     public void RefreshToken(string tokenHash)
     {
         TokenHash = tokenHash;
