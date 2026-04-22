@@ -19,10 +19,13 @@ namespace APITemplate.Tests.Unit.ProductCatalog;
 
 public sealed class DeleteCategoriesCommandHandlerTests
 {
+    private static readonly DateTime FixedDeletedAt = new(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
     private readonly Mock<ICategoryRepository> _categoryRepo = new();
     private readonly Mock<IProductRepository> _productRepo = new();
     private readonly Mock<IUnitOfWork<ProductCatalogDbMarker>> _unitOfWork = new();
     private readonly Mock<IActorProvider> _actorProvider = new();
+    private readonly Mock<ITenantProvider> _tenantProvider = new();
     private readonly TimeProvider _timeProvider = TimeProvider.System;
 
     public DeleteCategoriesCommandHandlerTests()
@@ -46,19 +49,22 @@ public sealed class DeleteCategoriesCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         Guid id = Guid.NewGuid();
         Guid actorId = Guid.NewGuid();
+        Guid tenantId = Guid.NewGuid();
         _actorProvider.Setup(a => a.ActorId).Returns(actorId);
+        _tenantProvider.Setup(t => t.TenantId).Returns(tenantId);
         _categoryRepo
             .Setup(r => r.ListAsync(It.IsAny<CategoriesByIdsSpecification>(), ct))
             .ReturnsAsync([new Category { Id = id, Name = "Cat" }]);
 
         (
             HandlerContinuation continuation,
-            DeleteCategoriesCommandHandler.DeleteCategoriesState? state,
+            DeleteCategoriesState? state,
             OutgoingMessages _
         ) = await DeleteCategoriesCommandHandler.LoadAsync(
             new DeleteCategoriesCommand(new BatchDeleteRequest([id])),
             _categoryRepo.Object,
             _actorProvider.Object,
+            _tenantProvider.Object,
             _timeProvider,
             ct
         );
@@ -67,6 +73,7 @@ public sealed class DeleteCategoriesCommandHandlerTests
         state.ShouldNotBeNull();
         state!.CategoryIds.ShouldContain(id);
         state.ActorId.ShouldBe(actorId);
+        state.TenantId.ShouldBe(tenantId);
     }
 
     [Fact]
@@ -79,12 +86,13 @@ public sealed class DeleteCategoriesCommandHandlerTests
 
         (
             HandlerContinuation continuation,
-            DeleteCategoriesCommandHandler.DeleteCategoriesState? state,
+            DeleteCategoriesState? state,
             OutgoingMessages _
         ) = await DeleteCategoriesCommandHandler.LoadAsync(
             new DeleteCategoriesCommand(new BatchDeleteRequest([Guid.NewGuid()])),
             _categoryRepo.Object,
             _actorProvider.Object,
+            _tenantProvider.Object,
             _timeProvider,
             ct
         );
@@ -99,8 +107,8 @@ public sealed class DeleteCategoriesCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         Guid id = Guid.NewGuid();
         Guid actorId = Guid.NewGuid();
-        DateTime deletedAt = DateTime.UtcNow;
-        DeleteCategoriesCommandHandler.DeleteCategoriesState state = new([id], actorId, deletedAt);
+        Guid tenantId = Guid.NewGuid();
+        DeleteCategoriesState state = new([id], tenantId, actorId, FixedDeletedAt);
         List<string> callOrder = [];
 
         _productRepo
@@ -111,8 +119,9 @@ public sealed class DeleteCategoriesCommandHandlerTests
             .Setup(r =>
                 r.BulkSoftDeleteByIdsAsync(
                     It.IsAny<IReadOnlyCollection<Guid>>(),
+                    tenantId,
                     actorId,
-                    deletedAt,
+                    FixedDeletedAt,
                     ct
                 )
             )
@@ -143,8 +152,8 @@ public sealed class DeleteCategoriesCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         Guid id = Guid.NewGuid();
         Guid actorId = Guid.NewGuid();
-        DateTime deletedAt = DateTime.UtcNow;
-        DeleteCategoriesCommandHandler.DeleteCategoriesState state = new([id], actorId, deletedAt);
+        Guid tenantId = Guid.NewGuid();
+        DeleteCategoriesState state = new([id], tenantId, actorId, FixedDeletedAt);
 
         _productRepo
             .Setup(r => r.ClearCategoryAsync(It.IsAny<IReadOnlyCollection<Guid>>(), ct))
@@ -153,6 +162,7 @@ public sealed class DeleteCategoriesCommandHandlerTests
             .Setup(r =>
                 r.BulkSoftDeleteByIdsAsync(
                     It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<DateTime>(),
                     ct
@@ -175,8 +185,9 @@ public sealed class DeleteCategoriesCommandHandlerTests
             r =>
                 r.BulkSoftDeleteByIdsAsync(
                     It.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(id)),
+                    tenantId,
                     actorId,
-                    deletedAt,
+                    FixedDeletedAt,
                     ct
                 ),
             Times.Once

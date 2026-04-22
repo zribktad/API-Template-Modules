@@ -59,13 +59,15 @@ public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepo
     /// <inheritdoc />
     public async Task<int> BulkSoftDeleteByIdsAsync(
         IReadOnlyCollection<Guid> ids,
+        Guid tenantId,
         Guid actorId,
         DateTime deletedAtUtc,
         CancellationToken ct = default
     )
     {
         return await _dbContext
-            .Categories.Where(c => ids.Contains(c.Id))
+            .Categories.IgnoreQueryFilters()
+            .Where(c => c.TenantId == tenantId && ids.Contains(c.Id) && !c.IsDeleted)
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

@@ -6,12 +6,20 @@ namespace ProductCatalog.Features.Category.DeleteCategories;
 /// <summary>Soft-deletes multiple categories in a single batch operation.</summary>
 public sealed record DeleteCategoriesCommand(BatchDeleteRequest Request);
 
+/// <summary>Transient state passed from <c>LoadAsync</c> to <c>HandleAsync</c>.</summary>
+public sealed record DeleteCategoriesState(
+    IReadOnlyCollection<Guid> CategoryIds,
+    Guid TenantId,
+    Guid ActorId,
+    DateTime DeletedAtUtc
+);
+
 /// <summary>
 ///     Handles <see cref="DeleteCategoriesCommand" /> using a two-stage pattern.
 ///     <list type="bullet">
 ///         <item>
 ///             <description>
-///                 <c>LoadAsync</c> validates that all requested IDs exist and captures actor/time context.
+///                 <c>LoadAsync</c> validates that all requested IDs exist and captures actor/tenant/time context.
 ///             </description>
 ///         </item>
 ///         <item>
@@ -32,6 +40,7 @@ public sealed class DeleteCategoriesCommandHandler
         DeleteCategoriesCommand command,
         ICategoryRepository repository,
         IActorProvider actorProvider,
+        ITenantProvider tenantProvider,
         TimeProvider timeProvider,
         CancellationToken ct
     )
@@ -40,7 +49,7 @@ public sealed class DeleteCategoriesCommandHandler
         BatchFailureContext<Guid> context = new(ids);
 
         IReadOnlyList<Entities.Category> categories = await repository.ListAsync(
-            new CategoriesByIdsSpecification(ids.ToHashSet()),
+            new CategoriesByIdsSpecification(ids),
             ct
         );
 
@@ -65,7 +74,8 @@ public sealed class DeleteCategoriesCommandHandler
         return (
             HandlerContinuation.Continue,
             new DeleteCategoriesState(
-                [.. existingIds],
+                existingIds,
+                tenantProvider.TenantId,
                 actorProvider.ActorId,
                 timeProvider.GetUtcNow().UtcDateTime
             ),
@@ -88,6 +98,7 @@ public sealed class DeleteCategoriesCommandHandler
                 await productRepository.ClearCategoryAsync(state.CategoryIds, ct);
                 await repository.BulkSoftDeleteByIdsAsync(
                     state.CategoryIds,
+                    state.TenantId,
                     state.ActorId,
                     state.DeletedAtUtc,
                     ct
@@ -102,10 +113,4 @@ public sealed class DeleteCategoriesCommandHandler
 
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
-
-    public sealed record DeleteCategoriesState(
-        IReadOnlyList<Guid> CategoryIds,
-        Guid ActorId,
-        DateTime DeletedAtUtc
-    );
 }
