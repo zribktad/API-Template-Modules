@@ -6,8 +6,9 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Smoke;
 
-[Trait("Category", "Integration.Docker")]
-public sealed class ExampleFeaturesSmokeTests : IClassFixture<CustomWebApplicationFactory>
+[Collection("Smoke")]
+[Trait("Category", "Smoke")]
+public sealed class ExampleFeaturesSmokeTests
 {
     private readonly CustomWebApplicationFactory _factory;
     private HttpClient? _client;

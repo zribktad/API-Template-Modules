@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <!-- Opt in: dotnet test /p:RunDockerIntegration=true (requires Docker). Default run skips Testcontainers tests. -->
-    <VSTestTestCaseFilter Condition="'$(RunDockerIntegration)' != 'true'">Category!=Integration.Docker</VSTestTestCaseFilter>
+    <VSTestTestCaseFilter Condition="'$(RunDockerIntegration)' != 'true'">Category!=Integration.Docker&amp;Category!=Smoke</VSTestTestCaseFilter>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ErrorOr" />
@@ -55,6 +55,7 @@
     <Compile Include="Integration\Postgres\IdentityIntegrationTestProviders.cs" />
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
     <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
+    <Compile Include="Integration\Smoke\SmokeTestsCollection.cs" />
     <Compile Include="Integration\Smoke\InfrastructureSmokeTests.cs" />
     <Compile Include="Integration\Smoke\IdentityModuleSmokeTests.cs" />
     <Compile Include="Integration\Smoke\ProductAndReviewSmokeTests.cs" />

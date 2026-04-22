@@ -12,10 +12,17 @@ on:
   push:
     branches:
       - main
+      - dev
+      - feature/**
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  HUSKY: '0'
+  RESTORE_TOOLS: '0'
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,31 +34,32 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        env:
-          RESTORE_TOOLS: '0'
-          HUSKY: '0'
         run: dotnet restore APITemplate.slnx
 
       - name: Build
-        env:
-          RESTORE_TOOLS: '0'
-          HUSKY: '0'
         run: dotnet build APITemplate.slnx --no-restore --configuration Release
 
-      - name: Run unit tests
-        env:
-          RESTORE_TOOLS: '0'
-          HUSKY: '0'
-        run: dotnet test APITemplate.slnx --no-build --no-restore --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            **/bin/Release/
+            **/obj/Release/
+          retention-days: 1
 
-      - name: Run integration tests
-        env:
-          RESTORE_TOOLS: '0'
-          HUSKY: '0'
-        run: dotnet test APITemplate.slnx --no-build --no-restore --configuration Release --verbosity normal /p:RunDockerIntegration=true -- RunConfiguration.TestCaseFilter="Category=Integration.Docker"
+      - name: Run unit tests
+        run: dotnet test APITemplate.slnx --no-build --no-restore --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -60,3 +68,59 @@ jobs:
           name: coverage-report
           path: ./coverage/**/coverage.cobertura.xml
           retention-days: 7
+
+  smoke:
+    name: Smoke Tests
+    needs: [unit]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download build output
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
+      - name: Run smoke tests
+        run: >
+          dotnet test APITemplate.slnx
+          --no-build --no-restore --configuration Release --verbosity normal
+          /p:RunDockerIntegration=true
+          -- RunConfiguration.TestCaseFilter="Category=Smoke"
+
+  integration:
+    name: Integration Tests
+    needs: [unit]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download build output
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
+      - name: Run integration tests
+        run: >
+          dotnet test APITemplate.slnx
+          --no-build --no-restore --configuration Release --verbosity normal
+          /p:RunDockerIntegration=true
+          -- RunConfiguration.TestCaseFilter="Category=Integration.Docker"

@@ -5,10 +5,9 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Smoke;
 
-[Trait("Category", "Integration.Docker")]
-public sealed class IdentityModuleSmokeTests
-    : IClassFixture<CustomWebApplicationFactory>,
-        IAsyncLifetime
+[Collection("Smoke")]
+[Trait("Category", "Smoke")]
+public sealed class IdentityModuleSmokeTests : IAsyncLifetime
 {
     private readonly CustomWebApplicationFactory _factory;
     private HttpClient? _client;
