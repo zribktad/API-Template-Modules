@@ -41,10 +41,6 @@ public sealed class FailedEmail : IHasId
         string? initialError = null
     )
     {
-        string? truncatedError = initialError is { Length: > LastErrorMaxLength }
-            ? initialError[..LastErrorMaxLength]
-            : initialError;
-
         return new FailedEmail
         {
             Id = Guid.NewGuid(),
@@ -53,7 +49,7 @@ public sealed class FailedEmail : IHasId
             HtmlBody = htmlBody,
             TemplateName = templateName,
             CreatedAtUtc = timeProvider.GetUtcNow().UtcDateTime,
-            LastError = truncatedError,
+            LastError = Truncate(initialError),
         };
     }
 
@@ -82,9 +78,7 @@ public sealed class FailedEmail : IHasId
     {
         RetryCount++;
         LastAttemptAtUtc = timeProvider.GetUtcNow().UtcDateTime;
-        LastError = errorMessage.Length > LastErrorMaxLength
-            ? errorMessage[..LastErrorMaxLength]
-            : errorMessage;
+        LastError = Truncate(errorMessage);
         ClaimedBy = null;
         ClaimedAtUtc = null;
         ClaimedUntilUtc = null;
@@ -100,4 +94,7 @@ public sealed class FailedEmail : IHasId
         ClaimedAtUtc = null;
         ClaimedUntilUtc = null;
     }
+
+    private static string? Truncate(string? value) =>
+        value is { Length: > LastErrorMaxLength } ? value[..LastErrorMaxLength] : value;
 }

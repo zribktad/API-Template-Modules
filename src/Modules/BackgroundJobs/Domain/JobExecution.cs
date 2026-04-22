@@ -48,13 +48,8 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     /// </summary>
     public ErrorOr<Success> MarkProcessing(TimeProvider timeProvider)
     {
-        if (Status != JobStatus.Pending)
-        {
-            return Error.Conflict(
-                code: "Job.InvalidTransition",
-                description: $"Cannot transition to {nameof(JobStatus.Processing)} from {Status}."
-            );
-        }
+        ErrorOr<Success> guard = RequireStatus(JobStatus.Pending, JobStatus.Processing);
+        if (guard.IsError) return guard;
 
         Status = JobStatus.Processing;
         StartedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
@@ -68,13 +63,8 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     /// </summary>
     public ErrorOr<Success> MarkCompleted(string? resultPayload, TimeProvider timeProvider)
     {
-        if (Status != JobStatus.Processing)
-        {
-            return Error.Conflict(
-                code: "Job.InvalidTransition",
-                description: $"Cannot transition to {nameof(JobStatus.Completed)} from {Status}."
-            );
-        }
+        ErrorOr<Success> guard = RequireStatus(JobStatus.Processing, JobStatus.Completed);
+        if (guard.IsError) return guard;
 
         Status = JobStatus.Completed;
         ProgressPercent = 100;
@@ -90,13 +80,8 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     /// </summary>
     public ErrorOr<Success> MarkFailed(string errorMessage, TimeProvider timeProvider)
     {
-        if (Status != JobStatus.Processing)
-        {
-            return Error.Conflict(
-                code: "Job.InvalidTransition",
-                description: $"Cannot transition to {nameof(JobStatus.Failed)} from {Status}."
-            );
-        }
+        ErrorOr<Success> guard = RequireStatus(JobStatus.Processing, JobStatus.Failed);
+        if (guard.IsError) return guard;
 
         Status = JobStatus.Failed;
         ErrorMessage = errorMessage;
@@ -110,5 +95,15 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     public void UpdateProgress(int percent)
     {
         ProgressPercent = Math.Clamp(percent, 0, 100);
+    }
+
+    private ErrorOr<Success> RequireStatus(JobStatus expected, JobStatus target)
+    {
+        if (Status != expected)
+            return Error.Conflict(
+                code: "Job.InvalidTransition",
+                description: $"Cannot transition to {target} from {Status}."
+            );
+        return Result.Success;
     }
 }
