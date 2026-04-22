@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Notifications.Contracts;
+using Notifications.Errors;
 using Notifications.Logging;
 
 namespace Notifications.Services;
@@ -69,7 +70,12 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
             }
 
             if (!string.IsNullOrEmpty(_options.Username) && !client.IsAuthenticated)
+            {
+                if (string.IsNullOrEmpty(_options.Password))
+                    return Error.Failure(ErrorCatalog.Smtp.SendFailed, "SMTP password is missing.");
+
                 await client.AuthenticateAsync(_options.Username, _options.Password, ct);
+            }
 
             await client.SendAsync(mimeMessage, ct);
         }
@@ -78,10 +84,10 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
             await ResetClientAsync();
             throw;
         }
-        catch
+        catch (Exception ex)
         {
             await ResetClientAsync();
-            throw;
+            return Error.Failure(ErrorCatalog.Smtp.SendFailed, ex.Message);
         }
         finally
         {
