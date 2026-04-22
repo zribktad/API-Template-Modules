@@ -5,6 +5,7 @@ using Identity.Directory.Features.User;
 using Identity.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;
+using SharedKernel.Application.Errors;
 using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;
@@ -150,7 +151,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenCreateUserReturnsError_ReturnsEmptyWithoutPersisting()
+    public async Task HandleAsync_WhenCreateUserReturnsError_ThrowsWithoutPersisting()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         Guid userId = Guid.NewGuid();
@@ -167,16 +168,18 @@ public sealed class ProvisionKeycloakUserHandlerTests
             .Setup(k => k.CreateUserAsync(@event.Username, @event.Email, ct))
             .ReturnsAsync(Error.Conflict("KC-0409", "Username conflict"));
 
-        OutgoingMessages result = await ProvisionKeycloakUserHandler.HandleAsync(
-            @event,
-            _repository.Object,
-            _unitOfWork.Object,
-            _keycloakAdmin.Object,
-            _logger.Object,
-            ct
+        AppException ex = await Should.ThrowAsync<AppException>(() =>
+            ProvisionKeycloakUserHandler.HandleAsync(
+                @event,
+                _repository.Object,
+                _unitOfWork.Object,
+                _keycloakAdmin.Object,
+                _logger.Object,
+                ct
+            )
         );
 
-        result.OfType<UserRegisteredNotification>().ShouldBeEmpty();
+        ex.ErrorCode.ShouldBe("KC-0409");
         _repository.Verify(
             r => r.UpdateAsync(It.IsAny<AppUser>(), It.IsAny<CancellationToken>()),
             Times.Never

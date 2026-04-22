@@ -12,7 +12,7 @@ internal static partial class NotificationsInfrastructureLogs
     [LoggerMessage(
         EventId = 6000,
         Level = LogLevel.Error,
-        Message = "Failed to render email template '{TemplateName}': {ErrorCode} — {Description}. Event will be dropped."
+        Message = "Failed to render email template '{TemplateName}': {ErrorCode} — {Description}. Event processing will fail and follow the configured Wolverine error flow."
     )]
     public static partial void EmailTemplateRenderFailed(
         this ILogger logger,
@@ -126,33 +126,6 @@ internal static partial class NotificationsInfrastructureLogs
         this ILogger logger,
         Exception exception,
         [PersonalData] string recipient
-    );
-
-    // SendEmailMessageHandler / EmailRetryService — ErrorOr error variants (6012, 6013)
-    [LoggerMessage(
-        EventId = 6012,
-        Level = LogLevel.Error,
-        Message = "Failed to send email to {Recipient} with subject '{Subject}': {ErrorCode} — {Description}"
-    )]
-    public static partial void EmailSendFailedWithError(
-        this ILogger logger,
-        [PersonalData] string recipient,
-        string subject,
-        string errorCode,
-        string description
-    );
-
-    [LoggerMessage(
-        EventId = 6013,
-        Level = LogLevel.Warning,
-        Message = "Retry attempt {Attempt} failed for email to {Recipient}: {ErrorCode} — {Description}"
-    )]
-    public static partial void EmailRetryAttemptFailedWithError(
-        this ILogger logger,
-        int attempt,
-        [PersonalData] string recipient,
-        string errorCode,
-        string description
     );
 
     // MailKitEmailSender (6008)

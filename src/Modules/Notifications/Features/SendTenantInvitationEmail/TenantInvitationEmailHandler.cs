@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
 using Notifications.Logging;
+using SharedKernel.Application.Errors;
 using SharedKernel.Contracts.Events;
 using Wolverine;
 
@@ -34,7 +35,7 @@ public sealed class TenantInvitationEmailHandler
                 html.FirstError.Code,
                 html.FirstError.Description
             );
-            return [];
+            throw new AppException(html.FirstError.Description, html.FirstError.Code);
         }
 
         OutgoingMessages messages = new();

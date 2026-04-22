@@ -4,6 +4,7 @@ using Notifications.Contracts;
 using Notifications.Domain;
 using Notifications.Logging;
 using Polly;
+using SharedKernel.Application.Errors;
 using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.Services;
@@ -68,34 +69,46 @@ public sealed class EmailRetryService : IEmailRetryService
         foreach (FailedEmail email in emails)
         {
             bool stagedDeleteAfterSuccessfulSend = false;
-            EmailMessage message = new(
-                email.To,
-                email.Subject,
-                email.HtmlBody,
-                email.TemplateName
-            );
-            ErrorOr<Success> sendResult = await pipeline.ExecuteAsync(
-                async token => await _sender.SendAsync(message, token),
-                ct
-            );
+            try
+            {
+                EmailMessage message = new(
+                    email.To,
+                    email.Subject,
+                    email.HtmlBody,
+                    email.TemplateName
+                );
+                await pipeline.ExecuteAsync(
+                    async token =>
+                    {
+                        ErrorOr<Success> sendResult = await _sender.SendAsync(message, token);
+                        if (sendResult.IsError)
+                            throw new AppException(
+                                sendResult.FirstError.Description,
+                                sendResult.FirstError.Code
+                            );
+                    },
+                    ct
+                );
 
-            if (sendResult.IsError)
+                await _repository.DeleteAsync(email, CancellationToken.None);
+                stagedDeleteAfterSuccessfulSend = true;
+                _logger.EmailRetrySucceeded(email.To, email.RetryCount + 1);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
             {
                 email.RetryCount++;
                 email.LastAttemptAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
-                email.LastError = FailedEmailErrorNormalizer.Normalize(sendResult.FirstError.Description);
+                email.LastError = FailedEmailErrorNormalizer.Normalize(ex.Message);
                 email.ClaimedBy = null;
                 email.ClaimedAtUtc = null;
                 email.ClaimedUntilUtc = null;
                 await _repository.UpdateAsync(email, ct);
 
-                _logger.EmailRetryAttemptFailedWithError(email.RetryCount, email.To, sendResult.FirstError.Code, sendResult.FirstError.Description);
-            }
-            else
-            {
-                await _repository.DeleteAsync(email, CancellationToken.None);
-                stagedDeleteAfterSuccessfulSend = true;
-                _logger.EmailRetrySucceeded(email.To, email.RetryCount + 1);
+                _logger.EmailRetryAttemptFailed(ex, email.RetryCount, email.To);
             }
 
             try

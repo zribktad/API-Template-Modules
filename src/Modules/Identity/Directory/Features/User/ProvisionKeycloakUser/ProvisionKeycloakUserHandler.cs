@@ -1,6 +1,7 @@
 using ErrorOr;
 using Identity.Logging;
 using Microsoft.Extensions.Logging;
+using SharedKernel.Application.Errors;
 using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.Runtime.Handlers;
@@ -34,9 +35,9 @@ public sealed class ProvisionKeycloakUserHandler
                 {
                     if (lifecycle.Envelope?.Message is ProvisionKeycloakUserEvent message)
                     {
-                        ILogger logger =
+                        ILogger retryLogger =
                             runtime.LoggerFactory.CreateLogger<ProvisionKeycloakUserHandler>();
-                        logger.KeycloakProvisioningPermanentlyFailed(message.UserId);
+                        retryLogger.KeycloakProvisioningPermanentlyFailed(message.UserId);
                     }
 
                     await lifecycle.MoveToDeadLetterQueueAsync(exception);
@@ -71,7 +72,10 @@ public sealed class ProvisionKeycloakUserHandler
         if (createResult.IsError)
         {
             logger.KeycloakProvisioningPermanentlyFailed(user.Id);
-            return OutgoingMessagesHelper.Empty;
+            throw new AppException(
+                createResult.FirstError.Description,
+                createResult.FirstError.Code
+            );
         }
 
         string keycloakUserId = createResult.Value;

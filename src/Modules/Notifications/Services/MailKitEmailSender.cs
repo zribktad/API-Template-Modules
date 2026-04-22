@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using Notifications.Contracts;
 using Notifications.Logging;
-using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace Notifications.Services;
 
@@ -43,7 +42,10 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
     ///     Builds a MIME message, connects and optionally authenticates against the configured SMTP server,
     ///     sends the message, and disconnects cleanly before returning.
     /// </summary>
-    public async Task<ErrorOr<Success>> SendAsync(EmailMessage message, CancellationToken ct = default)
+    public async Task<ErrorOr<Success>> SendAsync(
+        EmailMessage message,
+        CancellationToken ct = default
+    )
     {
         MimeMessage mimeMessage = new();
         mimeMessage.From.Add(new MailboxAddress(_options.SenderName, _options.SenderEmail));
@@ -76,10 +78,10 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
             await ResetClientAsync();
             throw;
         }
-        catch (Exception ex)
+        catch
         {
             await ResetClientAsync();
-            return Error.Failure(NTF.Smtp.SendFailed, ex.Message);
+            throw;
         }
         finally
         {

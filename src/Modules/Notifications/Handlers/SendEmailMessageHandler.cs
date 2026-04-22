@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
 using Notifications.Logging;
 using Polly;
+using SharedKernel.Application.Errors;
 
 namespace Notifications.Handlers;
 
@@ -18,20 +19,25 @@ public sealed class SendEmailMessageHandler
     {
         ResiliencePipeline pipeline = smtpSendPipelineProvider.Get();
 
-        ErrorOr<Success> result = await pipeline.ExecuteAsync(
-            async token => await sender.SendAsync(message, token),
-            ct
-        );
-
-        if (result.IsError)
+        try
         {
-            logger.EmailSendFailedWithError(
-                message.To,
-                message.Subject,
-                result.FirstError.Code,
-                result.FirstError.Description
+            await pipeline.ExecuteAsync(
+                async token =>
+                {
+                    ErrorOr<Success> result = await sender.SendAsync(message, token);
+                    if (result.IsError)
+                        throw new AppException(
+                            result.FirstError.Description,
+                            result.FirstError.Code
+                        );
+                },
+                ct
             );
-            await failedEmailStore.StoreFailedAsync(message, result.FirstError.Description, ct);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.EmailSendFailed(ex, message.To, message.Subject);
+            await failedEmailStore.StoreFailedAsync(message, ex.Message, ct);
         }
     }
 }

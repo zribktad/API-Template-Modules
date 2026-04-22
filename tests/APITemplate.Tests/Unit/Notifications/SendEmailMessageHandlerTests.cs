@@ -39,7 +39,12 @@ public sealed class SendEmailMessageHandlerTests
 
         _senderMock.Verify(s => s.SendAsync(message, ct), Times.Once);
         _failedEmailStoreMock.Verify(
-            s => s.StoreFailedAsync(It.IsAny<EmailMessage>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            s =>
+                s.StoreFailedAsync(
+                    It.IsAny<EmailMessage>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Never
         );
     }
@@ -87,6 +92,30 @@ public sealed class SendEmailMessageHandlerTests
                 NullLogger<SendEmailMessageHandler>.Instance,
                 ct
             )
+        );
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenSendThrows_StoresFailedEmail()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        EmailMessage message = new("user@example.com", "Subject", "<p>Body</p>");
+        InvalidOperationException ex = new("SMTP unavailable");
+
+        _senderMock.Setup(s => s.SendAsync(message, ct)).ThrowsAsync(ex);
+
+        await SendEmailMessageHandler.HandleAsync(
+            message,
+            _senderMock.Object,
+            _pipelineProviderMock.Object,
+            _failedEmailStoreMock.Object,
+            NullLogger<SendEmailMessageHandler>.Instance,
+            ct
+        );
+
+        _failedEmailStoreMock.Verify(
+            s => s.StoreFailedAsync(message, ex.Message, It.IsAny<CancellationToken>()),
+            Times.Once
         );
     }
 
