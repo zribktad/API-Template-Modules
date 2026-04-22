@@ -1,3 +1,6 @@
+using BackgroundJobs.Logging;
+using Microsoft.Extensions.Logging;
+
 namespace BackgroundJobs.Features;
 
 public sealed record SubmitJobCommand(SubmitJobRequest Request);
@@ -10,6 +13,7 @@ public sealed class SubmitJobCommandHandler
         IJobQueue jobQueue,
         IUnitOfWork<BackgroundJobsDbMarker> unitOfWork,
         TimeProvider timeProvider,
+        ILogger<SubmitJobCommandHandler> logger,
         CancellationToken ct
     )
     {
@@ -34,8 +38,10 @@ public sealed class SubmitJobCommandHandler
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // The job never entered Processing, so it cannot be transitioned to Failed.
-            // Remove the uncommitted record to avoid a dangling Pending entry.
+            logger.JobEnqueueFailed(ex, entity.Id);
+
+            // The job was persisted as Pending but never entered Processing.
+            // Remove the persisted Pending record to avoid leaving a dangling entry.
             await unitOfWork.ExecuteInTransactionAsync(
                 async () =>
                 {
@@ -46,7 +52,7 @@ public sealed class SubmitJobCommandHandler
 
             return Error.Failure(
                 ErrorCatalog.General.Unknown,
-                $"Failed to enqueue job for processing: {ex.Message}"
+                $"Failed to enqueue job for processing ({ex.GetType().Name})."
             );
         }
 

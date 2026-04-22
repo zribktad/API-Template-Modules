@@ -40,7 +40,7 @@ public sealed class CustomRole : IAuditableEntity, IHasId, ISoftDeletable
         bool isPlatformAdmin
     )
     {
-        List<string> permList = permissions.ToList();
+        List<string> permList = permissions?.ToList() ?? [];
 
         if (!isPlatformAdmin && permList.Contains(Permission.Platform.Manage))
             return DomainErrors.Roles.CannotGrantPlatformManage();

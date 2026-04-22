@@ -7,6 +7,11 @@ public static class StringExtensions
     ///     or truncated to exactly <paramref name="maxLength" /> characters.
     ///     Null is returned as null.
     /// </summary>
-    public static string? Truncate(this string? value, int maxLength) =>
-        value is { Length: var len } && len > maxLength ? value[..maxLength] : value;
+    public static string? Truncate(this string? value, int maxLength)
+    {
+        if (maxLength < 0)
+            throw new ArgumentOutOfRangeException(nameof(maxLength), maxLength, "maxLength cannot be negative.");
+
+        return value is { Length: var len } && len > maxLength ? value[..maxLength] : value;
+    }
 }

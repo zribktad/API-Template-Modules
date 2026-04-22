@@ -62,8 +62,112 @@ public class RoleRequestHandlersTests
         result.IsError.ShouldBeFalse();
         result.Value.Name.ShouldBe("Test Role");
         result.Value.Permissions.ShouldContain("Test.Permission");
-        _repository.Verify(r => r.AddAsync(It.IsAny<CustomRole>(), It.IsAny<CancellationToken>()), Times.Once);
+        _repository.Verify(
+            r => r.AddAsync(
+                It.Is<CustomRole>(role =>
+                    role.TenantId == _tenantId &&
+                    role.Name == "Test Role" &&
+                    role.Permissions.Count == 1 &&
+                    role.Permissions.Any(p => p.Permission == "Test.Permission")),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
         _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRole_WithNoPermissions_PersistsRoleWithEmptyPermissions()
+    {
+        CreateRoleRequest request = new("Empty Role", new List<string>());
+        CreateRoleCommand command = new(request);
+
+        (ErrorOr<RoleResponse> result, OutgoingMessages _) =
+            await CreateRoleCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                _tenantProvider.Object,
+                _httpContextAccessor.Object,
+                CancellationToken.None
+            );
+
+        result.IsError.ShouldBeFalse();
+        result.Value.Permissions.ShouldBeEmpty();
+        _repository.Verify(
+            r => r.AddAsync(
+                It.Is<CustomRole>(role => role.TenantId == _tenantId && role.Permissions.Count == 0),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRole_PlatformAdmin_CanGrantPlatformManage_Succeeds()
+    {
+        SetupUserClaims(isPlatformAdmin: true);
+        CreateRoleRequest request = new("Admin Role", new List<string> { Permission.Platform.Manage });
+        CreateRoleCommand command = new(request);
+
+        (ErrorOr<RoleResponse> result, OutgoingMessages _) =
+            await CreateRoleCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                _tenantProvider.Object,
+                _httpContextAccessor.Object,
+                CancellationToken.None
+            );
+
+        result.IsError.ShouldBeFalse();
+        result.Value.Permissions.ShouldContain(Permission.Platform.Manage);
+        _repository.Verify(
+            r => r.AddAsync(
+                It.Is<CustomRole>(role => role.Permissions.Any(p => p.Permission == Permission.Platform.Manage)),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRole_TenantAdmin_WithPlatformManageAmongOthers_ReturnsError()
+    {
+        CreateRoleRequest request = new("Mixed Role", new List<string> { "Reports.Read", Permission.Platform.Manage });
+        CreateRoleCommand command = new(request);
+
+        (ErrorOr<RoleResponse> result, OutgoingMessages _) =
+            await CreateRoleCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                _tenantProvider.Object,
+                _httpContextAccessor.Object,
+                CancellationToken.None
+            );
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Forbidden);
+        _repository.Verify(r => r.AddAsync(It.IsAny<CustomRole>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateRole_Success_RoleIsNotImmutable()
+    {
+        CreateRoleRequest request = new("Custom Role", new List<string> { "Reports.Read" });
+        CreateRoleCommand command = new(request);
+
+        (ErrorOr<RoleResponse> result, OutgoingMessages _) =
+            await CreateRoleCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                _tenantProvider.Object,
+                _httpContextAccessor.Object,
+                CancellationToken.None
+            );
+
+        result.IsError.ShouldBeFalse();
+        _repository.Verify(
+            r => r.AddAsync(
+                It.Is<CustomRole>(role => !role.IsImmutable),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
