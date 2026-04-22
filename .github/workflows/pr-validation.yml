@@ -64,6 +64,7 @@ jobs:
           name: Unit Test Results
           path: ./test-results/unit/**/*.trx
           reporter: dotnet-trx
+          fail-on-error: false
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -107,10 +108,10 @@ jobs:
         run: >
           dotnet test APITemplate.slnx
           --no-build --no-restore --configuration Release --verbosity normal
+          --filter "Category=Smoke"
           --logger "trx;LogFileName=smoke-results.trx"
           --results-directory ./test-results/smoke
           /p:RunDockerIntegration=true
-          -- RunConfiguration.TestCaseFilter="Category=Smoke"
 
       - name: Publish smoke test results
         uses: dorny/test-reporter@v3
@@ -119,6 +120,7 @@ jobs:
           name: Smoke Test Results
           path: ./test-results/smoke/**/*.trx
           reporter: dotnet-trx
+          fail-on-error: false
 
   integration:
     name: Integration Tests
@@ -154,10 +156,10 @@ jobs:
         run: >
           dotnet test APITemplate.slnx
           --no-build --no-restore --configuration Release --verbosity normal
+          --filter "Category=Integration.Docker"
           --logger "trx;LogFileName=integration-results.trx"
           --results-directory ./test-results/integration
           /p:RunDockerIntegration=true
-          -- RunConfiguration.TestCaseFilter="Category=Integration.Docker"
 
       - name: Publish integration test results
         uses: dorny/test-reporter@v3
@@ -166,3 +168,4 @@ jobs:
           name: Integration Test Results
           path: ./test-results/integration/**/*.trx
           reporter: dotnet-trx
+          fail-on-error: false
