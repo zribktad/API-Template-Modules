@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
 using Notifications.Logging;
+using Notifications.Services;
 using Polly;
-using SharedKernel.Application.Errors;
 
 namespace Notifications.Handlers;
 
@@ -21,18 +21,7 @@ public sealed class SendEmailMessageHandler
 
         try
         {
-            await pipeline.ExecuteAsync(
-                async token =>
-                {
-                    ErrorOr<Success> result = await sender.SendAsync(message, token);
-                    if (result.IsError)
-                        throw new AppException(
-                            result.FirstError.Description,
-                            result.FirstError.Code
-                        );
-                },
-                ct
-            );
+            await pipeline.ExecuteAsync(token => sender.SendOrThrowAsync(message, token), ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

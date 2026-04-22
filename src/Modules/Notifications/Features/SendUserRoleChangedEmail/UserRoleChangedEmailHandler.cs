@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
-using Notifications.Logging;
-using SharedKernel.Application.Errors;
 using SharedKernel.Contracts.Events;
 using Wolverine;
 
@@ -27,15 +25,7 @@ public sealed class UserRoleChangedEmailHandler
             ct
         );
 
-        if (html.IsError)
-        {
-            logger.EmailTemplateRenderFailed(
-                EmailTemplateNames.UserRoleChanged,
-                html.FirstError.Code,
-                html.FirstError.Description
-            );
-            throw new AppException(html.FirstError.Description, html.FirstError.Code);
-        }
+        EmailHandlerHelper.ThrowIfRenderFailed(html, EmailTemplateNames.UserRoleChanged, logger);
 
         OutgoingMessages messages = new();
         messages.Add(

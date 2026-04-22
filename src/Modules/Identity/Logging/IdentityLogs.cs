@@ -85,6 +85,16 @@ internal static partial class IdentityLogs
     );
 
     [LoggerMessage(
+        EventId = 3014,
+        Level = LogLevel.Error,
+        Message = "Keycloak 409 conflict for {Username} could not be resolved: user not found by username lookup."
+    )]
+    public static partial void KeycloakUserConflictResolutionFailed(
+        this ILogger logger,
+        [PersonalData] string username
+    );
+
+    [LoggerMessage(
         EventId = 3002,
         Level = LogLevel.Warning,
         Message = "Failed to send setup email for Keycloak user {KeycloakUserId}. User was created but has no setup email."

@@ -80,7 +80,12 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
             return keycloakUserId;
         }
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+            return Error.Failure(
+                KC.Keycloak.CreateUserFailed,
+                $"Keycloak CreateUser failed with status {(int)response.StatusCode} ({response.StatusCode})."
+            );
+
         ErrorOr<string> idResult = ExtractUserIdFromLocation(response);
         if (idResult.IsError)
             return idResult.Errors;
@@ -273,9 +278,10 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         if (existing?.Id is not null)
             return existing.Id;
 
+        _logger.KeycloakUserConflictResolutionFailed(username);
         return Error.Conflict(
             KC.Keycloak.UserIdConflict,
-            $"Keycloak returned 409 Conflict for username '{username}' but the user could not be found by username lookup."
+            "Keycloak 409 conflict: existing user ID could not be resolved."
         );
     }
 

@@ -77,18 +77,7 @@ public sealed class EmailRetryService : IEmailRetryService
                     email.HtmlBody,
                     email.TemplateName
                 );
-                await pipeline.ExecuteAsync(
-                    async token =>
-                    {
-                        ErrorOr<Success> sendResult = await _sender.SendAsync(message, token);
-                        if (sendResult.IsError)
-                            throw new AppException(
-                                sendResult.FirstError.Description,
-                                sendResult.FirstError.Code
-                            );
-                    },
-                    ct
-                );
+                await pipeline.ExecuteAsync(token => _sender.SendOrThrowAsync(message, token), ct);
 
                 await _repository.DeleteAsync(email, CancellationToken.None);
                 stagedDeleteAfterSuccessfulSend = true;
@@ -102,7 +91,10 @@ public sealed class EmailRetryService : IEmailRetryService
             {
                 email.RetryCount++;
                 email.LastAttemptAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
-                email.LastError = FailedEmailErrorNormalizer.Normalize(ex.Message);
+                string rawError = ex is AppException ae
+                    ? $"{ae.ErrorCode}: {ae.Message}"
+                    : ex.Message;
+                email.LastError = FailedEmailErrorNormalizer.Normalize(rawError);
                 email.ClaimedBy = null;
                 email.ClaimedAtUtc = null;
                 email.ClaimedUntilUtc = null;

@@ -17,6 +17,8 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
     private static readonly FluidParser Parser = new();
     private static readonly Assembly ResourceAssembly = typeof(FluidEmailTemplateRenderer).Assembly;
 
+    // Bounded by the fixed set of embedded resource names (EmailTemplateNames constants).
+    // Dynamic template names are not supported and would cause unbounded growth.
     private static readonly ConcurrentDictionary<string, Lazy<Task<IFluidTemplate>>> TemplateCache =
         new(StringComparer.Ordinal);
 
@@ -33,9 +35,12 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
             TemplateContext context = new(model);
             return await template.RenderAsync(context);
         }
-        catch (AppException ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            return Error.Failure(ex.ErrorCode, ex.Message);
+            return Error.Failure(
+                ex is AppException a ? a.ErrorCode : NTF.Templates.ParseFailed,
+                ex.Message
+            );
         }
     }
 

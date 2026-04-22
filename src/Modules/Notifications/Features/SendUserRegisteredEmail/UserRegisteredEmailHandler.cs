@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
-using Notifications.Logging;
-using SharedKernel.Application.Errors;
 using SharedKernel.Contracts.Events;
 using Wolverine;
 
@@ -29,15 +27,7 @@ public sealed class UserRegisteredEmailHandler
             ct
         );
 
-        if (html.IsError)
-        {
-            logger.EmailTemplateRenderFailed(
-                EmailTemplateNames.UserRegistration,
-                html.FirstError.Code,
-                html.FirstError.Description
-            );
-            throw new AppException(html.FirstError.Description, html.FirstError.Code);
-        }
+        EmailHandlerHelper.ThrowIfRenderFailed(html, EmailTemplateNames.UserRegistration, logger);
 
         OutgoingMessages messages = new();
         messages.Add(

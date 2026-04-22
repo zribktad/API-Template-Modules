@@ -14,6 +14,7 @@ public static class ErrorCatalog
         public const string EmptyUserId = "KC-0500-EMPTY-USER-ID";
         public const string EmptyToken = "KC-0500-EMPTY-TOKEN";
         public const string EmptyBody = "KC-0500-EMPTY-BODY";
+        public const string CreateUserFailed = "KC-0500-CREATE-USER";
     }
 
     public static class Users

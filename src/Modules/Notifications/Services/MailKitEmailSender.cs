@@ -1,4 +1,5 @@
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -84,10 +85,20 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
             await ResetClientAsync();
             throw;
         }
+        catch (AuthenticationException ex)
+        {
+            _logger.SmtpSendFailed(ex, message.To);
+            await ResetClientAsync();
+            return Error.Failure(ErrorCatalog.Smtp.SendFailed, "SMTP authentication failed.");
+        }
         catch (Exception ex)
         {
+            _logger.SmtpSendFailed(ex, message.To);
             await ResetClientAsync();
-            return Error.Failure(ErrorCatalog.Smtp.SendFailed, ex.Message);
+            return Error.Failure(
+                ErrorCatalog.Smtp.SendFailed,
+                $"SMTP send failed: {ex.GetType().Name}"
+            );
         }
         finally
         {

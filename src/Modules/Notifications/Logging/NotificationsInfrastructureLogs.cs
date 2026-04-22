@@ -128,7 +128,7 @@ internal static partial class NotificationsInfrastructureLogs
         [PersonalData] string recipient
     );
 
-    // MailKitEmailSender (6008)
+    // MailKitEmailSender (6008, 6012)
     [LoggerMessage(
         EventId = 6008,
         Level = LogLevel.Information,
@@ -138,5 +138,16 @@ internal static partial class NotificationsInfrastructureLogs
         this ILogger logger,
         [PersonalData] string recipient,
         string subject
+    );
+
+    [LoggerMessage(
+        EventId = 6012,
+        Level = LogLevel.Error,
+        Message = "SMTP transmission failed for recipient {Recipient}."
+    )]
+    public static partial void SmtpSendFailed(
+        this ILogger logger,
+        Exception exception,
+        [PersonalData] string recipient
     );
 }
