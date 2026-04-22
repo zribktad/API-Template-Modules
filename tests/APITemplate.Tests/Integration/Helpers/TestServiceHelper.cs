@@ -76,6 +76,10 @@ internal static class TestServiceHelper
                                     or HealthCheckNames.Keycloak
                                     or HealthCheckNames.PostgreSql
                                     or HealthCheckNames.Redis
+                                    or HealthCheckNames.Smtp
+                                    or HealthCheckNames.WolverineMessageStore
+                                    or HealthCheckNames.WolverineDeadLetters
+                                    or HealthCheckNames.OtlpCollector
                         )
                         .ToList();
                 foreach (var r in toRemove)

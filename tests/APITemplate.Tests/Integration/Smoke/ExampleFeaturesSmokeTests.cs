@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Identity.Auth.Security;
 using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
@@ -10,6 +11,8 @@ namespace APITemplate.Tests.Integration.Smoke;
 [Trait("Category", "Smoke")]
 public sealed class ExampleFeaturesSmokeTests
 {
+    private const string ServiceAccountUsername =
+        $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}smoke-examples";
     private readonly CustomWebApplicationFactory _factory;
     private HttpClient? _client;
 
@@ -21,7 +24,11 @@ public sealed class ExampleFeaturesSmokeTests
     public async Task SubmitJob_ReturnsAccepted()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(Client, permissions: [Permission.Examples.Execute]);
+        IntegrationAuthHelper.Authenticate(
+            Client,
+            username: ServiceAccountUsername,
+            permissions: [Permission.Examples.Execute]
+        );
         var content = new StringContent(
             """{"JobType":"smoke"}""",
             Encoding.UTF8,
@@ -35,7 +42,11 @@ public sealed class ExampleFeaturesSmokeTests
     public async Task SseStream_ReturnsEventStreamContentType()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(Client, permissions: [Permission.Examples.Read]);
+        IntegrationAuthHelper.Authenticate(
+            Client,
+            username: ServiceAccountUsername,
+            permissions: [Permission.Examples.Read]
+        );
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/sse/stream?count=1");
         var response = await Client.SendAsync(
             request,

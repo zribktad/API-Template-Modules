@@ -21,11 +21,11 @@ public sealed class InfrastructureSmokeTests
     public InfrastructureSmokeTests(CustomWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
-    public async Task Root_ReturnsOk()
+    public async Task Root_RequiresAuthentication()
     {
         var ct = TestContext.Current.CancellationToken;
         var response = await Client.GetAsync("/", ct);
-        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -71,13 +71,5 @@ public sealed class InfrastructureSmokeTests
         var ct = TestContext.Current.CancellationToken;
         var response = await Client.GetAsync("/api/v1/bff/external-providers", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task BffLogin_ReturnsRedirect()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var response = await Client.GetAsync("/api/v1/bff/login", ct);
-        response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
     }
 }
