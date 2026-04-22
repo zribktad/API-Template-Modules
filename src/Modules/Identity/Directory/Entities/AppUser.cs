@@ -1,8 +1,9 @@
 namespace Identity.Directory.Entities;
 
 /// <summary>
-///     Domain entity representing an application user belonging to a tenant.
-///     Tracks identity information, Keycloak linkage, role, and soft-delete state.
+///     Tenant-scoped user. Email and Username are stored as <see cref="NormalizedString"/> — both the
+///     original value and its normalised form — so uniqueness checks and lookups are case-insensitive
+///     without losing the display representation.
 /// </summary>
 public sealed class AppUser : IAuditableTenantEntity, IHasId
 {
@@ -59,10 +60,8 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
             KeycloakUserId = keycloakUserId,
             TenantId = tenantId ?? Guid.Empty,
             IsActive = isActive,
+            ProvisioningStatus = keycloakUserId is not null ? ProvisioningStatus.Completed : ProvisioningStatus.Pending,
         };
-
-        if (keycloakUserId is not null)
-            user.ProvisioningStatus = ProvisioningStatus.Completed;
 
         return user;
     }

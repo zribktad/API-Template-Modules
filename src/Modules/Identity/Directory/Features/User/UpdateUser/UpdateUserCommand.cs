@@ -24,7 +24,7 @@ public sealed class UpdateUserCommandHandler
             return userResult.Errors;
         AppUser user = userResult.Value;
 
-        if (!string.Equals(user.Email.Value, command.Request.Email, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(user.Email.Normalized, NormalizedString.Normalize(command.Request.Email), StringComparison.Ordinal))
         {
             ErrorOr<Success> emailResult = await uniqueness.EnsureEmailUniqueAsync(command.Request.Email, ct);
             if (emailResult.IsError)

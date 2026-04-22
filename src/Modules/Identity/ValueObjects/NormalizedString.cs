@@ -1,18 +1,11 @@
 namespace Identity.ValueObjects;
 
 /// <summary>
-/// Value object that pairs a user-supplied string with its normalised form used for
-/// case-insensitive uniqueness checks and lookups.
-///
-/// Normalisation rule: trim surrounding whitespace, then convert to upper-case
-/// (invariant culture).  Storing both forms means the display value is never
-/// mutated while queries and unique indexes always operate on a predictable,
-/// culture-neutral representation — eliminating silent duplicates such as
-/// "Alice", " alice " and "ALICE" being treated as distinct identities.
-///
-/// Use <see cref="Value"/> when displaying or returning data to callers.
-/// Use <see cref="Normalized"/> (or <see cref="Normalize"/>) when filtering,
-/// comparing, or building unique indexes in the database.
+///     Pairs the original user-supplied string with its trimmed, upper-case invariant form.
+///     Both forms are persisted so display output is never mutated while database indexes and
+///     uniqueness checks always operate on a stable, culture-neutral representation — preventing
+///     silent duplicates such as "Alice", " alice " and "ALICE" from being treated as distinct.
+///     Use <see cref="Value"/> for output; use <see cref="Normalized"/> for filtering and index lookups.
 /// </summary>
 public sealed record NormalizedString
 {
@@ -23,6 +16,7 @@ public sealed record NormalizedString
 
     public NormalizedString(string value)
     {
+        ArgumentNullException.ThrowIfNull(value);
         Value = value.Trim();
         Normalized = Value.ToUpperInvariant();
     }

@@ -3,19 +3,18 @@ using ErrorOr;
 namespace Identity.Directory.Domain.Services;
 
 /// <summary>
-///     Enforces uniqueness invariants for <see cref="AppUser" /> email and username.
-///     Repositories expose raw existence queries (<c>ExistsBy*Async</c>); this service adds the business rule layer
-///     — mapping conflicts to <see cref="DomainErrors.Users" /> error codes and choosing the check order.
+///     Checks whether an email or username is already taken and returns a typed domain error if so.
+///     Callers pass raw (un-normalised) values — normalisation is the responsibility of the implementation.
 /// </summary>
 public interface IUserUniquenessChecker
 {
     /// <summary>
-    ///     Returns an error if the given email is already taken by another user.
+    ///     Returns <see cref="DomainErrors.Users.EmailAlreadyExists"/> if the email is taken (case-insensitive).
     /// </summary>
     Task<ErrorOr<Success>> EnsureEmailUniqueAsync(string email, CancellationToken ct = default);
 
     /// <summary>
-    ///     Returns an error if the given username (after normalization) is already taken by another user.
+    ///     Returns <see cref="DomainErrors.Users.UsernameAlreadyExists"/> if the username is taken (case-insensitive).
     /// </summary>
     Task<ErrorOr<Success>> EnsureUsernameUniqueAsync(
         string username,
@@ -23,7 +22,8 @@ public interface IUserUniquenessChecker
     );
 
     /// <summary>
-    ///     Checks email first, then username. Short-circuits on the first conflict so the caller sees a single error.
+    ///     Checks email then username, short-circuiting on the first conflict.
+    ///     Use during registration where both must be unique before the user is created.
     /// </summary>
     Task<ErrorOr<Success>> EnsureUniqueAsync(
         string username,

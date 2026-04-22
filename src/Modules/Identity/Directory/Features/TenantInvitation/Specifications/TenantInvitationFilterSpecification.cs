@@ -5,8 +5,8 @@ using TenantInvitationEntity = Identity.Directory.Entities.TenantInvitation;
 namespace Identity.Directory.Features.TenantInvitation.Specifications;
 
 /// <summary>
-///     Ardalis specification that retrieves a filtered list of tenant invitations projected to
-///     <see cref="TenantInvitationResponse" />.
+///     Retrieves tenant invitations matching the given filter, projected to <see cref="TenantInvitationResponse"/>
+///     and ordered by creation date descending.
 /// </summary>
 public sealed class TenantInvitationFilterSpecification
     : Specification<TenantInvitationEntity, TenantInvitationResponse>
@@ -20,15 +20,8 @@ public sealed class TenantInvitationFilterSpecification
     }
 }
 
-/// <summary>
-///     Internal extension that applies shared <see cref="TenantInvitationFilter" /> criteria to an Ardalis specification
-///     builder.
-/// </summary>
 internal static class TenantInvitationFilterCriteria
 {
-    /// <summary>
-    ///     Adds optional email (normalised, case-insensitive contains) and status equality predicates to the query.
-    /// </summary>
     public static void ApplyFilter(
         this ISpecificationBuilder<TenantInvitationEntity> query,
         TenantInvitationFilter filter

@@ -3,9 +3,8 @@ using ErrorOr;
 namespace Identity.Directory.Entities;
 
 /// <summary>
-///     Domain entity representing an email invitation for a user to join a tenant.
-///     Holds a hashed token used for secure acceptance and tracks the invitation lifecycle via
-///     <see cref="InvitationStatus" />.
+///     Email invitation for a user to join a tenant. The token is stored hashed (never plain-text);
+///     acceptance is gated on expiry and current status to prevent replay and double-accept.
 /// </summary>
 public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
@@ -57,8 +56,9 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     }
 
     /// <summary>
-    ///     Guards the resend preconditions: invitation must be <see cref="InvitationStatus.Pending" /> and not yet expired.
-    ///     Returns an error if either condition is violated; otherwise returns success.
+    ///     Validates that the invitation can be resent. A resend is only allowed while the invitation is
+    ///     still <see cref="InvitationStatus.Pending"/> and not yet expired — once accepted, revoked, or
+    ///     expired a new invitation must be created instead.
     /// </summary>
     public ErrorOr<Success> TryResend(TimeProvider timeProvider)
     {

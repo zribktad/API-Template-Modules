@@ -4,8 +4,9 @@ using Identity.Directory.Interfaces;
 namespace Identity.Directory.Domain.Services;
 
 /// <summary>
-///     Default <see cref="IUserUniquenessChecker" /> backed by <see cref="IUserRepository" /> existence queries.
-///     Keeps uniqueness conflict error mapping out of command handlers and out of the repository.
+///     Translates raw <see cref="IUserRepository"/> existence queries into domain-level uniqueness errors.
+///     Centralising this mapping here keeps command handlers free of error-code knowledge and the
+///     repository free of business rules.
 /// </summary>
 internal sealed class UserUniquenessChecker(IUserRepository repository) : IUserUniquenessChecker
 {

@@ -3,7 +3,7 @@ using Ardalis.Specification;
 namespace Identity.Directory.Features.User;
 
 /// <summary>
-///     Ardalis specification that filters users by a case-insensitive exact email match.
+///     Matches users by email, case-insensitively. Pass the raw email — normalisation is applied internally.
 /// </summary>
 public sealed class UserByEmailSpecification : Specification<AppUser>
 {
