@@ -6,6 +6,9 @@ namespace Identity.Directory.Entities;
 /// </summary>
 public sealed class Tenant : IAuditableTenantEntity, IHasId
 {
+    public const int CodeMaxLength = 100;
+    public const int NameMaxLength = 200;
+
     public required string Code { get; init; }
 
     public required string Name

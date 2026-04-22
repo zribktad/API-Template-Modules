@@ -16,8 +16,8 @@ public sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder
             .Property(t => t.Code)
             .IsRequired()
-            .HasMaxLength(100);
-        builder.Property(t => t.Name).IsRequired().HasMaxLength(200);
+            .HasMaxLength(Tenant.CodeMaxLength);
+        builder.Property(t => t.Name).IsRequired().HasMaxLength(Tenant.NameMaxLength);
         builder.Property(t => t.IsActive).IsRequired().HasDefaultValue(true);
 
         builder.HasIndex(t => t.Code).HasDatabaseName(TenantCodeIndexName).IsUnique();
