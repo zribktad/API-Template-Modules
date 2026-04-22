@@ -27,10 +27,10 @@ internal static class IntegrationAuthHelper
         Guid? userId = null,
         Guid? tenantId = null,
         string? username = null,
-        string? email = null,
-        string? subject = null,
         string role = "PlatformAdmin",
-        string[]? permissions = null
+        string[]? permissions = null,
+        string? email = null,
+        string? subject = null
     )
     {
         var id = userId ?? Guid.NewGuid();
@@ -88,20 +88,20 @@ internal static class IntegrationAuthHelper
         Guid? userId = null,
         Guid? tenantId = null,
         string? username = null,
-        string? email = null,
-        string? subject = null,
         string role = "PlatformAdmin",
-        string[]? permissions = null
+        string[]? permissions = null,
+        string? email = null,
+        string? subject = null
     )
     {
         string token = CreateTestToken(
             userId,
             tenantId,
             username,
-            email,
-            subject,
             role,
-            permissions
+            permissions,
+            email,
+            subject
         );
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }

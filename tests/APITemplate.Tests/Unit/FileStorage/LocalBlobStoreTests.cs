@@ -231,9 +231,8 @@ public sealed class LocalBlobStoreTests : IDisposable
         Directory.EnumerateFiles(capturedPath!).ShouldBeEmpty();
     }
 
-    [Theory]
-    [InlineData("deadbeef", "The committed path embeds the sha-prefix subdirectory")]
-    public async Task PromoteToCommittedAsync_PathLayoutIsShaPrefixed(string _, string __)
+    [Fact]
+    public async Task PromoteToCommittedAsync_PathLayoutIsShaPrefixed()
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();

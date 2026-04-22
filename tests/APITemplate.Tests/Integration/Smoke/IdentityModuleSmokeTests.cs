@@ -46,6 +46,7 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
+            tenantId: _seededTenantId,
             username: ServiceAccountUsername,
             permissions: [Permission.Users.Read]
         );
@@ -61,8 +62,9 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
             Client,
             tenantId: _seededTenantId,
             username: _seededUsername,
-            email: _seededEmail,
-            subject: _seededKeycloakUserId
+            subject: _seededKeycloakUserId,
+            role: "User",
+            email: _seededEmail
         );
         var response = await Client.GetAsync("/api/v1/users/me", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -74,6 +76,7 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
+            tenantId: _seededTenantId,
             username: ServiceAccountUsername,
             permissions: [Permission.Tenants.Read]
         );
@@ -87,7 +90,7 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
-            username: ServiceAccountUsername,
+            tenantId: _seededTenantId,
             permissions: [Permission.Roles.Read]
         );
         var response = await Client.GetAsync("/api/v1/roles", ct);
@@ -100,7 +103,7 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
-            username: ServiceAccountUsername,
+            tenantId: _seededTenantId,
             permissions: [Permission.Roles.Read]
         );
         var response = await Client.GetAsync("/api/v1/roles/permissions", ct);
@@ -113,7 +116,7 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
-            username: ServiceAccountUsername,
+            tenantId: _seededTenantId,
             permissions: [Permission.Invitations.Read]
         );
         var response = await Client.GetAsync("/api/v1/tenant-invitations", ct);

@@ -9,15 +9,31 @@ namespace APITemplate.Tests.Integration.Smoke;
 
 [Collection("Smoke")]
 [Trait("Category", "Smoke")]
-public sealed class ExampleFeaturesSmokeTests
+public sealed class ExampleFeaturesSmokeTests : IAsyncLifetime
 {
     private const string ServiceAccountUsername =
         $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}smoke-examples";
     private readonly CustomWebApplicationFactory _factory;
+    private Guid _tenantId;
 
     private HttpClient Client => field ??= _factory.CreateClient();
 
     public ExampleFeaturesSmokeTests(CustomWebApplicationFactory factory) => _factory = factory;
+
+    public async ValueTask InitializeAsync()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var (tenant, _) = await IntegrationAuthHelper.SeedTenantUserAsync(
+            _factory.Services,
+            username: $"smoke-example-{suffix}",
+            email: $"smoke-example-{suffix}@example.com",
+            ct: ct
+        );
+        _tenantId = tenant.Id;
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
     [Fact]
     public async Task SubmitJob_ReturnsAccepted()
@@ -25,11 +41,12 @@ public sealed class ExampleFeaturesSmokeTests
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
+            tenantId: _tenantId,
             username: ServiceAccountUsername,
             permissions: [Permission.Examples.Execute]
         );
         var content = new StringContent(
-            """{"JobType":"smoke"}""",
+            """{"JobType":"data-export"}""",
             Encoding.UTF8,
             "application/json"
         );
@@ -43,6 +60,7 @@ public sealed class ExampleFeaturesSmokeTests
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
+            tenantId: _tenantId,
             username: ServiceAccountUsername,
             permissions: [Permission.Examples.Read]
         );
