@@ -1,5 +1,6 @@
 using ErrorOr;
 using SharedKernel.Domain.Entities.Contracts;
+using SharedKernel.Extensions;
 
 namespace Notifications.Domain;
 
@@ -49,7 +50,7 @@ public sealed class FailedEmail : IHasId
             HtmlBody = htmlBody,
             TemplateName = templateName,
             CreatedAtUtc = timeProvider.GetUtcNow().UtcDateTime,
-            LastError = Truncate(initialError),
+            LastError = initialError.Truncate(LastErrorMaxLength),
         };
     }
 
@@ -78,7 +79,7 @@ public sealed class FailedEmail : IHasId
     {
         RetryCount++;
         LastAttemptAtUtc = timeProvider.GetUtcNow().UtcDateTime;
-        LastError = Truncate(errorMessage);
+        LastError = errorMessage.Truncate(LastErrorMaxLength);
         ClaimedBy = null;
         ClaimedAtUtc = null;
         ClaimedUntilUtc = null;
@@ -95,6 +96,4 @@ public sealed class FailedEmail : IHasId
         ClaimedUntilUtc = null;
     }
 
-    private static string? Truncate(string? value) =>
-        value is { Length: > LastErrorMaxLength } ? value[..LastErrorMaxLength] : value;
 }
