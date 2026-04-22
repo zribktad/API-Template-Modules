@@ -54,6 +54,9 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
         mimeMessage.Subject = message.Subject;
         mimeMessage.Body = new TextPart("html") { Text = message.HtmlBody };
 
+        if (!string.IsNullOrEmpty(_options.Username) && string.IsNullOrEmpty(_options.Password))
+            return Error.Failure(ErrorCatalog.Smtp.SendFailed, "SMTP password is missing.");
+
         await _lock.WaitAsync(ct);
         try
         {
@@ -71,10 +74,7 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
 
             if (!string.IsNullOrEmpty(_options.Username) && !client.IsAuthenticated)
             {
-                if (string.IsNullOrEmpty(_options.Password))
-                    return Error.Failure(ErrorCatalog.Smtp.SendFailed, "SMTP password is missing.");
-
-                await client.AuthenticateAsync(_options.Username, _options.Password, ct);
+                await client.AuthenticateAsync(_options.Username, _options.Password!, ct);
             }
 
             await client.SendAsync(mimeMessage, ct);
