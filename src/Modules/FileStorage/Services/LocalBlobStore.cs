@@ -6,8 +6,6 @@ using FileStorage.Features.Staging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
-using SharedKernel.Application.Errors;
-using FS = FileStorage.Domain.ErrorCatalog;
 
 namespace FileStorage.Services;
 
@@ -121,10 +119,9 @@ internal sealed class LocalBlobStore : IBlobStore
         if (committedInfo.Exists)
         {
             if (committedInfo.Length != expectedSize)
-                throw new AppException(
+                throw new InvalidOperationException(
                     $"Blob {sha256} already exists for tenant {tenantId} with size {committedInfo.Length}, "
-                        + $"but staging expects {expectedSize}. Refusing to overwrite.",
-                    FS.Files.BlobConflict
+                        + $"but staging expects {expectedSize}. Refusing to overwrite."
                 );
 
             await DeleteStagingAsync(stagingPath, ct);
@@ -139,9 +136,8 @@ internal sealed class LocalBlobStore : IBlobStore
         {
             long existingSize = new FileInfo(committedPath).Length;
             if (existingSize != expectedSize)
-                throw new AppException(
-                    $"Concurrent promote produced size mismatch for blob {sha256}.",
-                    FS.Files.BlobConflict
+                throw new InvalidOperationException(
+                    $"Concurrent promote produced size mismatch for blob {sha256}."
                 );
             await DeleteStagingAsync(stagingPath, ct);
         }
@@ -243,9 +239,6 @@ internal sealed class LocalBlobStore : IBlobStore
             + Path.DirectorySeparatorChar;
 
         if (!fullPath.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
-            throw new AppException(
-                "Path traversal detected: access denied.",
-                FS.Files.PathTraversal
-            );
+            throw new UnauthorizedAccessException("Path traversal detected: access denied.");
     }
 }

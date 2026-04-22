@@ -1,9 +1,7 @@
-using APITemplate.Tests.Unit.Helpers;
 using Notifications.Contracts;
 using Notifications.Services;
 using Shouldly;
 using Xunit;
-using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
@@ -38,15 +36,8 @@ public sealed class FluidEmailTemplateRendererTests
     [Fact]
     public async Task RenderAsync_UnknownTemplate_Throws()
     {
-        await (
-            (Func<Task>)(
-                () =>
-                    _sut.RenderAsync(
-                        UnknownTemplateId,
-                        new { },
-                        TestContext.Current.CancellationToken
-                    )
-            )
-        ).ShouldThrowAppExceptionAsync(NTF.Templates.NotFound);
+        await Should.ThrowAsync<InvalidOperationException>(() =>
+            _sut.RenderAsync(UnknownTemplateId, new { }, TestContext.Current.CancellationToken)
+        );
     }
 }

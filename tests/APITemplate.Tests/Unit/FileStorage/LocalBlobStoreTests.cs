@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using APITemplate.Tests.Unit.Helpers;
 using FileStorage.Contracts;
 using FileStorage.Domain.Services;
 using FileStorage.Domain.Storage;
@@ -14,7 +13,6 @@ using Polly.Retry;
 using SharedKernel.Application.Resilience;
 using Shouldly;
 using Xunit;
-using FS = FileStorage.Domain.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
@@ -128,17 +126,14 @@ public sealed class LocalBlobStoreTests : IDisposable
 
         StagingResult fake = await sut.WriteStagingAsync(Payload("x"));
 
-        await (
-            (Func<Task>)(
-                async () =>
-                    await sut.PromoteToCommittedAsync(
-                        tenant,
-                        first.Sha256,
-                        first.SizeBytes + 999,
-                        fake.StagingPath
-                    )
+        await Should.ThrowAsync<InvalidOperationException>(async () =>
+            await sut.PromoteToCommittedAsync(
+                tenant,
+                first.Sha256,
+                first.SizeBytes + 999,
+                fake.StagingPath
             )
-        ).ShouldThrowAppExceptionAsync(FS.Files.BlobConflict);
+        );
     }
 
     [Fact]
@@ -188,11 +183,9 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), "..", "..", "escape");
-        await (
-            (Func<Task>)(
-                () => sut.PromoteToCommittedAsync(Guid.NewGuid(), ExpectedSha("x"), 1, evil)
-            )
-        ).ShouldThrowAppExceptionAsync(FS.Files.PathTraversal);
+        await Should.ThrowAsync<UnauthorizedAccessException>(async () =>
+            await sut.PromoteToCommittedAsync(Guid.NewGuid(), ExpectedSha("x"), 1, evil)
+        );
     }
 
     [Theory]
@@ -316,8 +309,8 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), suffix);
-        await ((Func<Task>)(() => sut.DeleteStagingAsync(evil))).ShouldThrowAppExceptionAsync(
-            FS.Files.PathTraversal
+        await Should.ThrowAsync<UnauthorizedAccessException>(async () =>
+            await sut.DeleteStagingAsync(evil)
         );
     }
 

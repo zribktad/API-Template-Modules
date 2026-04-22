@@ -93,9 +93,9 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
             if (_client.IsConnected)
                 await _client.DisconnectAsync(true, CancellationToken.None);
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogWarning(ex, "SMTP client cleanup failed during reset — ignored.");
+            // Ignore cleanup failures; the caller is already handling the original send failure.
         }
         finally
         {

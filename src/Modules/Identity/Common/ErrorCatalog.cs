@@ -34,15 +34,6 @@ public static class ErrorCatalog
         public const string CodeAlreadyExistsMessage = "Tenant with code '{0}' already exists.";
     }
 
-    public static class Keycloak
-    {
-        public const string EmptyToken = "KC-0500-EMPTY-TOKEN";
-        public const string EmptyBody = "KC-0500-EMPTY-BODY";
-        public const string LocationMissing = "KC-0500-LOCATION-MISSING";
-        public const string EmptyUserId = "KC-0500-EMPTY-USER-ID";
-        public const string UserIdConflict = "KC-0409-USER-CONFLICT";
-    }
-
     public static class Invitations
     {
         public const string NotFound = "INV-0404";
