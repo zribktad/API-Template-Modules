@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Registry;
 using Polly.Retry;
+using SharedKernel.Application.Errors;
 using SharedKernel.Application.Resilience;
 using Shouldly;
 using Xunit;
@@ -126,7 +127,7 @@ public sealed class LocalBlobStoreTests : IDisposable
 
         StagingResult fake = await sut.WriteStagingAsync(Payload("x"));
 
-        await Should.ThrowAsync<InvalidOperationException>(async () =>
+        await Should.ThrowAsync<AppException>(async () =>
             await sut.PromoteToCommittedAsync(
                 tenant,
                 first.Sha256,
@@ -183,7 +184,7 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), "..", "..", "escape");
-        await Should.ThrowAsync<UnauthorizedAccessException>(async () =>
+        await Should.ThrowAsync<AppException>(async () =>
             await sut.PromoteToCommittedAsync(Guid.NewGuid(), ExpectedSha("x"), 1, evil)
         );
     }
@@ -309,9 +310,7 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), suffix);
-        await Should.ThrowAsync<UnauthorizedAccessException>(async () =>
-            await sut.DeleteStagingAsync(evil)
-        );
+        await Should.ThrowAsync<AppException>(async () => await sut.DeleteStagingAsync(evil));
     }
 
     public void Dispose()

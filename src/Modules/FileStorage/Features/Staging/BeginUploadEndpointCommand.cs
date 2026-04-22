@@ -3,6 +3,7 @@ using FileStorage.Domain.Storage;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
 using Wolverine;
+using IHasErrorCode = SharedKernel.Application.Errors.IHasErrorCode;
 
 namespace FileStorage.Features.Staging;
 
@@ -86,8 +87,10 @@ public sealed class BeginUploadEndpointCommandHandler
 }
 
 /// <summary>Thrown by <see cref="IBlobStore" /> implementations when the streamed payload exceeds the limit.</summary>
-public sealed class FileTooLargeException : Exception
+public sealed class FileTooLargeException : Exception, IHasErrorCode
 {
+    public string ErrorCode => FileStorage.Domain.ErrorCatalog.Files.FileTooLarge;
+
     public FileTooLargeException(long maxBytes)
         : base($"Upload exceeded the maximum allowed size of {maxBytes} bytes.") { }
 }

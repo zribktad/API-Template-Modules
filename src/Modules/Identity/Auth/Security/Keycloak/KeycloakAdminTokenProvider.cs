@@ -1,8 +1,10 @@
 using System.Net.Http.Json;
-using Identity.Logging;
 using Identity.Auth.Options;
+using Identity.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Errors;
+using KC = Identity.Errors.ErrorCatalog;
 
 namespace Identity.Auth.Security.Keycloak;
 
@@ -59,8 +61,9 @@ public sealed class KeycloakAdminTokenProvider : IDisposable
 
             if (string.IsNullOrWhiteSpace(response.AccessToken))
             {
-                throw new InvalidOperationException(
-                    "Keycloak token endpoint returned a response with an empty access_token."
+                throw new AppException(
+                    "Keycloak token endpoint returned a response with an empty access_token.",
+                    KC.Keycloak.EmptyToken
                 );
             }
 
@@ -111,7 +114,10 @@ public sealed class KeycloakAdminTokenProvider : IDisposable
 
         KeycloakTokenResponse token =
             await response.Content.ReadFromJsonAsync<KeycloakTokenResponse>(cancellationToken)
-            ?? throw new InvalidOperationException("Keycloak token endpoint returned empty body.");
+            ?? throw new AppException(
+                "Keycloak token endpoint returned empty body.",
+                KC.Keycloak.EmptyBody
+            );
 
         return token;
     }

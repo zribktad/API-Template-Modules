@@ -12,5 +12,7 @@ public static class ErrorCatalog
         public const string WebhookMissingHeaders = "EXA-0401-WEBHOOK-HDR";
         public const string UploadTokenNotFound = "EXA-0404-UPLOAD";
         public const string CommitAfterTerminalState = "EXA-0410-UPLOAD";
+        public const string BlobConflict = "EXA-0409-BLOB";
+        public const string PathTraversal = "EXA-0403-PATH";
     }
 }

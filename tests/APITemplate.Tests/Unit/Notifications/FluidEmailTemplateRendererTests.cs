@@ -1,5 +1,6 @@
 using Notifications.Contracts;
 using Notifications.Services;
+using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
 
@@ -36,7 +37,7 @@ public sealed class FluidEmailTemplateRendererTests
     [Fact]
     public async Task RenderAsync_UnknownTemplate_Throws()
     {
-        await Should.ThrowAsync<InvalidOperationException>(() =>
+        await Should.ThrowAsync<AppException>(() =>
             _sut.RenderAsync(UnknownTemplateId, new { }, TestContext.Current.CancellationToken)
         );
     }

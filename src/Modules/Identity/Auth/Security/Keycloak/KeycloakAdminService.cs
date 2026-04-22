@@ -6,6 +6,8 @@ using Keycloak.AuthServices.Sdk.Admin.Models;
 using Keycloak.AuthServices.Sdk.Admin.Requests.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Errors;
+using KC = Identity.Errors.ErrorCatalog;
 
 namespace Identity.Auth.Security.Keycloak;
 
@@ -262,8 +264,9 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         UserRepresentation? existing = users.FirstOrDefault();
 
         return existing?.Id
-            ?? throw new InvalidOperationException(
-                $"Keycloak returned 409 Conflict for username '{username}' but the user could not be found by username lookup."
+            ?? throw new AppException(
+                $"Keycloak returned 409 Conflict for username '{username}' but the user could not be found by username lookup.",
+                KC.Keycloak.UserIdConflict
             );
     }
 
@@ -271,8 +274,9 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
     {
         Uri location =
             response.Headers.Location
-            ?? throw new InvalidOperationException(
-                "Keycloak CreateUser response did not include a Location header."
+            ?? throw new AppException(
+                "Keycloak CreateUser response did not include a Location header.",
+                KC.Keycloak.LocationMissing
             );
 
         // Location is: {base}/admin/realms/{realm}/users/{id}
@@ -280,8 +284,9 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
 
         if (string.IsNullOrWhiteSpace(userId))
         {
-            throw new InvalidOperationException(
-                $"Could not extract user ID from Keycloak Location header: {location}"
+            throw new AppException(
+                $"Could not extract user ID from Keycloak Location header: {location}",
+                KC.Keycloak.EmptyUserId
             );
         }
 
