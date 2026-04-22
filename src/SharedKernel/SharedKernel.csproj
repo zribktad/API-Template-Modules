@@ -1,30 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <ItemGroup>
-    <InternalsVisibleTo Include="APITemplate.Tests"/>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <InternalsVisibleTo Include="APITemplate.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Ardalis.Specification"/>
-    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore"/>
-    <PackageReference Include="ErrorOr"/>
-  <PackageReference Include="JasperFx" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore"/>
+    <PackageReference Include="Ardalis.Specification" />
+    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" />
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" />
+    <PackageReference Include="ErrorOr" />
+    <PackageReference Include="JasperFx" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational"/>
-    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction"/>
-    <PackageReference Include="Microsoft.Extensions.Resilience"/>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/>
-    <PackageReference Include="AspNetCore.HealthChecks.NpgSql"/>
-    <PackageReference Include="AspNetCore.HealthChecks.Redis"/>
-    <PackageReference Include="StackExchange.Redis"/>
-    <PackageReference Include="WolverineFx"/>
-    <PackageReference Include="WolverineFx.EntityFrameworkCore"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
+    <PackageReference Include="Microsoft.Extensions.Resilience" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="StackExchange.Redis" />
+    <PackageReference Include="WolverineFx" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" />
   </ItemGroup>
-
 
 </Project>
-
