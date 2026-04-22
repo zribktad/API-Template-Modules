@@ -34,19 +34,19 @@ public sealed class SubmitJobCommandHandler
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            entity.MarkFailed($"Failed to enqueue job for processing: {ex.Message}", timeProvider);
-
+            // The job never entered Processing, so it cannot be transitioned to Failed.
+            // Remove the uncommitted record to avoid a dangling Pending entry.
             await unitOfWork.ExecuteInTransactionAsync(
                 async () =>
                 {
-                    await repository.UpdateAsync(entity, ct);
+                    await repository.DeleteAsync(entity, ct);
                 },
                 ct
             );
 
             return Error.Failure(
                 ErrorCatalog.General.Unknown,
-                "Failed to enqueue job for processing."
+                $"Failed to enqueue job for processing: {ex.Message}"
             );
         }
 

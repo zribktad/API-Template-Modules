@@ -42,6 +42,24 @@ internal static partial class BackgroundJobsInfrastructureLogs
         Guid jobId
     );
 
+    [LoggerMessage(
+        EventId = 8019,
+        Level = LogLevel.Warning,
+        Message = "Job {JobId} already claimed by another worker; current status: {Status}. Skipping."
+    )]
+    public static partial void JobAlreadyClaimed(this ILogger logger, Guid jobId, JobStatus status);
+
+    [LoggerMessage(
+        EventId = 8020,
+        Level = LogLevel.Warning,
+        Message = "Job {JobId} already in terminal state {Status}; skipping failure mark."
+    )]
+    public static partial void JobAlreadyInTerminalState(
+        this ILogger logger,
+        Guid jobId,
+        JobStatus status
+    );
+
     // ReindexService (8005, 8006, 8007, 8008)
     [LoggerMessage(
         EventId = 8005,

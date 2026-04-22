@@ -107,7 +107,7 @@ public sealed class SubmitJobCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenEnqueueFails_MarksJobAsFailedAndReturnsError()
+    public async Task HandleAsync_WhenEnqueueFails_DeletesEntityAndReturnsError()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         JobExecution? persisted = null;
@@ -130,10 +130,9 @@ public sealed class SubmitJobCommandHandlerTests
 
         result.IsError.ShouldBeTrue();
         result.FirstError.Code.ShouldBe(ErrorCatalog.General.Unknown);
+        // The entity is removed rather than transitioned to Failed (Pending→Failed is illegal per state machine).
         persisted.ShouldNotBeNull();
-        persisted!.Status.ShouldBe(JobStatus.Failed);
-        persisted.ErrorMessage.ShouldNotBeNull();
-        persisted.ErrorMessage.ShouldContain("queue unavailable");
-        _repository.Verify(r => r.UpdateAsync(persisted, ct), Times.Once);
+        _repository.Verify(r => r.DeleteAsync(persisted!, ct), Times.Once);
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<JobExecution>(), ct), Times.Never);
     }
 }

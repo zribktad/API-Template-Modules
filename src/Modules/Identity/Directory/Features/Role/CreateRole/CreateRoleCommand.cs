@@ -22,24 +22,21 @@ public sealed class CreateRoleCommandHandler
     )
     {
         bool isPlatformAdmin = httpContextAccessor.HttpContext?.User.IsPlatformAdmin() == true;
+        Guid? resolvedTenantId = isPlatformAdmin ? command.Request.TenantId : tenantProvider.TenantId;
 
-        if (!isPlatformAdmin && command.Request.Permissions.Contains(Permission.Platform.Manage))
-            return (DomainErrors.Roles.CannotGrantPlatformManage(), OutgoingMessagesHelper.Empty);
+        ErrorOr<CustomRole> roleResult = CustomRole.Create(
+            command.Id,
+            command.Request.Name,
+            resolvedTenantId,
+            command.Request.Permissions,
+            isPlatformAdmin
+        );
+        if (roleResult.IsError)
+            return (roleResult.FirstError, OutgoingMessagesHelper.Empty);
 
-        CustomRole role = new()
-        {
-            Id = command.Id,
-            Name = command.Request.Name,
-            // PlatformAdmin can set TenantId including null (global role); TenantAdmin always creates in their own tenant
-            TenantId = isPlatformAdmin ? command.Request.TenantId : tenantProvider.TenantId,
-            IsImmutable = false,
-        };
-
-        role.SetPermissions(command.Request.Permissions);
-
-        await repository.AddAsync(role, ct);
+        await repository.AddAsync(roleResult.Value, ct);
         await unitOfWork.CommitAsync(ct);
 
-        return (role.ToResponse(), OutgoingMessagesHelper.Empty);
+        return (roleResult.Value.ToResponse(), OutgoingMessagesHelper.Empty);
     }
 }

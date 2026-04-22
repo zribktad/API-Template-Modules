@@ -33,7 +33,8 @@ public interface ICategoryRepository : IRepository<Category>
     ///     is supplied explicitly so this method is safe to call from both HTTP and background (Wolverine
     ///     durable-local-queue) contexts where <c>ITenantProvider.HasTenant</c> may be <c>false</c>.
     ///     No <c>CategorySoftDeletedNotification</c> is published — no module currently subscribes
-    ///     to category deletion events; add the notification if a cross-module consumer is introduced.
+    ///     to category deletion events. Publish the notification from the call site if a cross-module
+    ///     consumer is introduced.
     /// </summary>
     Task<int> BulkSoftDeleteByIdsAsync(
         IReadOnlyCollection<Guid> ids,

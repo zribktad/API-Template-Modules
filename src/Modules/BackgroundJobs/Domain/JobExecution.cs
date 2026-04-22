@@ -1,3 +1,5 @@
+using ErrorOr;
+
 namespace BackgroundJobs.Domain;
 
 /// <summary>
@@ -42,34 +44,64 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
 
     /// <summary>
     ///     Transitions the job to <see cref="JobStatus.Processing" /> and records the start timestamp.
+    ///     Only valid from <see cref="JobStatus.Pending" />.
     /// </summary>
-    public void MarkProcessing(TimeProvider timeProvider)
+    public ErrorOr<Success> MarkProcessing(TimeProvider timeProvider)
     {
+        if (Status != JobStatus.Pending)
+        {
+            return Error.Conflict(
+                code: "Job.InvalidTransition",
+                description: $"Cannot transition to {nameof(JobStatus.Processing)} from {Status}."
+            );
+        }
+
         Status = JobStatus.Processing;
         StartedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        return Result.Success;
     }
 
     /// <summary>
     ///     Transitions the job to <see cref="JobStatus.Completed" />, sets progress to 100%, stores the optional result
     ///     payload, and records the completion timestamp.
+    ///     Only valid from <see cref="JobStatus.Processing" />.
     /// </summary>
-    public void MarkCompleted(string? resultPayload, TimeProvider timeProvider)
+    public ErrorOr<Success> MarkCompleted(string? resultPayload, TimeProvider timeProvider)
     {
+        if (Status != JobStatus.Processing)
+        {
+            return Error.Conflict(
+                code: "Job.InvalidTransition",
+                description: $"Cannot transition to {nameof(JobStatus.Completed)} from {Status}."
+            );
+        }
+
         Status = JobStatus.Completed;
         ProgressPercent = 100;
         ResultPayload = resultPayload;
         CompletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        return Result.Success;
     }
 
     /// <summary>
     ///     Transitions the job to <see cref="JobStatus.Failed" />, stores the error message, and records the completion
     ///     timestamp.
+    ///     Only valid from <see cref="JobStatus.Processing" />.
     /// </summary>
-    public void MarkFailed(string errorMessage, TimeProvider timeProvider)
+    public ErrorOr<Success> MarkFailed(string errorMessage, TimeProvider timeProvider)
     {
+        if (Status != JobStatus.Processing)
+        {
+            return Error.Conflict(
+                code: "Job.InvalidTransition",
+                description: $"Cannot transition to {nameof(JobStatus.Failed)} from {Status}."
+            );
+        }
+
         Status = JobStatus.Failed;
         ErrorMessage = errorMessage;
         CompletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        return Result.Success;
     }
 
     /// <summary>
