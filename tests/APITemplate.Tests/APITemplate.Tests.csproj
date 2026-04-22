@@ -55,6 +55,10 @@
     <Compile Include="Integration\Postgres\IdentityIntegrationTestProviders.cs" />
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
     <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
+    <Compile Include="Integration\Smoke\InfrastructureSmokeTests.cs" />
+    <Compile Include="Integration\Smoke\IdentityModuleSmokeTests.cs" />
+    <Compile Include="Integration\Smoke\ProductAndReviewSmokeTests.cs" />
+    <Compile Include="Integration\Smoke\ExampleFeaturesSmokeTests.cs" />
     <Compile Remove="Unit\Handlers\**\*.cs" />
     <Compile Remove="Unit\Repositories\**\*.cs" />
     <Compile Remove="Unit\Persistence\**\*.cs" />
