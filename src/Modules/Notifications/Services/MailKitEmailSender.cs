@@ -87,13 +87,21 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
         {
             _logger.SmtpSendFailed(ex, message.To);
             await ResetClientAsync();
-            throw new AppException("SMTP authentication failed.", NTF.Smtp.SendFailed);
+            throw new AppException(
+                "SMTP authentication failed.",
+                NTF.Smtp.SendFailed,
+                innerException: ex
+            );
         }
         catch (Exception ex)
         {
             _logger.SmtpSendFailed(ex, message.To);
             await ResetClientAsync();
-            throw new AppException($"SMTP send failed: {ex.GetType().Name}", NTF.Smtp.SendFailed);
+            throw new AppException(
+                $"SMTP send failed: {ex.GetType().Name}",
+                NTF.Smtp.SendFailed,
+                innerException: ex
+            );
         }
         finally
         {

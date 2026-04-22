@@ -9,6 +9,8 @@ namespace APITemplate.Tests.Unit.Notifications;
 
 public sealed class FluidEmailTemplateRendererTests
 {
+    private sealed record UserRegistrationModel(string Username, string Email, string LoginUrl);
+
     private static readonly string UnknownTemplateId =
         $"{EmailTemplateNames.UserRegistration}.fixture-unknown-template";
 
@@ -17,12 +19,7 @@ public sealed class FluidEmailTemplateRendererTests
     [Fact]
     public async Task RenderAsync_UserRegistration_SubstitutesModel()
     {
-        var model = new
-        {
-            Username = "Ada",
-            Email = "ada@example.com",
-            LoginUrl = "https://app/login",
-        };
+        UserRegistrationModel model = new("Ada", "ada@example.com", "https://app/login");
 
         string result = await _sut.RenderAsync(
             EmailTemplateNames.UserRegistration,

@@ -71,11 +71,15 @@ public sealed class ProvisionKeycloakUserHandler
 
         if (createResult.IsError)
         {
+            Error err = createResult.FirstError;
+            if (err.Type == ErrorType.Failure)
+                // Transient HTTP-level failure — rethrow as HttpRequestException so Wolverine's
+                // retry chain (5s / 30s / 5min) applies before dead-lettering.
+                throw new HttpRequestException(err.Description);
+
+            // Permanent conflict/validation error — dead-letter immediately with structured log.
             logger.KeycloakProvisioningPermanentlyFailed(user.Id);
-            throw new AppException(
-                createResult.FirstError.Description,
-                createResult.FirstError.Code
-            );
+            throw new AppException(err.Description, err.Code);
         }
 
         string keycloakUserId = createResult.Value;

@@ -174,12 +174,13 @@ public sealed class LocalBlobStoreTests : IDisposable
     public async Task OpenReadAsync_ReturnsNullWhenBlobMissing()
     {
         LocalBlobStore sut = CreateSut();
-        Stream? stream = await sut.OpenReadAsync(
+        ErrorOr<Stream?> result = await sut.OpenReadAsync(
             Guid.NewGuid(),
             ExpectedSha("missing"),
             TestContext.Current.CancellationToken
         );
-        stream.ShouldBeNull();
+        result.IsError.ShouldBeFalse();
+        result.Value.ShouldBeNull();
     }
 
     [Fact]
@@ -198,9 +199,13 @@ public sealed class LocalBlobStoreTests : IDisposable
             TestContext.Current.CancellationToken
         );
 
-        await using Stream stream = (
-            await sut.OpenReadAsync(tenant, staging.Sha256, TestContext.Current.CancellationToken)
-        )!;
+        ErrorOr<Stream?> openResult = await sut.OpenReadAsync(
+            tenant,
+            staging.Sha256,
+            TestContext.Current.CancellationToken
+        );
+        openResult.IsError.ShouldBeFalse();
+        await using Stream stream = openResult.Value!;
         using StreamReader reader = new(stream);
         (await reader.ReadToEndAsync(TestContext.Current.CancellationToken)).ShouldBe("readback");
     }

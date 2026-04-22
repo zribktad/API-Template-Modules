@@ -20,10 +20,17 @@ public sealed class DownloadFileQueryHandler
             return DomainErrors.Files.FileNotFound(query.Request.Id.ToString());
 
         IBlobStore store = blobStoreFactory.Get(entity.BackendKey);
-        Stream? stream = await store.OpenReadAsync(entity.TenantId, entity.Sha256, ct);
-        if (stream is null)
+        ErrorOr<Stream?> openResult = await store.OpenReadAsync(entity.TenantId, entity.Sha256, ct);
+        if (openResult.IsError)
+            return openResult.Errors;
+
+        if (openResult.Value is null)
             return DomainErrors.Files.FileNotFound(entity.OriginalFileName);
 
-        return new FileDownloadResult(stream, entity.ContentType, entity.OriginalFileName);
+        return new FileDownloadResult(
+            openResult.Value!,
+            entity.ContentType,
+            entity.OriginalFileName
+        );
     }
 }

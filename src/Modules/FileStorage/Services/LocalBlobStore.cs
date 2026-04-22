@@ -101,7 +101,11 @@ internal sealed class LocalBlobStore : IBlobStore
 
         if (fileTooLarge)
         {
-            try { File.Delete(stagingPath); } catch (IOException) { }
+            try
+            {
+                File.Delete(stagingPath);
+            }
+            catch (IOException) { }
             return FSDomain.Files.FileTooLarge(maxBytes);
         }
 
@@ -162,25 +166,31 @@ internal sealed class LocalBlobStore : IBlobStore
         return committedPath;
     }
 
-    public Task<Stream?> OpenReadAsync(Guid tenantId, string sha256, CancellationToken ct = default)
+    public Task<ErrorOr<Stream?>> OpenReadAsync(
+        Guid tenantId,
+        string sha256,
+        CancellationToken ct = default
+    )
     {
         string blobsRoot = _options.ResolveBlobsPath();
         string committedPath = BuildCommittedPath(blobsRoot, tenantId, sha256);
-        ValidatePathWithin(blobsRoot, committedPath);
+
+        ErrorOr<Success> pathCheck = CheckPathWithin(blobsRoot, committedPath);
+        if (pathCheck.IsError)
+            return Task.FromResult<ErrorOr<Stream?>>(pathCheck.Errors);
 
         if (!File.Exists(committedPath))
-            return Task.FromResult<Stream?>(null);
+            return Task.FromResult<ErrorOr<Stream?>>((Stream?)null);
 
-        return Task.FromResult<Stream?>(
-            new FileStream(
-                committedPath,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.Read,
-                CopyBufferSize,
-                FileOptions.Asynchronous
-            )
+        Stream fileStream = new FileStream(
+            committedPath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            CopyBufferSize,
+            FileOptions.Asynchronous
         );
+        return Task.FromResult<ErrorOr<Stream?>>(fileStream);
     }
 
     public async Task DeleteAsync(Guid tenantId, string sha256, CancellationToken ct = default)
@@ -256,7 +266,10 @@ internal sealed class LocalBlobStore : IBlobStore
             + Path.DirectorySeparatorChar;
 
         if (!fullPath.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
-            return Error.Forbidden(FS.Files.PathTraversal, "Path traversal detected: access denied.");
+            return Error.Forbidden(
+                FS.Files.PathTraversal,
+                "Path traversal detected: access denied."
+            );
 
         return Result.Success;
     }
