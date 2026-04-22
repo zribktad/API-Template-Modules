@@ -8,6 +8,7 @@ namespace Identity.Directory.Entities;
 /// </summary>
 public sealed class AppUser : IAuditableTenantEntity, IHasId
 {
+    public const int UsernameMaxLength = 100;
     /// <summary>
     ///     Original username exactly as entered by the user (preserves casing and formatting).
     ///     Setting this property also updates <see cref="NormalizedUsername" />.

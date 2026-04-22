@@ -16,8 +16,8 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
             .Property(i => i.Email)
             .HasConversion(e => e.Value, v => Email.FromPersistence(v))
             .IsRequired()
-            .HasMaxLength(320);
-        builder.Property(i => i.NormalizedEmail).IsRequired().HasMaxLength(320);
+            .HasMaxLength(Email.MaxLength);
+        builder.Property(i => i.NormalizedEmail).IsRequired().HasMaxLength(Email.MaxLength);
         builder.Property(i => i.TokenHash).IsRequired().HasMaxLength(128);
 
         builder

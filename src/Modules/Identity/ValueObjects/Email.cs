@@ -9,6 +9,8 @@ namespace Identity.ValueObjects;
 /// </summary>
 public readonly record struct Email
 {
+    public const int MaxLength = 320;
+
     private Email(string value)
     {
         Value = value;
@@ -31,7 +33,7 @@ public readonly record struct Email
         if (!MailAddress.TryCreate(trimmed, out _))
             return IdentityDomainErrors.Emails.InvalidFormat();
 
-        if (trimmed.Length > 320)
+        if (trimmed.Length > MaxLength)
             return IdentityDomainErrors.Emails.TooLong();
 
         return new Email(trimmed);

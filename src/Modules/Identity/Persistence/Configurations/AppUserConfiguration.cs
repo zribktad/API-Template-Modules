@@ -12,14 +12,14 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasKey(u => u.Id);
         builder.ConfigureTenantAuditable();
 
-        builder.Property(u => u.Username).IsRequired().HasMaxLength(100);
-        builder.Property(u => u.NormalizedUsername).IsRequired().HasMaxLength(100);
+        builder.Property(u => u.Username).IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
+        builder.Property(u => u.NormalizedUsername).IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
         builder
             .Property(u => u.Email)
             .HasConversion(e => e.Value, v => Email.FromPersistence(v))
             .IsRequired()
-            .HasMaxLength(320);
-        builder.Property(u => u.NormalizedEmail).IsRequired().HasMaxLength(320);
+            .HasMaxLength(Email.MaxLength);
+        builder.Property(u => u.NormalizedEmail).IsRequired().HasMaxLength(Email.MaxLength);
         builder.Property(u => u.KeycloakUserId).HasMaxLength(256);
 
         builder

@@ -7,6 +7,9 @@ namespace Identity.Directory.Entities;
 
 public sealed class CustomRole : IAuditableEntity, IHasId, ISoftDeletable
 {
+    public const int NameMaxLength = 100;
+    public const int PermissionMaxLength = 100;
+
     public Guid Id { get; set; }
 
     /// <summary>
