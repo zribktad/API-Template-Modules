@@ -80,7 +80,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         );
 
     private async Task<StagingResult> StageAsync(string content) =>
-        await _blobStore.WriteStagingAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)));
+        (await _blobStore.WriteStagingAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)))).Value;
 
     [Fact]
     public async Task FullLifecycle_StageCommitDownload_RoundTripsIdenticalContent()

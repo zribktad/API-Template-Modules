@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ErrorOr" />
     <PackageReference Include="Fluid.Core" />
     <PackageReference Include="MailKit" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

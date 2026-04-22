@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
 using APITemplate.Tests.Unit.Helpers;
+using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain.Services;
 using FileStorage.Domain.Storage;
-using FileStorage.Features.Staging;
 using FileStorage.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -64,12 +64,14 @@ public sealed class LocalBlobStoreTests : IDisposable
     public async Task WriteStagingAsync_ComputesSha256AndPersistsToStaging()
     {
         LocalBlobStore sut = CreateSut();
-        StagingResult result = await sut.WriteStagingAsync(Payload("hello world"));
+        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(Payload("hello world"));
 
-        result.Sha256.ShouldBe(ExpectedSha("hello world"));
-        result.SizeBytes.ShouldBe(11);
-        File.Exists(result.StagingPath).ShouldBeTrue();
-        result.StagingPath.ShouldContain("staging");
+        result.IsError.ShouldBeFalse();
+        StagingResult staging = result.Value;
+        staging.Sha256.ShouldBe(ExpectedSha("hello world"));
+        staging.SizeBytes.ShouldBe(11);
+        File.Exists(staging.StagingPath).ShouldBeTrue();
+        staging.StagingPath.ShouldContain("staging");
     }
 
     [Fact]
@@ -77,15 +79,17 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult staging = await sut.WriteStagingAsync(Payload("atomic"));
+        StagingResult staging = (await sut.WriteStagingAsync(Payload("atomic"))).Value;
 
-        string committed = await sut.PromoteToCommittedAsync(
+        ErrorOr<string> result = await sut.PromoteToCommittedAsync(
             tenant,
             staging.Sha256,
             staging.SizeBytes,
             staging.StagingPath
         );
 
+        result.IsError.ShouldBeFalse();
+        string committed = result.Value;
         File.Exists(committed).ShouldBeTrue();
         File.Exists(staging.StagingPath).ShouldBeFalse();
         committed.ShouldContain(tenant.ToString());
@@ -98,47 +102,39 @@ public sealed class LocalBlobStoreTests : IDisposable
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
 
-        StagingResult first = await sut.WriteStagingAsync(Payload("dup"));
-        string committed1 = await sut.PromoteToCommittedAsync(
-            tenant,
-            first.Sha256,
-            first.SizeBytes,
-            first.StagingPath
-        );
+        StagingResult first = (await sut.WriteStagingAsync(Payload("dup"))).Value;
+        string committed1 = (
+            await sut.PromoteToCommittedAsync(tenant, first.Sha256, first.SizeBytes, first.StagingPath)
+        ).Value;
 
-        StagingResult second = await sut.WriteStagingAsync(Payload("dup"));
-        string committed2 = await sut.PromoteToCommittedAsync(
-            tenant,
-            second.Sha256,
-            second.SizeBytes,
-            second.StagingPath
-        );
+        StagingResult second = (await sut.WriteStagingAsync(Payload("dup"))).Value;
+        string committed2 = (
+            await sut.PromoteToCommittedAsync(tenant, second.Sha256, second.SizeBytes, second.StagingPath)
+        ).Value;
 
         committed1.ShouldBe(committed2);
         File.Exists(second.StagingPath).ShouldBeFalse();
     }
 
     [Fact]
-    public async Task PromoteToCommittedAsync_ThrowsOnSizeMismatch()
+    public async Task PromoteToCommittedAsync_ReturnsConflictErrorOnSizeMismatch()
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult first = await sut.WriteStagingAsync(Payload("legit"));
+        StagingResult first = (await sut.WriteStagingAsync(Payload("legit"))).Value;
         await sut.PromoteToCommittedAsync(tenant, first.Sha256, first.SizeBytes, first.StagingPath);
 
-        StagingResult fake = await sut.WriteStagingAsync(Payload("x"));
+        StagingResult fake = (await sut.WriteStagingAsync(Payload("x"))).Value;
 
-        await (
-            (Func<Task>)(
-                async () =>
-                    await sut.PromoteToCommittedAsync(
-                        tenant,
-                        first.Sha256,
-                        first.SizeBytes + 999,
-                        fake.StagingPath
-                    )
-            )
-        ).ShouldThrowAppExceptionAsync(FS.Files.BlobConflict);
+        ErrorOr<string> result = await sut.PromoteToCommittedAsync(
+            tenant,
+            first.Sha256,
+            first.SizeBytes + 999,
+            fake.StagingPath
+        );
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Code.ShouldBe(FS.Files.BlobConflict);
     }
 
     [Fact]
@@ -154,13 +150,8 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult staging = await sut.WriteStagingAsync(Payload("readback"));
-        await sut.PromoteToCommittedAsync(
-            tenant,
-            staging.Sha256,
-            staging.SizeBytes,
-            staging.StagingPath
-        );
+        StagingResult staging = (await sut.WriteStagingAsync(Payload("readback"))).Value;
+        await sut.PromoteToCommittedAsync(tenant, staging.Sha256, staging.SizeBytes, staging.StagingPath);
 
         await using Stream stream = (await sut.OpenReadAsync(tenant, staging.Sha256))!;
         using StreamReader reader = new(stream);
@@ -184,15 +175,15 @@ public sealed class LocalBlobStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task PromoteToCommittedAsync_RejectsTraversalPath()
+    public async Task PromoteToCommittedAsync_ReturnsPathTraversalErrorForEvilPath()
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), "..", "..", "escape");
-        await (
-            (Func<Task>)(
-                () => sut.PromoteToCommittedAsync(Guid.NewGuid(), ExpectedSha("x"), 1, evil)
-            )
-        ).ShouldThrowAppExceptionAsync(FS.Files.PathTraversal);
+
+        ErrorOr<string> result = await sut.PromoteToCommittedAsync(Guid.NewGuid(), ExpectedSha("x"), 1, evil);
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Code.ShouldBe(FS.Files.PathTraversal);
     }
 
     [Theory]
@@ -209,33 +200,28 @@ public sealed class LocalBlobStoreTests : IDisposable
         new Random(size).NextBytes(payload);
         LocalBlobStore sut = CreateSut();
 
-        StagingResult result = await sut.WriteStagingAsync(new MemoryStream(payload));
+        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(new MemoryStream(payload));
 
-        result.Sha256.ShouldBe(Convert.ToHexStringLower(SHA256.HashData(payload)));
-        result.SizeBytes.ShouldBe(size);
-        new FileInfo(result.StagingPath).Length.ShouldBe(size);
+        result.IsError.ShouldBeFalse();
+        StagingResult staging = result.Value;
+        staging.Sha256.ShouldBe(Convert.ToHexStringLower(SHA256.HashData(payload)));
+        staging.SizeBytes.ShouldBe(size);
+        new FileInfo(staging.StagingPath).Length.ShouldBe(size);
     }
 
     [Fact]
-    public async Task WriteStagingAsync_ExceedsMaxSize_ThrowsAndCleansUp()
+    public async Task WriteStagingAsync_ExceedsMaxSize_ReturnsErrorAndCleansUp()
     {
         _options.MaxFileSizeBytes = 1024;
         byte[] payload = new byte[2048];
         LocalBlobStore sut = CreateSut();
 
-        string? capturedPath = null;
-        try
-        {
-            StagingResult _ = await sut.WriteStagingAsync(new MemoryStream(payload));
-        }
-        catch (FileTooLargeException)
-        {
-            // expected — capture the staging dir to verify no partial file remains
-            capturedPath = _options.ResolveStagingPath();
-        }
+        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(new MemoryStream(payload));
 
-        capturedPath.ShouldNotBeNull();
-        Directory.EnumerateFiles(capturedPath!).ShouldBeEmpty();
+        result.IsError.ShouldBeTrue();
+        string stagingDir = _options.ResolveStagingPath();
+        if (Directory.Exists(stagingDir))
+            Directory.EnumerateFiles(stagingDir).ShouldBeEmpty();
     }
 
     [Theory]
@@ -244,13 +230,10 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult staging = await sut.WriteStagingAsync(Payload("prefix-check"));
-        string committed = await sut.PromoteToCommittedAsync(
-            tenant,
-            staging.Sha256,
-            staging.SizeBytes,
-            staging.StagingPath
-        );
+        StagingResult staging = (await sut.WriteStagingAsync(Payload("prefix-check"))).Value;
+        string committed = (
+            await sut.PromoteToCommittedAsync(tenant, staging.Sha256, staging.SizeBytes, staging.StagingPath)
+        ).Value;
 
         string expectedPrefixDir = Path.Combine(
             _options.ResolveBlobsPath(),
@@ -267,21 +250,15 @@ public sealed class LocalBlobStoreTests : IDisposable
         Guid tenantA = Guid.NewGuid();
         Guid tenantB = Guid.NewGuid();
 
-        StagingResult stagingA = await sut.WriteStagingAsync(Payload("same-content"));
-        string committedA = await sut.PromoteToCommittedAsync(
-            tenantA,
-            stagingA.Sha256,
-            stagingA.SizeBytes,
-            stagingA.StagingPath
-        );
+        StagingResult stagingA = (await sut.WriteStagingAsync(Payload("same-content"))).Value;
+        string committedA = (
+            await sut.PromoteToCommittedAsync(tenantA, stagingA.Sha256, stagingA.SizeBytes, stagingA.StagingPath)
+        ).Value;
 
-        StagingResult stagingB = await sut.WriteStagingAsync(Payload("same-content"));
-        string committedB = await sut.PromoteToCommittedAsync(
-            tenantB,
-            stagingB.Sha256,
-            stagingB.SizeBytes,
-            stagingB.StagingPath
-        );
+        StagingResult stagingB = (await sut.WriteStagingAsync(Payload("same-content"))).Value;
+        string committedB = (
+            await sut.PromoteToCommittedAsync(tenantB, stagingB.Sha256, stagingB.SizeBytes, stagingB.StagingPath)
+        ).Value;
 
         committedA.ShouldNotBe(committedB);
         File.Exists(committedA).ShouldBeTrue();
@@ -295,13 +272,10 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult staging = await sut.WriteStagingAsync(Payload("bye"));
-        string committed = await sut.PromoteToCommittedAsync(
-            tenant,
-            staging.Sha256,
-            staging.SizeBytes,
-            staging.StagingPath
-        );
+        StagingResult staging = (await sut.WriteStagingAsync(Payload("bye"))).Value;
+        string committed = (
+            await sut.PromoteToCommittedAsync(tenant, staging.Sha256, staging.SizeBytes, staging.StagingPath)
+        ).Value;
         File.Exists(committed).ShouldBeTrue();
 
         await sut.DeleteAsync(tenant, staging.Sha256);

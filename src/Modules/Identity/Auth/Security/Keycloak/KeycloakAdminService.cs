@@ -1,4 +1,5 @@
 using System.Net;
+using ErrorOr;
 using Identity.Auth.Options;
 using Identity.Logging;
 using Keycloak.AuthServices.Sdk.Admin;
@@ -6,7 +7,6 @@ using Keycloak.AuthServices.Sdk.Admin.Models;
 using Keycloak.AuthServices.Sdk.Admin.Requests.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Errors;
 using KC = Identity.Errors.ErrorCatalog;
 
 namespace Identity.Auth.Security.Keycloak;
@@ -45,7 +45,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
     ///     Creates a new user in Keycloak and, on a best-effort basis, sends them an
     ///     email-verify + set-password action email. Returns the new Keycloak user ID.
     /// </summary>
-    public async Task<string> CreateUserAsync(
+    public async Task<ErrorOr<string>> CreateUserAsync(
         string username,
         string email,
         CancellationToken ct = default
@@ -71,14 +71,21 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         {
             // Idempotent retry: user already exists in Keycloak (e.g. handler ran twice due to
             // outbox retry after a DB commit failure). Fetch the existing user ID by username.
-            keycloakUserId = await GetExistingUserIdByUsernameAsync(username, ct);
+            ErrorOr<string> existingIdResult = await GetExistingUserIdByUsernameAsync(username, ct);
+            if (existingIdResult.IsError)
+                return existingIdResult.Errors;
+
+            keycloakUserId = existingIdResult.Value;
             _logger.KeycloakUserAlreadyExistsResolved(username, keycloakUserId);
             return keycloakUserId;
         }
 
         response.EnsureSuccessStatusCode();
-        keycloakUserId = ExtractUserIdFromLocation(response);
+        ErrorOr<string> idResult = ExtractUserIdFromLocation(response);
+        if (idResult.IsError)
+            return idResult.Errors;
 
+        keycloakUserId = idResult.Value;
         _logger.KeycloakUserCreated(username, keycloakUserId);
 
         // Best-effort: if the setup email fails, we still return the created user ID so the
@@ -245,7 +252,7 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
         return response.IsSuccessStatusCode;
     }
 
-    private async Task<string> GetExistingUserIdByUsernameAsync(
+    private async Task<ErrorOr<string>> GetExistingUserIdByUsernameAsync(
         string username,
         CancellationToken ct
     )
@@ -263,32 +270,31 @@ public sealed class KeycloakAdminService : IKeycloakAdminService
 
         UserRepresentation? existing = users.FirstOrDefault();
 
-        return existing?.Id
-            ?? throw new AppException(
-                $"Keycloak returned 409 Conflict for username '{username}' but the user could not be found by username lookup.",
-                KC.Keycloak.UserIdConflict
-            );
+        if (existing?.Id is not null)
+            return existing.Id;
+
+        return Error.Conflict(
+            KC.Keycloak.UserIdConflict,
+            $"Keycloak returned 409 Conflict for username '{username}' but the user could not be found by username lookup."
+        );
     }
 
-    private static string ExtractUserIdFromLocation(HttpResponseMessage response)
+    private static ErrorOr<string> ExtractUserIdFromLocation(HttpResponseMessage response)
     {
-        Uri location =
-            response.Headers.Location
-            ?? throw new AppException(
-                "Keycloak CreateUser response did not include a Location header.",
-                KC.Keycloak.LocationMissing
+        if (response.Headers.Location is not Uri location)
+            return Error.Failure(
+                KC.Keycloak.LocationMissing,
+                "Keycloak CreateUser response did not include a Location header."
             );
 
         // Location is: {base}/admin/realms/{realm}/users/{id}
         string userId = location.Segments[^1].TrimEnd('/');
 
         if (string.IsNullOrWhiteSpace(userId))
-        {
-            throw new AppException(
-                $"Could not extract user ID from Keycloak Location header: {location}",
-                KC.Keycloak.EmptyUserId
+            return Error.Failure(
+                KC.Keycloak.EmptyUserId,
+                $"Could not extract user ID from Keycloak Location header: {location}"
             );
-        }
 
         return userId;
     }

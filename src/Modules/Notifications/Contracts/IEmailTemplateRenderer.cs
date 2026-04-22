@@ -10,7 +10,7 @@ public interface IEmailTemplateRenderer
     ///     Renders the template identified by <paramref name="templateName" /> using the supplied
     ///     <paramref name="model" /> and returns the resulting HTML string.
     /// </summary>
-    public Task<string> RenderAsync(
+    public Task<ErrorOr<string>> RenderAsync(
         string templateName,
         object model,
         CancellationToken ct = default

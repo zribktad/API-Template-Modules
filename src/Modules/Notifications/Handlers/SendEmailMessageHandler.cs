@@ -18,20 +18,20 @@ public sealed class SendEmailMessageHandler
     {
         ResiliencePipeline pipeline = smtpSendPipelineProvider.Get();
 
-        try
+        ErrorOr<Success> result = await pipeline.ExecuteAsync(
+            async token => await sender.SendAsync(message, token),
+            ct
+        );
+
+        if (result.IsError)
         {
-            await pipeline.ExecuteAsync(
-                async token =>
-                {
-                    await sender.SendAsync(message, token);
-                },
-                ct
+            logger.EmailSendFailedWithError(
+                message.To,
+                message.Subject,
+                result.FirstError.Code,
+                result.FirstError.Description
             );
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.EmailSendFailed(ex, message.To, message.Subject);
-            await failedEmailStore.StoreFailedAsync(message, ex.Message, ct);
+            await failedEmailStore.StoreFailedAsync(message, result.FirstError.Description, ct);
         }
     }
 }

@@ -1,3 +1,4 @@
+using ErrorOr;
 using Identity.Logging;
 using Microsoft.Extensions.Logging;
 using Wolverine;
@@ -61,12 +62,19 @@ public sealed class ProvisionKeycloakUserHandler
             return OutgoingMessagesHelper.Empty;
         }
 
-        string keycloakUserId = await keycloakAdmin.CreateUserAsync(
+        ErrorOr<string> createResult = await keycloakAdmin.CreateUserAsync(
             @event.Username,
             @event.Email,
             ct
         );
 
+        if (createResult.IsError)
+        {
+            logger.KeycloakProvisioningPermanentlyFailed(user.Id);
+            return OutgoingMessagesHelper.Empty;
+        }
+
+        string keycloakUserId = createResult.Value;
         user.LinkKeycloak(keycloakUserId);
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);

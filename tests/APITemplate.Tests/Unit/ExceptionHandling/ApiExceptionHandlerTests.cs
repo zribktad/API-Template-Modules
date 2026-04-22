@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
-using FileStorage.Features.Staging;
 using Identity.Auth.Security;
 using Identity.Directory.Security;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +12,6 @@ using SharedKernel.Application.Errors;
 using SharedKernel.Contracts.Api;
 using Shouldly;
 using Xunit;
-using FSErrorCatalog = FileStorage.Domain.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.ExceptionHandling;
 
@@ -55,14 +53,6 @@ public class ApiExceptionHandlerTests
             "Conflict",
             "The resource was modified by another request. Please retrieve the latest version and retry.",
             ErrorCatalog.General.ConcurrencyConflict,
-        ];
-        yield return
-        [
-            new FileTooLargeException(1024),
-            HttpStatusCode.InternalServerError,
-            "Internal Server Error",
-            "An unexpected error occurred.",
-            FSErrorCatalog.Files.FileTooLarge,
         ];
         yield return
         [

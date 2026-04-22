@@ -68,38 +68,34 @@ public sealed class EmailRetryService : IEmailRetryService
         foreach (FailedEmail email in emails)
         {
             bool stagedDeleteAfterSuccessfulSend = false;
-            try
-            {
-                EmailMessage message = new(
-                    email.To,
-                    email.Subject,
-                    email.HtmlBody,
-                    email.TemplateName
-                );
-                await pipeline.ExecuteAsync(
-                    async token => await _sender.SendAsync(message, token),
-                    ct
-                );
+            EmailMessage message = new(
+                email.To,
+                email.Subject,
+                email.HtmlBody,
+                email.TemplateName
+            );
+            ErrorOr<Success> sendResult = await pipeline.ExecuteAsync(
+                async token => await _sender.SendAsync(message, token),
+                ct
+            );
 
-                await _repository.DeleteAsync(email, CancellationToken.None);
-                stagedDeleteAfterSuccessfulSend = true;
-                _logger.EmailRetrySucceeded(email.To, email.RetryCount + 1);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
+            if (sendResult.IsError)
             {
                 email.RetryCount++;
                 email.LastAttemptAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
-                email.LastError = FailedEmailErrorNormalizer.Normalize(ex.Message);
+                email.LastError = FailedEmailErrorNormalizer.Normalize(sendResult.FirstError.Description);
                 email.ClaimedBy = null;
                 email.ClaimedAtUtc = null;
                 email.ClaimedUntilUtc = null;
                 await _repository.UpdateAsync(email, ct);
 
-                _logger.EmailRetryAttemptFailed(ex, email.RetryCount, email.To);
+                _logger.EmailRetryAttemptFailedWithError(email.RetryCount, email.To, sendResult.FirstError.Code, sendResult.FirstError.Description);
+            }
+            else
+            {
+                await _repository.DeleteAsync(email, CancellationToken.None);
+                stagedDeleteAfterSuccessfulSend = true;
+                _logger.EmailRetrySucceeded(email.To, email.RetryCount + 1);
             }
 
             try

@@ -1,4 +1,5 @@
 using APITemplate.Tests.Unit.Helpers;
+using ErrorOr;
 using Notifications.Contracts;
 using Notifications.Services;
 using Shouldly;
@@ -24,29 +25,28 @@ public sealed class FluidEmailTemplateRendererTests
             LoginUrl = "https://app/login",
         };
 
-        string html = await _sut.RenderAsync(
+        ErrorOr<string> result = await _sut.RenderAsync(
             EmailTemplateNames.UserRegistration,
             model,
             TestContext.Current.CancellationToken
         );
 
-        html.ShouldContain("Ada");
-        html.ShouldContain("ada@example.com");
-        html.ShouldContain("https://app/login");
+        result.IsError.ShouldBeFalse();
+        result.Value.ShouldContain("Ada");
+        result.Value.ShouldContain("ada@example.com");
+        result.Value.ShouldContain("https://app/login");
     }
 
     [Fact]
-    public async Task RenderAsync_UnknownTemplate_Throws()
+    public async Task RenderAsync_UnknownTemplate_ReturnsNotFoundError()
     {
-        await (
-            (Func<Task>)(
-                () =>
-                    _sut.RenderAsync(
-                        UnknownTemplateId,
-                        new { },
-                        TestContext.Current.CancellationToken
-                    )
-            )
-        ).ShouldThrowAppExceptionAsync(NTF.Templates.NotFound);
+        ErrorOr<string> result = await _sut.RenderAsync(
+            UnknownTemplateId,
+            new { },
+            TestContext.Current.CancellationToken
+        );
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Code.ShouldBe(NTF.Templates.NotFound);
     }
 }

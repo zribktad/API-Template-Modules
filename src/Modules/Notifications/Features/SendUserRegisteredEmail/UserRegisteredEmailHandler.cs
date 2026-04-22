@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
+using Notifications.Logging;
 using SharedKernel.Contracts.Events;
 using Wolverine;
 
@@ -11,10 +13,11 @@ public sealed class UserRegisteredEmailHandler
         UserRegisteredNotification @event,
         IEmailTemplateRenderer templateRenderer,
         IOptions<EmailOptions> options,
+        ILogger<UserRegisteredEmailHandler> logger,
         CancellationToken ct
     )
     {
-        string html = await templateRenderer.RenderAsync(
+        ErrorOr<string> html = await templateRenderer.RenderAsync(
             EmailTemplateNames.UserRegistration,
             new
             {
@@ -25,12 +28,22 @@ public sealed class UserRegisteredEmailHandler
             ct
         );
 
+        if (html.IsError)
+        {
+            logger.EmailTemplateRenderFailed(
+                EmailTemplateNames.UserRegistration,
+                html.FirstError.Code,
+                html.FirstError.Description
+            );
+            return [];
+        }
+
         OutgoingMessages messages = new();
         messages.Add(
             new EmailMessage(
                 @event.Email,
                 "Welcome to the platform!",
-                html,
+                html.Value,
                 EmailTemplateNames.UserRegistration
             )
         );
