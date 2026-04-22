@@ -1258,7 +1258,12 @@ dotnet test --filter "FullyQualifiedName~Integration&Category!=Integration.Postg
 
 # Run Testcontainers PostgreSQL tests (requires Docker)
 dotnet test --filter "Category=Integration.Postgres"
+
+# Run Smoke and Docker integration tests (requires running infrastructure via Docker Compose)
+dotnet test /p:RunDockerIntegration=true
 ```
+
+> **Test category filter:** By default, tests tagged `Category=Integration.Docker` and `Category=Smoke` are excluded from every `dotnet test` run. These tests require a live Docker environment (running databases, Keycloak, DragonFly). Set `RunDockerIntegration=true` to opt in and run them.
 
 ---
 
