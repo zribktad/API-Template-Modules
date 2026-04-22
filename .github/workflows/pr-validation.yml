@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: write
 
     steps:
       - name: Checkout code
@@ -59,14 +60,27 @@ jobs:
           retention-days: 1
 
       - name: Run unit tests
-        run: dotnet test APITemplate.slnx --no-build --no-restore --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+        run: >
+          dotnet test APITemplate.slnx
+          --no-build --no-restore --configuration Release --verbosity normal
+          --logger "trx;LogFileName=unit-results.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./test-results/unit
+
+      - name: Publish unit test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Unit Test Results
+          path: ./test-results/unit/**/*.trx
+          reporter: dotnet-trx
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-report
-          path: ./coverage/**/coverage.cobertura.xml
+          path: ./test-results/unit/**/coverage.cobertura.xml
           retention-days: 7
 
   smoke:
@@ -75,6 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: write
 
     steps:
       - name: Checkout code
@@ -94,8 +109,18 @@ jobs:
         run: >
           dotnet test APITemplate.slnx
           --no-build --no-restore --configuration Release --verbosity normal
+          --logger "trx;LogFileName=smoke-results.trx"
+          --results-directory ./test-results/smoke
           /p:RunDockerIntegration=true
           -- RunConfiguration.TestCaseFilter="Category=Smoke"
+
+      - name: Publish smoke test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Smoke Test Results
+          path: ./test-results/smoke/**/*.trx
+          reporter: dotnet-trx
 
   integration:
     name: Integration Tests
@@ -103,6 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: write
 
     steps:
       - name: Checkout code
@@ -122,5 +148,15 @@ jobs:
         run: >
           dotnet test APITemplate.slnx
           --no-build --no-restore --configuration Release --verbosity normal
+          --logger "trx;LogFileName=integration-results.trx"
+          --results-directory ./test-results/integration
           /p:RunDockerIntegration=true
           -- RunConfiguration.TestCaseFilter="Category=Integration.Docker"
+
+      - name: Publish integration test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Integration Test Results
+          path: ./test-results/integration/**/*.trx
+          reporter: dotnet-trx
