@@ -64,7 +64,10 @@ public sealed class LocalBlobStoreTests : IDisposable
     public async Task WriteStagingAsync_ComputesSha256AndPersistsToStaging()
     {
         LocalBlobStore sut = CreateSut();
-        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(Payload("hello world"));
+        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(
+            Payload("hello world"),
+            TestContext.Current.CancellationToken
+        );
 
         result.IsError.ShouldBeFalse();
         StagingResult staging = result.Value;
@@ -79,13 +82,16 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult staging = (await sut.WriteStagingAsync(Payload("atomic"))).Value;
+        StagingResult staging = (
+            await sut.WriteStagingAsync(Payload("atomic"), TestContext.Current.CancellationToken)
+        ).Value;
 
         ErrorOr<string> result = await sut.PromoteToCommittedAsync(
             tenant,
             staging.Sha256,
             staging.SizeBytes,
-            staging.StagingPath
+            staging.StagingPath,
+            TestContext.Current.CancellationToken
         );
 
         result.IsError.ShouldBeFalse();
@@ -102,23 +108,29 @@ public sealed class LocalBlobStoreTests : IDisposable
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
 
-        StagingResult first = (await sut.WriteStagingAsync(Payload("dup"))).Value;
+        StagingResult first = (
+            await sut.WriteStagingAsync(Payload("dup"), TestContext.Current.CancellationToken)
+        ).Value;
         string committed1 = (
             await sut.PromoteToCommittedAsync(
                 tenant,
                 first.Sha256,
                 first.SizeBytes,
-                first.StagingPath
+                first.StagingPath,
+                TestContext.Current.CancellationToken
             )
         ).Value;
 
-        StagingResult second = (await sut.WriteStagingAsync(Payload("dup"))).Value;
+        StagingResult second = (
+            await sut.WriteStagingAsync(Payload("dup"), TestContext.Current.CancellationToken)
+        ).Value;
         string committed2 = (
             await sut.PromoteToCommittedAsync(
                 tenant,
                 second.Sha256,
                 second.SizeBytes,
-                second.StagingPath
+                second.StagingPath,
+                TestContext.Current.CancellationToken
             )
         ).Value;
 
@@ -131,16 +143,27 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult first = (await sut.WriteStagingAsync(Payload("legit"))).Value;
-        await sut.PromoteToCommittedAsync(tenant, first.Sha256, first.SizeBytes, first.StagingPath);
+        StagingResult first = (
+            await sut.WriteStagingAsync(Payload("legit"), TestContext.Current.CancellationToken)
+        ).Value;
+        await sut.PromoteToCommittedAsync(
+            tenant,
+            first.Sha256,
+            first.SizeBytes,
+            first.StagingPath,
+            TestContext.Current.CancellationToken
+        );
 
-        StagingResult fake = (await sut.WriteStagingAsync(Payload("x"))).Value;
+        StagingResult fake = (
+            await sut.WriteStagingAsync(Payload("x"), TestContext.Current.CancellationToken)
+        ).Value;
 
         ErrorOr<string> result = await sut.PromoteToCommittedAsync(
             tenant,
             first.Sha256,
             first.SizeBytes + 999,
-            fake.StagingPath
+            fake.StagingPath,
+            TestContext.Current.CancellationToken
         );
 
         result.IsError.ShouldBeTrue();
@@ -151,7 +174,11 @@ public sealed class LocalBlobStoreTests : IDisposable
     public async Task OpenReadAsync_ReturnsNullWhenBlobMissing()
     {
         LocalBlobStore sut = CreateSut();
-        Stream? stream = await sut.OpenReadAsync(Guid.NewGuid(), ExpectedSha("missing"));
+        Stream? stream = await sut.OpenReadAsync(
+            Guid.NewGuid(),
+            ExpectedSha("missing"),
+            TestContext.Current.CancellationToken
+        );
         stream.ShouldBeNull();
     }
 
@@ -160,17 +187,22 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult staging = (await sut.WriteStagingAsync(Payload("readback"))).Value;
+        StagingResult staging = (
+            await sut.WriteStagingAsync(Payload("readback"), TestContext.Current.CancellationToken)
+        ).Value;
         await sut.PromoteToCommittedAsync(
             tenant,
             staging.Sha256,
             staging.SizeBytes,
-            staging.StagingPath
+            staging.StagingPath,
+            TestContext.Current.CancellationToken
         );
 
-        await using Stream stream = (await sut.OpenReadAsync(tenant, staging.Sha256))!;
+        await using Stream stream = (
+            await sut.OpenReadAsync(tenant, staging.Sha256, TestContext.Current.CancellationToken)
+        )!;
         using StreamReader reader = new(stream);
-        (await reader.ReadToEndAsync()).ShouldBe("readback");
+        (await reader.ReadToEndAsync(TestContext.Current.CancellationToken)).ShouldBe("readback");
     }
 
     [Fact]
@@ -198,7 +230,8 @@ public sealed class LocalBlobStoreTests : IDisposable
             Guid.NewGuid(),
             ExpectedSha("x"),
             1,
-            evil
+            evil,
+            TestContext.Current.CancellationToken
         );
 
         result.IsError.ShouldBeTrue();
@@ -219,7 +252,10 @@ public sealed class LocalBlobStoreTests : IDisposable
         new Random(size).NextBytes(payload);
         LocalBlobStore sut = CreateSut();
 
-        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(new MemoryStream(payload));
+        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(
+            new MemoryStream(payload),
+            TestContext.Current.CancellationToken
+        );
 
         result.IsError.ShouldBeFalse();
         StagingResult staging = result.Value;
@@ -235,7 +271,10 @@ public sealed class LocalBlobStoreTests : IDisposable
         byte[] payload = new byte[2048];
         LocalBlobStore sut = CreateSut();
 
-        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(new MemoryStream(payload));
+        ErrorOr<StagingResult> result = await sut.WriteStagingAsync(
+            new MemoryStream(payload),
+            TestContext.Current.CancellationToken
+        );
 
         result.IsError.ShouldBeTrue();
         string stagingDir = _options.ResolveStagingPath();
@@ -243,19 +282,24 @@ public sealed class LocalBlobStoreTests : IDisposable
             Directory.EnumerateFiles(stagingDir).ShouldBeEmpty();
     }
 
-    [Theory]
-    [InlineData("deadbeef", "The committed path embeds the sha-prefix subdirectory")]
-    public async Task PromoteToCommittedAsync_PathLayoutIsShaPrefixed(string _, string __)
+    [Fact]
+    public async Task PromoteToCommittedAsync_PathLayoutIsShaPrefixed()
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult staging = (await sut.WriteStagingAsync(Payload("prefix-check"))).Value;
+        StagingResult staging = (
+            await sut.WriteStagingAsync(
+                Payload("prefix-check"),
+                TestContext.Current.CancellationToken
+            )
+        ).Value;
         string committed = (
             await sut.PromoteToCommittedAsync(
                 tenant,
                 staging.Sha256,
                 staging.SizeBytes,
-                staging.StagingPath
+                staging.StagingPath,
+                TestContext.Current.CancellationToken
             )
         ).Value;
 
@@ -274,23 +318,35 @@ public sealed class LocalBlobStoreTests : IDisposable
         Guid tenantA = Guid.NewGuid();
         Guid tenantB = Guid.NewGuid();
 
-        StagingResult stagingA = (await sut.WriteStagingAsync(Payload("same-content"))).Value;
+        StagingResult stagingA = (
+            await sut.WriteStagingAsync(
+                Payload("same-content"),
+                TestContext.Current.CancellationToken
+            )
+        ).Value;
         string committedA = (
             await sut.PromoteToCommittedAsync(
                 tenantA,
                 stagingA.Sha256,
                 stagingA.SizeBytes,
-                stagingA.StagingPath
+                stagingA.StagingPath,
+                TestContext.Current.CancellationToken
             )
         ).Value;
 
-        StagingResult stagingB = (await sut.WriteStagingAsync(Payload("same-content"))).Value;
+        StagingResult stagingB = (
+            await sut.WriteStagingAsync(
+                Payload("same-content"),
+                TestContext.Current.CancellationToken
+            )
+        ).Value;
         string committedB = (
             await sut.PromoteToCommittedAsync(
                 tenantB,
                 stagingB.Sha256,
                 stagingB.SizeBytes,
-                stagingB.StagingPath
+                stagingB.StagingPath,
+                TestContext.Current.CancellationToken
             )
         ).Value;
 
@@ -306,18 +362,21 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         Guid tenant = Guid.NewGuid();
-        StagingResult staging = (await sut.WriteStagingAsync(Payload("bye"))).Value;
+        StagingResult staging = (
+            await sut.WriteStagingAsync(Payload("bye"), TestContext.Current.CancellationToken)
+        ).Value;
         string committed = (
             await sut.PromoteToCommittedAsync(
                 tenant,
                 staging.Sha256,
                 staging.SizeBytes,
-                staging.StagingPath
+                staging.StagingPath,
+                TestContext.Current.CancellationToken
             )
         ).Value;
         File.Exists(committed).ShouldBeTrue();
 
-        await sut.DeleteAsync(tenant, staging.Sha256);
+        await sut.DeleteAsync(tenant, staging.Sha256, TestContext.Current.CancellationToken);
 
         File.Exists(committed).ShouldBeFalse();
     }

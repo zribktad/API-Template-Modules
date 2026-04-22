@@ -80,7 +80,9 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         );
 
     private async Task<StagingResult> StageAsync(string content) =>
-        (await _blobStore.WriteStagingAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)))).Value;
+        (
+            await _blobStore.WriteStagingAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)))
+        ).Value;
 
     [Fact]
     public async Task FullLifecycle_StageCommitDownload_RoundTripsIdenticalContent()
@@ -112,16 +114,20 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
                 NullLogger<FileUploadSaga>.Instance,
                 CancellationToken.None
             );
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         commitReply.IsError.ShouldBeFalse();
         notif.ShouldNotBeNull();
         saga.Status.ShouldBe(FileUploadStatus.Committed);
 
-        await using Stream? readback = await _blobStore.OpenReadAsync(tenant, staging.Sha256);
+        await using Stream? readback = await _blobStore.OpenReadAsync(
+            tenant,
+            staging.Sha256,
+            TestContext.Current.CancellationToken
+        );
         readback.ShouldNotBeNull();
         using StreamReader reader = new(readback!);
-        (await reader.ReadToEndAsync()).ShouldBe("hello");
+        (await reader.ReadToEndAsync(TestContext.Current.CancellationToken)).ShouldBe("hello");
     }
 
     [Fact]
@@ -167,9 +173,11 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         await CommitForTenant(db, tenantA, content, "tA.txt");
         await CommitForTenant(db, tenantB, content, "tB.txt");
 
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        List<StoredFile> rows = await db.StoredFiles.AsNoTracking().ToListAsync();
+        List<StoredFile> rows = await db
+            .StoredFiles.AsNoTracking()
+            .ToListAsync(TestContext.Current.CancellationToken);
         rows.Count.ShouldBe(2);
         rows[0].Sha256.ShouldBe(rows[1].Sha256); // same hash
         rows.Select(r => r.TenantId).Distinct().Count().ShouldBe(2);
@@ -201,9 +209,11 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         using FileStorageDbContext db = Db();
         await CommitForTenant(db, tenant, content, "a.txt");
         await CommitForTenant(db, tenant, content, "b.txt");
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        List<StoredFile> rows = await db.StoredFiles.AsNoTracking().ToListAsync();
+        List<StoredFile> rows = await db
+            .StoredFiles.AsNoTracking()
+            .ToListAsync(TestContext.Current.CancellationToken);
         rows.Count.ShouldBe(2);
         string sha = rows[0].Sha256;
 
@@ -222,7 +232,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         Guid tenant = Guid.NewGuid();
         using FileStorageDbContext db = Db();
         StoredFile row = await CommitForTenant(db, tenant, "solo", "s.txt");
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         string sha = row.Sha256;
         string blobPath = Path.Combine(
@@ -242,7 +252,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
                 CancellationToken.None
             );
         deleteResult.IsError.ShouldBeFalse();
-        await db2.SaveChangesAsync();
+        await db2.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         outgoing.ShouldContain(m => m is MaybeDeleteBlobCommand);
         MaybeDeleteBlobCommand cascade = outgoing.OfType<MaybeDeleteBlobCommand>().Single();
@@ -268,7 +278,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         using FileStorageDbContext db = Db();
         StoredFile row1 = await CommitForTenant(db, tenant, "shared", "a.txt");
         StoredFile row2 = await CommitForTenant(db, tenant, "shared", "b.txt");
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         string blobPath = Path.Combine(
             _options.ResolveBlobsPath(),
@@ -283,7 +293,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             db2,
             CancellationToken.None
         );
-        await db2.SaveChangesAsync();
+        await db2.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         using FileStorageDbContext db3 = Db();
         StoredFileRepository repo = new(db3);
@@ -308,7 +318,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         string prefix = Path.Combine(_options.ResolveBlobsPath(), tenant.ToString(), sha[..2]);
         Directory.CreateDirectory(prefix);
         string orphanPath = Path.Combine(prefix, sha);
-        await File.WriteAllTextAsync(orphanPath, "garbage");
+        await File.WriteAllTextAsync(orphanPath, "garbage", TestContext.Current.CancellationToken);
         File.SetLastWriteTimeUtc(orphanPath, DateTime.UtcNow.AddHours(-48));
         _time.SetUtcNow(DateTimeOffset.UtcNow);
 
@@ -373,7 +383,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             NullLogger<FileUploadSaga>.Instance,
             CancellationToken.None
         );
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         first.IsError.ShouldBeFalse();
 
         // Simulate redelivery
@@ -388,7 +398,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         second.IsError.ShouldBeFalse();
         second.Value.StoredFileId.ShouldBe(first.Value.StoredFileId);
         notif2.ShouldBeNull();
-        (await db.StoredFiles.CountAsync()).ShouldBe(1);
+        (await db.StoredFiles.CountAsync(TestContext.Current.CancellationToken)).ShouldBe(1);
     }
 
     private async Task<StoredFile> CommitForTenant(
@@ -421,10 +431,13 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             CancellationToken.None
         );
         reply.IsError.ShouldBeFalse();
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         return await db
             .StoredFiles.AsNoTracking()
-            .FirstAsync(f => f.Id == reply.Value.StoredFileId);
+            .FirstAsync(
+                f => f.Id == reply.Value.StoredFileId,
+                TestContext.Current.CancellationToken
+            );
     }
 
     public void Dispose()
