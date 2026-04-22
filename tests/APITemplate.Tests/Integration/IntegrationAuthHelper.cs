@@ -131,7 +131,15 @@ internal static class IntegrationAuthHelper
         Guid? userId = null,
         Guid? tenantId = null,
         string[]? permissions = null
-    ) => Authenticate(client, userId, tenantId, username: "user", role: "User", permissions);
+    ) =>
+        Authenticate(
+            client,
+            userId: userId,
+            tenantId: tenantId,
+            username: "user",
+            role: "User",
+            permissions: permissions
+        );
 
     public static void AuthenticateAsTenantAdmin(
         HttpClient client,
@@ -141,11 +149,11 @@ internal static class IntegrationAuthHelper
     ) =>
         Authenticate(
             client,
-            userId,
-            tenantId,
+            userId: userId,
+            tenantId: tenantId,
             username: "tenantadmin",
             role: "TenantAdmin",
-            permissions
+            permissions: permissions
         );
 
     /// <summary>
