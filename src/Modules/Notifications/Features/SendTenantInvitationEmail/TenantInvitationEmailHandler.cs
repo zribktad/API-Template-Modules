@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
 using SharedKernel.Contracts.Events;
 using Wolverine;
@@ -10,11 +9,10 @@ public sealed class TenantInvitationEmailHandler
     public static async Task<OutgoingMessages> HandleAsync(
         TenantInvitationCreatedNotification @event,
         IEmailTemplateRenderer templateRenderer,
-        ILogger<TenantInvitationEmailHandler> logger,
         CancellationToken ct
     )
     {
-        ErrorOr<string> html = await templateRenderer.RenderAsync(
+        string html = await templateRenderer.RenderAsync(
             EmailTemplateNames.TenantInvitation,
             new
             {
@@ -26,14 +24,12 @@ public sealed class TenantInvitationEmailHandler
             ct
         );
 
-        EmailHandlerHelper.ThrowIfRenderFailed(html, EmailTemplateNames.TenantInvitation, logger);
-
         OutgoingMessages messages = new();
         messages.Add(
             new EmailMessage(
                 @event.Email,
                 $"You've been invited to {@event.TenantName}",
-                html.Value,
+                html,
                 EmailTemplateNames.TenantInvitation,
                 Retryable: true
             )

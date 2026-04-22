@@ -1,9 +1,9 @@
-using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Notifications.Contracts;
 using Notifications.Handlers;
 using Polly;
+using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
 
@@ -26,7 +26,7 @@ public sealed class SendEmailMessageHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         EmailMessage message = new("user@example.com", "Subject", "<p>Body</p>");
 
-        _senderMock.Setup(s => s.SendAsync(message, ct)).ReturnsAsync(Result.Success);
+        _senderMock.Setup(s => s.SendAsync(message, ct)).Returns(Task.CompletedTask);
 
         await SendEmailMessageHandler.HandleAsync(
             message,
@@ -50,13 +50,14 @@ public sealed class SendEmailMessageHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenSendReturnsError_StoresFailedEmail()
+    public async Task HandleAsync_WhenSendThrowsAppException_StoresFailedEmail()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         EmailMessage message = new("user@example.com", "Subject", "<p>Body</p>");
-        Error smtpError = Error.Failure("NTF-0500-SMTP-SEND", "SMTP unavailable");
 
-        _senderMock.Setup(s => s.SendAsync(message, ct)).ReturnsAsync(smtpError);
+        _senderMock
+            .Setup(s => s.SendAsync(message, ct))
+            .ThrowsAsync(new AppException("SMTP unavailable", "NTF-0500-SMTP-SEND"));
 
         await SendEmailMessageHandler.HandleAsync(
             message,
@@ -68,20 +69,20 @@ public sealed class SendEmailMessageHandlerTests
         );
 
         _failedEmailStoreMock.Verify(
-            s => s.StoreFailedAsync(message, smtpError.Description, It.IsAny<CancellationToken>()),
+            s => s.StoreFailedAsync(message, "SMTP unavailable", It.IsAny<CancellationToken>()),
             Times.Once
         );
     }
 
     [Fact]
-    public async Task HandleAsync_WhenSendReturnsError_DoesNotRethrow()
+    public async Task HandleAsync_WhenSendThrowsAppException_DoesNotRethrow()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         EmailMessage message = new("user@example.com", "Subject", "<p>Body</p>");
 
         _senderMock
             .Setup(s => s.SendAsync(message, ct))
-            .ReturnsAsync(Error.Failure("NTF-0500-SMTP-SEND", "SMTP error"));
+            .ThrowsAsync(new AppException("SMTP error", "NTF-0500-SMTP-SEND"));
 
         await Should.NotThrowAsync(() =>
             SendEmailMessageHandler.HandleAsync(

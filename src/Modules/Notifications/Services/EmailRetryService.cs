@@ -77,7 +77,10 @@ public sealed class EmailRetryService : IEmailRetryService
                     email.HtmlBody,
                     email.TemplateName
                 );
-                await pipeline.ExecuteAsync(token => _sender.SendOrThrowAsync(message, token), ct);
+                await pipeline.ExecuteAsync(
+                    token => new ValueTask(_sender.SendAsync(message, token)),
+                    ct
+                );
 
                 await _repository.DeleteAsync(email, CancellationToken.None);
                 stagedDeleteAfterSuccessfulSend = true;

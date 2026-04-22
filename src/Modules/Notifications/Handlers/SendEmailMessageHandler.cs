@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
 using Notifications.Logging;
-using Notifications.Services;
 using Polly;
 
 namespace Notifications.Handlers;
@@ -21,7 +20,10 @@ public sealed class SendEmailMessageHandler
 
         try
         {
-            await pipeline.ExecuteAsync(token => sender.SendOrThrowAsync(message, token), ct);
+            await pipeline.ExecuteAsync(
+                token => new ValueTask(sender.SendAsync(message, token)),
+                ct
+            );
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

@@ -1,5 +1,3 @@
-using ErrorOr;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Notifications.Contracts;
@@ -30,15 +28,10 @@ public sealed class NotificationEmailHandlerTests
         );
         _templateRenderer
             .Setup(r => r.RenderAsync(EmailTemplateNames.TenantInvitation, It.IsAny<object>(), ct))
-            .ReturnsAsync(Error.Failure("NTF-0500-TEMPLATE-NOT-FOUND", "Missing template"));
+            .ThrowsAsync(new AppException("Missing template", "NTF-0500-TEMPLATE-NOT-FOUND"));
 
         AppException ex = await Should.ThrowAsync<AppException>(() =>
-            TenantInvitationEmailHandler.HandleAsync(
-                @event,
-                _templateRenderer.Object,
-                NullLogger<TenantInvitationEmailHandler>.Instance,
-                ct
-            )
+            TenantInvitationEmailHandler.HandleAsync(@event, _templateRenderer.Object, ct)
         );
 
         ex.ErrorCode.ShouldBe("NTF-0500-TEMPLATE-NOT-FOUND");
@@ -54,16 +47,10 @@ public sealed class NotificationEmailHandlerTests
         );
         _templateRenderer
             .Setup(r => r.RenderAsync(EmailTemplateNames.UserRegistration, It.IsAny<object>(), ct))
-            .ReturnsAsync(Error.Failure("NTF-0500-TEMPLATE-PARSE", "Template parse failed"));
+            .ThrowsAsync(new AppException("Template parse failed", "NTF-0500-TEMPLATE-PARSE"));
 
         AppException ex = await Should.ThrowAsync<AppException>(() =>
-            UserRegisteredEmailHandler.HandleAsync(
-                @event,
-                _templateRenderer.Object,
-                options,
-                NullLogger<UserRegisteredEmailHandler>.Instance,
-                ct
-            )
+            UserRegisteredEmailHandler.HandleAsync(@event, _templateRenderer.Object, options, ct)
         );
 
         ex.ErrorCode.ShouldBe("NTF-0500-TEMPLATE-PARSE");
@@ -82,15 +69,10 @@ public sealed class NotificationEmailHandlerTests
         );
         _templateRenderer
             .Setup(r => r.RenderAsync(EmailTemplateNames.UserRoleChanged, It.IsAny<object>(), ct))
-            .ReturnsAsync(Error.Failure("NTF-0500-TEMPLATE-NOT-FOUND", "Missing template"));
+            .ThrowsAsync(new AppException("Missing template", "NTF-0500-TEMPLATE-NOT-FOUND"));
 
         AppException ex = await Should.ThrowAsync<AppException>(() =>
-            UserRoleChangedEmailHandler.HandleAsync(
-                @event,
-                _templateRenderer.Object,
-                NullLogger<UserRoleChangedEmailHandler>.Instance,
-                ct
-            )
+            UserRoleChangedEmailHandler.HandleAsync(@event, _templateRenderer.Object, ct)
         );
 
         ex.ErrorCode.ShouldBe("NTF-0500-TEMPLATE-NOT-FOUND");
@@ -110,12 +92,11 @@ public sealed class NotificationEmailHandlerTests
         );
         _templateRenderer
             .Setup(r => r.RenderAsync(EmailTemplateNames.TenantInvitation, It.IsAny<object>(), ct))
-            .ReturnsAsync((ErrorOr<string>)"<p>Hello</p>");
+            .ReturnsAsync("<p>Hello</p>");
 
         OutgoingMessages result = await TenantInvitationEmailHandler.HandleAsync(
             @event,
             _templateRenderer.Object,
-            NullLogger<TenantInvitationEmailHandler>.Instance,
             ct
         );
 

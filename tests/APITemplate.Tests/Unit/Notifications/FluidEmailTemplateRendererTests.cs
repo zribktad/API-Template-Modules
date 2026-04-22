@@ -1,6 +1,6 @@
-using ErrorOr;
 using Notifications.Contracts;
 using Notifications.Services;
+using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
 using NTF = Notifications.Errors.ErrorCatalog;
@@ -24,28 +24,24 @@ public sealed class FluidEmailTemplateRendererTests
             LoginUrl = "https://app/login",
         };
 
-        ErrorOr<string> result = await _sut.RenderAsync(
+        string result = await _sut.RenderAsync(
             EmailTemplateNames.UserRegistration,
             model,
             TestContext.Current.CancellationToken
         );
 
-        result.IsError.ShouldBeFalse();
-        result.Value.ShouldContain("Ada");
-        result.Value.ShouldContain("ada@example.com");
-        result.Value.ShouldContain("https://app/login");
+        result.ShouldContain("Ada");
+        result.ShouldContain("ada@example.com");
+        result.ShouldContain("https://app/login");
     }
 
     [Fact]
-    public async Task RenderAsync_UnknownTemplate_ReturnsNotFoundError()
+    public async Task RenderAsync_UnknownTemplate_ThrowsAppException()
     {
-        ErrorOr<string> result = await _sut.RenderAsync(
-            UnknownTemplateId,
-            new { },
-            TestContext.Current.CancellationToken
+        AppException ex = await Should.ThrowAsync<AppException>(() =>
+            _sut.RenderAsync(UnknownTemplateId, new { }, TestContext.Current.CancellationToken)
         );
 
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Code.ShouldBe(NTF.Templates.NotFound);
+        ex.ErrorCode.ShouldBe(NTF.Templates.NotFound);
     }
 }

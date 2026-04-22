@@ -23,25 +23,15 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
         new(StringComparer.Ordinal);
 
     /// <summary>Retrieves (or parses and caches) the named template and renders it against <paramref name="model" />.</summary>
-    public async Task<ErrorOr<string>> RenderAsync(
+    public async Task<string> RenderAsync(
         string templateName,
         object model,
         CancellationToken ct = default
     )
     {
-        try
-        {
-            IFluidTemplate template = await GetOrParseTemplateAsync(templateName);
-            TemplateContext context = new(model);
-            return await template.RenderAsync(context);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            return Error.Failure(
-                ex is AppException a ? a.ErrorCode : NTF.Templates.ParseFailed,
-                ex.Message
-            );
-        }
+        IFluidTemplate template = await GetOrParseTemplateAsync(templateName);
+        TemplateContext context = new(model);
+        return await template.RenderAsync(context);
     }
 
     private static Task<IFluidTemplate> GetOrParseTemplateAsync(string templateName)

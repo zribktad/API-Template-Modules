@@ -1,18 +1,18 @@
-using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
-using Notifications.Errors;
 using Notifications.Services;
+using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
+using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
 public sealed class MailKitEmailSenderTests
 {
     [Fact]
-    public async Task SendAsync_WhenUsernameConfiguredWithoutPassword_ReturnsError()
+    public async Task SendAsync_WhenUsernameConfiguredWithoutPassword_ThrowsAppException()
     {
         EmailOptions options = new()
         {
@@ -30,18 +30,16 @@ public sealed class MailKitEmailSenderTests
             NullLogger<MailKitEmailSender>.Instance
         );
 
-        ErrorOr<Success> result = await sut.SendAsync(
-            message,
-            TestContext.Current.CancellationToken
+        AppException ex = await Should.ThrowAsync<AppException>(() =>
+            sut.SendAsync(message, TestContext.Current.CancellationToken)
         );
 
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Code.ShouldBe(ErrorCatalog.Smtp.SendFailed);
-        result.FirstError.Description.ShouldBe("SMTP password is missing.");
+        ex.ErrorCode.ShouldBe(NTF.Smtp.SendFailed);
+        ex.Message.ShouldBe("SMTP password is missing.");
     }
 
     [Fact]
-    public async Task SendAsync_WhenSmtpTransportFails_ReturnsErrorInsteadOfThrowing()
+    public async Task SendAsync_WhenSmtpTransportFails_ThrowsAppException()
     {
         EmailOptions options = new()
         {
@@ -58,12 +56,10 @@ public sealed class MailKitEmailSenderTests
             NullLogger<MailKitEmailSender>.Instance
         );
 
-        ErrorOr<Success> result = await sut.SendAsync(
-            message,
-            TestContext.Current.CancellationToken
+        AppException ex = await Should.ThrowAsync<AppException>(() =>
+            sut.SendAsync(message, TestContext.Current.CancellationToken)
         );
 
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Code.ShouldBe(ErrorCatalog.Smtp.SendFailed);
+        ex.ErrorCode.ShouldBe(NTF.Smtp.SendFailed);
     }
 }

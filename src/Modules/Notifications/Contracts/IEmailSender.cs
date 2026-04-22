@@ -7,5 +7,5 @@ namespace Notifications.Contracts;
 public interface IEmailSender
 {
     /// <summary>Transmits <paramref name="message" /> to its recipient via the configured mail provider.</summary>
-    public Task<ErrorOr<Success>> SendAsync(EmailMessage message, CancellationToken ct = default);
+    public Task SendAsync(EmailMessage message, CancellationToken ct = default);
 }

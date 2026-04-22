@@ -4,8 +4,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Notifications.Contracts;
-using Notifications.Errors;
 using Notifications.Logging;
+using SharedKernel.Application.Errors;
+using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace Notifications.Services;
 
@@ -44,10 +45,7 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
     ///     Builds a MIME message, connects and optionally authenticates against the configured SMTP server,
     ///     sends the message, and disconnects cleanly before returning.
     /// </summary>
-    public async Task<ErrorOr<Success>> SendAsync(
-        EmailMessage message,
-        CancellationToken ct = default
-    )
+    public async Task SendAsync(EmailMessage message, CancellationToken ct = default)
     {
         MimeMessage mimeMessage = new();
         mimeMessage.From.Add(new MailboxAddress(_options.SenderName, _options.SenderEmail));
@@ -56,7 +54,7 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
         mimeMessage.Body = new TextPart("html") { Text = message.HtmlBody };
 
         if (!string.IsNullOrEmpty(_options.Username) && string.IsNullOrEmpty(_options.Password))
-            return Error.Failure(ErrorCatalog.Smtp.SendFailed, "SMTP password is missing.");
+            throw new AppException("SMTP password is missing.", NTF.Smtp.SendFailed);
 
         await _lock.WaitAsync(ct);
         try
@@ -89,16 +87,13 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
         {
             _logger.SmtpSendFailed(ex, message.To);
             await ResetClientAsync();
-            return Error.Failure(ErrorCatalog.Smtp.SendFailed, "SMTP authentication failed.");
+            throw new AppException("SMTP authentication failed.", NTF.Smtp.SendFailed);
         }
         catch (Exception ex)
         {
             _logger.SmtpSendFailed(ex, message.To);
             await ResetClientAsync();
-            return Error.Failure(
-                ErrorCatalog.Smtp.SendFailed,
-                $"SMTP send failed: {ex.GetType().Name}"
-            );
+            throw new AppException($"SMTP send failed: {ex.GetType().Name}", NTF.Smtp.SendFailed);
         }
         finally
         {
@@ -106,7 +101,6 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
         }
 
         _logger.EmailSent(message.To, message.Subject);
-        return Result.Success;
     }
 
     private async Task ResetClientAsync()
