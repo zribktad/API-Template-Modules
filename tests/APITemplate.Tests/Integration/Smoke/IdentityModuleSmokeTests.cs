@@ -21,10 +21,11 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         var ct = TestContext.Current.CancellationToken;
+        var suffix = Guid.NewGuid().ToString("N")[..8];
         var (tenant, user) = await IntegrationAuthHelper.SeedTenantUserAsync(
             _factory.Services,
-            username: "smokeuser",
-            email: "smokeuser@example.com",
+            username: $"smokeuser-{suffix}",
+            email: $"smokeuser-{suffix}@example.com",
             ct: ct
         );
         _seededUserId = user.Id;

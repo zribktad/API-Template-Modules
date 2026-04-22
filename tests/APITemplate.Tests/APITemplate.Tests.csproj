@@ -4,7 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
-    <!-- Opt in: dotnet test /p:RunDockerIntegration=true (requires Docker). Default run skips Testcontainers tests. -->
+    <!-- Opt in: dotnet test /p:RunDockerIntegration=true (requires Docker). Default run skips Testcontainers/Docker integration tests and smoke tests. -->
     <VSTestTestCaseFilter Condition="'$(RunDockerIntegration)' != 'true'">Category!=Integration.Docker&amp;Category!=Smoke</VSTestTestCaseFilter>
   </PropertyGroup>
   <ItemGroup>

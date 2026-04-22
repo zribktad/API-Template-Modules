@@ -54,7 +54,7 @@ public sealed class ProductAndReviewSmokeTests
     }
 
     [Fact]
-    public async Task GraphQL_Introspection_ReturnsOk()
+    public async Task GraphQL_BasicRequest_ReturnsOk()
     {
         var ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(Client, permissions: [Permission.Products.Read]);
