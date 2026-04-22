@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity.ValueObjects;
 
 namespace Identity.Directory.Entities;
 
@@ -10,17 +9,7 @@ namespace Identity.Directory.Entities;
 /// </summary>
 public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
-    public Email Email
-    {
-        get => field;
-        private set
-        {
-            field = value;
-            NormalizedEmail = value.Normalize();
-        }
-    }
-
-    public string NormalizedEmail { get; private set; } = string.Empty;
+    public NormalizedString Email { get; private set; } = new(string.Empty);
     public string TokenHash { get; private set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; private set; }
     public InvitationStatus Status { get; private set; } = InvitationStatus.Pending;
@@ -33,7 +22,7 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     public Guid Id { get; set; }
 
     public static TenantInvitation Create(
-        Email email,
+        string email,
         string tokenHash,
         int expiryHours,
         TimeProvider timeProvider
@@ -41,7 +30,7 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     {
         TenantInvitation invitation = new();
         invitation.Id = Guid.NewGuid();
-        invitation.Email = email;
+        invitation.Email = new NormalizedString(email);
         invitation.TokenHash = tokenHash;
         invitation.ExpiresAtUtc = timeProvider.GetUtcNow().UtcDateTime.AddHours(expiryHours);
         return invitation;

@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity.ValueObjects;
 
 namespace Identity.Directory.Domain.Services;
 
@@ -13,7 +12,7 @@ public interface IUserUniquenessChecker
     /// <summary>
     ///     Returns an error if the given email is already taken by another user.
     /// </summary>
-    Task<ErrorOr<Success>> EnsureEmailUniqueAsync(Email email, CancellationToken ct = default);
+    Task<ErrorOr<Success>> EnsureEmailUniqueAsync(string email, CancellationToken ct = default);
 
     /// <summary>
     ///     Returns an error if the given username (after normalization) is already taken by another user.
@@ -28,7 +27,7 @@ public interface IUserUniquenessChecker
     /// </summary>
     Task<ErrorOr<Success>> EnsureUniqueAsync(
         string username,
-        Email email,
+        string email,
         CancellationToken ct = default
     );
 }

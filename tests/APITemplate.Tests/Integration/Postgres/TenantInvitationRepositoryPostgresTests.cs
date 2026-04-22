@@ -3,7 +3,6 @@ using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Repositories;
 using Identity.Persistence;
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
@@ -77,7 +76,7 @@ public sealed class TenantInvitationRepositoryPostgresTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         string tokenHash = $"tok-{Guid.NewGuid():N}";
-        Email email = Email.FromPersistence($"nr-{status}-{Guid.NewGuid():N}@example.com");
+        string email = $"nr-{status}-{Guid.NewGuid():N}@example.com";
 
         await PersistInvitationAsync(email, tokenHash, status, ct);
 
@@ -111,8 +110,8 @@ public sealed class TenantInvitationRepositoryPostgresTests
     )
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Email email = Email.FromPersistence($"hp-{status}-{Guid.NewGuid():N}@example.com");
-        string normalized = email.Normalize();
+        string email = $"hp-{status}-{Guid.NewGuid():N}@example.com";
+        string normalized = email.Trim().ToUpperInvariant();
         string tokenHash = $"th-{Guid.NewGuid():N}";
 
         await PersistInvitationAsync(email, tokenHash, status, ct);
@@ -123,7 +122,7 @@ public sealed class TenantInvitationRepositoryPostgresTests
     }
 
     private async Task PersistInvitationAsync(
-        Email email,
+        string email,
         string tokenHash,
         InvitationStatus status,
         CancellationToken ct

@@ -1,4 +1,3 @@
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -12,14 +11,17 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasKey(u => u.Id);
         builder.ConfigureTenantAuditable();
 
-        builder.Property(u => u.Username).IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
-        builder.Property(u => u.NormalizedUsername).IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
-        builder
-            .Property(u => u.Email)
-            .HasConversion(e => e.Value, v => Email.FromPersistence(v))
-            .IsRequired()
-            .HasMaxLength(Email.MaxLength);
-        builder.Property(u => u.NormalizedEmail).IsRequired().HasMaxLength(Email.MaxLength);
+        builder.OwnsOne(u => u.Username, b =>
+        {
+            b.Property(x => x.Value).HasColumnName("Username").IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
+            b.Property(x => x.Normalized).HasColumnName("NormalizedUsername").IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
+        });
+        builder.OwnsOne(u => u.Email, b =>
+        {
+            b.Property(x => x.Value).HasColumnName("Email").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
+            b.Property(x => x.Normalized).HasColumnName("NormalizedEmail").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
+        });
+
         builder.Property(u => u.KeycloakUserId).HasMaxLength(256);
 
         builder
@@ -49,7 +51,5 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasForeignKey(u => u.TenantId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(u => new { u.TenantId, u.NormalizedUsername }).IsUnique();
-        builder.HasIndex(u => new { u.TenantId, u.NormalizedEmail }).IsUnique();
     }
 }

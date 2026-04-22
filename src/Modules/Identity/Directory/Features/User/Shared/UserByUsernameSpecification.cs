@@ -7,11 +7,8 @@ namespace Identity.Directory.Features.User;
 /// </summary>
 public sealed class UserByUsernameSpecification : Specification<AppUser>
 {
-    /// <summary>
-    ///     Initialises the specification to match the user with the given <paramref name="normalizedUsername" />.
-    /// </summary>
     public UserByUsernameSpecification(string normalizedUsername)
     {
-        Query.Where(u => u.NormalizedUsername == normalizedUsername).AsNoTracking();
+        Query.Where(u => u.Username.Normalized == normalizedUsername).AsNoTracking();
     }
 }

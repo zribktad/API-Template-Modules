@@ -1,5 +1,5 @@
 using ErrorOr;
-using Identity.ValueObjects;
+using Identity.Directory.Interfaces;
 
 namespace Identity.Directory.Domain.Services;
 
@@ -10,12 +10,12 @@ namespace Identity.Directory.Domain.Services;
 internal sealed class UserUniquenessChecker(IUserRepository repository) : IUserUniquenessChecker
 {
     public async Task<ErrorOr<Success>> EnsureEmailUniqueAsync(
-        Email email,
+        string email,
         CancellationToken ct = default
     )
     {
-        if (await repository.ExistsByEmailAsync(email.Value, ct))
-            return DomainErrors.Users.EmailAlreadyExists(email.Value);
+        if (await repository.ExistsByEmailAsync(email, ct))
+            return DomainErrors.Users.EmailAlreadyExists(email);
 
         return Result.Success;
     }
@@ -25,7 +25,7 @@ internal sealed class UserUniquenessChecker(IUserRepository repository) : IUserU
         CancellationToken ct = default
     )
     {
-        string normalized = AppUser.NormalizeUsername(username);
+        string normalized = NormalizedString.Normalize(username);
         if (await repository.ExistsByUsernameAsync(normalized, ct))
             return DomainErrors.Users.UsernameAlreadyExists(username);
 
@@ -34,7 +34,7 @@ internal sealed class UserUniquenessChecker(IUserRepository repository) : IUserU
 
     public async Task<ErrorOr<Success>> EnsureUniqueAsync(
         string username,
-        Email email,
+        string email,
         CancellationToken ct = default
     )
     {

@@ -12,6 +12,6 @@ public sealed class UserUnlinkedByNormalizedEmailSpecification : Specification<A
     {
         Query
             .IgnoreQueryFilters()
-            .Where(u => u.NormalizedEmail == normalizedEmail && u.KeycloakUserId == null);
+            .Where(u => u.Email.Normalized == normalizedEmail && u.KeycloakUserId == null);
     }
 }

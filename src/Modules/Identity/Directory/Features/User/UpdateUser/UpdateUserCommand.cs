@@ -1,6 +1,5 @@
 using ErrorOr;
 using Identity.Directory.Domain.Services;
-using Identity.ValueObjects;
 using Wolverine;
 
 namespace Identity.Directory.Features.User;
@@ -9,7 +8,7 @@ public sealed record UpdateUserCommand(Guid Id, UpdateUserRequest Request) : IHa
 
 public sealed class UpdateUserCommandHandler
 {
-    public static async Task<ErrorOr<(AppUser User, Email Email)>> ValidateAsync(
+    public static async Task<ErrorOr<AppUser>> ValidateAsync(
         UpdateUserCommand command,
         IUserRepository repository,
         IUserUniquenessChecker uniqueness,
@@ -25,20 +24,15 @@ public sealed class UpdateUserCommandHandler
             return userResult.Errors;
         AppUser user = userResult.Value;
 
-        ErrorOr<Email> emailValueResult = Email.Create(command.Request.Email);
-        if (emailValueResult.IsError)
-            return emailValueResult.Errors;
-        Email newEmail = emailValueResult.Value;
-
-        if (!string.Equals(user.Email.Value, newEmail.Value, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(user.Email.Value, command.Request.Email, StringComparison.OrdinalIgnoreCase))
         {
-            ErrorOr<Success> emailResult = await uniqueness.EnsureEmailUniqueAsync(newEmail, ct);
+            ErrorOr<Success> emailResult = await uniqueness.EnsureEmailUniqueAsync(command.Request.Email, ct);
             if (emailResult.IsError)
                 return emailResult.Errors;
         }
 
-        string normalizedNew = AppUser.NormalizeUsername(command.Request.Username);
-        if (!string.Equals(user.NormalizedUsername, normalizedNew, StringComparison.Ordinal))
+        string normalizedNew = NormalizedString.Normalize(command.Request.Username);
+        if (!string.Equals(user.Username.Normalized, normalizedNew, StringComparison.Ordinal))
         {
             ErrorOr<Success> usernameResult = await uniqueness.EnsureUsernameUniqueAsync(
                 command.Request.Username,
@@ -48,23 +42,23 @@ public sealed class UpdateUserCommandHandler
                 return usernameResult.Errors;
         }
 
-        return (user, newEmail);
+        return user;
     }
 
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         UpdateUserCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        ErrorOr<(AppUser User, Email Email)> validationResult,
+        ErrorOr<AppUser> validationResult,
         CancellationToken ct
     )
     {
         if (validationResult.IsError)
             return (validationResult.Errors, OutgoingMessagesHelper.Empty);
-        (AppUser user, Email email) = validationResult.Value;
+        AppUser user = validationResult.Value;
 
-        user.Username = command.Request.Username;
-        user.Email = email;
+        user.Username = new NormalizedString(command.Request.Username);
+        user.Email = new NormalizedString(command.Request.Email);
 
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);

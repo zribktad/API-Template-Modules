@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity.ValueObjects;
 using Moq;
 using ProductCatalog;
 using ProductCatalog.Common.Events;
@@ -233,31 +232,6 @@ public sealed class PriceCreateTests
 
         result.IsError.ShouldBeFalse();
         result.Value.Value.ShouldBe(9.99m);
-    }
-}
-
-public sealed class EmailCreateTests
-{
-    [Theory]
-    [InlineData("@")]
-    [InlineData("abc@")]
-    [InlineData("plain-text")]
-    public void Create_WhenFormatIsInvalid_ReturnsValidationError(string input)
-    {
-        ErrorOr<Email> result = Email.Create(input);
-
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Type.ShouldBe(ErrorType.Validation);
-        result.FirstError.Description.ShouldBe("Invalid email format.");
-    }
-
-    [Fact]
-    public void Create_WhenFormatIsValid_ReturnsNormalizedEmailValue()
-    {
-        ErrorOr<Email> result = Email.Create("  user@example.com  ");
-
-        result.IsError.ShouldBeFalse();
-        result.Value.Value.ShouldBe("user@example.com");
     }
 }
 

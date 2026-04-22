@@ -14,8 +14,8 @@ public static class UserSortFields
     public static readonly SortField CreatedAt = new(CreatedAtToken);
 
     public static readonly SortFieldMap<AppUser> Map = new SortFieldMap<AppUser>()
-        .Add(Username, u => u.Username)
-        .Add(Email, u => (string)u.Email)
+        .Add(Username, u => u.Username.Value)
+        .Add(Email, u => u.Email.Value)
         .Add(CreatedAt, u => u.Audit.CreatedAtUtc)
         .Default(u => u.Audit.CreatedAtUtc);
 }

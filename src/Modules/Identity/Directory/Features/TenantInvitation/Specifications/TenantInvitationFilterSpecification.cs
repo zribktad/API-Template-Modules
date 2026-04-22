@@ -1,6 +1,5 @@
 using Ardalis.Specification;
 using Identity.Directory.Features.TenantInvitation.Mappings;
-using Identity.ValueObjects;
 using TenantInvitationEntity = Identity.Directory.Entities.TenantInvitation;
 
 namespace Identity.Directory.Features.TenantInvitation.Specifications;
@@ -12,9 +11,6 @@ namespace Identity.Directory.Features.TenantInvitation.Specifications;
 public sealed class TenantInvitationFilterSpecification
     : Specification<TenantInvitationEntity, TenantInvitationResponse>
 {
-    /// <summary>
-    ///     Initialises the specification by applying filter criteria, descending creation-date ordering, and projection.
-    /// </summary>
     public TenantInvitationFilterSpecification(TenantInvitationFilter filter)
     {
         Query.ApplyFilter(filter);
@@ -40,8 +36,8 @@ internal static class TenantInvitationFilterCriteria
     {
         if (!string.IsNullOrWhiteSpace(filter.Email))
         {
-            string normalized = Email.NormalizeRaw(filter.Email);
-            query.Where(i => i.NormalizedEmail.Contains(normalized));
+            string normalized = NormalizedString.Normalize(filter.Email);
+            query.Where(i => i.Email.Normalized.Contains(normalized));
         }
 
         if (filter.Status.HasValue)

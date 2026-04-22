@@ -1,5 +1,4 @@
 using Ardalis.Specification;
-using Identity.ValueObjects;
 
 namespace Identity.Directory.Features.User;
 
@@ -8,13 +7,9 @@ namespace Identity.Directory.Features.User;
 /// </summary>
 public sealed class UserByEmailSpecification : Specification<AppUser>
 {
-    /// <summary>
-    ///     Initialises the specification to match users whose normalised email equals the normalised form of
-    ///     <paramref name="email" />.
-    /// </summary>
     public UserByEmailSpecification(string email)
     {
-        string normalizedEmail = Email.NormalizeRaw(email);
-        Query.Where(u => u.NormalizedEmail == normalizedEmail).AsNoTracking();
+        string normalizedEmail = NormalizedString.Normalize(email);
+        Query.Where(u => u.Email.Normalized == normalizedEmail).AsNoTracking();
     }
 }

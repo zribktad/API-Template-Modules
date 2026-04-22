@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Identity.Directory.Entities;
-using Identity.ValueObjects;
 
 namespace Identity.Directory.Features.User;
 
@@ -9,5 +8,5 @@ namespace Identity.Directory.Features.User;
 /// </summary>
 public sealed record UpdateUserRequest(
     [NotEmpty] [MaxLength(AppUser.UsernameMaxLength)] string Username,
-    [NotEmpty] [MaxLength(Email.MaxLength)] [EmailAddress] string Email
+    [NotEmpty] [MaxLength(AppUser.EmailMaxLength)] [EmailAddress] string Email
 );

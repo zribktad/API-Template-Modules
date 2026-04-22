@@ -4,24 +4,6 @@ namespace Identity.Errors;
 
 internal static class IdentityDomainErrors
 {
-    internal static class Emails
-    {
-        internal static Error Empty()
-        {
-            return Error.Validation("EMAIL-0400-EMPTY", "Email cannot be empty.");
-        }
-
-        internal static Error InvalidFormat()
-        {
-            return Error.Validation("EMAIL-0400-FORMAT", "Invalid email format.");
-        }
-
-        internal static Error TooLong()
-        {
-            return Error.Validation("EMAIL-0400-LENGTH", "Email cannot exceed 320 characters.");
-        }
-    }
-
     internal static class Invitations
     {
         internal static Error Expired()

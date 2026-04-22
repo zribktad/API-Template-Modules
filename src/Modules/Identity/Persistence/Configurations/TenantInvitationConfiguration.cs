@@ -1,4 +1,3 @@
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -12,12 +11,12 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
         builder.HasKey(i => i.Id);
         builder.ConfigureTenantAuditable();
 
-        builder
-            .Property(i => i.Email)
-            .HasConversion(e => e.Value, v => Email.FromPersistence(v))
-            .IsRequired()
-            .HasMaxLength(Email.MaxLength);
-        builder.Property(i => i.NormalizedEmail).IsRequired().HasMaxLength(Email.MaxLength);
+        builder.OwnsOne(i => i.Email, b =>
+        {
+            b.Property(x => x.Value).HasColumnName("Email").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
+            b.Property(x => x.Normalized).HasColumnName("NormalizedEmail").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
+        });
+
         builder.Property(i => i.TokenHash).IsRequired().HasMaxLength(128);
 
         builder
@@ -41,6 +40,5 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(i => i.TokenHash);
-        builder.HasIndex(i => new { i.TenantId, i.NormalizedEmail });
     }
 }

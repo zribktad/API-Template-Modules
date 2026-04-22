@@ -6,7 +6,6 @@ using Identity.Auth.Entities;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Persistence;
-using Identity.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -155,11 +154,9 @@ internal static class IntegrationAuthHelper
         if (!tenantIsActive)
             tenant.IsActive = false;
 
-        Email emailVo = Email.FromPersistence(email);
-
         AppUser user = AppUser.Create(
             username,
-            emailVo,
+            email,
             $"kc-{Guid.NewGuid():N}",
             tenantId: tenantId,
             isActive: userIsActive

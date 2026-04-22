@@ -15,7 +15,7 @@ public sealed class AcceptedInvitationByNormalizedEmailSpecification
         Query
             .IgnoreQueryFilters()
             .Where(i =>
-                i.NormalizedEmail == normalizedEmail && i.Status == InvitationStatus.Accepted
+                i.Email.Normalized == normalizedEmail && i.Status == InvitationStatus.Accepted
             )
             .AsNoTracking();
     }

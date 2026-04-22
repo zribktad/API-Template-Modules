@@ -14,8 +14,8 @@ public static class UserMappings
     public static readonly Expression<Func<AppUser, UserResponse>> Projection =
         u => new UserResponse(
             u.Id,
-            u.Username,
-            u.Email,
+            u.Username.Value,
+            u.Email.Value,
             u.IsActive,
             u.Roles.Select(r => r.Name).ToList(),
             u.ProvisioningStatus,
