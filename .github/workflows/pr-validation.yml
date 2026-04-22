@@ -12,7 +12,8 @@ on:
   push:
     branches:
       - main
-
+      - dev
+      - feature/**
 
 env:
   DOTNET_VERSION: '10.0.x'
@@ -48,15 +49,6 @@ jobs:
 
       - name: Build
         run: dotnet build APITemplate.slnx --no-restore --configuration Release
-
-      - name: Upload build output
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output
-          path: |
-            **/bin/Release/
-            **/obj/Release/
-          retention-days: 1
 
       - name: Run unit tests
         run: >
@@ -99,10 +91,18 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Download build output
-        uses: actions/download-artifact@v4
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
         with:
-          name: build-output
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore APITemplate.slnx
+
+      - name: Build
+        run: dotnet build APITemplate.slnx --no-restore --configuration Release
 
       - name: Run smoke tests
         run: >
@@ -138,10 +138,18 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Download build output
-        uses: actions/download-artifact@v4
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
         with:
-          name: build-output
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore APITemplate.slnx
+
+      - name: Build
+        run: dotnet build APITemplate.slnx --no-restore --configuration Release
 
       - name: Run integration tests
         run: >
