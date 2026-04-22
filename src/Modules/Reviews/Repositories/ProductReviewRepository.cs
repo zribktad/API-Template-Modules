@@ -22,6 +22,7 @@ public sealed class ProductReviewRepository
     /// <inheritdoc />
     public async Task<int> BulkSoftDeleteByProductIdsAsync(
         IReadOnlyList<Guid> productIds,
+        Guid tenantId,
         Guid actorId,
         DateTime deletedAtUtc,
         CancellationToken ct = default
@@ -29,7 +30,11 @@ public sealed class ProductReviewRepository
     {
         return await _dbContext
             .ProductReviews.IgnoreQueryFilters()
-            .Where(review => productIds.Contains(review.ProductId) && !review.IsDeleted)
+            .Where(review =>
+                review.TenantId == tenantId
+                && productIds.Contains(review.ProductId)
+                && !review.IsDeleted
+            )
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

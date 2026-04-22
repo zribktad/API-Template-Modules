@@ -17,6 +17,7 @@ public static class ProductsBatchSoftDeletedHandler
     {
         int affected = await repository.BulkSoftDeleteByProductIdsAsync(
             notification.ProductIds,
+            notification.TenantId,
             notification.ActorId,
             notification.DeletedAtUtc,
             ct
