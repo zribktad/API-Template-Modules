@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using APITemplate.Tests.Unit.Helpers;
 using FileStorage.Contracts;
 using FileStorage.Domain.Services;
 using FileStorage.Domain.Storage;
@@ -10,10 +11,10 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Registry;
 using Polly.Retry;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Resilience;
 using Shouldly;
 using Xunit;
+using FS = FileStorage.Domain.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
@@ -127,14 +128,17 @@ public sealed class LocalBlobStoreTests : IDisposable
 
         StagingResult fake = await sut.WriteStagingAsync(Payload("x"));
 
-        await Should.ThrowAsync<AppException>(async () =>
-            await sut.PromoteToCommittedAsync(
-                tenant,
-                first.Sha256,
-                first.SizeBytes + 999,
-                fake.StagingPath
+        await (
+            (Func<Task>)(
+                async () =>
+                    await sut.PromoteToCommittedAsync(
+                        tenant,
+                        first.Sha256,
+                        first.SizeBytes + 999,
+                        fake.StagingPath
+                    )
             )
-        );
+        ).ShouldThrowAppExceptionAsync(FS.Files.BlobConflict);
     }
 
     [Fact]
@@ -184,9 +188,11 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), "..", "..", "escape");
-        await Should.ThrowAsync<AppException>(async () =>
-            await sut.PromoteToCommittedAsync(Guid.NewGuid(), ExpectedSha("x"), 1, evil)
-        );
+        await (
+            (Func<Task>)(
+                () => sut.PromoteToCommittedAsync(Guid.NewGuid(), ExpectedSha("x"), 1, evil)
+            )
+        ).ShouldThrowAppExceptionAsync(FS.Files.PathTraversal);
     }
 
     [Theory]
@@ -310,7 +316,9 @@ public sealed class LocalBlobStoreTests : IDisposable
     {
         LocalBlobStore sut = CreateSut();
         string evil = Path.Combine(_options.ResolveStagingPath(), suffix);
-        await Should.ThrowAsync<AppException>(async () => await sut.DeleteStagingAsync(evil));
+        await ((Func<Task>)(() => sut.DeleteStagingAsync(evil))).ShouldThrowAppExceptionAsync(
+            FS.Files.PathTraversal
+        );
     }
 
     public void Dispose()
