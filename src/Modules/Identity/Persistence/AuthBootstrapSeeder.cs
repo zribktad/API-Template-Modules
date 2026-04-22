@@ -1,5 +1,4 @@
 using Identity.Options;
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -42,13 +41,12 @@ public sealed class AuthBootstrapSeeder
 
     private Task<Tenant?> FindTenantAsync(string tenantCode, CancellationToken ct)
     {
-        TenantCode code = TenantCode.FromPersistence(tenantCode);
         return _dbContext
             .Tenants.IgnoreQueryFilters([
                 GlobalQueryFilterNames.SoftDelete,
                 GlobalQueryFilterNames.Tenant,
             ])
-            .FirstOrDefaultAsync(t => t.Code == code, ct);
+            .FirstOrDefaultAsync(t => t.Code == tenantCode, ct);
     }
 
     private bool CreateTenant(TenantIdentity tenantIdentity)
@@ -57,7 +55,7 @@ public sealed class AuthBootstrapSeeder
         {
             Id = DefaultTenantId,
             TenantId = Guid.Empty,
-            Code = TenantCode.FromPersistence(tenantIdentity.Code),
+            Code = tenantIdentity.Code,
             Name = tenantIdentity.Name,
         };
         _dbContext.Tenants.Add(tenant);

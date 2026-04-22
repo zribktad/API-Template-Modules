@@ -4,19 +4,6 @@ namespace Identity.Errors;
 
 internal static class IdentityDomainErrors
 {
-    internal static class TenantCodes
-    {
-        internal static Error Empty()
-        {
-            return Error.Validation("TC-0400-EMPTY", "Tenant code cannot be empty.");
-        }
-
-        internal static Error TooLong()
-        {
-            return Error.Validation("TC-0400-LENGTH", "Tenant code cannot exceed 100 characters.");
-        }
-    }
-
     internal static class Emails
     {
         internal static Error Empty()

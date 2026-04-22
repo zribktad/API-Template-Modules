@@ -1,6 +1,5 @@
 using ErrorOr;
 using Identity.Directory.Interfaces;
-using Identity.ValueObjects;
 
 namespace Identity.Directory.Domain.Services;
 
@@ -11,12 +10,12 @@ namespace Identity.Directory.Domain.Services;
 internal sealed class TenantUniquenessChecker(ITenantRepository repository) : ITenantUniquenessChecker
 {
     public async Task<ErrorOr<Success>> EnsureCodeUniqueAsync(
-        TenantCode code,
+        string code,
         CancellationToken ct = default
     )
     {
-        if (await repository.ExistsByCodeAsync(code.Value, ct))
-            return DomainErrors.Tenants.CodeAlreadyExists(code.Value);
+        if (await repository.ExistsByCodeAsync(code, ct))
+            return DomainErrors.Tenants.CodeAlreadyExists(code);
 
         return Result.Success;
     }

@@ -1,4 +1,3 @@
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -17,8 +16,7 @@ public sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder
             .Property(t => t.Code)
             .IsRequired()
-            .HasMaxLength(100)
-            .HasConversion(tc => tc.Value, value => TenantCode.FromPersistence(value));
+            .HasMaxLength(100);
         builder.Property(t => t.Name).IsRequired().HasMaxLength(200);
         builder.Property(t => t.IsActive).IsRequired().HasDefaultValue(true);
 

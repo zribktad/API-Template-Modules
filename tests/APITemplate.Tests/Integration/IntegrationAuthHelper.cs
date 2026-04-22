@@ -144,13 +144,12 @@ internal static class IntegrationAuthHelper
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
         string tenantCodeValue = $"t{Guid.NewGuid():N}"[..12];
-        TenantCode tenantCode = TenantCode.FromPersistence(tenantCodeValue);
         var tenantId = Guid.NewGuid();
         var tenant = new Tenant
         {
             Id = tenantId,
             TenantId = Guid.Empty,
-            Code = tenantCode,
+            Code = tenantCodeValue,
             Name = $"Tenant {username}",
         };
         if (!tenantIsActive)

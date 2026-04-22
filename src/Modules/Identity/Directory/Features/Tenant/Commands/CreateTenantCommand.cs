@@ -2,7 +2,6 @@ using ErrorOr;
 using Identity.Directory.Domain.Services;
 using Identity.Directory.Features.Tenant.Mappings;
 using Identity.Directory.Repositories;
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
 using TenantEntity = Identity.Directory.Entities.Tenant;
@@ -21,12 +20,8 @@ public sealed class CreateTenantCommandHandler
         CancellationToken ct
     )
     {
-        ErrorOr<TenantCode> codeResult = TenantCode.Create(command.Request.Code);
-        if (codeResult.IsError)
-            return (codeResult.FirstError, OutgoingMessagesHelper.Empty);
-
         ErrorOr<Success> uniquenessResult = await uniquenessChecker.EnsureCodeUniqueAsync(
-            codeResult.Value,
+            command.Request.Code,
             ct
         );
         if (uniquenessResult.IsError)
@@ -40,7 +35,7 @@ public sealed class CreateTenantCommandHandler
                 {
                     TenantEntity entity = TenantEntity.Create(
                         Guid.NewGuid(),
-                        codeResult.Value,
+                        command.Request.Code,
                         command.Request.Name
                     );
 
@@ -52,7 +47,7 @@ public sealed class CreateTenantCommandHandler
         }
         catch (DbUpdateException ex) when (ex.IsTenantCodeUniqueViolation())
         {
-            return (DomainErrors.Tenants.CodeAlreadyExists(codeResult.Value.Value), OutgoingMessagesHelper.Empty);
+            return (DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code), OutgoingMessagesHelper.Empty);
         }
 
         OutgoingMessages messages = new();

@@ -47,8 +47,7 @@ public sealed class TenantInvitationRepositoryPostgresTests
         _dbContext = CreateDbContext();
         await _dbContext.Database.MigrateAsync(ct);
 
-        TenantCode code = TenantCode.FromPersistence("t" + _tenantId.ToString("N")[..12]);
-        Tenant tenant = Tenant.Create(_tenantId, code, "Repo test tenant");
+        Tenant tenant = Tenant.Create(_tenantId, "t" + _tenantId.ToString("N")[..12], "Repo test tenant");
         _dbContext.Tenants.Add(tenant);
         await _dbContext.SaveChangesAsync(ct);
         _dbContext.ChangeTracker.Clear();

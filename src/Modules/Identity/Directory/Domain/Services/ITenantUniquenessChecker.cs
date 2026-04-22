@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity.ValueObjects;
 
 namespace Identity.Directory.Domain.Services;
 
@@ -13,5 +12,5 @@ public interface ITenantUniquenessChecker
     /// <summary>
     ///     Returns an error if a tenant with the given code already exists.
     /// </summary>
-    Task<ErrorOr<Success>> EnsureCodeUniqueAsync(TenantCode code, CancellationToken ct = default);
+    Task<ErrorOr<Success>> EnsureCodeUniqueAsync(string code, CancellationToken ct = default);
 }

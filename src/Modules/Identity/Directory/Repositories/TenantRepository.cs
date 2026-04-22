@@ -1,5 +1,4 @@
 using Ardalis.Specification;
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.Directory.Repositories;
@@ -56,9 +55,6 @@ public sealed class TenantRepository : RepositoryBase<Tenant>, ITenantRepository
         return SpecificationEvaluator.GetQuery(UnfilteredTenants, specification);
     }
 
-    public Task<bool> ExistsByCodeAsync(string code, CancellationToken ct = default)
-    {
-        TenantCode tenantCode = TenantCode.FromPersistence(code);
-        return UnfilteredTenants.AnyAsync(t => t.Code == tenantCode, ct);
-    }
+    public Task<bool> ExistsByCodeAsync(string code, CancellationToken ct = default) =>
+        UnfilteredTenants.AnyAsync(t => t.Code == code, ct);
 }
