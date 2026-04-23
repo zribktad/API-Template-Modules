@@ -47,14 +47,14 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
     /// </summary>
     public async Task SendAsync(EmailMessage message, CancellationToken ct = default)
     {
+        if (!string.IsNullOrEmpty(_options.Username) && string.IsNullOrEmpty(_options.Password))
+            throw new AppException("SMTP password is missing.", NTF.Smtp.SendFailed);
+
         MimeMessage mimeMessage = new();
         mimeMessage.From.Add(new MailboxAddress(_options.SenderName, _options.SenderEmail));
         mimeMessage.To.Add(MailboxAddress.Parse(message.To));
         mimeMessage.Subject = message.Subject;
         mimeMessage.Body = new TextPart("html") { Text = message.HtmlBody };
-
-        if (!string.IsNullOrEmpty(_options.Username) && string.IsNullOrEmpty(_options.Password))
-            throw new AppException("SMTP password is missing.", NTF.Smtp.SendFailed);
 
         await _lock.WaitAsync(ct);
         try

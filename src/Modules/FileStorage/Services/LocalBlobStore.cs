@@ -53,6 +53,9 @@ internal sealed class LocalBlobStore : IBlobStore
         using IncrementalHash hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         long sizeBytes = 0;
         byte[] buffer = ArrayPool<byte>.Shared.Rent(CopyBufferSize);
+        // Flag instead of throw: the FileStream must be disposed (flushed/closed) before
+        // File.Delete can succeed on Windows. Breaking out of the loop lets the await using
+        // dispose the stream cleanly; cleanup runs after the finally block.
         bool fileTooLarge = false;
 
         try
@@ -182,15 +185,16 @@ internal sealed class LocalBlobStore : IBlobStore
         if (!File.Exists(committedPath))
             return Task.FromResult<ErrorOr<Stream?>>((Stream?)null);
 
-        Stream fileStream = new FileStream(
-            committedPath,
-            FileMode.Open,
-            FileAccess.Read,
-            FileShare.Read,
-            CopyBufferSize,
-            FileOptions.Asynchronous
+        return Task.FromResult<ErrorOr<Stream?>>(
+            new FileStream(
+                committedPath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                CopyBufferSize,
+                FileOptions.Asynchronous
+            )
         );
-        return Task.FromResult<ErrorOr<Stream?>>(fileStream);
     }
 
     public async Task DeleteAsync(Guid tenantId, string sha256, CancellationToken ct = default)
