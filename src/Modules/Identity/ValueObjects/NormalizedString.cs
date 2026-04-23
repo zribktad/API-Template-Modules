@@ -9,8 +9,8 @@ namespace Identity.ValueObjects;
 /// </summary>
 public sealed class NormalizedString
 {
-    public string Value { get; set; } = string.Empty;
-    public string Normalized { get; set; } = string.Empty;
+    public string Value { get; private set; } = string.Empty;
+    public string Normalized { get; private set; } = string.Empty;
 
     private NormalizedString() { }
 
@@ -23,5 +23,9 @@ public sealed class NormalizedString
         Normalized = Value.ToUpperInvariant();
     }
 
-    public static string Normalize(string value) => value.Trim().ToUpperInvariant();
+    public static string Normalize(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return value.Trim().ToUpperInvariant();
+    }
 }

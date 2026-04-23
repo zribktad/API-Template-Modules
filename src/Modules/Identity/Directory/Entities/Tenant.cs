@@ -31,13 +31,14 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
 
     public static Tenant Create(Guid id, string code, string name)
     {
-        ArgumentNullException.ThrowIfNull(code);
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ArgumentException("Tenant code cannot be empty.", nameof(code));
 
         return new Tenant
         {
             Id = id,
             TenantId = id,
-            Code = code,
+            Code = code.Trim(),
             Name = name,
         };
     }

@@ -26,8 +26,7 @@ internal sealed class UserUniquenessChecker(IUserRepository repository) : IUserU
         CancellationToken ct = default
     )
     {
-        string normalized = NormalizedString.Normalize(username);
-        if (await repository.ExistsByUsernameAsync(normalized, ct))
+        if (await repository.ExistsByUsernameAsync(username, ct))
             return DomainErrors.Users.UsernameAlreadyExists(username);
 
         return Result.Success;

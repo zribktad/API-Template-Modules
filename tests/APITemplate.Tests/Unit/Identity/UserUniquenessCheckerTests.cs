@@ -1,7 +1,6 @@
 using ErrorOr;
 using Identity.Directory.Domain.Services;
 using Identity.Errors;
-using Identity.ValueObjects;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -25,9 +24,7 @@ public sealed class UserUniquenessCheckerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         string email = "alice@example.com";
         _repository.Setup(r => r.ExistsByEmailAsync(email, ct)).ReturnsAsync(false);
-        _repository
-            .Setup(r => r.ExistsByUsernameAsync(NormalizedString.Normalize("alice"), ct))
-            .ReturnsAsync(false);
+        _repository.Setup(r => r.ExistsByUsernameAsync("alice", ct)).ReturnsAsync(false);
 
         ErrorOr<Success> result = await _sut.EnsureUniqueAsync("alice", email, ct);
 
@@ -69,9 +66,7 @@ public sealed class UserUniquenessCheckerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         string email = "new@example.com";
         _repository.Setup(r => r.ExistsByEmailAsync(email, ct)).ReturnsAsync(false);
-        _repository
-            .Setup(r => r.ExistsByUsernameAsync(NormalizedString.Normalize("existing"), ct))
-            .ReturnsAsync(true);
+        _repository.Setup(r => r.ExistsByUsernameAsync("existing", ct)).ReturnsAsync(true);
 
         ErrorOr<Success> result = await _sut.EnsureUniqueAsync("existing", email, ct);
 
@@ -94,15 +89,15 @@ public sealed class UserUniquenessCheckerTests
     }
 
     [Fact]
-    public async Task EnsureUsernameUniqueAsync_NormalizesUsernameBeforeQuery()
+    public async Task EnsureUsernameUniqueAsync_PassesRawUsernameToRepository()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        string normalized = NormalizedString.Normalize("Mixed.Case");
-        _repository.Setup(r => r.ExistsByUsernameAsync(normalized, ct)).ReturnsAsync(false);
+        string username = "Mixed.Case";
+        _repository.Setup(r => r.ExistsByUsernameAsync(username, ct)).ReturnsAsync(false);
 
-        ErrorOr<Success> result = await _sut.EnsureUsernameUniqueAsync("Mixed.Case", ct);
+        ErrorOr<Success> result = await _sut.EnsureUsernameUniqueAsync(username, ct);
 
         result.IsError.ShouldBeFalse();
-        _repository.Verify(r => r.ExistsByUsernameAsync(normalized, ct), Times.Once);
+        _repository.Verify(r => r.ExistsByUsernameAsync(username, ct), Times.Once);
     }
 }
