@@ -6,7 +6,6 @@ using Identity.Directory.Features.Account;
 using Identity.Directory.Features.User;
 using Identity.Directory.Interfaces;
 using Identity.Errors;
-using Identity.ValueObjects;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -74,8 +73,7 @@ public sealed class ChangeOwnPasswordCommandHandlerTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         string kcId = Guid.NewGuid().ToString();
-        Email email = Email.FromPersistence("alice@example.com");
-        AppUser user = AppUser.Create("alice", email, kcId);
+        AppUser user = AppUser.Create("alice", "alice@example.com", kcId);
         _repository
             .Setup(r => r.FirstOrDefaultAsync(It.IsAny<UserByKeycloakUserIdSpecification>(), ct))
             .ReturnsAsync(user);
@@ -119,8 +117,7 @@ public sealed class ChangeOwnPasswordCommandHandlerTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         string kcId = Guid.NewGuid().ToString();
-        Email email = Email.FromPersistence("alice@example.com");
-        AppUser user = AppUser.Create("alice", email, kcId);
+        AppUser user = AppUser.Create("alice", "alice@example.com", kcId);
         _repository
             .Setup(r => r.FirstOrDefaultAsync(It.IsAny<UserByKeycloakUserIdSpecification>(), ct))
             .ReturnsAsync(user);

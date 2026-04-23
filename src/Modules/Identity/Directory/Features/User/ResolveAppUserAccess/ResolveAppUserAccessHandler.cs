@@ -5,7 +5,6 @@ using Identity.Directory.Features.TenantInvitation.Specifications;
 using Identity.Directory.Interfaces;
 using Identity.Logging;
 using Identity.Directory.Security;
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -41,7 +40,7 @@ public sealed class ResolveAppUserAccessHandler
             return UserAccessResolution.Allowed(existing);
         }
 
-        string normalizedEmail = Email.NormalizeRaw(email);
+        string normalizedEmail = NormalizedString.Normalize(email);
 
         AppUser? unlinked = await userRepository.FirstOrDefaultAsync(
             new UserUnlinkedByNormalizedEmailSpecification(normalizedEmail),
@@ -165,7 +164,7 @@ public sealed class ResolveAppUserAccessHandler
     {
         AppUser user = AppUser.Create(
             username,
-            Email.FromPersistence(email),
+            email,
             keycloakUserId,
             tenantId: invitation.TenantId
         );

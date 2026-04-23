@@ -92,15 +92,10 @@ public sealed class EmailRetryService : IEmailRetryService
             }
             catch (Exception ex)
             {
-                email.RetryCount++;
-                email.LastAttemptAtUtc = _timeProvider.GetUtcNow().UtcDateTime;
                 string rawError = ex is AppException ae
                     ? $"{ae.ErrorCode}: {ae.Message}"
                     : ex.Message;
-                email.LastError = FailedEmailErrorNormalizer.Normalize(rawError);
-                email.ClaimedBy = null;
-                email.ClaimedAtUtc = null;
-                email.ClaimedUntilUtc = null;
+                email.RecordFailure(rawError, _timeProvider);
                 await _repository.UpdateAsync(email, ct);
 
                 _logger.EmailRetryAttemptFailed(ex, email.RetryCount, email.To);
@@ -184,13 +179,8 @@ public sealed class EmailRetryService : IEmailRetryService
         } while (processed == batchSize);
     }
 
-    private static void ApplyDeadLetterTransition(FailedEmail email)
-    {
-        email.IsDeadLettered = true;
-        email.ClaimedBy = null;
-        email.ClaimedAtUtc = null;
-        email.ClaimedUntilUtc = null;
-    }
+    private static void ApplyDeadLetterTransition(FailedEmail email) =>
+        email.MarkDeadLettered();
 
     private async Task ReplayDeadLetterBatchAfterConcurrencyAsync(
         List<FailedEmail> claimedBatch,

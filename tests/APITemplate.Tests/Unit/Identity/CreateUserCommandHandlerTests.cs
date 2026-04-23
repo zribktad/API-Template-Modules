@@ -4,7 +4,6 @@ using Identity.Directory.Domain.Services;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
 using Identity.Errors;
-using Identity.ValueObjects;
 using Moq;
 using SharedKernel.Contracts.Events;
 using Shouldly;
@@ -35,7 +34,7 @@ public sealed class CreateUserCommandHandlerTests
         CreateUserCommand command = new(request);
 
         _uniqueness
-            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<Email>(), ct))
+            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<string>(), ct))
             .ReturnsAsync(Result.Success);
 
         AppUser? addedUser = null;
@@ -44,7 +43,7 @@ public sealed class CreateUserCommandHandlerTests
             .Callback<AppUser, CancellationToken>((u, _) => addedUser = u)
             .ReturnsAsync((AppUser u, CancellationToken _) => u);
 
-        ErrorOr<Email> validation = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Success> validation = await CreateUserCommandHandler.ValidateAsync(
             command,
             _uniqueness.Object,
             ct
@@ -90,10 +89,10 @@ public sealed class CreateUserCommandHandlerTests
         CreateUserRequest request = new("bob", "taken@example.com");
 
         _uniqueness
-            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<Email>(), ct))
+            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<string>(), ct))
             .ReturnsAsync(DomainErrors.Users.EmailAlreadyExists(request.Email));
 
-        ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Success> result = await CreateUserCommandHandler.ValidateAsync(
             new CreateUserCommand(request),
             _uniqueness.Object,
             ct
@@ -111,10 +110,10 @@ public sealed class CreateUserCommandHandlerTests
         CreateUserRequest request = new("existinguser", "new@example.com");
 
         _uniqueness
-            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<Email>(), ct))
+            .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<string>(), ct))
             .ReturnsAsync(DomainErrors.Users.UsernameAlreadyExists(request.Username));
 
-        ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Success> result = await CreateUserCommandHandler.ValidateAsync(
             new CreateUserCommand(request),
             _uniqueness.Object,
             ct
@@ -123,27 +122,5 @@ public sealed class CreateUserCommandHandlerTests
         result.IsError.ShouldBeTrue();
         result.FirstError.Type.ShouldBe(ErrorType.Conflict);
         result.FirstError.Code.ShouldBe(ErrorCatalog.Users.UsernameAlreadyExists);
-    }
-
-    [Fact]
-    public async Task ValidateAsync_WhenInvalidEmail_ReturnsValidationError()
-    {
-        CancellationToken ct = TestContext.Current.CancellationToken;
-        CreateUserRequest request = new("charlie", "not-an-email");
-
-        ErrorOr<Email> result = await CreateUserCommandHandler.ValidateAsync(
-            new CreateUserCommand(request),
-            _uniqueness.Object,
-            ct
-        );
-
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Type.ShouldBe(ErrorType.Validation);
-
-        _repository.Verify(
-            r => r.AddAsync(It.IsAny<AppUser>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
-        _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }

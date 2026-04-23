@@ -1,5 +1,4 @@
 using Ardalis.Specification;
-using Identity.ValueObjects;
 
 namespace Identity.Directory.Features.User;
 
@@ -15,14 +14,14 @@ internal static class UserFilterCriteria
     {
         if (!string.IsNullOrWhiteSpace(filter.Username))
         {
-            string normalizedUsername = AppUser.NormalizeUsername(filter.Username);
-            query.Where(u => u.NormalizedUsername.Contains(normalizedUsername));
+            string normalizedUsername = NormalizedString.Normalize(filter.Username);
+            query.Where(u => u.Username.Normalized.Contains(normalizedUsername));
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Email))
         {
-            string normalizedEmail = Email.NormalizeRaw(filter.Email);
-            query.Where(u => u.NormalizedEmail == normalizedEmail);
+            string normalizedEmail = NormalizedString.Normalize(filter.Email);
+            query.Where(u => u.Email.Normalized == normalizedEmail);
         }
 
         if (filter.IsActive.HasValue)

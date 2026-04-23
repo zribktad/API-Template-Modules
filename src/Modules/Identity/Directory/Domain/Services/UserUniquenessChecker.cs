@@ -1,21 +1,22 @@
 using ErrorOr;
-using Identity.ValueObjects;
+using Identity.Directory.Interfaces;
 
 namespace Identity.Directory.Domain.Services;
 
 /// <summary>
-///     Default <see cref="IUserUniquenessChecker" /> backed by <see cref="IUserRepository" /> existence queries.
-///     Keeps uniqueness conflict error mapping out of command handlers and out of the repository.
+///     Translates raw <see cref="IUserRepository"/> existence queries into domain-level uniqueness errors.
+///     Centralising this mapping here keeps command handlers free of error-code knowledge and the
+///     repository free of business rules.
 /// </summary>
 internal sealed class UserUniquenessChecker(IUserRepository repository) : IUserUniquenessChecker
 {
     public async Task<ErrorOr<Success>> EnsureEmailUniqueAsync(
-        Email email,
+        string email,
         CancellationToken ct = default
     )
     {
-        if (await repository.ExistsByEmailAsync(email.Value, ct))
-            return DomainErrors.Users.EmailAlreadyExists(email.Value);
+        if (await repository.ExistsByEmailAsync(email, ct))
+            return DomainErrors.Users.EmailAlreadyExists(email);
 
         return Result.Success;
     }
@@ -25,8 +26,7 @@ internal sealed class UserUniquenessChecker(IUserRepository repository) : IUserU
         CancellationToken ct = default
     )
     {
-        string normalized = AppUser.NormalizeUsername(username);
-        if (await repository.ExistsByUsernameAsync(normalized, ct))
+        if (await repository.ExistsByUsernameAsync(username, ct))
             return DomainErrors.Users.UsernameAlreadyExists(username);
 
         return Result.Success;
@@ -34,7 +34,7 @@ internal sealed class UserUniquenessChecker(IUserRepository repository) : IUserU
 
     public async Task<ErrorOr<Success>> EnsureUniqueAsync(
         string username,
-        Email email,
+        string email,
         CancellationToken ct = default
     )
     {

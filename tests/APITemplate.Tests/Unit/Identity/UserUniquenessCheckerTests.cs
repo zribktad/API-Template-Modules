@@ -1,8 +1,6 @@
 using ErrorOr;
 using Identity.Directory.Domain.Services;
-using Identity.Directory.Entities;
 using Identity.Errors;
-using Identity.ValueObjects;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -20,20 +18,13 @@ public sealed class UserUniquenessCheckerTests
         _sut = new UserUniquenessChecker(_repository.Object);
     }
 
-    private static Email EmailOf(string raw)
-    {
-        return Email.Create(raw).Value;
-    }
-
     [Fact]
     public async Task EnsureUniqueAsync_WhenEmailAndUsernameFree_ReturnsSuccess()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Email email = EmailOf("alice@example.com");
-        _repository.Setup(r => r.ExistsByEmailAsync(email.Value, ct)).ReturnsAsync(false);
-        _repository
-            .Setup(r => r.ExistsByUsernameAsync(AppUser.NormalizeUsername("alice"), ct))
-            .ReturnsAsync(false);
+        string email = "alice@example.com";
+        _repository.Setup(r => r.ExistsByEmailAsync(email, ct)).ReturnsAsync(false);
+        _repository.Setup(r => r.ExistsByUsernameAsync("alice", ct)).ReturnsAsync(false);
 
         ErrorOr<Success> result = await _sut.EnsureUniqueAsync("alice", email, ct);
 
@@ -44,8 +35,8 @@ public sealed class UserUniquenessCheckerTests
     public async Task EnsureUniqueAsync_WhenEmailTaken_ReturnsEmailConflict()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Email email = EmailOf("taken@example.com");
-        _repository.Setup(r => r.ExistsByEmailAsync(email.Value, ct)).ReturnsAsync(true);
+        string email = "taken@example.com";
+        _repository.Setup(r => r.ExistsByEmailAsync(email, ct)).ReturnsAsync(true);
 
         ErrorOr<Success> result = await _sut.EnsureUniqueAsync("anyone", email, ct);
 
@@ -58,8 +49,8 @@ public sealed class UserUniquenessCheckerTests
     public async Task EnsureUniqueAsync_WhenEmailTaken_DoesNotQueryUsername()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Email email = EmailOf("taken@example.com");
-        _repository.Setup(r => r.ExistsByEmailAsync(email.Value, ct)).ReturnsAsync(true);
+        string email = "taken@example.com";
+        _repository.Setup(r => r.ExistsByEmailAsync(email, ct)).ReturnsAsync(true);
 
         await _sut.EnsureUniqueAsync("irrelevant", email, ct);
 
@@ -73,11 +64,9 @@ public sealed class UserUniquenessCheckerTests
     public async Task EnsureUniqueAsync_WhenUsernameTaken_ReturnsUsernameConflict()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Email email = EmailOf("new@example.com");
-        _repository.Setup(r => r.ExistsByEmailAsync(email.Value, ct)).ReturnsAsync(false);
-        _repository
-            .Setup(r => r.ExistsByUsernameAsync(AppUser.NormalizeUsername("existing"), ct))
-            .ReturnsAsync(true);
+        string email = "new@example.com";
+        _repository.Setup(r => r.ExistsByEmailAsync(email, ct)).ReturnsAsync(false);
+        _repository.Setup(r => r.ExistsByUsernameAsync("existing", ct)).ReturnsAsync(true);
 
         ErrorOr<Success> result = await _sut.EnsureUniqueAsync("existing", email, ct);
 
@@ -90,25 +79,25 @@ public sealed class UserUniquenessCheckerTests
     public async Task EnsureEmailUniqueAsync_UsesEmailValueExactly()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Email email = EmailOf("foo@example.com");
-        _repository.Setup(r => r.ExistsByEmailAsync(email.Value, ct)).ReturnsAsync(false);
+        string email = "foo@example.com";
+        _repository.Setup(r => r.ExistsByEmailAsync(email, ct)).ReturnsAsync(false);
 
         ErrorOr<Success> result = await _sut.EnsureEmailUniqueAsync(email, ct);
 
         result.IsError.ShouldBeFalse();
-        _repository.Verify(r => r.ExistsByEmailAsync(email.Value, ct), Times.Once);
+        _repository.Verify(r => r.ExistsByEmailAsync(email, ct), Times.Once);
     }
 
     [Fact]
-    public async Task EnsureUsernameUniqueAsync_NormalizesUsernameBeforeQuery()
+    public async Task EnsureUsernameUniqueAsync_PassesRawUsernameToRepository()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        string normalized = AppUser.NormalizeUsername("Mixed.Case");
-        _repository.Setup(r => r.ExistsByUsernameAsync(normalized, ct)).ReturnsAsync(false);
+        string username = "Mixed.Case";
+        _repository.Setup(r => r.ExistsByUsernameAsync(username, ct)).ReturnsAsync(false);
 
-        ErrorOr<Success> result = await _sut.EnsureUsernameUniqueAsync("Mixed.Case", ct);
+        ErrorOr<Success> result = await _sut.EnsureUsernameUniqueAsync(username, ct);
 
         result.IsError.ShouldBeFalse();
-        _repository.Verify(r => r.ExistsByUsernameAsync(normalized, ct), Times.Once);
+        _repository.Verify(r => r.ExistsByUsernameAsync(username, ct), Times.Once);
     }
 }

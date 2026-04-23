@@ -3,7 +3,6 @@ using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Repositories;
 using Identity.Persistence;
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
@@ -47,8 +46,7 @@ public sealed class TenantInvitationRepositoryPostgresTests
         _dbContext = CreateDbContext();
         await _dbContext.Database.MigrateAsync(ct);
 
-        TenantCode code = TenantCode.FromPersistence("t" + _tenantId.ToString("N")[..12]);
-        Tenant tenant = Tenant.Create(_tenantId, code, "Repo test tenant");
+        Tenant tenant = Tenant.Create(_tenantId, "t" + _tenantId.ToString("N")[..12], "Repo test tenant");
         _dbContext.Tenants.Add(tenant);
         await _dbContext.SaveChangesAsync(ct);
         _dbContext.ChangeTracker.Clear();
@@ -78,7 +76,7 @@ public sealed class TenantInvitationRepositoryPostgresTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         string tokenHash = $"tok-{Guid.NewGuid():N}";
-        Email email = Email.FromPersistence($"nr-{status}-{Guid.NewGuid():N}@example.com");
+        string email = $"nr-{status}-{Guid.NewGuid():N}@example.com";
 
         await PersistInvitationAsync(email, tokenHash, status, ct);
 
@@ -112,8 +110,8 @@ public sealed class TenantInvitationRepositoryPostgresTests
     )
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Email email = Email.FromPersistence($"hp-{status}-{Guid.NewGuid():N}@example.com");
-        string normalized = email.Normalize();
+        string email = $"hp-{status}-{Guid.NewGuid():N}@example.com";
+        string normalized = email.Trim().ToUpperInvariant();
         string tokenHash = $"th-{Guid.NewGuid():N}";
 
         await PersistInvitationAsync(email, tokenHash, status, ct);
@@ -124,7 +122,7 @@ public sealed class TenantInvitationRepositoryPostgresTests
     }
 
     private async Task PersistInvitationAsync(
-        Email email,
+        string email,
         string tokenHash,
         InvitationStatus status,
         CancellationToken ct
