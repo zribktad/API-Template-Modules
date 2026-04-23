@@ -21,8 +21,8 @@ public static class ErrorOrGraphQLExtensions
         if (failures.Count == 0)
             return;
 
-        IError[] errors = failures
-            .Select(f =>
+        throw new GraphQLException(
+            failures.Select(f =>
                 ErrorBuilder
                     .New()
                     .SetMessage(f.ErrorMessage ?? "Validation failed.")
@@ -30,9 +30,7 @@ public static class ErrorOrGraphQLExtensions
                     .SetExtension("propertyName", string.Join(", ", f.MemberNames))
                     .Build()
             )
-            .ToArray();
-
-        throw new GraphQLException(errors);
+        );
     }
 
     /// <summary>
