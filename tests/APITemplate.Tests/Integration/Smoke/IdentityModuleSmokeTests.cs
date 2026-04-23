@@ -1,5 +1,4 @@
 using System.Net;
-using Identity.Directory.Entities;
 using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
@@ -10,6 +9,7 @@ namespace APITemplate.Tests.Integration.Smoke;
 [Trait("Category", "Smoke")]
 public sealed class IdentityModuleSmokeTests : SmokeTestBase
 {
+    private Guid _seededUserId;
     private string _seededEmail = string.Empty;
     private string _seededKeycloakUserId = string.Empty;
     private string _seededUsername = string.Empty;
@@ -22,10 +22,11 @@ public sealed class IdentityModuleSmokeTests : SmokeTestBase
     public override async ValueTask InitializeAsync()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        (_, AppUser user) = await SeedUniqueTenantUserAsync(ct);
-        _seededEmail = user.Email.Value;
-        _seededKeycloakUserId = user.KeycloakUserId.ShouldNotBeNull();
-        _seededUsername = user.Username;
+        SeededSmokeUser seededUser = await SeedUniqueTenantUserAsync(ct);
+        _seededUserId = seededUser.UserId;
+        _seededEmail = seededUser.Email;
+        _seededKeycloakUserId = seededUser.KeycloakUserId;
+        _seededUsername = seededUser.Username;
     }
 
     [Fact]
@@ -43,6 +44,7 @@ public sealed class IdentityModuleSmokeTests : SmokeTestBase
         CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
+            userId: _seededUserId,
             tenantId: TenantId,
             username: _seededUsername,
             subject: _seededKeycloakUserId,
