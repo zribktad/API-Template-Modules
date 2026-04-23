@@ -1,3 +1,5 @@
+using ErrorOr;
+
 namespace BackgroundJobs.Domain;
 
 /// <summary>
@@ -42,34 +44,49 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
 
     /// <summary>
     ///     Transitions the job to <see cref="JobStatus.Processing" /> and records the start timestamp.
+    ///     Only valid from <see cref="JobStatus.Pending" />.
     /// </summary>
-    public void MarkProcessing(TimeProvider timeProvider)
+    public ErrorOr<Success> MarkProcessing(TimeProvider timeProvider)
     {
+        ErrorOr<Success> guard = RequireStatus(JobStatus.Pending, JobStatus.Processing);
+        if (guard.IsError) return guard;
+
         Status = JobStatus.Processing;
         StartedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        return Result.Success;
     }
 
     /// <summary>
     ///     Transitions the job to <see cref="JobStatus.Completed" />, sets progress to 100%, stores the optional result
     ///     payload, and records the completion timestamp.
+    ///     Only valid from <see cref="JobStatus.Processing" />.
     /// </summary>
-    public void MarkCompleted(string? resultPayload, TimeProvider timeProvider)
+    public ErrorOr<Success> MarkCompleted(string? resultPayload, TimeProvider timeProvider)
     {
+        ErrorOr<Success> guard = RequireStatus(JobStatus.Processing, JobStatus.Completed);
+        if (guard.IsError) return guard;
+
         Status = JobStatus.Completed;
         ProgressPercent = 100;
         ResultPayload = resultPayload;
         CompletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        return Result.Success;
     }
 
     /// <summary>
     ///     Transitions the job to <see cref="JobStatus.Failed" />, stores the error message, and records the completion
     ///     timestamp.
+    ///     Only valid from <see cref="JobStatus.Processing" />.
     /// </summary>
-    public void MarkFailed(string errorMessage, TimeProvider timeProvider)
+    public ErrorOr<Success> MarkFailed(string errorMessage, TimeProvider timeProvider)
     {
+        ErrorOr<Success> guard = RequireStatus(JobStatus.Processing, JobStatus.Failed);
+        if (guard.IsError) return guard;
+
         Status = JobStatus.Failed;
         ErrorMessage = errorMessage;
         CompletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        return Result.Success;
     }
 
     /// <summary>
@@ -78,5 +95,15 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     public void UpdateProgress(int percent)
     {
         ProgressPercent = Math.Clamp(percent, 0, 100);
+    }
+
+    private ErrorOr<Success> RequireStatus(JobStatus expected, JobStatus target)
+    {
+        if (Status != expected)
+            return Error.Conflict(
+                code: "Job.InvalidTransition",
+                description: $"Cannot transition to {target} from {Status}."
+            );
+        return Result.Success;
     }
 }

@@ -8,9 +8,9 @@ public interface IUserRepository : IRepository<AppUser>
     /// <summary>Returns <c>true</c> if a user with the given email (case-insensitive) already exists.</summary>
     public Task<bool> ExistsByEmailAsync(string email, CancellationToken ct = default);
 
-    /// <summary>Returns <c>true</c> if a user with the given normalised username already exists.</summary>
+    /// <summary>Returns <c>true</c> if a user with the given username (case-insensitive) already exists.</summary>
     public Task<bool> ExistsByUsernameAsync(
-        string normalizedUsername,
+        string username,
         CancellationToken ct = default
     );
 

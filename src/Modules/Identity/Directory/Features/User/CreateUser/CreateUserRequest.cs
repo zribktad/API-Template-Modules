@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Identity.Directory.Entities;
 using Microsoft.Extensions.Validation;
 
 namespace Identity.Directory.Features.User;
@@ -11,6 +12,6 @@ namespace Identity.Directory.Features.User;
 [ValidatableType]
 #pragma warning restore ASP0029
 public sealed record CreateUserRequest(
-    [NotEmpty] [MaxLength(100)] string Username,
-    [NotEmpty] [MaxLength(320)] [EmailAddress] string Email
+    [NotEmpty] [MaxLength(AppUser.UsernameMaxLength)] string Username,
+    [NotEmpty] [MaxLength(AppUser.EmailMaxLength)] [EmailAddress] string Email
 );

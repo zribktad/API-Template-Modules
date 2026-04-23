@@ -206,6 +206,7 @@ public static partial class IdentityModule
         services.AddSingleton<IKeycloakService, KeycloakService>();
         services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
         services.AddScoped<IUserUniquenessChecker, UserUniquenessChecker>();
+        services.AddScoped<ITenantUniquenessChecker, TenantUniquenessChecker>();
     }
 
     // ── Keycloak Admin ────────────────────────────────────────────────────────

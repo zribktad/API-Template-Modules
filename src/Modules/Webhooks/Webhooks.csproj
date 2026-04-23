@@ -1,23 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+
   <ItemGroup>
-    <InternalsVisibleTo Include="APITemplate.Tests"/>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <InternalsVisibleTo Include="APITemplate.Tests" />
   </ItemGroup>
+
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj"/>
+    <PackageReference Include="Asp.Versioning.Mvc" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="WolverineFx" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Mvc"/>
-    <PackageReference Include="Microsoft.Extensions.Http.Resilience"/>
-    <PackageReference Include="WolverineFx"/>
-  </ItemGroup>
+
 </Project>
-
-

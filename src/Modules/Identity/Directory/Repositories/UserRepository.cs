@@ -39,11 +39,11 @@ public sealed class UserRepository : RepositoryBase<AppUser>, IUserRepository
     }
 
     public Task<bool> ExistsByUsernameAsync(
-        string normalizedUsername,
+        string username,
         CancellationToken ct = default
     )
     {
-        return AnyAsync(new UserByUsernameSpecification(normalizedUsername), ct);
+        return AnyAsync(new UserByUsernameSpecification(username), ct);
     }
 
     public Task<AppUser?> FindByEmailAsync(string email, CancellationToken ct = default)

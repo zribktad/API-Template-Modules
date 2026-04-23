@@ -51,16 +51,11 @@ public sealed class BeginUploadEndpointCommandHandler
             return DomainErrors.Files.FileTooLarge(opts.MaxFileSizeBytes);
 
         IBlobStore store = blobStoreFactory.Get(opts.BackendKey);
-        StagingResult staging;
-        try
-        {
-            staging = await store.WriteStagingAsync(request.FileStream, ct);
-        }
-        catch (FileTooLargeException)
-        {
-            return DomainErrors.Files.FileTooLarge(opts.MaxFileSizeBytes);
-        }
+        ErrorOr<StagingResult> stagingResult = await store.WriteStagingAsync(request.FileStream, ct);
+        if (stagingResult.IsError)
+            return stagingResult.Errors;
 
+        StagingResult staging = stagingResult.Value;
         string uploadToken = Guid.NewGuid().ToString("N");
 
         BeginUploadCommand sagaStart = new(
@@ -83,11 +78,4 @@ public sealed class BeginUploadEndpointCommandHandler
 
         return new BeginUploadResponse(uploadToken, staging.Sha256, staging.SizeBytes);
     }
-}
-
-/// <summary>Thrown by <see cref="IBlobStore" /> implementations when the streamed payload exceeds the limit.</summary>
-public sealed class FileTooLargeException : Exception
-{
-    public FileTooLargeException(long maxBytes)
-        : base($"Upload exceeded the maximum allowed size of {maxBytes} bytes.") { }
 }

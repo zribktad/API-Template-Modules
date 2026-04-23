@@ -1,9 +1,10 @@
+using ErrorOr;
 using Identity.Auth.Entities;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
-using Identity.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;
+using SharedKernel.Application.Errors;
 using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;
@@ -65,7 +66,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
 
         AppUser alreadyLinked = AppUser.Create(
             "bob",
-            Email.FromPersistence("bob@example.com"),
+            "bob@example.com",
             keycloakUserId: "existing-kc-id"
         );
 
@@ -107,14 +108,14 @@ public sealed class ProvisionKeycloakUserHandlerTests
 
         AppUser user = AppUser.Create(
             "carol",
-            Email.FromPersistence("carol@example.com"),
+            "carol@example.com",
             keycloakUserId: null
         );
 
         _repository.Setup(r => r.GetByIdAsync<Guid>(userId, ct)).ReturnsAsync(user);
         _keycloakAdmin
             .Setup(k => k.CreateUserAsync(@event.Username, @event.Email, ct))
-            .ReturnsAsync(keycloakId);
+            .ReturnsAsync((ErrorOr<string>)keycloakId);
 
         AppUser? updatedUser = null;
         _repository
@@ -149,6 +150,43 @@ public sealed class ProvisionKeycloakUserHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WhenCreateUserReturnsError_ThrowsWithoutPersisting()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        Guid userId = Guid.NewGuid();
+        ProvisionKeycloakUserEvent @event = new(userId, "eve", "eve@example.com");
+
+        AppUser user = AppUser.Create(
+            "eve",
+            "eve@example.com",
+            keycloakUserId: null
+        );
+
+        _repository.Setup(r => r.GetByIdAsync<Guid>(userId, ct)).ReturnsAsync(user);
+        _keycloakAdmin
+            .Setup(k => k.CreateUserAsync(@event.Username, @event.Email, ct))
+            .ReturnsAsync(Error.Conflict("KC-0409", "Username conflict"));
+
+        AppException ex = await Should.ThrowAsync<AppException>(() =>
+            ProvisionKeycloakUserHandler.HandleAsync(
+                @event,
+                _repository.Object,
+                _unitOfWork.Object,
+                _keycloakAdmin.Object,
+                _logger.Object,
+                ct
+            )
+        );
+
+        ex.ErrorCode.ShouldBe("KC-0409");
+        _repository.Verify(
+            r => r.UpdateAsync(It.IsAny<AppUser>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+        _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task HandleAsync_WhenKeycloakFails_Throws_SoWolverineRetries()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
@@ -157,7 +195,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
 
         AppUser user = AppUser.Create(
             "dave",
-            Email.FromPersistence("dave@example.com"),
+            "dave@example.com",
             keycloakUserId: null
         );
 

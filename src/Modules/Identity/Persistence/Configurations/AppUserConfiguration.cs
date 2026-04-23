@@ -1,4 +1,4 @@
-using Identity.ValueObjects;
+using EFCore.ComplexIndexes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -12,14 +12,21 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasKey(u => u.Id);
         builder.ConfigureTenantAuditable();
 
-        builder.Property(u => u.Username).IsRequired().HasMaxLength(100);
-        builder.Property(u => u.NormalizedUsername).IsRequired().HasMaxLength(100);
-        builder
-            .Property(u => u.Email)
-            .HasConversion(e => e.Value, v => Email.FromPersistence(v))
-            .IsRequired()
-            .HasMaxLength(320);
-        builder.Property(u => u.NormalizedEmail).IsRequired().HasMaxLength(320);
+        // NormalizedString uses ComplexProperty (not OwnsOne) so that EF Core can model composite
+        // indexes that span the owner column (TenantId) and the complex-type column (NormalizedEmail /
+        // NormalizedUsername). OwnsOne creates a separate ownership scope that prevents cross-boundary
+        // HasIndex — ComplexProperty keeps everything in the same entity scope and fully supports it.
+        builder.ComplexProperty(u => u.Username, b =>
+        {
+            b.Property(x => x.Value).HasColumnName("Username").IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
+            b.Property(x => x.Normalized).HasColumnName("NormalizedUsername").IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
+        });
+        builder.ComplexProperty(u => u.Email, b =>
+        {
+            b.Property(x => x.Value).HasColumnName("Email").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
+            b.Property(x => x.Normalized).HasColumnName("NormalizedEmail").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
+        });
+
         builder.Property(u => u.KeycloakUserId).HasMaxLength(256);
 
         builder
@@ -49,7 +56,7 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasForeignKey(u => u.TenantId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(u => new { u.TenantId, u.NormalizedUsername }).IsUnique();
-        builder.HasIndex(u => new { u.TenantId, u.NormalizedEmail }).IsUnique();
+        builder.HasComplexCompositeIndex(u => new { u.TenantId, u.Email.Normalized }, isUnique: true);
+        builder.HasComplexCompositeIndex(u => new { u.TenantId, u.Username.Normalized }, isUnique: true);
     }
 }

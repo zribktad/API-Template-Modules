@@ -6,7 +6,6 @@ using Identity.Directory.Features.User;
 using Identity.Directory.Interfaces;
 using Identity.Directory.Security;
 using Identity.Persistence;
-using Identity.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using SharedKernel.Domain.Interfaces;
@@ -26,7 +25,7 @@ public sealed class ResolveAppUserAccessHandlerTests
     {
         AppUser existing = AppUser.Create(
             "user",
-            Email.FromPersistence(UserEmail),
+            UserEmail,
             KeycloakSub,
             TenantId
         );
@@ -114,7 +113,7 @@ public sealed class ResolveAppUserAccessHandlerTests
             .ReturnsAsync((AppUser?)null);
 
         TenantInvitation pending = TenantInvitation.Create(
-            Email.FromPersistence(UserEmail),
+            UserEmail,
             "hash",
             expiryHours: 48,
             TimeProvider.System

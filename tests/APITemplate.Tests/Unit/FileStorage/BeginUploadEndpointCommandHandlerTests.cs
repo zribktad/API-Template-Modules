@@ -93,12 +93,12 @@ public sealed class BeginUploadEndpointCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WriteStagingThrowsFileTooLarge_MapsToValidationError()
+    public async Task HandleAsync_WriteStagingReturnsFileTooLargeError_PropagatesError()
     {
         MemoryStream stream = new(new byte[10]);
         _store
             .Setup(s => s.WriteStagingAsync(stream, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new FileTooLargeException(_options.MaxFileSizeBytes));
+            .ReturnsAsync(DomainErrors.Files.FileTooLarge(_options.MaxFileSizeBytes));
 
         BeginUploadEndpointCommand cmd = new(new BeginUploadRequest(stream, "pic.png", 10));
 
@@ -173,7 +173,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
         StagingResult staging = new("/tmp/staging/abc", "deadbeef", 5);
         _store
             .Setup(s => s.WriteStagingAsync(stream, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(staging);
+            .ReturnsAsync((ErrorOr<StagingResult>)staging);
 
         BeginUploadEndpointCommand cmd = new(new BeginUploadRequest(stream, "pic.PNG", 5));
 
@@ -196,7 +196,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
         StagingResult staging = new("/tmp/staging/abc", "deadbeef", 5);
         _store
             .Setup(s => s.WriteStagingAsync(stream, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(staging);
+            .ReturnsAsync((ErrorOr<StagingResult>)staging);
 
         BeginUploadEndpointCommand cmd = new(new BeginUploadRequest(stream, "pic.png", 5));
 

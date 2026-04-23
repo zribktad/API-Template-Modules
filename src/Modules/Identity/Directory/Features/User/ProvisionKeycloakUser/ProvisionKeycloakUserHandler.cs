@@ -1,5 +1,7 @@
+using ErrorOr;
 using Identity.Logging;
 using Microsoft.Extensions.Logging;
+using SharedKernel.Application.Errors;
 using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.Runtime.Handlers;
@@ -33,9 +35,9 @@ public sealed class ProvisionKeycloakUserHandler
                 {
                     if (lifecycle.Envelope?.Message is ProvisionKeycloakUserEvent message)
                     {
-                        ILogger logger =
+                        ILogger retryLogger =
                             runtime.LoggerFactory.CreateLogger<ProvisionKeycloakUserHandler>();
-                        logger.KeycloakProvisioningPermanentlyFailed(message.UserId);
+                        retryLogger.KeycloakProvisioningPermanentlyFailed(message.UserId);
                     }
 
                     await lifecycle.MoveToDeadLetterQueueAsync(exception);
@@ -61,12 +63,26 @@ public sealed class ProvisionKeycloakUserHandler
             return OutgoingMessagesHelper.Empty;
         }
 
-        string keycloakUserId = await keycloakAdmin.CreateUserAsync(
+        ErrorOr<string> createResult = await keycloakAdmin.CreateUserAsync(
             @event.Username,
             @event.Email,
             ct
         );
 
+        if (createResult.IsError)
+        {
+            Error err = createResult.FirstError;
+            if (err.Type == ErrorType.Failure)
+                // Transient HTTP-level failure — rethrow as HttpRequestException so Wolverine's
+                // retry chain (5s / 30s / 5min) applies before dead-lettering.
+                throw new HttpRequestException(err.Description);
+
+            // Permanent conflict/validation error — dead-letter immediately with structured log.
+            logger.KeycloakProvisioningPermanentlyFailed(user.Id);
+            throw new AppException(err.Description, err.Code);
+        }
+
+        string keycloakUserId = createResult.Value;
         user.LinkKeycloak(keycloakUserId);
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);

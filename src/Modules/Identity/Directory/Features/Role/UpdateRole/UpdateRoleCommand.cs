@@ -14,10 +14,10 @@ using Wolverine;
 namespace Identity.Directory.Features.Role.UpdateRole;
 
 public sealed record UpdateRoleRequest(
-    [NotEmpty] [MaxLength(100)] string Name,
+    [NotEmpty] [MaxLength(CustomRole.NameMaxLength)] string Name,
     [Required]
     [NoWhitespaceItems]
-    [MaxLengthItems(100)]
+    [MaxLengthItems(CustomRole.PermissionMaxLength)]
         List<string> Permissions
 );
 

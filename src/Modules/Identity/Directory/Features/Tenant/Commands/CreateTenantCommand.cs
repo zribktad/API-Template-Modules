@@ -1,7 +1,7 @@
 using ErrorOr;
+using Identity.Directory.Domain.Services;
 using Identity.Directory.Features.Tenant.Mappings;
 using Identity.Directory.Repositories;
-using Identity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
 using TenantEntity = Identity.Directory.Entities.Tenant;
@@ -16,12 +16,16 @@ public sealed class CreateTenantCommandHandler
         CreateTenantCommand command,
         ITenantRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
+        ITenantUniquenessChecker uniquenessChecker,
         CancellationToken ct
     )
     {
-        ErrorOr<TenantCode> codeResult = TenantCode.Create(command.Request.Code);
-        if (codeResult.IsError)
-            return (codeResult.FirstError, OutgoingMessagesHelper.Empty);
+        ErrorOr<Success> uniquenessResult = await uniquenessChecker.EnsureCodeUniqueAsync(
+            command.Request.Code,
+            ct
+        );
+        if (uniquenessResult.IsError)
+            return (uniquenessResult.FirstError, OutgoingMessagesHelper.Empty);
 
         TenantEntity tenant;
         try
@@ -29,10 +33,9 @@ public sealed class CreateTenantCommandHandler
             tenant = await unitOfWork.ExecuteInTransactionAsync(
                 async () =>
                 {
-                    Guid id = Guid.NewGuid();
                     TenantEntity entity = TenantEntity.Create(
-                        id,
-                        codeResult.Value,
+                        Guid.NewGuid(),
+                        command.Request.Code,
                         command.Request.Name
                     );
 
@@ -44,10 +47,7 @@ public sealed class CreateTenantCommandHandler
         }
         catch (DbUpdateException ex) when (ex.IsTenantCodeUniqueViolation())
         {
-            return (
-                DomainErrors.Tenants.CodeAlreadyExists(codeResult.Value),
-                OutgoingMessagesHelper.Empty
-            );
+            return (DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code), OutgoingMessagesHelper.Empty);
         }
 
         OutgoingMessages messages = new();

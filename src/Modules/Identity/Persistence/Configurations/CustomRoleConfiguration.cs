@@ -58,7 +58,7 @@ public sealed class CustomRoleConfiguration : IEntityTypeConfiguration<CustomRol
             )
         );
 
-        builder.Property(r => r.Name).IsRequired().HasMaxLength(100);
+        builder.Property(r => r.Name).IsRequired().HasMaxLength(CustomRole.NameMaxLength);
 
         builder
             .HasIndex(r => new { r.TenantId, r.Name })
@@ -72,7 +72,7 @@ public sealed class CustomRoleConfiguration : IEntityTypeConfiguration<CustomRol
             {
                 permissions.ToTable("RolePermissions", "identity");
                 permissions.WithOwner(rp => rp.Role).HasForeignKey(rp => rp.RoleId);
-                permissions.Property(rp => rp.Permission).IsRequired().HasMaxLength(100);
+                permissions.Property(rp => rp.Permission).IsRequired().HasMaxLength(CustomRole.PermissionMaxLength);
                 permissions.HasKey(rp => new { rp.RoleId, rp.Permission });
             }
         );

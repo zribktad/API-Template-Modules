@@ -7,6 +7,16 @@ public static class ErrorCatalog
         public const string MissingUserId = "KC-WH-0400";
     }
 
+    public static class Keycloak
+    {
+        public const string UserIdConflict = "KC-0409-USER-ID";
+        public const string LocationMissing = "KC-0500-LOCATION";
+        public const string EmptyUserId = "KC-0500-EMPTY-USER-ID";
+        public const string EmptyToken = "KC-0500-EMPTY-TOKEN";
+        public const string EmptyBody = "KC-0500-EMPTY-BODY";
+        public const string CreateUserFailed = "KC-0500-CREATE-USER";
+    }
+
     public static class Users
     {
         public const string NotFound = "USR-0404";

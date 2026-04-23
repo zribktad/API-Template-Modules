@@ -2,10 +2,12 @@ using System.Buffers;
 using System.Security.Cryptography;
 using FileStorage.Domain.Services;
 using FileStorage.Domain.Storage;
-using FileStorage.Features.Staging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
+using SharedKernel.Application.Errors;
+using FS = FileStorage.Domain.ErrorCatalog;
+using FSDomain = FileStorage.Domain.DomainErrors;
 
 namespace FileStorage.Services;
 
@@ -34,7 +36,7 @@ internal sealed class LocalBlobStore : IBlobStore
         _logger = logger;
     }
 
-    public async Task<StagingResult> WriteStagingAsync(
+    public async Task<ErrorOr<StagingResult>> WriteStagingAsync(
         Stream content,
         CancellationToken ct = default
     )
@@ -43,12 +45,18 @@ internal sealed class LocalBlobStore : IBlobStore
         Directory.CreateDirectory(stagingDir);
         string stagingPath = Path.Combine(stagingDir, Guid.NewGuid().ToString("N"));
 
-        ValidatePathWithin(stagingDir, stagingPath);
+        ErrorOr<Success> pathCheck = CheckPathWithin(stagingDir, stagingPath);
+        if (pathCheck.IsError)
+            return pathCheck.Errors;
 
         long maxBytes = _options.MaxFileSizeBytes;
         using IncrementalHash hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         long sizeBytes = 0;
         byte[] buffer = ArrayPool<byte>.Shared.Rent(CopyBufferSize);
+        // Flag instead of throw: the FileStream must be disposed (flushed/closed) before
+        // File.Delete can succeed on Windows. Breaking out of the loop lets the await using
+        // dispose the stream cleanly; cleanup runs after the finally block.
+        bool fileTooLarge = false;
 
         try
         {
@@ -69,9 +77,8 @@ internal sealed class LocalBlobStore : IBlobStore
                     sizeBytes += read;
                     if (sizeBytes > maxBytes)
                     {
-                        await output.DisposeAsync();
-                        File.Delete(stagingPath);
-                        throw new FileTooLargeException(maxBytes);
+                        fileTooLarge = true;
+                        break;
                     }
 
                     hasher.AppendData(buffer, 0, read);
@@ -95,11 +102,21 @@ internal sealed class LocalBlobStore : IBlobStore
             ArrayPool<byte>.Shared.Return(buffer);
         }
 
+        if (fileTooLarge)
+        {
+            try
+            {
+                File.Delete(stagingPath);
+            }
+            catch (IOException) { }
+            return FSDomain.Files.FileTooLarge(maxBytes);
+        }
+
         string sha256 = Convert.ToHexStringLower(hasher.GetHashAndReset());
         return new StagingResult(stagingPath, sha256, sizeBytes);
     }
 
-    public async Task<string> PromoteToCommittedAsync(
+    public async Task<ErrorOr<string>> PromoteToCommittedAsync(
         Guid tenantId,
         string sha256,
         long expectedSize,
@@ -110,8 +127,13 @@ internal sealed class LocalBlobStore : IBlobStore
         string blobsRoot = _options.ResolveBlobsPath();
         string committedPath = BuildCommittedPath(blobsRoot, tenantId, sha256);
 
-        ValidatePathWithin(blobsRoot, committedPath);
-        ValidatePathWithin(_options.ResolveStagingPath(), stagingPath);
+        ErrorOr<Success> pathCheck = CheckPathWithin(blobsRoot, committedPath);
+        if (pathCheck.IsError)
+            return pathCheck.Errors;
+
+        pathCheck = CheckPathWithin(_options.ResolveStagingPath(), stagingPath);
+        if (pathCheck.IsError)
+            return pathCheck.Errors;
 
         Directory.CreateDirectory(Path.GetDirectoryName(committedPath)!);
 
@@ -119,7 +141,8 @@ internal sealed class LocalBlobStore : IBlobStore
         if (committedInfo.Exists)
         {
             if (committedInfo.Length != expectedSize)
-                throw new InvalidOperationException(
+                return Error.Conflict(
+                    FS.Files.BlobConflict,
                     $"Blob {sha256} already exists for tenant {tenantId} with size {committedInfo.Length}, "
                         + $"but staging expects {expectedSize}. Refusing to overwrite."
                 );
@@ -136,7 +159,8 @@ internal sealed class LocalBlobStore : IBlobStore
         {
             long existingSize = new FileInfo(committedPath).Length;
             if (existingSize != expectedSize)
-                throw new InvalidOperationException(
+                return Error.Conflict(
+                    FS.Files.BlobConflict,
                     $"Concurrent promote produced size mismatch for blob {sha256}."
                 );
             await DeleteStagingAsync(stagingPath, ct);
@@ -145,16 +169,23 @@ internal sealed class LocalBlobStore : IBlobStore
         return committedPath;
     }
 
-    public Task<Stream?> OpenReadAsync(Guid tenantId, string sha256, CancellationToken ct = default)
+    public Task<ErrorOr<Stream>> OpenReadAsync(
+        Guid tenantId,
+        string sha256,
+        CancellationToken ct = default
+    )
     {
         string blobsRoot = _options.ResolveBlobsPath();
         string committedPath = BuildCommittedPath(blobsRoot, tenantId, sha256);
-        ValidatePathWithin(blobsRoot, committedPath);
+
+        ErrorOr<Success> pathCheck = CheckPathWithin(blobsRoot, committedPath);
+        if (pathCheck.IsError)
+            return Task.FromResult<ErrorOr<Stream>>(pathCheck.Errors);
 
         if (!File.Exists(committedPath))
-            return Task.FromResult<Stream?>(null);
+            return Task.FromResult<ErrorOr<Stream>>(FSDomain.Files.FileNotFound(sha256));
 
-        return Task.FromResult<Stream?>(
+        return Task.FromResult<ErrorOr<Stream>>(
             new FileStream(
                 committedPath,
                 FileMode.Open,
@@ -228,10 +259,10 @@ internal sealed class LocalBlobStore : IBlobStore
     }
 
     /// <summary>
-    ///     Throws <see cref="UnauthorizedAccessException" /> if <paramref name="path" /> resolves outside
-    ///     <paramref name="root" />, preventing path-traversal attacks.
+    ///     Returns <see cref="Error" /> if <paramref name="path" /> resolves outside <paramref name="root" />,
+    ///     preventing path-traversal attacks. Use in methods that return <see cref="ErrorOr{T}" />.
     /// </summary>
-    private static void ValidatePathWithin(string root, string path)
+    private static ErrorOr<Success> CheckPathWithin(string root, string path)
     {
         string fullPath = Path.GetFullPath(path);
         string fullRoot =
@@ -239,6 +270,22 @@ internal sealed class LocalBlobStore : IBlobStore
             + Path.DirectorySeparatorChar;
 
         if (!fullPath.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
-            throw new UnauthorizedAccessException("Path traversal detected: access denied.");
+            return Error.Forbidden(
+                FS.Files.PathTraversal,
+                "Path traversal detected: access denied."
+            );
+
+        return Result.Success;
+    }
+
+    /// <summary>
+    ///     Throws <see cref="AppException" /> if <paramref name="path" /> resolves outside
+    ///     <paramref name="root" />. Used in methods that do not return <see cref="ErrorOr{T}" />.
+    /// </summary>
+    private static void ValidatePathWithin(string root, string path)
+    {
+        ErrorOr<Success> result = CheckPathWithin(root, path);
+        if (result.IsError)
+            throw new AppException(result.FirstError.Description, result.FirstError.Code);
     }
 }

@@ -1,5 +1,6 @@
 using ErrorOr;
 using Identity.Directory.Entities;
+using Identity.ValueObjects;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Features.User.AssignRoles;
 using Identity.Directory.Interfaces;
@@ -34,8 +35,8 @@ public class AssignUserRolesTenantValidationTests
         {
             Id = userId,
             TenantId = tenantId,
-            Username = "test",
-            Email = global::Identity.ValueObjects.Email.FromPersistence("test@test.com"),
+            Username = new NormalizedString("test"),
+            Email = new NormalizedString("test@test.com"),
         };
 
         var foreignRole = new CustomRole

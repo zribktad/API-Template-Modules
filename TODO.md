@@ -2,7 +2,7 @@
 
 ## High Priority
 
-- [ ] **Enrich domain model and remove handler-centric business logic**  
+- [x] **Enrich domain model and remove handler-centric business logic**  
   A lot of behavior is still concentrated in handlers (`CreateProductsCommand`, `CreateUserCommand`, file workflows). Move invariants and state transitions into entities/factories/domain services so handlers orchestrate instead of constructing business rules inline.
 
 - [ ] **Stabilize soft-delete cascade semantics**  
