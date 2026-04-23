@@ -1,12 +1,16 @@
 using Notifications.Contracts;
 using Notifications.Services;
+using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
+using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
 public sealed class FluidEmailTemplateRendererTests
 {
+    private sealed record UserRegistrationModel(string Username, string Email, string LoginUrl);
+
     private static readonly string UnknownTemplateId =
         $"{EmailTemplateNames.UserRegistration}.fixture-unknown-template";
 
@@ -15,29 +19,26 @@ public sealed class FluidEmailTemplateRendererTests
     [Fact]
     public async Task RenderAsync_UserRegistration_SubstitutesModel()
     {
-        var model = new
-        {
-            Username = "Ada",
-            Email = "ada@example.com",
-            LoginUrl = "https://app/login",
-        };
+        UserRegistrationModel model = new("Ada", "ada@example.com", "https://app/login");
 
-        string html = await _sut.RenderAsync(
+        string result = await _sut.RenderAsync(
             EmailTemplateNames.UserRegistration,
             model,
             TestContext.Current.CancellationToken
         );
 
-        html.ShouldContain("Ada");
-        html.ShouldContain("ada@example.com");
-        html.ShouldContain("https://app/login");
+        result.ShouldContain("Ada");
+        result.ShouldContain("ada@example.com");
+        result.ShouldContain("https://app/login");
     }
 
     [Fact]
-    public async Task RenderAsync_UnknownTemplate_Throws()
+    public async Task RenderAsync_UnknownTemplate_ThrowsAppException()
     {
-        await Should.ThrowAsync<InvalidOperationException>(() =>
+        AppException ex = await Should.ThrowAsync<AppException>(() =>
             _sut.RenderAsync(UnknownTemplateId, new { }, TestContext.Current.CancellationToken)
         );
+
+        ex.ErrorCode.ShouldBe(NTF.Templates.NotFound);
     }
 }

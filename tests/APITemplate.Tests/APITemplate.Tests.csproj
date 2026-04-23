@@ -1,38 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <IsPackable>false</IsPackable>
-    <!-- Opt in: dotnet test /p:RunDockerIntegration=true (requires Docker). Default run skips Testcontainers tests. -->
-    <VSTestTestCaseFilter Condition="'$(RunDockerIntegration)' != 'true'">Category!=Integration.Docker</VSTestTestCaseFilter>
-  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="ErrorOr" />
     <PackageReference Include="JasperFx" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
-    <PackageReference Include="MockQueryable.Moq" />
-    <PackageReference Include="System.Security.Cryptography.Xml" />
-    <PackageReference Include="SystemTextJsonPatch" />
-    <PackageReference Include="coverlet.collector">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MockQueryable.Moq" />
     <PackageReference Include="Moq" />
     <PackageReference Include="NetArchTest.Rules" />
     <PackageReference Include="Shouldly" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+    <PackageReference Include="SystemTextJsonPatch" />
     <PackageReference Include="Testcontainers.MongoDb" />
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
+
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
   <!--
     Legacy integration tests still target the old monolith layout; they remain excluded. Modular
     integration tests are opted in explicitly below (Docker / Testcontainers required).
@@ -40,50 +35,52 @@
   <ItemGroup>
     <Compile Remove="GlobalUsings.ApplicationFeatures.cs" />
     <Compile Remove="Integration\**\*.cs" />
+    <Compile Include="Integration\Auth\BffSecurityTests.cs" />
+    <Compile Include="Integration\Composition\EmptyRedisHostTests.cs" />
     <Compile Include="Integration\CustomWebApplicationFactory.cs" />
     <Compile Include="Integration\EmptyRedisWebApplicationFactory.cs" />
-    <Compile Include="Integration\Validation\BoundaryValidationIntegrationTests.cs" />
-    <Compile Include="Integration\Composition\EmptyRedisHostTests.cs" />
-    <Compile Include="Integration\IntegrationAuthHelper.cs" />
-    <Compile Include="Integration\Helpers\TestConfigurationHelper.cs" />
-    <Compile Include="Integration\Helpers\TestServiceHelper.cs" />
-    <Compile Include="Integration\Helpers\TestOutputCacheStore.cs" />
     <Compile Include="Integration\Features\WebhooksControllerTests.cs" />
-    <Compile Include="Integration\Auth\BffSecurityTests.cs" />
-    <Compile Include="Integration\Postgres\SharedPostgresContainer.cs" />
-    <Compile Include="Integration\Postgres\IsolatedPostgresDatabase.cs" />
-    <Compile Include="Integration\Postgres\IdentityIntegrationTestProviders.cs" />
+    <Compile Include="Integration\Helpers\TestConfigurationHelper.cs" />
+    <Compile Include="Integration\Helpers\TestOutputCacheStore.cs" />
+    <Compile Include="Integration\Helpers\TestServiceHelper.cs" />
+    <Compile Include="Integration\IntegrationAuthHelper.cs" />
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
+    <Compile Include="Integration\Postgres\IdentityIntegrationTestProviders.cs" />
+    <Compile Include="Integration\Postgres\IsolatedPostgresDatabase.cs" />
+    <Compile Include="Integration\Postgres\SharedPostgresContainer.cs" />
     <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
-    <Compile Remove="Unit\Handlers\**\*.cs" />
-    <Compile Remove="Unit\Repositories\**\*.cs" />
-    <Compile Remove="Unit\Persistence\**\*.cs" />
-    <Compile Remove="Unit\Integration\**\*.cs" />
-    <Compile Remove="Unit\Email\**\*.cs" />
-    <Compile Remove="Unit\Observability\HttpRouteResolverTests.cs" />
-    <Compile Remove="Unit\Validation\**\*.cs" />
+    <Compile Include="Integration\Validation\BoundaryValidationIntegrationTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\BackgroundJobsServiceCollectionExtensionsTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\CleanupRecurringJobTests.cs" />
-    <Compile Remove="Unit\BackgroundJobs\RedisDistributedJobCoordinatorTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\EmailRetryRecurringJobTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\EmailRetryServiceTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\ExternalSyncRecurringJobTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\RedisDistributedJobCoordinatorTests.cs" />
+    <Compile Remove="Unit\BackgroundJobs\ReindexRecurringJobTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\TickerQRecurringJobRegistrarTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\TickerQSchedulerDbContextTests.cs" />
-    <Compile Remove="Unit\BackgroundJobs\ReindexRecurringJobTests.cs" />
-    <Compile Remove="Unit\BackgroundJobs\ExternalSyncRecurringJobTests.cs" />
     <Compile Remove="Unit\Common\PaginationDefaultsTests.cs" />
+    <Compile Remove="Unit\Email\**\*.cs" />
     <Compile Remove="Unit\ErrorOrMapping\**\*.cs" />
+    <Compile Remove="Unit\Handlers\**\*.cs" />
+    <Compile Remove="Unit\Integration\**\*.cs" />
+    <Compile Remove="Unit\Observability\HttpRouteResolverTests.cs" />
+    <Compile Remove="Unit\Persistence\**\*.cs" />
+    <Compile Remove="Unit\Repositories\**\*.cs" />
+    <Compile Remove="Unit\Validation\**\*.cs" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\APITemplate\Api\APITemplate.csproj" />
     <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Chatting\Chatting.csproj" />
+    <ProjectReference Include="..\..\src\Modules\FileStorage\FileStorage.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\Identity.csproj" />
     <ProjectReference Include="..\..\src\Modules\Notifications\Notifications.csproj" />
-    <ProjectReference Include="..\..\src\Modules\FileStorage\FileStorage.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Chatting\Chatting.csproj" />
-    <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.csproj" />
     <ProjectReference Include="..\..\src\Modules\ProductCatalog\ProductCatalog.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.csproj" />
+    <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
+
 </Project>

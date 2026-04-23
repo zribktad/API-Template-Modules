@@ -129,7 +129,9 @@ public sealed class FileUploadSaga : Saga
         }
 
         IBlobStore store = blobStoreFactory.Get(BackendKey);
-        await store.PromoteToCommittedAsync(TenantId, Sha256, SizeBytes, StagingPath, ct);
+        ErrorOr<string> promoted = await store.PromoteToCommittedAsync(TenantId, Sha256, SizeBytes, StagingPath, ct);
+        if (promoted.IsError)
+            return (promoted.Errors, null);
 
         StoredFile entity = StoredFile.Create(
             OriginalFileName,

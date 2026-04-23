@@ -8,6 +8,19 @@ namespace Notifications.Logging;
 /// </summary>
 internal static partial class NotificationsInfrastructureLogs
 {
+    // Email notification handlers (6000)
+    [LoggerMessage(
+        EventId = 6000,
+        Level = LogLevel.Error,
+        Message = "Failed to render email template '{TemplateName}': {ErrorCode} — {Description}. Event processing will fail and follow the configured Wolverine error flow."
+    )]
+    public static partial void EmailTemplateRenderFailed(
+        this ILogger logger,
+        string templateName,
+        string errorCode,
+        string description
+    );
+
     // EmailRetryRecurringJob (6001)
     [LoggerMessage(
         EventId = 6001,
@@ -115,7 +128,7 @@ internal static partial class NotificationsInfrastructureLogs
         [PersonalData] string recipient
     );
 
-    // MailKitEmailSender (6008)
+    // MailKitEmailSender (6008, 6012)
     [LoggerMessage(
         EventId = 6008,
         Level = LogLevel.Information,
@@ -125,5 +138,16 @@ internal static partial class NotificationsInfrastructureLogs
         this ILogger logger,
         [PersonalData] string recipient,
         string subject
+    );
+
+    [LoggerMessage(
+        EventId = 6012,
+        Level = LogLevel.Error,
+        Message = "SMTP transmission failed for recipient {Recipient}."
+    )]
+    public static partial void SmtpSendFailed(
+        this ILogger logger,
+        Exception exception,
+        [PersonalData] string recipient
     );
 }

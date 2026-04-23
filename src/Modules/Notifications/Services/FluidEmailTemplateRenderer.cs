@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using Fluid;
 using Notifications.Contracts;
+using SharedKernel.Application.Errors;
+using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace Notifications.Services;
 
@@ -15,6 +17,8 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
     private static readonly FluidParser Parser = new();
     private static readonly Assembly ResourceAssembly = typeof(FluidEmailTemplateRenderer).Assembly;
 
+    // Bounded by the fixed set of embedded resource names (EmailTemplateNames constants).
+    // Dynamic template names are not supported and would cause unbounded growth.
     private static readonly ConcurrentDictionary<string, Lazy<Task<IFluidTemplate>>> TemplateCache =
         new(StringComparer.Ordinal);
 
@@ -67,8 +71,9 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
 
         if (!Parser.TryParse(templateContent, out IFluidTemplate? template, out string? error))
         {
-            throw new InvalidOperationException(
-                $"Failed to parse email template '{templateName}': {error}"
+            throw new AppException(
+                $"Failed to parse email template '{templateName}': {error}",
+                NTF.Templates.ParseFailed
             );
         }
 
@@ -81,8 +86,9 @@ public sealed class FluidEmailTemplateRenderer : IEmailTemplateRenderer
 
         await using Stream stream =
             ResourceAssembly.GetManifestResourceStream(resourceName)
-            ?? throw new InvalidOperationException(
-                $"Email template '{templateName}' not found as embedded resource '{resourceName}'."
+            ?? throw new AppException(
+                $"Email template '{templateName}' not found as embedded resource '{resourceName}'.",
+                NTF.Templates.NotFound
             );
 
         using StreamReader reader = new(stream);

@@ -14,16 +14,19 @@ public interface IBlobStore
     ///     Streams <paramref name="content" /> into a staging location while computing its SHA-256 digest.
     ///     The returned <see cref="StagingResult" /> can be promoted via <see cref="PromoteToCommittedAsync" />
     ///     or discarded via <see cref="DeleteStagingAsync" />.
+    ///     Returns <see cref="ErrorOr{T}" /> with <see cref="DomainErrors.Files.FileTooLarge" /> if the payload
+    ///     exceeds the configured limit.
     /// </summary>
-    Task<StagingResult> WriteStagingAsync(Stream content, CancellationToken ct = default);
+    Task<ErrorOr<StagingResult>> WriteStagingAsync(Stream content, CancellationToken ct = default);
 
     /// <summary>
     ///     Atomically moves a staging payload to its content-addressed committed location for the given
     ///     <paramref name="tenantId" /> / <paramref name="sha256" />. Idempotent: if the committed path already
     ///     exists and its size matches <paramref name="expectedSize" />, the staging copy is removed and the
-    ///     existing committed path is returned. A size mismatch throws (collision guard).
+    ///     existing committed path is returned. Returns <see cref="ErrorOr{T}" /> with
+    ///     <see cref="DomainErrors.Files" /> errors on conflict or path traversal.
     /// </summary>
-    Task<string> PromoteToCommittedAsync(
+    Task<ErrorOr<string>> PromoteToCommittedAsync(
         Guid tenantId,
         string sha256,
         long expectedSize,
@@ -32,12 +35,18 @@ public interface IBlobStore
     );
 
     /// <summary>
-    ///     Opens the committed blob for reading. Returns <see langword="null" /> if it does not exist.
+    ///     Opens the committed blob for reading. Returns <see cref="DomainErrors.Files.FileNotFound" /> if the blob
+    ///     does not exist, and <see cref="DomainErrors.Files.PathTraversal" /> on path-traversal.
     /// </summary>
-    Task<Stream?> OpenReadAsync(Guid tenantId, string sha256, CancellationToken ct = default);
+    Task<ErrorOr<Stream>> OpenReadAsync(
+        Guid tenantId,
+        string sha256,
+        CancellationToken ct = default
+    );
 
     /// <summary>
     ///     Deletes the committed blob. Silent success if it does not exist (idempotent).
+    ///     IOException after retries is logged internally and not surfaced.
     /// </summary>
     Task DeleteAsync(Guid tenantId, string sha256, CancellationToken ct = default);
 

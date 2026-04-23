@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
+using Identity.Auth.Security;
+using Identity.Directory.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +53,14 @@ public class ApiExceptionHandlerTests
             "Conflict",
             "The resource was modified by another request. Please retrieve the latest version and retry.",
             ErrorCatalog.General.ConcurrencyConflict,
+        ];
+        yield return
+        [
+            new UserAccessDeniedException(UserAccessErrorCodes.NoInvitation, "No invitation"),
+            HttpStatusCode.InternalServerError,
+            "Internal Server Error",
+            "An unexpected error occurred.",
+            UserAccessErrorCodes.NoInvitation,
         ];
     }
 

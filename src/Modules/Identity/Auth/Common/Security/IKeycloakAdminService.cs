@@ -1,3 +1,5 @@
+using ErrorOr;
+
 namespace Identity.Auth.Security;
 
 /// <summary>
@@ -7,7 +9,7 @@ namespace Identity.Auth.Security;
 public interface IKeycloakAdminService
 {
     /// <summary>Creates a new Keycloak user and returns the assigned Keycloak user ID.</summary>
-    public Task<string> CreateUserAsync(
+    public Task<ErrorOr<string>> CreateUserAsync(
         string username,
         string email,
         CancellationToken ct = default

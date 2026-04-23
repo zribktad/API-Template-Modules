@@ -1,9 +1,12 @@
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Notifications.Contracts;
 using Notifications.Logging;
+using SharedKernel.Application.Errors;
+using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace Notifications.Services;
 
@@ -44,6 +47,9 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
     /// </summary>
     public async Task SendAsync(EmailMessage message, CancellationToken ct = default)
     {
+        if (!string.IsNullOrEmpty(_options.Username) && string.IsNullOrEmpty(_options.Password))
+            throw new AppException("SMTP password is missing.", NTF.Smtp.SendFailed);
+
         MimeMessage mimeMessage = new();
         mimeMessage.From.Add(new MailboxAddress(_options.SenderName, _options.SenderEmail));
         mimeMessage.To.Add(MailboxAddress.Parse(message.To));
@@ -66,14 +72,36 @@ public sealed class MailKitEmailSender : IEmailSender, IAsyncDisposable
             }
 
             if (!string.IsNullOrEmpty(_options.Username) && !client.IsAuthenticated)
-                await client.AuthenticateAsync(_options.Username, _options.Password, ct);
+            {
+                await client.AuthenticateAsync(_options.Username, _options.Password!, ct);
+            }
 
             await client.SendAsync(mimeMessage, ct);
         }
-        catch
+        catch (OperationCanceledException)
         {
             await ResetClientAsync();
             throw;
+        }
+        catch (AuthenticationException ex)
+        {
+            _logger.SmtpSendFailed(ex, message.To);
+            await ResetClientAsync();
+            throw new AppException(
+                "SMTP authentication failed.",
+                NTF.Smtp.SendFailed,
+                innerException: ex
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.SmtpSendFailed(ex, message.To);
+            await ResetClientAsync();
+            throw new AppException(
+                $"SMTP send failed: {ex.GetType().Name}",
+                NTF.Smtp.SendFailed,
+                innerException: ex
+            );
         }
         finally
         {

@@ -140,8 +140,8 @@ public sealed class FileUploadSagaTests
         notification!.Sha256.ShouldBe(saga.Sha256);
         saga.Status.ShouldBe(FileUploadStatus.Committed);
         saga.StoredFileId.ShouldNotBeNull();
-        await db.SaveChangesAsync();
-        (await db.StoredFiles.CountAsync()).ShouldBe(1);
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        (await db.StoredFiles.CountAsync(TestContext.Current.CancellationToken)).ShouldBe(1);
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public sealed class FileUploadSagaTests
         );
         existing.TenantId = saga.TenantId;
         db.StoredFiles.Add(existing);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         saga.Status = FileUploadStatus.Committed;
         saga.StoredFileId = existing.Id;

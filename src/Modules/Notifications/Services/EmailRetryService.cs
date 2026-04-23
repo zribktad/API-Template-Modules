@@ -4,6 +4,7 @@ using Notifications.Contracts;
 using Notifications.Domain;
 using Notifications.Logging;
 using Polly;
+using SharedKernel.Application.Errors;
 using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.Services;
@@ -77,7 +78,7 @@ public sealed class EmailRetryService : IEmailRetryService
                     email.TemplateName
                 );
                 await pipeline.ExecuteAsync(
-                    async token => await _sender.SendAsync(message, token),
+                    token => new ValueTask(_sender.SendAsync(message, token)),
                     ct
                 );
 
@@ -91,7 +92,10 @@ public sealed class EmailRetryService : IEmailRetryService
             }
             catch (Exception ex)
             {
-                email.RecordFailure(ex.Message, _timeProvider);
+                string rawError = ex is AppException ae
+                    ? $"{ae.ErrorCode}: {ae.Message}"
+                    : ex.Message;
+                email.RecordFailure(rawError, _timeProvider);
                 await _repository.UpdateAsync(email, ct);
 
                 _logger.EmailRetryAttemptFailed(ex, email.RetryCount, email.To);
@@ -175,8 +179,10 @@ public sealed class EmailRetryService : IEmailRetryService
         } while (processed == batchSize);
     }
 
-    private static void ApplyDeadLetterTransition(FailedEmail email) =>
+    private static void ApplyDeadLetterTransition(FailedEmail email)
+    {
         email.MarkDeadLettered();
+    }
 
     private async Task ReplayDeadLetterBatchAfterConcurrencyAsync(
         List<FailedEmail> claimedBatch,

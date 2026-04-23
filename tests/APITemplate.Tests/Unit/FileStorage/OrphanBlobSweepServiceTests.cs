@@ -74,7 +74,7 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         string stagingDir = _options.ResolveStagingPath();
         Directory.CreateDirectory(stagingDir);
         string oldFile = Path.Combine(stagingDir, "orphan");
-        await File.WriteAllTextAsync(oldFile, "x");
+        await File.WriteAllTextAsync(oldFile, "x", TestContext.Current.CancellationToken);
         File.SetLastWriteTimeUtc(oldFile, DateTime.UtcNow.AddHours(-2));
         _time.SetUtcNow(DateTimeOffset.UtcNow);
 
@@ -91,7 +91,7 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         string stagingDir = _options.ResolveStagingPath();
         Directory.CreateDirectory(stagingDir);
         string freshFile = Path.Combine(stagingDir, "still-valid");
-        await File.WriteAllTextAsync(freshFile, "x");
+        await File.WriteAllTextAsync(freshFile, "x", TestContext.Current.CancellationToken);
         _time.SetUtcNow(DateTimeOffset.UtcNow);
 
         using FileStorageDbContext db = CreateDbContext();
@@ -150,7 +150,7 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         StoredFile activeRow = StoredFile.Create("f.txt", sha, "local", "text/plain", 4, null);
         activeRow.TenantId = tenant;
         db.StoredFiles.Add(activeRow);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
 
@@ -172,7 +172,7 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         entity.TenantId = tenant;
         entity.IsDeleted = true;
         db.StoredFiles.Add(entity);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
 
@@ -197,7 +197,7 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         StoredFile entityA = StoredFile.Create("f.txt", sha, "local", "text/plain", 4, null);
         entityA.TenantId = tenantA;
         db.StoredFiles.Add(entityA);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
 

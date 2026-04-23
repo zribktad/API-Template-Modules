@@ -21,10 +21,7 @@ public sealed class SendEmailMessageHandler
         try
         {
             await pipeline.ExecuteAsync(
-                async token =>
-                {
-                    await sender.SendAsync(message, token);
-                },
+                token => new ValueTask(sender.SendAsync(message, token)),
                 ct
             );
         }
