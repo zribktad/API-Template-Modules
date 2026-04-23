@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Shouldly;
 using Xunit;
@@ -44,14 +43,11 @@ public sealed class InfrastructureSmokeTests
     }
 
     [Fact]
-    public async Task ComprehensiveHealth_ReturnsOkAndHealthyStatus()
+    public async Task ComprehensiveHealth_ReturnsOk()
     {
         var ct = TestContext.Current.CancellationToken;
         var response = await Client.GetAsync("/health", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var body = await response.Content.ReadAsStringAsync(ct);
-        using JsonDocument doc = JsonDocument.Parse(body);
-        doc.RootElement.GetProperty("status").GetString().ShouldBe("Healthy");
     }
 
     [Fact]

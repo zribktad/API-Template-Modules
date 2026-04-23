@@ -56,6 +56,7 @@
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
     <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
     <Compile Include="Integration\Smoke\SmokeTestsCollection.cs" />
+    <Compile Include="Integration\Smoke\SmokeTestBase.cs" />
     <Compile Include="Integration\Smoke\InfrastructureSmokeTests.cs" />
     <Compile Include="Integration\Smoke\IdentityModuleSmokeTests.cs" />
     <Compile Include="Integration\Smoke\ProductAndReviewSmokeTests.cs" />

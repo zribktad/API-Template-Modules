@@ -74,13 +74,23 @@ jobs:
           path: ./test-results/unit/**/coverage.cobertura.xml
           retention-days: 7
 
-  smoke:
-    name: Smoke Tests
+  docker-tests:
+    name: ${{ matrix.display_name }}
     needs: [unit]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: smoke
+            display_name: Smoke Tests
+            filter: Category=Smoke
+          - id: integration
+            display_name: Integration Tests
+            filter: Category=Integration.Docker
 
     steps:
       - name: Checkout code
@@ -104,68 +114,20 @@ jobs:
       - name: Build
         run: dotnet build APITemplate.slnx --no-restore --configuration Release
 
-      - name: Run smoke tests
+      - name: Run ${{ matrix.id }} tests
         run: >
           dotnet test APITemplate.slnx
           --no-build --no-restore --configuration Release --verbosity normal
-          --filter "Category=Smoke"
-          --logger "trx;LogFileName=smoke-results.trx"
-          --results-directory ./test-results/smoke
+          --filter "${{ matrix.filter }}"
+          --logger "trx;LogFileName=${{ matrix.id }}-results.trx"
+          --results-directory ./test-results/${{ matrix.id }}
           /p:RunDockerIntegration=true
 
-      - name: Publish smoke test results
+      - name: Publish ${{ matrix.id }} test results
         uses: dorny/test-reporter@v3
         if: always()
         with:
-          name: Smoke Test Results
-          path: ./test-results/smoke/**/*.trx
-          reporter: dotnet-trx
-          fail-on-error: false
-
-  integration:
-    name: Integration Tests
-    needs: [unit]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      checks: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
-          restore-keys: ${{ runner.os }}-nuget-
-
-      - name: Restore dependencies
-        run: dotnet restore APITemplate.slnx
-
-      - name: Build
-        run: dotnet build APITemplate.slnx --no-restore --configuration Release
-
-      - name: Run integration tests
-        run: >
-          dotnet test APITemplate.slnx
-          --no-build --no-restore --configuration Release --verbosity normal
-          --filter "Category=Integration.Docker"
-          --logger "trx;LogFileName=integration-results.trx"
-          --results-directory ./test-results/integration
-          /p:RunDockerIntegration=true
-
-      - name: Publish integration test results
-        uses: dorny/test-reporter@v3
-        if: always()
-        with:
-          name: Integration Test Results
-          path: ./test-results/integration/**/*.trx
+          name: ${{ matrix.display_name }} Results
+          path: ./test-results/${{ matrix.id }}/**/*.trx
           reporter: dotnet-trx
           fail-on-error: false

@@ -65,6 +65,18 @@ internal static class TestServiceHelper
         );
     }
 
+    private static readonly HashSet<string> ExternalHealthCheckNames = new(StringComparer.Ordinal)
+    {
+        HealthCheckNames.MongoDb,
+        HealthCheckNames.Keycloak,
+        HealthCheckNames.PostgreSql,
+        HealthCheckNames.Redis,
+        HealthCheckNames.Smtp,
+        HealthCheckNames.WolverineMessageStore,
+        HealthCheckNames.WolverineDeadLetters,
+        HealthCheckNames.OtlpCollector,
+    };
+
     internal static void RemoveExternalHealthChecks(IServiceCollection services)
     {
         services.Configure<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckServiceOptions>(
@@ -72,17 +84,7 @@ internal static class TestServiceHelper
             {
                 List<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckRegistration> toRemove =
                     options
-                        .Registrations.Where(r =>
-                            r.Name
-                                is HealthCheckNames.MongoDb
-                                    or HealthCheckNames.Keycloak
-                                    or HealthCheckNames.PostgreSql
-                                    or HealthCheckNames.Redis
-                                    or HealthCheckNames.Smtp
-                                    or HealthCheckNames.WolverineMessageStore
-                                    or HealthCheckNames.WolverineDeadLetters
-                                    or HealthCheckNames.OtlpCollector
-                        )
+                        .Registrations.Where(r => ExternalHealthCheckNames.Contains(r.Name))
                         .ToList();
                 foreach (var r in toRemove)
                     options.Registrations.Remove(r);

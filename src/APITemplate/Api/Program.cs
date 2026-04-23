@@ -1,6 +1,5 @@
 using System.Reflection;
 using APITemplate.Api;
-using APITemplate.Api.Extensions;
 using BackgroundJobs;
 using Chatting;
 using FileStorage;
@@ -12,6 +11,7 @@ using Notifications;
 using ProductCatalog;
 using Reviews;
 using Serilog;
+using SharedKernel.Application.Middleware;
 using SharedKernel.Infrastructure.Health;
 using Webhooks;
 using Wolverine;
@@ -85,6 +85,11 @@ builder.Host.UseWolverine(options =>
     options.Policies.UseDurableInboxOnAllListeners();
     foreach (Assembly assembly in WolverineModuleDiscovery.HandlerAssemblies)
         options.Discovery.IncludeAssembly(assembly);
+
+    options.Policies.AddMiddleware(
+        typeof(DataAnnotationsValidationMiddleware),
+        chain => chain.ShouldApplyDataAnnotationsValidation()
+    );
 
     // Retry policy for transient HTTP failures (e.g. Keycloak temporarily unavailable).
     // Applies only to queue-delivered messages (outbox workers) — NOT to InvokeAsync calls.

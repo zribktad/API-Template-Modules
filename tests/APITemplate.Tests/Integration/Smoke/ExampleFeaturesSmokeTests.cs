@@ -1,6 +1,5 @@
 using System.Net;
-using System.Text;
-using Identity.Auth.Security;
+using System.Net.Http.Json;
 using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
@@ -9,48 +8,23 @@ namespace APITemplate.Tests.Integration.Smoke;
 
 [Collection("Smoke")]
 [Trait("Category", "Smoke")]
-public sealed class ExampleFeaturesSmokeTests : IAsyncLifetime
+public sealed class ExampleFeaturesSmokeTests : SmokeTestBase
 {
-    private const string ServiceAccountUsername =
-        $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}smoke-examples";
-    private readonly CustomWebApplicationFactory _factory;
-    private Guid _tenantId;
+    public ExampleFeaturesSmokeTests(CustomWebApplicationFactory factory)
+        : base(factory) { }
 
-    private HttpClient Client => field ??= _factory.CreateClient();
-
-    public ExampleFeaturesSmokeTests(CustomWebApplicationFactory factory) => _factory = factory;
-
-    public async ValueTask InitializeAsync()
-    {
-        var ct = TestContext.Current.CancellationToken;
-        var suffix = Guid.NewGuid().ToString("N")[..8];
-        var (tenant, _) = await IntegrationAuthHelper.SeedTenantUserAsync(
-            _factory.Services,
-            username: $"smoke-example-{suffix}",
-            email: $"smoke-example-{suffix}@example.com",
-            ct: ct
-        );
-        _tenantId = tenant.Id;
-    }
-
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    protected override string UsernamePrefix => "smoke-example";
 
     [Fact]
     public async Task SubmitJob_ReturnsAccepted()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            Client,
-            tenantId: _tenantId,
-            username: ServiceAccountUsername,
-            permissions: [Permission.Examples.Execute]
+        AuthenticateAsServiceAccount(Permission.Examples.Execute);
+        var response = await Client.PostAsJsonAsync(
+            "/api/v1/jobs",
+            new { JobType = "data-export" },
+            ct
         );
-        var content = new StringContent(
-            """{"JobType":"data-export"}""",
-            Encoding.UTF8,
-            "application/json"
-        );
-        var response = await Client.PostAsync("/api/v1/jobs", content, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Accepted);
     }
 
@@ -58,12 +32,7 @@ public sealed class ExampleFeaturesSmokeTests : IAsyncLifetime
     public async Task SseStream_ReturnsEventStreamContentType()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            Client,
-            tenantId: _tenantId,
-            username: ServiceAccountUsername,
-            permissions: [Permission.Examples.Read]
-        );
+        AuthenticateAsServiceAccount(Permission.Examples.Read);
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/sse/stream?count=1");
         var response = await Client.SendAsync(
             request,
@@ -78,8 +47,7 @@ public sealed class ExampleFeaturesSmokeTests : IAsyncLifetime
     public async Task Webhooks_MissingSignature_Returns401()
     {
         var ct = TestContext.Current.CancellationToken;
-        var content = new StringContent("{}", Encoding.UTF8, "application/json");
-        var response = await Client.PostAsync("/api/v1/webhooks", content, ct);
+        var response = await Client.PostAsJsonAsync("/api/v1/webhooks", new { }, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

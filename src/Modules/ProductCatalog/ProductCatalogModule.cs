@@ -56,6 +56,8 @@ public static class ProductCatalogModule
         services.AddScoped(typeof(IProductBatchValidator<>), typeof(ProductBatchValidator<>));
         services.AddScoped<IProductBatchFactory, ProductBatchFactory>();
 
+        MongoSerializerBootstrap.Register();
+
         services.Configure<MongoDbSettings>(
             configuration.GetSection(ConfigurationSections.MongoDB)
         );
