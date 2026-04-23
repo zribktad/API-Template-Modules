@@ -4,6 +4,7 @@ using ProductCatalog.GraphQL;
 using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
+using DomainError = ErrorOr.Error;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
@@ -22,7 +23,7 @@ public sealed class ToGraphQLResultExtensionTests
     [Fact]
     public void ToGraphQLResult_SingleError_ThrowsGraphQLException()
     {
-        ErrorOr<string> result = Error.Validation("GEN-0400", "Invalid value.");
+        ErrorOr<string> result = DomainError.Validation("GEN-0400", "Invalid value.");
 
         GraphQLException ex = Should.Throw<GraphQLException>(() => result.ToGraphQLResult());
 
@@ -34,10 +35,10 @@ public sealed class ToGraphQLResultExtensionTests
     [Fact]
     public void ToGraphQLResult_MultipleErrors_ThrowsAllErrors()
     {
-        ErrorOr<string> result = new List<Error>
+        ErrorOr<string> result = new List<DomainError>
         {
-            Error.Validation("GEN-0400", "First error."),
-            Error.Validation("GEN-0400", "Second error."),
+            DomainError.Validation("GEN-0400", "First error."),
+            DomainError.Validation("GEN-0400", "Second error."),
         };
 
         GraphQLException ex = Should.Throw<GraphQLException>(() => result.ToGraphQLResult());
@@ -49,7 +50,7 @@ public sealed class ToGraphQLResultExtensionTests
     [Fact]
     public void ToGraphQLResult_ErrorWithPropertyNameMetadata_ForwardsExtension()
     {
-        ErrorOr<string> result = Error.Validation(
+        ErrorOr<string> result = DomainError.Validation(
             ErrorCatalog.General.ValidationFailed,
             "MinPrice must be >= 0.",
             new Dictionary<string, object> { ["propertyName"] = "MinPrice" }
@@ -66,7 +67,7 @@ public sealed class ToGraphQLResultExtensionTests
     [Fact]
     public void ToGraphQLResult_ErrorWithoutMetadata_DoesNotSetPropertyNameExtension()
     {
-        ErrorOr<string> result = Error.Failure("GEN-0500", "Unexpected error.");
+        ErrorOr<string> result = DomainError.Failure("GEN-0500", "Unexpected error.");
 
         GraphQLException ex = Should.Throw<GraphQLException>(() => result.ToGraphQLResult());
 

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using ErrorOr;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Validation;
+using SharedKernelErrorCatalog = SharedKernel.Application.Errors.ErrorCatalog;
 
 namespace Reviews.Features;
 
@@ -18,7 +18,7 @@ public sealed class GetProductReviewsQueryHandler
             return Result.Success;
         return failures
             .Select(f => Error.Validation(
-                ErrorCatalog.General.ValidationFailed,
+                SharedKernelErrorCatalog.General.ValidationFailed,
                 f.ErrorMessage ?? "Validation failed.",
                 new Dictionary<string, object> { ["propertyName"] = string.Join(", ", f.MemberNames) }))
             .ToList<Error>();

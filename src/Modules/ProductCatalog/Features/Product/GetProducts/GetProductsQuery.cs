@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using ErrorOr;
 using ProductCatalog.GraphQL;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Validation;
 using ProductRepositoryContract = ProductCatalog.Interfaces.IProductRepository;
+using SharedKernelErrorCatalog = SharedKernel.Application.Errors.ErrorCatalog;
 
 namespace ProductCatalog.Features.Product.GetProducts;
 
@@ -20,7 +20,7 @@ public sealed class GetProductsQueryHandler
             return Result.Success;
         return failures
             .Select(f => Error.Validation(
-                ErrorCatalog.General.ValidationFailed,
+                SharedKernelErrorCatalog.General.ValidationFailed,
                 f.ErrorMessage ?? "Validation failed.",
                 new Dictionary<string, object> { ["propertyName"] = string.Join(", ", f.MemberNames) }))
             .ToList<Error>();
