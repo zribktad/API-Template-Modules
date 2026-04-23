@@ -1,4 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using ErrorOr;
+using ProductCatalog.GraphQL;
+using SharedKernel.Application.Errors;
+using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.Category.GetCategories;
 
@@ -8,12 +12,29 @@ public sealed record GetCategoriesQuery(CategoryFilter Filter);
 /// <summary>Handles <see cref="GetCategoriesQuery" />.</summary>
 public sealed class GetCategoriesQueryHandler
 {
+    public static ErrorOr<Success> Validate(GetCategoriesQuery query, IValidator validator)
+    {
+        IReadOnlyList<ValidationResult> failures = validator.Validate(query.Filter);
+        if (failures.Count == 0)
+            return Result.Success;
+        return failures
+            .Select(f => Error.Validation(
+                ErrorCatalog.General.ValidationFailed,
+                f.ErrorMessage ?? "Validation failed.",
+                new Dictionary<string, object> { ["propertyName"] = string.Join(", ", f.MemberNames) }))
+            .ToList<Error>();
+    }
+
     public static async Task<ErrorOr<PagedResponse<CategoryResponse>>> HandleAsync(
         GetCategoriesQuery request,
+        ErrorOr<Success> validation,
         ICategoryRepository repository,
         CancellationToken ct
     )
     {
+        if (validation.IsError)
+            return validation.Errors;
+
         return await repository.GetPagedAsync(
             new CategorySpecification(request.Filter),
             request.Filter.PageNumber,
@@ -21,4 +42,7 @@ public sealed class GetCategoriesQueryHandler
             ct
         );
     }
+
+    public static CategoryPageResult PostProcess(ErrorOr<PagedResponse<CategoryResponse>> result)
+        => new(result.ToGraphQLResult());
 }

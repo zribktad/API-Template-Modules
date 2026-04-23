@@ -35,15 +35,25 @@ public static class ErrorOrGraphQLExtensions
 
     /// <summary>
     ///     Unwraps the value on success, or throws <see cref="GraphQLException" /> on error.
+    ///     All errors are included in the exception; validation errors forward their
+    ///     <c>propertyName</c> metadata as a GraphQL extension.
     /// </summary>
     public static T ToGraphQLResult<T>(this ErrorOr<T> result)
     {
         if (!result.IsError)
             return result.Value;
 
-        Error firstError = result.FirstError;
         throw new GraphQLException(
-            ErrorBuilder.New().SetMessage(firstError.Description).SetCode(firstError.Code).Build()
+            result.Errors.Select(e =>
+            {
+                IErrorBuilder builder = ErrorBuilder
+                    .New()
+                    .SetMessage(e.Description)
+                    .SetCode(e.Code);
+                if (e.Metadata?.TryGetValue("propertyName", out object? pn) == true)
+                    builder = builder.SetExtension("propertyName", pn);
+                return builder.Build();
+            })
         );
     }
 

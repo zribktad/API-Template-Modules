@@ -1,4 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using ErrorOr;
+using ProductCatalog.GraphQL;
+using SharedKernel.Application.Errors;
+using SharedKernel.Application.Validation;
 using ProductRepositoryContract = ProductCatalog.Interfaces.IProductRepository;
 
 namespace ProductCatalog.Features.Product.GetProducts;
@@ -9,12 +13,29 @@ public sealed record GetProductsQuery(ProductFilter Filter);
 /// <summary>Handles <see cref="GetProductsQuery" /> by fetching items, count, and facets from the repository.</summary>
 public sealed class GetProductsQueryHandler
 {
+    public static ErrorOr<Success> Validate(GetProductsQuery query, IValidator validator)
+    {
+        IReadOnlyList<ValidationResult> failures = validator.Validate(query.Filter);
+        if (failures.Count == 0)
+            return Result.Success;
+        return failures
+            .Select(f => Error.Validation(
+                ErrorCatalog.General.ValidationFailed,
+                f.ErrorMessage ?? "Validation failed.",
+                new Dictionary<string, object> { ["propertyName"] = string.Join(", ", f.MemberNames) }))
+            .ToList<Error>();
+    }
+
     public static async Task<ErrorOr<ProductsResponse>> HandleAsync(
         GetProductsQuery request,
+        ErrorOr<Success> validation,
         ProductRepositoryContract repository,
         CancellationToken ct
     )
     {
+        if (validation.IsError)
+            return validation.Errors;
+
         ErrorOr<PagedResponse<ProductResponse>> page = await repository.GetPagedAsync(
             request.Filter,
             ct
@@ -31,5 +52,11 @@ public sealed class GetProductsQueryHandler
             page.Value,
             new ProductSearchFacetsResponse(categoryFacets, priceFacets)
         );
+    }
+
+    public static ProductPageResult PostProcess(ErrorOr<ProductsResponse> result)
+    {
+        ProductsResponse page = result.ToGraphQLResult();
+        return new ProductPageResult(page.Page, page.Facets);
     }
 }
