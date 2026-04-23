@@ -18,9 +18,9 @@ public sealed class ExampleFeaturesSmokeTests : SmokeTestBase
     [Fact]
     public async Task SubmitJob_ReturnsAccepted()
     {
-        var ct = TestContext.Current.CancellationToken;
-        AuthenticateAsServiceAccount(Permission.Examples.Execute);
-        var response = await Client.PostAsJsonAsync(
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        AuthenticateAsSeededUser([Permission.Examples.Execute]);
+        HttpResponseMessage response = await Client.PostAsJsonAsync(
             "/api/v1/jobs",
             new { JobType = "data-export" },
             ct
@@ -31,10 +31,10 @@ public sealed class ExampleFeaturesSmokeTests : SmokeTestBase
     [Fact]
     public async Task SseStream_ReturnsEventStreamContentType()
     {
-        var ct = TestContext.Current.CancellationToken;
-        AuthenticateAsServiceAccount(Permission.Examples.Read);
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        AuthenticateAsSeededUser([Permission.Examples.Read]);
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/sse/stream?count=1");
-        var response = await Client.SendAsync(
+        HttpResponseMessage response = await Client.SendAsync(
             request,
             HttpCompletionOption.ResponseHeadersRead,
             ct
@@ -46,8 +46,8 @@ public sealed class ExampleFeaturesSmokeTests : SmokeTestBase
     [Fact]
     public async Task Webhooks_MissingSignature_Returns401()
     {
-        var ct = TestContext.Current.CancellationToken;
-        var response = await Client.PostAsJsonAsync("/api/v1/webhooks", new { }, ct);
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        HttpResponseMessage response = await Client.PostAsJsonAsync("/api/v1/webhooks", new { }, ct);
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

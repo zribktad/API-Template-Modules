@@ -9,31 +9,16 @@ namespace APITemplate.Tests.Integration.Smoke;
 [Trait("Category", "Smoke")]
 public sealed class IdentityModuleSmokeTests : SmokeTestBase
 {
-    private Guid _seededUserId;
-    private string _seededEmail = string.Empty;
-    private string _seededKeycloakUserId = string.Empty;
-    private string _seededUsername = string.Empty;
-
     public IdentityModuleSmokeTests(CustomWebApplicationFactory factory)
         : base(factory) { }
 
     protected override string UsernamePrefix => "smokeuser";
 
-    public override async ValueTask InitializeAsync()
-    {
-        CancellationToken ct = TestContext.Current.CancellationToken;
-        SeededSmokeUser seededUser = await SeedUniqueTenantUserAsync(ct);
-        _seededUserId = seededUser.UserId;
-        _seededEmail = seededUser.Email;
-        _seededKeycloakUserId = seededUser.KeycloakUserId;
-        _seededUsername = seededUser.Username;
-    }
-
     [Fact]
     public async Task GetUsers_ReturnsOk()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        AuthenticateAsServiceAccount(Permission.Users.Read);
+        AuthenticateAsSeededUser([Permission.Users.Read]);
         HttpResponseMessage response = await Client.GetAsync("/api/v1/users", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -42,15 +27,7 @@ public sealed class IdentityModuleSmokeTests : SmokeTestBase
     public async Task GetMe_ReturnsOk()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(
-            Client,
-            userId: _seededUserId,
-            tenantId: TenantId,
-            username: _seededUsername,
-            subject: _seededKeycloakUserId,
-            role: "User",
-            email: _seededEmail
-        );
+        AuthenticateAsSeededUser();
         HttpResponseMessage response = await Client.GetAsync("/api/v1/users/me", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -59,7 +36,7 @@ public sealed class IdentityModuleSmokeTests : SmokeTestBase
     public async Task GetTenants_ReturnsOk()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        AuthenticateAsServiceAccount(Permission.Tenants.Read);
+        AuthenticateAsSeededUser([Permission.Tenants.Read]);
         HttpResponseMessage response = await Client.GetAsync("/api/v1/tenants", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -68,7 +45,7 @@ public sealed class IdentityModuleSmokeTests : SmokeTestBase
     public async Task GetRoles_ReturnsOk()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        AuthenticateAsServiceAccount(Permission.Roles.Read);
+        AuthenticateAsSeededUser([Permission.Roles.Read]);
         HttpResponseMessage response = await Client.GetAsync("/api/v1/roles", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -77,7 +54,7 @@ public sealed class IdentityModuleSmokeTests : SmokeTestBase
     public async Task GetRolePermissions_ReturnsOk()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        AuthenticateAsServiceAccount(Permission.Roles.Read);
+        AuthenticateAsSeededUser([Permission.Roles.Read]);
         HttpResponseMessage response = await Client.GetAsync("/api/v1/roles/permissions", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
@@ -86,7 +63,7 @@ public sealed class IdentityModuleSmokeTests : SmokeTestBase
     public async Task GetTenantInvitations_ReturnsOk()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        AuthenticateAsServiceAccount(Permission.Invitations.Read);
+        AuthenticateAsSeededUser([Permission.Invitations.Read]);
         HttpResponseMessage response = await Client.GetAsync("/api/v1/tenant-invitations", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }

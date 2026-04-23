@@ -87,7 +87,9 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
             return;
         }
 
-        string? nameId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? nameId =
+            user.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.NameId);
         _oidcSubject =
             user.FindFirstValue(AuthConstants.Claims.Subject)
             ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);

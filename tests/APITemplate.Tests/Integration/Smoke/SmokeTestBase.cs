@@ -1,4 +1,3 @@
-using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Xunit;
 
@@ -14,22 +13,20 @@ public abstract class SmokeTestBase : IAsyncLifetime
         string KeycloakUserId
     );
 
-    protected readonly CustomWebApplicationFactory Factory;
-    protected Guid TenantId;
+    protected readonly CustomWebApplicationFactory _factory;
+    protected Guid _tenantId;
+    protected SeededSmokeUser SeededUser { get; private set; } = default!;
 
-    protected HttpClient Client => field ??= Factory.CreateClient();
+    protected HttpClient Client => field ??= _factory.CreateClient();
 
-    protected SmokeTestBase(CustomWebApplicationFactory factory) => Factory = factory;
+    protected SmokeTestBase(CustomWebApplicationFactory factory) => _factory = factory;
 
     protected abstract string UsernamePrefix { get; }
-
-    private string ServiceAccountUsername =>
-        $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}{UsernamePrefix}";
 
     public virtual async ValueTask InitializeAsync()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        await SeedUniqueTenantUserAsync(ct);
+        SeededUser = await SeedUniqueTenantUserAsync(ct);
     }
 
     public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -41,12 +38,12 @@ public abstract class SmokeTestBase : IAsyncLifetime
         string email = $"{UsernamePrefix}-{suffix}@example.com";
 
         (Tenant Tenant, AppUser User) result = await IntegrationAuthHelper.SeedTenantUserAsync(
-            Factory.Services,
+            _factory.Services,
             username: username,
             email: email,
             ct: ct
         );
-        TenantId = result.Tenant.Id;
+        _tenantId = result.Tenant.Id;
         return new SeededSmokeUser(
             result.Tenant.Id,
             result.User.Id,
@@ -57,11 +54,20 @@ public abstract class SmokeTestBase : IAsyncLifetime
         );
     }
 
-    protected void AuthenticateAsServiceAccount(params string[] permissions) =>
+    protected void AuthenticateAsSeededUser(
+        string[]? permissions = null,
+        string role = "User",
+        string? subject = null
+    ) =>
         IntegrationAuthHelper.Authenticate(
             Client,
-            tenantId: TenantId,
-            username: ServiceAccountUsername,
-            permissions: permissions
+            userId: SeededUser.UserId,
+            tenantId: SeededUser.TenantId,
+            username: SeededUser.Username,
+            role: role,
+            permissions: permissions,
+            email: SeededUser.Email,
+            // Smoke users are pre-linked by Keycloak subject; keep token sub aligned by default.
+            subject: subject ?? SeededUser.KeycloakUserId
         );
 }

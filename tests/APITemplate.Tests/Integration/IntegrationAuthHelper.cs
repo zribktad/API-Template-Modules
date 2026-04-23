@@ -39,6 +39,7 @@ internal static class IntegrationAuthHelper
         var claims = new List<Claim>
         {
             new(AuthConstants.Claims.Subject, tokenSubject),
+            new(ClaimTypes.NameIdentifier, id.ToString()),
             new(AuthConstants.Claims.PreferredUsername, username ?? "admin"),
             new(ClaimTypes.Email, email ?? $"{username ?? "admin"}@example.com"),
             new(AuthConstants.Claims.TenantId, tenant.ToString()),

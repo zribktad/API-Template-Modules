@@ -86,11 +86,6 @@ builder.Host.UseWolverine(options =>
     foreach (Assembly assembly in WolverineModuleDiscovery.HandlerAssemblies)
         options.Discovery.IncludeAssembly(assembly);
 
-    options.Policies.AddMiddleware(
-        typeof(DataAnnotationsValidationMiddleware),
-        chain => chain.ShouldApplyDataAnnotationsValidation()
-    );
-
     // Retry policy for transient HTTP failures (e.g. Keycloak temporarily unavailable).
     // Applies only to queue-delivered messages (outbox workers) — NOT to InvokeAsync calls.
     // After all retries are exhausted the message moves to wolverine_dead_letters in PostgreSQL.
