@@ -31,7 +31,12 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
 
     public static Tenant Create(Guid id, string code, string name)
     {
-        ArgumentNullException.ThrowIfNull(code);
+        if (string.IsNullOrWhiteSpace(code))
+            throw new ArgumentException("Tenant code cannot be empty.", nameof(code));
+        if (code.Length > CodeMaxLength)
+            throw new ArgumentException($"Tenant code cannot exceed {CodeMaxLength} characters.", nameof(code));
+        if (name.Trim().Length > NameMaxLength)
+            throw new ArgumentException($"Tenant name cannot exceed {NameMaxLength} characters.", nameof(name));
 
         return new Tenant
         {

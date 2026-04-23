@@ -15,8 +15,8 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
         // See AppUserConfiguration for the rationale behind ComplexProperty over OwnsOne.
         builder.ComplexProperty(i => i.Email, b =>
         {
-            b.Property(x => x.Value).HasColumnName("Email").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
-            b.Property(x => x.Normalized).HasColumnName("NormalizedEmail").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
+            b.Property(x => x.Value).HasColumnName("Email").IsRequired().HasMaxLength(TenantInvitation.EmailMaxLength);
+            b.Property(x => x.Normalized).HasColumnName("NormalizedEmail").IsRequired().HasMaxLength(TenantInvitation.EmailMaxLength);
         });
 
         builder.Property(i => i.TokenHash).IsRequired().HasMaxLength(128);

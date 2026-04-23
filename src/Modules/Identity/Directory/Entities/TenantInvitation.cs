@@ -8,6 +8,8 @@ namespace Identity.Directory.Entities;
 /// </summary>
 public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
+    public const int EmailMaxLength = 320;
+
     public NormalizedString Email { get; private set; } = null!;
     public string TokenHash { get; private set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; private set; }

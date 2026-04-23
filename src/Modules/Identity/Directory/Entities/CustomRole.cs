@@ -38,7 +38,7 @@ public sealed class CustomRole : IAuditableEntity, IHasId, ISoftDeletable
         Guid id,
         string name,
         Guid? tenantId,
-        IEnumerable<string> permissions,
+        IEnumerable<string>? permissions,
         bool isPlatformAdmin
     )
     {
