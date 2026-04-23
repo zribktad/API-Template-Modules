@@ -179,8 +179,10 @@ public sealed class EmailRetryService : IEmailRetryService
         } while (processed == batchSize);
     }
 
-    private static void ApplyDeadLetterTransition(FailedEmail email) =>
+    private static void ApplyDeadLetterTransition(FailedEmail email)
+    {
         email.MarkDeadLettered();
+    }
 
     private async Task ReplayDeadLetterBatchAfterConcurrencyAsync(
         List<FailedEmail> claimedBatch,

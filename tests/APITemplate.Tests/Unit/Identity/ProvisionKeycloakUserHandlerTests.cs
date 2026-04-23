@@ -158,7 +158,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
 
         AppUser user = AppUser.Create(
             "eve",
-            Email.FromPersistence("eve@example.com"),
+            "eve@example.com",
             keycloakUserId: null
         );
 
