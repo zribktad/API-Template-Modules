@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using ErrorOr;
+using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.GraphQL;
 
@@ -9,6 +11,31 @@ namespace ProductCatalog.GraphQL;
 /// </summary>
 public static class ErrorOrGraphQLExtensions
 {
+    /// <summary>
+    ///     Validates <paramref name="model" /> using the shared <see cref="IValidator" /> and throws
+    ///     <see cref="GraphQLException" /> with code <c>GEN-0400</c> if any failures are found.
+    /// </summary>
+    public static void ValidateForGraphQL(this IValidator validator, object model)
+    {
+        IReadOnlyList<ValidationResult> failures = validator.Validate(model);
+        if (failures.Count == 0)
+            return;
+
+        IError[] errors = failures
+            .Select(f =>
+                ErrorBuilder
+                    .New()
+                    .SetMessage(f.ErrorMessage ?? "Validation failed.")
+                    .SetCode(SharedKernel.Application.Errors.ErrorCatalog.General.ValidationFailed)
+                    .SetExtension("propertyName", string.Join(", ", f.MemberNames))
+                    .Build()
+            )
+            .ToArray();
+
+        throw new GraphQLException(errors);
+    }
+
+
     /// <summary>
     ///     Unwraps the value on success, or throws <see cref="GraphQLException" /> on error.
     /// </summary>

@@ -2,6 +2,7 @@ using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Product.GetProductById;
 using ProductCatalog.Features.Product.GetProducts;
+using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Queries;
@@ -20,6 +21,7 @@ public class ProductQueries
     public async Task<ProductPageResult> GetProducts(
         ProductQueryInput? input,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
     )
     {
@@ -37,6 +39,7 @@ public class ProductQueries
             input?.Query,
             input?.CategoryIds
         );
+        validator.ValidateForGraphQL(filter);
 
         ErrorOr<ProductsResponse> result = await bus.InvokeAsync<ErrorOr<ProductsResponse>>(
             new GetProductsQuery(filter),

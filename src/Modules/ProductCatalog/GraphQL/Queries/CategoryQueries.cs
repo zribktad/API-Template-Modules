@@ -2,6 +2,7 @@ using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Category.GetCategories;
 using ProductCatalog.Features.Category.GetCategoryById;
+using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Queries;
@@ -21,6 +22,7 @@ public sealed class CategoryQueries
     public async Task<CategoryPageResult> GetCategories(
         CategoryQueryInput? input,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
     )
     {
@@ -31,6 +33,7 @@ public sealed class CategoryQueries
             input?.PageNumber ?? 1,
             input?.PageSize ?? PaginationFilter.DefaultPageSize
         );
+        validator.ValidateForGraphQL(filter);
 
         ErrorOr<PagedResponse<CategoryResponse>> result = await bus.InvokeAsync<
             ErrorOr<PagedResponse<CategoryResponse>>
