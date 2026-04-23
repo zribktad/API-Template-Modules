@@ -25,7 +25,8 @@ public sealed class NormalizedString
 
     public static string Normalize(string value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException("Value cannot be empty or whitespace.", nameof(value));
         return value.Trim().ToUpperInvariant();
     }
 }

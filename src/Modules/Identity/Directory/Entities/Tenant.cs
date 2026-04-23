@@ -33,12 +33,16 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
     {
         if (string.IsNullOrWhiteSpace(code))
             throw new ArgumentException("Tenant code cannot be empty.", nameof(code));
+        if (code.Length > CodeMaxLength)
+            throw new ArgumentException($"Tenant code cannot exceed {CodeMaxLength} characters.", nameof(code));
+        if (name.Trim().Length > NameMaxLength)
+            throw new ArgumentException($"Tenant name cannot exceed {NameMaxLength} characters.", nameof(name));
 
         return new Tenant
         {
             Id = id,
             TenantId = id,
-            Code = code.Trim(),
+            Code = code,
             Name = name,
         };
     }
