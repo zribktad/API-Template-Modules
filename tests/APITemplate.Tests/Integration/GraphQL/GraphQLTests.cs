@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Tests.Integration.Helpers;
@@ -430,6 +432,58 @@ public class GraphQLTests : IClassFixture<CustomWebApplicationFactory>
         products.Facets!.PriceBuckets.ShouldContain(bucket =>
             bucket.Label == "0 - 50" && bucket.Count >= 2
         );
+    }
+
+    [Fact]
+    public async Task GraphQL_CreateProducts_WithEmptyItems_ReturnsGEN0400ValidationError()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
+
+        string requestBody = JsonSerializer.Serialize(new
+        {
+            query = """
+                mutation($input: CreateProductsRequestInput!) {
+                    createProducts(input: $input) { successCount }
+                }
+                """,
+            variables = new { input = new { items = Array.Empty<object>() } },
+        });
+        using StringContent content = new(requestBody, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await _client.PostAsync("/graphql", content, ct);
+        string body = await response.Content.ReadAsStringAsync(ct);
+
+        using JsonDocument doc = JsonDocument.Parse(body);
+        doc.RootElement.TryGetProperty("errors", out JsonElement errors).ShouldBeTrue(body);
+        errors.GetArrayLength().ShouldBeGreaterThan(0, body);
+        errors[0].GetProperty("extensions").GetProperty("code").GetString().ShouldBe("GEN-0400", body);
+    }
+
+    [Fact]
+    public async Task GraphQL_DeleteProducts_WithEmptyIds_ReturnsGEN0400ValidationError()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
+
+        string requestBody = JsonSerializer.Serialize(new
+        {
+            query = """
+                mutation($input: BatchDeleteRequestInput!) {
+                    deleteProducts(input: $input) { successCount }
+                }
+                """,
+            variables = new { input = new { ids = Array.Empty<Guid>() } },
+        });
+        using StringContent content = new(requestBody, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await _client.PostAsync("/graphql", content, ct);
+        string body = await response.Content.ReadAsStringAsync(ct);
+
+        using JsonDocument doc = JsonDocument.Parse(body);
+        doc.RootElement.TryGetProperty("errors", out JsonElement errors).ShouldBeTrue(body);
+        errors.GetArrayLength().ShouldBeGreaterThan(0, body);
+        errors[0].GetProperty("extensions").GetProperty("code").GetString().ShouldBe("GEN-0400", body);
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using ErrorOr;
 using HotChocolate.Authorization;
+using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Mutations;
@@ -17,9 +18,11 @@ public class ProductReviewMutations
     public async Task<ProductReviewResponse> CreateProductReview(
         CreateProductReviewRequest input,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
     )
     {
+        validator.ValidateForGraphQL(input);
         ErrorOr<ProductReviewResponse> result = await bus.InvokeAsync<
             ErrorOr<ProductReviewResponse>
         >(new CreateProductReviewCommand(input), ct);

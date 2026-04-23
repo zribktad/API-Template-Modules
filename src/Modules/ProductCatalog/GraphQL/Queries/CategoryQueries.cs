@@ -26,13 +26,7 @@ public sealed class CategoryQueries
         CancellationToken ct
     )
     {
-        CategoryFilter filter = new(
-            input?.Query,
-            input?.SortBy,
-            input?.SortDirection,
-            input?.PageNumber ?? 1,
-            input?.PageSize ?? PaginationFilter.DefaultPageSize
-        );
+        CategoryFilter filter = (input ?? new CategoryQueryInput()).ToFilter();
         validator.ValidateForGraphQL(filter);
 
         ErrorOr<PagedResponse<CategoryResponse>> result = await bus.InvokeAsync<

@@ -25,20 +25,7 @@ public class ProductQueries
         CancellationToken ct
     )
     {
-        ProductFilter filter = new(
-            input?.Name,
-            input?.Description,
-            input?.MinPrice,
-            input?.MaxPrice,
-            input?.CreatedFrom,
-            input?.CreatedTo,
-            input?.SortBy,
-            input?.SortDirection,
-            input?.PageNumber ?? 1,
-            input?.PageSize ?? PaginationFilter.DefaultPageSize,
-            input?.Query,
-            input?.CategoryIds
-        );
+        ProductFilter filter = (input ?? new ProductQueryInput()).ToFilter();
         validator.ValidateForGraphQL(filter);
 
         ErrorOr<ProductsResponse> result = await bus.InvokeAsync<ErrorOr<ProductsResponse>>(

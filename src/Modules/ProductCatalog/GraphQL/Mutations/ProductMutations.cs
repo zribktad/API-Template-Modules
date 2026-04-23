@@ -2,6 +2,7 @@ using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Product.CreateProducts;
 using ProductCatalog.Features.Product.DeleteProducts;
+using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Mutations;
@@ -18,9 +19,11 @@ public class ProductMutations
     public async Task<BatchResponse> CreateProducts(
         CreateProductsRequest input,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
     )
     {
+        validator.ValidateForGraphQL(input);
         ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new CreateProductsCommand(input),
             ct
@@ -48,9 +51,11 @@ public class ProductMutations
     public async Task<BatchResponse> DeleteProducts(
         BatchDeleteRequest input,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
     )
     {
+        validator.ValidateForGraphQL(input);
         ErrorOr<BatchResponse> result = await bus.InvokeAsync<ErrorOr<BatchResponse>>(
             new DeleteProductsCommand(input),
             ct
