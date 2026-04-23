@@ -7,10 +7,10 @@ namespace Identity.ValueObjects;
 ///     silent duplicates such as "Alice", " alice " and "ALICE" from being treated as distinct.
 ///     Use <see cref="Value"/> for output; use <see cref="Normalized"/> for filtering and index lookups.
 /// </summary>
-public sealed record NormalizedString
+public sealed class NormalizedString
 {
-    public string Value { get; private init; } = string.Empty;
-    public string Normalized { get; private init; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string Normalized { get; set; } = string.Empty;
 
     private NormalizedString() { }
 
@@ -18,6 +18,8 @@ public sealed record NormalizedString
     {
         ArgumentNullException.ThrowIfNull(value);
         Value = value.Trim();
+        if (Value.Length == 0)
+            throw new ArgumentException("Value cannot be empty or whitespace.", nameof(value));
         Normalized = Value.ToUpperInvariant();
     }
 

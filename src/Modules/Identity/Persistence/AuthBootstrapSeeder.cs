@@ -36,7 +36,7 @@ public sealed class AuthBootstrapSeeder
 
     private TenantIdentity GetTenantIdentity()
     {
-        return new TenantIdentity(_tenantOptions.Code.Trim(), _tenantOptions.Name.Trim());
+        return new TenantIdentity(_tenantOptions.Code, _tenantOptions.Name.Trim());
     }
 
     private Task<Tenant?> FindTenantAsync(string tenantCode, CancellationToken ct)

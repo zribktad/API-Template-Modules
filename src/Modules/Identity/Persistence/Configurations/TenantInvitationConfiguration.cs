@@ -1,3 +1,4 @@
+using EFCore.ComplexIndexes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -11,7 +12,8 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
         builder.HasKey(i => i.Id);
         builder.ConfigureTenantAuditable();
 
-        builder.OwnsOne(i => i.Email, b =>
+        // See AppUserConfiguration for the rationale behind ComplexProperty over OwnsOne.
+        builder.ComplexProperty(i => i.Email, b =>
         {
             b.Property(x => x.Value).HasColumnName("Email").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
             b.Property(x => x.Normalized).HasColumnName("NormalizedEmail").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
@@ -40,5 +42,7 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(i => i.TokenHash);
+
+        builder.HasComplexCompositeIndex(i => new { i.TenantId, i.Email.Normalized });
     }
 }

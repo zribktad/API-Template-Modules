@@ -31,11 +31,13 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
 
     public static Tenant Create(Guid id, string code, string name)
     {
+        ArgumentNullException.ThrowIfNull(code);
+
         return new Tenant
         {
             Id = id,
             TenantId = id,
-            Code = code.Trim(),
+            Code = code,
             Name = name,
         };
     }

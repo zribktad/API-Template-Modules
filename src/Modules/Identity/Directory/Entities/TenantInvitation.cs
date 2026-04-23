@@ -8,7 +8,7 @@ namespace Identity.Directory.Entities;
 /// </summary>
 public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
-    public NormalizedString Email { get; private set; } = new(string.Empty);
+    public NormalizedString Email { get; private set; } = null!;
     public string TokenHash { get; private set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; private set; }
     public InvitationStatus Status { get; private set; } = InvitationStatus.Pending;
