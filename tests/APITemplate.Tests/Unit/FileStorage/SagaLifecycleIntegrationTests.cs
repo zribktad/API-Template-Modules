@@ -120,14 +120,13 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         notif.ShouldNotBeNull();
         saga.Status.ShouldBe(FileUploadStatus.Committed);
 
-        ErrorOr<Stream?> openResult = await _blobStore.OpenReadAsync(
+        ErrorOr<Stream> openResult = await _blobStore.OpenReadAsync(
             tenant,
             staging.Sha256,
             TestContext.Current.CancellationToken
         );
         openResult.IsError.ShouldBeFalse();
-        openResult.Value.ShouldNotBeNull();
-        await using Stream readback = openResult.Value!;
+        await using Stream readback = openResult.Value;
         using StreamReader reader = new(readback);
         (await reader.ReadToEndAsync(TestContext.Current.CancellationToken)).ShouldBe("hello");
     }

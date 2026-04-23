@@ -169,7 +169,7 @@ internal sealed class LocalBlobStore : IBlobStore
         return committedPath;
     }
 
-    public Task<ErrorOr<Stream?>> OpenReadAsync(
+    public Task<ErrorOr<Stream>> OpenReadAsync(
         Guid tenantId,
         string sha256,
         CancellationToken ct = default
@@ -180,12 +180,12 @@ internal sealed class LocalBlobStore : IBlobStore
 
         ErrorOr<Success> pathCheck = CheckPathWithin(blobsRoot, committedPath);
         if (pathCheck.IsError)
-            return Task.FromResult<ErrorOr<Stream?>>(pathCheck.Errors);
+            return Task.FromResult<ErrorOr<Stream>>(pathCheck.Errors);
 
         if (!File.Exists(committedPath))
-            return Task.FromResult<ErrorOr<Stream?>>((Stream?)null);
+            return Task.FromResult<ErrorOr<Stream>>(FSDomain.Files.FileNotFound(sha256));
 
-        return Task.FromResult<ErrorOr<Stream?>>(
+        return Task.FromResult<ErrorOr<Stream>>(
             new FileStream(
                 committedPath,
                 FileMode.Open,

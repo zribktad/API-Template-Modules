@@ -35,10 +35,10 @@ public interface IBlobStore
     );
 
     /// <summary>
-    ///     Opens the committed blob for reading. Returns <see langword="null" /> value if it does not exist.
-    ///     Returns <see cref="ErrorOr{T}" /> with <see cref="DomainErrors.Files.PathTraversal" /> on path-traversal.
+    ///     Opens the committed blob for reading. Returns <see cref="DomainErrors.Files.FileNotFound" /> if the blob
+    ///     does not exist, and <see cref="DomainErrors.Files.PathTraversal" /> on path-traversal.
     /// </summary>
-    Task<ErrorOr<Stream?>> OpenReadAsync(
+    Task<ErrorOr<Stream>> OpenReadAsync(
         Guid tenantId,
         string sha256,
         CancellationToken ct = default
