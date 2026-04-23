@@ -77,6 +77,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
             TestServiceHelper.RemoveExternalHealthChecks(services);
             TestServiceHelper.ReplaceOutputCacheWithInMemory(services);
             TestServiceHelper.ReplaceDataProtectionWithInMemory(services);
+            TestServiceHelper.ReplaceDistributedCacheWithInMemory(services);
             TestServiceHelper.ConfigureTestAuthentication(services);
             TestServiceHelper.RemoveTickerQRuntimeServices(services);
             TestServiceHelper.ReplaceStartupCoordinationWithNoOp(services);

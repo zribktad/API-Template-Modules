@@ -24,14 +24,15 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        var ct = TestContext.Current.CancellationToken;
-        var suffix = Guid.NewGuid().ToString("N")[..8];
-        var (tenant, user) = await IntegrationAuthHelper.SeedTenantUserAsync(
-            _factory.Services,
-            username: $"smokeuser-{suffix}",
-            email: $"smokeuser-{suffix}@example.com",
-            ct: ct
-        );
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        string suffix = Guid.NewGuid().ToString("N")[..8];
+        (Identity.Directory.Entities.Tenant? tenant, Identity.Directory.Entities.AppUser? user) =
+            await IntegrationAuthHelper.SeedTenantUserAsync(
+                _factory.Services,
+                username: $"smokeuser-{suffix}",
+                email: $"smokeuser-{suffix}@example.com",
+                ct: ct
+            );
         _seededEmail = user.Email.Value;
         _seededKeycloakUserId = user.KeycloakUserId.ShouldNotBeNull();
         _seededTenantId = tenant.Id;
@@ -43,21 +44,21 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
     [Fact]
     public async Task GetUsers_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
             tenantId: _seededTenantId,
             username: ServiceAccountUsername,
             permissions: [Permission.Users.Read]
         );
-        var response = await Client.GetAsync("/api/v1/users", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/users", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetMe_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
             tenantId: _seededTenantId,
@@ -66,60 +67,63 @@ public sealed class IdentityModuleSmokeTests : IAsyncLifetime
             role: "User",
             email: _seededEmail
         );
-        var response = await Client.GetAsync("/api/v1/users/me", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/users/me", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetTenants_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
             tenantId: _seededTenantId,
             username: ServiceAccountUsername,
             permissions: [Permission.Tenants.Read]
         );
-        var response = await Client.GetAsync("/api/v1/tenants", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/tenants", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetRoles_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
             tenantId: _seededTenantId,
+            username: ServiceAccountUsername,
             permissions: [Permission.Roles.Read]
         );
-        var response = await Client.GetAsync("/api/v1/roles", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/roles", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetRolePermissions_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
             tenantId: _seededTenantId,
+            username: ServiceAccountUsername,
             permissions: [Permission.Roles.Read]
         );
-        var response = await Client.GetAsync("/api/v1/roles/permissions", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/roles/permissions", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetTenantInvitations_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             Client,
             tenantId: _seededTenantId,
+            username: ServiceAccountUsername,
             permissions: [Permission.Invitations.Read]
         );
-        var response = await Client.GetAsync("/api/v1/tenant-invitations", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/tenant-invitations", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 }

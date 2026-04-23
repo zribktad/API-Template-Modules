@@ -87,7 +87,10 @@ public sealed class ProductAndReviewSmokeTests : IAsyncLifetime
             username: ServiceAccountUsername,
             permissions: [Permission.ProductReviews.Read]
         );
-        var response = await Client.GetAsync("/api/v1/product-reviews", ct);
+        var response = await Client.GetAsync(
+            "/api/v1/product-reviews?pageNumber=1&pageSize=20",
+            ct
+        );
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 

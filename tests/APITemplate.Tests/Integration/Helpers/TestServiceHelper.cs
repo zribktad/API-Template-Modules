@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -27,6 +28,7 @@ internal static class TestServiceHelper
             {
                 options.Authority = null;
                 options.RequireHttpsMetadata = false;
+                options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -106,6 +108,12 @@ internal static class TestServiceHelper
     {
         services.RemoveAll<IDataProtectionProvider>();
         services.AddSingleton<IDataProtectionProvider, EphemeralDataProtectionProvider>();
+    }
+
+    internal static void ReplaceDistributedCacheWithInMemory(IServiceCollection services)
+    {
+        services.RemoveAll<IDistributedCache>();
+        services.AddDistributedMemoryCache();
     }
 
     internal static void RemoveTickerQRuntimeServices(IServiceCollection services)

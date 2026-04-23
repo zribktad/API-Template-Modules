@@ -13,13 +13,12 @@ namespace SharedKernel.Application.Middleware;
 /// </summary>
 public static class DataAnnotationsValidationMiddleware
 {
-    public static Task<(HandlerContinuation, ErrorOr<TResponse>)> BeforeAsync<TMessage, TResponse>(
-        TMessage message,
+    public static Task<(HandlerContinuation, ErrorOr<TResponse>)> BeforeAsync<TResponse>(
+        Envelope envelope,
         IValidator validator
     )
-        where TMessage : notnull
     {
-        IReadOnlyList<ValidationResult> failures = validator.Validate(message);
+        IReadOnlyList<ValidationResult> failures = validator.Validate(envelope.Message!);
 
         if (failures.Count == 0)
             return Task.FromResult((HandlerContinuation.Continue, default(ErrorOr<TResponse>)!));
