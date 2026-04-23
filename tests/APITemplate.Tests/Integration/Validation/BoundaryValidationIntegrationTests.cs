@@ -217,13 +217,13 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
     [Fact]
     public async Task GraphQL_Products_WithInvalidMinPrice_ReturnsGEN0400ValidationError()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             _client,
             username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}graphql-validation"
         );
 
-        var requestBody = JsonSerializer.Serialize(new
+        string requestBody = JsonSerializer.Serialize(new
         {
             query = @"query($input: ProductQueryInput) { products(input: $input) { page { items { id } } } }",
             variables = new { input = new { minPrice = -1.0, pageNumber = 1, pageSize = 5 } },
@@ -250,13 +250,13 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
     [Fact]
     public async Task GraphQL_Products_WithValidFilter_ReturnsData()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         IntegrationAuthHelper.Authenticate(
             _client,
             username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}graphql-validation"
         );
 
-        var requestBody = JsonSerializer.Serialize(new
+        string requestBody = JsonSerializer.Serialize(new
         {
             query = @"query($input: ProductQueryInput) { products(input: $input) { page { items { id name } totalCount } } }",
             variables = new { input = new { pageNumber = 1, pageSize = 5 } },

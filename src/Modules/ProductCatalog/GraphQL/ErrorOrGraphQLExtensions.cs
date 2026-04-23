@@ -35,7 +35,6 @@ public static class ErrorOrGraphQLExtensions
         throw new GraphQLException(errors);
     }
 
-
     /// <summary>
     ///     Unwraps the value on success, or throws <see cref="GraphQLException" /> on error.
     /// </summary>

@@ -18,36 +18,36 @@ public sealed class ProductAndReviewSmokeTests : SmokeTestBase
     [Fact]
     public async Task GetProducts_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         AuthenticateAsSeededUser([Permission.Products.Read]);
-        var response = await Client.GetAsync("/api/v1/products", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/products", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetCategories_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         AuthenticateAsSeededUser([Permission.Categories.Read]);
-        var response = await Client.GetAsync("/api/v1/categories", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/categories", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetProductData_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         AuthenticateAsSeededUser([Permission.ProductData.Read]);
-        var response = await Client.GetAsync("/api/v1/product-data", ct);
+        HttpResponseMessage response = await Client.GetAsync("/api/v1/product-data", ct);
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetProductReviews_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         AuthenticateAsSeededUser([Permission.ProductReviews.Read]);
-        var response = await Client.GetAsync(
+        HttpResponseMessage response = await Client.GetAsync(
             "/api/v1/product-reviews?pageNumber=1&pageSize=20",
             ct
         );
@@ -57,9 +57,9 @@ public sealed class ProductAndReviewSmokeTests : SmokeTestBase
     [Fact]
     public async Task GraphQL_BasicRequest_ReturnsOk()
     {
-        var ct = TestContext.Current.CancellationToken;
+        CancellationToken ct = TestContext.Current.CancellationToken;
         AuthenticateAsSeededUser([Permission.Products.Read]);
-        var response = await Client.PostAsJsonAsync(
+        HttpResponseMessage response = await Client.PostAsJsonAsync(
             "/graphql",
             new { query = "{ __typename }" },
             ct

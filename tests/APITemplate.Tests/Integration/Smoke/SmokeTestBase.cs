@@ -14,12 +14,14 @@ public abstract class SmokeTestBase : IAsyncLifetime
     );
 
     protected readonly CustomWebApplicationFactory _factory;
-    protected Guid _tenantId;
     protected SeededSmokeUser SeededUser { get; private set; } = default!;
 
     protected HttpClient Client => field ??= _factory.CreateClient();
 
-    protected SmokeTestBase(CustomWebApplicationFactory factory) => _factory = factory;
+    protected SmokeTestBase(CustomWebApplicationFactory factory)
+    {
+        _factory = factory;
+    }
 
     protected abstract string UsernamePrefix { get; }
 
@@ -43,7 +45,6 @@ public abstract class SmokeTestBase : IAsyncLifetime
             email: email,
             ct: ct
         );
-        _tenantId = result.Tenant.Id;
         return new SeededSmokeUser(
             result.Tenant.Id,
             result.User.Id,
