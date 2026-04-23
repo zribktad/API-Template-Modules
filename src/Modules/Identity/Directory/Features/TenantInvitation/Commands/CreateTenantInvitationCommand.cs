@@ -1,8 +1,8 @@
 using ErrorOr;
 using Identity.Common.Email;
+using Identity.Directory.Entities;
 using Identity.Directory.Features.TenantInvitation.Mappings;
 using Identity.Directory.Options;
-using Identity.ValueObjects;
 using Microsoft.Extensions.Options;
 using Wolverine;
 using TenantEntity = Identity.Directory.Entities.Tenant;
@@ -26,17 +26,14 @@ public sealed class CreateTenantInvitationCommandHandler
         CancellationToken ct
     )
     {
-        ErrorOr<Email> emailResult = Email.Create(command.Request.Email);
-        if (emailResult.IsError)
-            return (emailResult.Errors, OutgoingMessagesHelper.Empty);
-        Email email = emailResult.Value;
-
+        string email = command.Request.Email;
+        string normalizedEmail = NormalizedString.Normalize(email);
         TenantInvitationOptions opts = invitationOptions.Value;
 
-        if (await invitationRepository.HasPendingInvitationAsync(email.Normalize(), ct))
+        if (await invitationRepository.HasPendingInvitationAsync(normalizedEmail, ct))
         {
             return (
-                DomainErrors.Invitations.AlreadyPending(command.Request.Email),
+                DomainErrors.Invitations.AlreadyPending(email),
                 OutgoingMessagesHelper.Empty
             );
         }

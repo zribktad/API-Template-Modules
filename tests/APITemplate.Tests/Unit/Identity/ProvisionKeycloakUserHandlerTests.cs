@@ -1,7 +1,6 @@
 using Identity.Auth.Entities;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
-using Identity.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SharedKernel.Contracts.Events;
@@ -65,7 +64,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
 
         AppUser alreadyLinked = AppUser.Create(
             "bob",
-            Email.FromPersistence("bob@example.com"),
+            "bob@example.com",
             keycloakUserId: "existing-kc-id"
         );
 
@@ -107,7 +106,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
 
         AppUser user = AppUser.Create(
             "carol",
-            Email.FromPersistence("carol@example.com"),
+            "carol@example.com",
             keycloakUserId: null
         );
 
@@ -157,7 +156,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
 
         AppUser user = AppUser.Create(
             "dave",
-            Email.FromPersistence("dave@example.com"),
+            "dave@example.com",
             keycloakUserId: null
         );
 

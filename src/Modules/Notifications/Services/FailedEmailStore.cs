@@ -48,20 +48,14 @@ public sealed class FailedEmailStore : IFailedEmailStore
             IUnitOfWork unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             TimeProvider timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
-            FailedEmail failedEmail = new()
-            {
-                Id = Guid.NewGuid(),
-                To = message.To,
-                Subject = message.Subject,
-                HtmlBody = message.HtmlBody,
-                RetryCount = 0,
-                CreatedAtUtc = timeProvider.GetUtcNow().UtcDateTime,
-                LastError = FailedEmailErrorNormalizer.Normalize(error),
-                TemplateName = message.TemplateName,
-                ClaimedBy = null,
-                ClaimedAtUtc = null,
-                ClaimedUntilUtc = null,
-            };
+            FailedEmail failedEmail = FailedEmail.Create(
+                message.To,
+                message.Subject,
+                message.HtmlBody,
+                timeProvider,
+                message.TemplateName,
+                initialError: error
+            );
 
             await repository.AddAsync(failedEmail, ct);
             await unitOfWork.CommitAsync(ct);

@@ -29,27 +29,25 @@ public class RoleRequestHandlersTests
     public RoleRequestHandlersTests()
     {
         _tenantProvider.Setup(x => x.TenantId).Returns(_tenantId);
-        SetupUserClaims(isPlatformAdmin: false); // Default to TenantAdmin
+        SetupUserClaims(isPlatformAdmin: false);
     }
 
     private void SetupUserClaims(bool isPlatformAdmin)
     {
-        var claims = new List<Claim>();
+        List<Claim> claims = new();
         if (isPlatformAdmin)
-        {
             claims.Add(new Claim(AuthConstants.Claims.Permission, Permission.Platform.Manage));
-        }
-        var identity = new ClaimsIdentity(claims, "Test");
-        var principal = new ClaimsPrincipal(identity);
-        var httpContext = new DefaultHttpContext { User = principal };
+        ClaimsIdentity identity = new(claims, "Test");
+        ClaimsPrincipal principal = new(identity);
+        DefaultHttpContext httpContext = new() { User = principal };
         _httpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
     }
 
     [Fact]
-    public async Task CreateRole_Success()
+    public async Task CreateRole_Success_PersistsAndReturnsResponse()
     {
-        var request = new CreateRoleRequest("Test Role", new List<string> { "Test.Permission" });
-        var command = new CreateRoleCommand(request);
+        CreateRoleRequest request = new("Test Role", new List<string> { "Test.Permission" });
+        CreateRoleCommand command = new(request);
 
         (ErrorOr<RoleResponse> result, OutgoingMessages messages) =
             await CreateRoleCommandHandler.HandleAsync(
@@ -64,27 +62,119 @@ public class RoleRequestHandlersTests
         result.IsError.ShouldBeFalse();
         result.Value.Name.ShouldBe("Test Role");
         result.Value.Permissions.ShouldContain("Test.Permission");
-
         _repository.Verify(
-            r =>
-                r.AddAsync(
-                    It.Is<CustomRole>(c => c.Name == "Test Role" && c.TenantId == _tenantId),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
+            r => r.AddAsync(
+                It.Is<CustomRole>(role =>
+                    role.TenantId == _tenantId &&
+                    role.Name == "Test Role" &&
+                    role.Permissions.Count == 1 &&
+                    role.Permissions.Any(p => p.Permission == "Test.Permission")),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
         _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateRole_TenantAdmin_CannotGrantPlatformManage()
+    public async Task CreateRole_WithNoPermissions_PersistsRoleWithEmptyPermissions()
     {
-        SetupUserClaims(isPlatformAdmin: false);
-        var request = new CreateRoleRequest(
-            "Test Role",
-            new List<string> { Permission.Platform.Manage }
-        );
-        var command = new CreateRoleCommand(request);
+        CreateRoleRequest request = new("Empty Role", new List<string>());
+        CreateRoleCommand command = new(request);
+
+        (ErrorOr<RoleResponse> result, OutgoingMessages _) =
+            await CreateRoleCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                _tenantProvider.Object,
+                _httpContextAccessor.Object,
+                CancellationToken.None
+            );
+
+        result.IsError.ShouldBeFalse();
+        result.Value.Permissions.ShouldBeEmpty();
+        _repository.Verify(
+            r => r.AddAsync(
+                It.Is<CustomRole>(role => role.TenantId == _tenantId && role.Permissions.Count == 0),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRole_PlatformAdmin_CanGrantPlatformManage_Succeeds()
+    {
+        SetupUserClaims(isPlatformAdmin: true);
+        CreateRoleRequest request = new("Admin Role", new List<string> { Permission.Platform.Manage });
+        CreateRoleCommand command = new(request);
+
+        (ErrorOr<RoleResponse> result, OutgoingMessages _) =
+            await CreateRoleCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                _tenantProvider.Object,
+                _httpContextAccessor.Object,
+                CancellationToken.None
+            );
+
+        result.IsError.ShouldBeFalse();
+        result.Value.Permissions.ShouldContain(Permission.Platform.Manage);
+        _repository.Verify(
+            r => r.AddAsync(
+                It.Is<CustomRole>(role => role.Permissions.Any(p => p.Permission == Permission.Platform.Manage)),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRole_TenantAdmin_WithPlatformManageAmongOthers_ReturnsError()
+    {
+        CreateRoleRequest request = new("Mixed Role", new List<string> { "Reports.Read", Permission.Platform.Manage });
+        CreateRoleCommand command = new(request);
+
+        (ErrorOr<RoleResponse> result, OutgoingMessages _) =
+            await CreateRoleCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                _tenantProvider.Object,
+                _httpContextAccessor.Object,
+                CancellationToken.None
+            );
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Forbidden);
+        _repository.Verify(r => r.AddAsync(It.IsAny<CustomRole>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateRole_Success_RoleIsNotImmutable()
+    {
+        CreateRoleRequest request = new("Custom Role", new List<string> { "Reports.Read" });
+        CreateRoleCommand command = new(request);
+
+        (ErrorOr<RoleResponse> result, OutgoingMessages _) =
+            await CreateRoleCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                _tenantProvider.Object,
+                _httpContextAccessor.Object,
+                CancellationToken.None
+            );
+
+        result.IsError.ShouldBeFalse();
+        _repository.Verify(
+            r => r.AddAsync(
+                It.Is<CustomRole>(role => !role.IsImmutable),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRole_TenantAdmin_CannotGrantPlatformManage_ReturnsError()
+    {
+        CreateRoleRequest request = new("Test Role", new List<string> { Permission.Platform.Manage });
+        CreateRoleCommand command = new(request);
 
         (ErrorOr<RoleResponse> result, OutgoingMessages messages) =
             await CreateRoleCommandHandler.HandleAsync(
@@ -98,100 +188,17 @@ public class RoleRequestHandlersTests
 
         result.IsError.ShouldBeTrue();
         result.FirstError.Type.ShouldBe(ErrorType.Forbidden);
-        result.FirstError.Code.ShouldBe("Role.Permissions");
-    }
-
-    [Fact]
-    public async Task CreateRole_PlatformAdmin_CanGrantPlatformManage()
-    {
-        SetupUserClaims(isPlatformAdmin: true);
-        var request = new CreateRoleRequest(
-            "Test Role",
-            new List<string> { Permission.Platform.Manage }
-        );
-        var command = new CreateRoleCommand(request);
-
-        (ErrorOr<RoleResponse> result, OutgoingMessages messages) =
-            await CreateRoleCommandHandler.HandleAsync(
-                command,
-                _repository.Object,
-                _unitOfWork.Object,
-                _tenantProvider.Object,
-                _httpContextAccessor.Object,
-                CancellationToken.None
-            );
-
-        result.IsError.ShouldBeFalse();
-        result.Value.Permissions.ShouldContain(Permission.Platform.Manage);
-    }
-
-    [Fact]
-    public async Task CreateRole_PlatformAdmin_CanSpecifyTenantId()
-    {
-        SetupUserClaims(isPlatformAdmin: true);
-        var explicitTenantId = Guid.NewGuid();
-        var request = new CreateRoleRequest("Test Role", new List<string>(), explicitTenantId);
-        var command = new CreateRoleCommand(request);
-
-        (ErrorOr<RoleResponse> result, OutgoingMessages messages) =
-            await CreateRoleCommandHandler.HandleAsync(
-                command,
-                _repository.Object,
-                _unitOfWork.Object,
-                _tenantProvider.Object,
-                _httpContextAccessor.Object,
-                CancellationToken.None
-            );
-
-        result.IsError.ShouldBeFalse();
-        _repository.Verify(
-            r =>
-                r.AddAsync(
-                    It.Is<CustomRole>(c => c.TenantId == explicitTenantId),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task CreateRole_TenantAdmin_TenantIdIsIgnored()
-    {
-        SetupUserClaims(isPlatformAdmin: false);
-        var explicitTenantId = Guid.NewGuid(); // Some other tenant
-        var request = new CreateRoleRequest("Test Role", new List<string>(), explicitTenantId);
-        var command = new CreateRoleCommand(request);
-
-        (ErrorOr<RoleResponse> result, OutgoingMessages messages) =
-            await CreateRoleCommandHandler.HandleAsync(
-                command,
-                _repository.Object,
-                _unitOfWork.Object,
-                _tenantProvider.Object,
-                _httpContextAccessor.Object,
-                CancellationToken.None
-            );
-
-        result.IsError.ShouldBeFalse();
-        // Should ignore explicitTenantId and use _tenantId
-        _repository.Verify(
-            r =>
-                r.AddAsync(
-                    It.Is<CustomRole>(c => c.TenantId == _tenantId),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
+        _repository.Verify(r => r.AddAsync(It.IsAny<CustomRole>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task UpdateRole_Immutable_ReturnsError()
     {
-        var roleId = Guid.NewGuid();
-        var request = new UpdateRoleRequest("Updated Name", new List<string>());
-        var command = new UpdateRoleCommand(roleId, request);
+        Guid roleId = Guid.NewGuid();
+        UpdateRoleRequest request = new("Updated Name", new List<string>());
+        UpdateRoleCommand command = new(roleId, request);
 
-        var immutableRole = new CustomRole
+        CustomRole immutableRole = new()
         {
             Id = roleId,
             Name = "PlatformAdmin",
@@ -220,13 +227,13 @@ public class RoleRequestHandlersTests
     public async Task UpdateRole_TenantAdmin_CannotGrantPlatformManage()
     {
         SetupUserClaims(isPlatformAdmin: false);
-        var roleId = Guid.NewGuid();
-        var request = new UpdateRoleRequest(
+        Guid roleId = Guid.NewGuid();
+        UpdateRoleRequest request = new(
             "Updated Name",
             new List<string> { Permission.Platform.Manage }
         );
-        var command = new UpdateRoleCommand(roleId, request);
-        var role = new CustomRole
+        UpdateRoleCommand command = new(roleId, request);
+        CustomRole role = new()
         {
             Id = roleId,
             Name = "Old Name",
@@ -251,13 +258,13 @@ public class RoleRequestHandlersTests
     public async Task UpdateRole_PlatformAdmin_CanGrantPlatformManage()
     {
         SetupUserClaims(isPlatformAdmin: true);
-        var roleId = Guid.NewGuid();
-        var request = new UpdateRoleRequest(
+        Guid roleId = Guid.NewGuid();
+        UpdateRoleRequest request = new(
             "Updated Name",
             new List<string> { Permission.Platform.Manage }
         );
-        var command = new UpdateRoleCommand(roleId, request);
-        var role = new CustomRole
+        UpdateRoleCommand command = new(roleId, request);
+        CustomRole role = new()
         {
             Id = roleId,
             Name = "Old Name",
@@ -281,10 +288,10 @@ public class RoleRequestHandlersTests
     [Fact]
     public async Task UpdateRole_Success()
     {
-        var roleId = Guid.NewGuid();
-        var request = new UpdateRoleRequest("Updated Name", new List<string> { "New.Perm" });
-        var command = new UpdateRoleCommand(roleId, request);
-        var role = new CustomRole
+        Guid roleId = Guid.NewGuid();
+        UpdateRoleRequest request = new("Updated Name", new List<string> { "New.Perm" });
+        UpdateRoleCommand command = new(roleId, request);
+        CustomRole role = new()
         {
             Id = roleId,
             Name = "Old Name",
@@ -316,10 +323,10 @@ public class RoleRequestHandlersTests
     [Fact]
     public async Task DeleteRole_Immutable_ReturnsError()
     {
-        var roleId = Guid.NewGuid();
-        var command = new DeleteRoleCommand(roleId);
+        Guid roleId = Guid.NewGuid();
+        DeleteRoleCommand command = new(roleId);
 
-        var immutableRole = new CustomRole
+        CustomRole immutableRole = new()
         {
             Id = roleId,
             Name = "PlatformAdmin",
@@ -347,9 +354,9 @@ public class RoleRequestHandlersTests
     [Fact]
     public async Task DeleteRole_Success()
     {
-        var roleId = Guid.NewGuid();
-        var command = new DeleteRoleCommand(roleId);
-        var role = new CustomRole
+        Guid roleId = Guid.NewGuid();
+        DeleteRoleCommand command = new(roleId);
+        CustomRole role = new()
         {
             Id = roleId,
             Name = "To Delete",

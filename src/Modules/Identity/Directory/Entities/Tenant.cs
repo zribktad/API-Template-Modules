@@ -1,5 +1,3 @@
-using Identity.ValueObjects;
-
 namespace Identity.Directory.Entities;
 
 /// <summary>
@@ -8,7 +6,10 @@ namespace Identity.Directory.Entities;
 /// </summary>
 public sealed class Tenant : IAuditableTenantEntity, IHasId
 {
-    public required TenantCode Code { get; init; }
+    public const int CodeMaxLength = 100;
+    public const int NameMaxLength = 200;
+
+    public required string Code { get; init; }
 
     public required string Name
     {
@@ -28,8 +29,10 @@ public sealed class Tenant : IAuditableTenantEntity, IHasId
     public Guid? DeletedBy { get; set; }
     public Guid Id { get; set; }
 
-    public static Tenant Create(Guid id, TenantCode code, string name)
+    public static Tenant Create(Guid id, string code, string name)
     {
+        ArgumentNullException.ThrowIfNull(code);
+
         return new Tenant
         {
             Id = id,

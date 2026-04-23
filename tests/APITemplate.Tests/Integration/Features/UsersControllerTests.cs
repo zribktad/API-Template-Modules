@@ -33,7 +33,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
             _client,
             user.Id,
             tenant.Id,
-            user.Username,
+            user.Username.Value,
             UserRole.User
         );
 
@@ -46,8 +46,8 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         payload.ShouldNotBeNull();
         payload!.Id.ShouldBe(user.Id);
-        payload.Username.ShouldBe(user.Username);
-        payload.Email.ShouldBe(user.Email);
+        payload.Username.ShouldBe(user.Username.Value);
+        payload.Email.ShouldBe(user.Email.Value);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using BackgroundJobs.Domain;
 using BackgroundJobs.Features;
 using ErrorOr;
+using Microsoft.Extensions.Logging;
 using Moq;
 using SharedKernel.Application.Errors;
 using SharedKernel.Domain.Interfaces;
@@ -13,6 +14,7 @@ namespace APITemplate.Tests.Unit.BackgroundJobs.Jobs;
 public sealed class SubmitJobCommandHandlerTests
 {
     private readonly Mock<IJobQueue> _jobQueue = new();
+    private readonly Mock<ILogger<SubmitJobCommandHandler>> _logger = new();
     private readonly DateTime _now = new(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
     private readonly Mock<IJobExecutionRepository> _repository = new();
     private readonly Mock<TimeProvider> _timeProvider = new();
@@ -50,6 +52,7 @@ public sealed class SubmitJobCommandHandlerTests
             _jobQueue.Object,
             _unitOfWork.Object,
             _timeProvider.Object,
+            _logger.Object,
             ct
         );
 
@@ -70,6 +73,7 @@ public sealed class SubmitJobCommandHandlerTests
             _jobQueue.Object,
             _unitOfWork.Object,
             _timeProvider.Object,
+            _logger.Object,
             ct
         );
 
@@ -100,6 +104,7 @@ public sealed class SubmitJobCommandHandlerTests
             _jobQueue.Object,
             _unitOfWork.Object,
             _timeProvider.Object,
+            _logger.Object,
             ct
         );
 
@@ -107,7 +112,7 @@ public sealed class SubmitJobCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_WhenEnqueueFails_MarksJobAsFailedAndReturnsError()
+    public async Task HandleAsync_WhenEnqueueFails_DeletesEntityAndReturnsError()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         JobExecution? persisted = null;
@@ -125,15 +130,15 @@ public sealed class SubmitJobCommandHandlerTests
             _jobQueue.Object,
             _unitOfWork.Object,
             _timeProvider.Object,
+            _logger.Object,
             ct
         );
 
         result.IsError.ShouldBeTrue();
         result.FirstError.Code.ShouldBe(ErrorCatalog.General.Unknown);
+        // The entity is removed rather than transitioned to Failed (Pending→Failed is illegal per state machine).
         persisted.ShouldNotBeNull();
-        persisted!.Status.ShouldBe(JobStatus.Failed);
-        persisted.ErrorMessage.ShouldNotBeNull();
-        persisted.ErrorMessage.ShouldContain("queue unavailable");
-        _repository.Verify(r => r.UpdateAsync(persisted, ct), Times.Once);
+        _repository.Verify(r => r.DeleteAsync(persisted!, ct), Times.Once);
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<JobExecution>(), ct), Times.Never);
     }
 }

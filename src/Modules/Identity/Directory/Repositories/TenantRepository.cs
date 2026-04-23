@@ -54,4 +54,7 @@ public sealed class TenantRepository : RepositoryBase<Tenant>, ITenantRepository
     {
         return SpecificationEvaluator.GetQuery(UnfilteredTenants, specification);
     }
+
+    public Task<bool> ExistsByCodeAsync(string code, CancellationToken ct = default) =>
+        UnfilteredTenants.AnyAsync(t => t.Code == code, ct);
 }

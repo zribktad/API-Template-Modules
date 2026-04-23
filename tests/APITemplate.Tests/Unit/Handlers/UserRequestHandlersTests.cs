@@ -4,7 +4,6 @@ using Identity.Directory.Domain.Services;
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Features.User;
-using Identity.ValueObjects;
 using Moq;
 using SharedKernel.Contracts.Events;
 using SharedKernel.Domain.Common;
@@ -158,7 +157,7 @@ public class UserRequestHandlersTests
             new UpdateUserRequest("updateduser", "updated@test.com")
         );
 
-        ErrorOr<(AppUser User, Email Email)> validation =
+        ErrorOr<AppUser> validation =
             await UpdateUserCommandHandler.ValidateAsync(
                 command,
                 _repositoryMock.Object,
@@ -175,7 +174,7 @@ public class UserRequestHandlersTests
             );
 
         result.IsError.ShouldBeFalse();
-        user.Username.ShouldBe("updateduser");
+        user.Username.Value.ShouldBe("updateduser");
         user.Email.Value.ShouldBe("updated@test.com");
         _repositoryMock.Verify(r => r.UpdateAsync(user, It.IsAny<CancellationToken>()), Times.Once);
         _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -193,10 +192,10 @@ public class UserRequestHandlersTests
 
         UpdateUserCommand command = new(
             user.Id,
-            new UpdateUserRequest(user.Username, user.Email.Value)
+            new UpdateUserRequest(user.Username.Value, user.Email.Value)
         );
 
-        ErrorOr<(AppUser User, Email Email)> validation =
+        ErrorOr<AppUser> validation =
             await UpdateUserCommandHandler.ValidateAsync(
                 command,
                 _repositoryMock.Object,
@@ -233,7 +232,7 @@ public class UserRequestHandlersTests
 
         UpdateUserCommand command = new(Guid.NewGuid(), new UpdateUserRequest("name", "e@e.com"));
 
-        ErrorOr<(AppUser User, Email Email)> validation =
+        ErrorOr<AppUser> validation =
             await UpdateUserCommandHandler.ValidateAsync(
                 command,
                 _repositoryMock.Object,
@@ -265,10 +264,10 @@ public class UserRequestHandlersTests
 
         UpdateUserCommand command = new(
             user.Id,
-            new UpdateUserRequest(user.Username, "taken@test.com")
+            new UpdateUserRequest(user.Username.Value, "taken@test.com")
         );
 
-        ErrorOr<(AppUser User, Email Email)> validation =
+        ErrorOr<AppUser> validation =
             await UpdateUserCommandHandler.ValidateAsync(
                 command,
                 _repositoryMock.Object,
@@ -499,12 +498,10 @@ public class UserRequestHandlersTests
 
     private static AppUser CreateTestUser(bool isActive = true, UserRole role = UserRole.User)
     {
-        Email email = Email.FromPersistence("test@example.com");
         return AppUser.Create(
             username: "testuser",
-            email: email,
+            email: "test@example.com",
             keycloakUserId: "keycloak-test-id",
-            role: role,
             isActive: isActive
         );
     }

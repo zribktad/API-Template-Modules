@@ -4,7 +4,8 @@ using TenantInvitationEntity = Identity.Directory.Entities.TenantInvitation;
 namespace Identity.Directory.Features.TenantInvitation.Specifications;
 
 /// <summary>
-///     Ardalis specification used to test whether a pending invitation exists for the given normalised email.
+///     Checks whether a pending invitation exists for the given normalised email.
+///     Expects a pre-normalised value; used to block duplicate invitations before creating a new one.
 /// </summary>
 public sealed class PendingInvitationByNormalizedEmailSpecification
     : Specification<TenantInvitationEntity>
@@ -13,7 +14,7 @@ public sealed class PendingInvitationByNormalizedEmailSpecification
     {
         Query
             .Where(i =>
-                i.NormalizedEmail == normalizedEmail && i.Status == InvitationStatus.Pending
+                i.Email.Normalized == normalizedEmail && i.Status == InvitationStatus.Pending
             )
             .AsNoTracking();
     }

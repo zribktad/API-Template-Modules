@@ -6,7 +6,6 @@ using Identity.Auth.Entities;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Persistence;
-using Identity.ValueObjects;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
@@ -144,23 +143,20 @@ internal static class IntegrationAuthHelper
         var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
         string tenantCodeValue = $"t{Guid.NewGuid():N}"[..12];
-        TenantCode tenantCode = TenantCode.FromPersistence(tenantCodeValue);
         var tenantId = Guid.NewGuid();
         var tenant = new Tenant
         {
             Id = tenantId,
             TenantId = Guid.Empty,
-            Code = tenantCode,
+            Code = tenantCodeValue,
             Name = $"Tenant {username}",
         };
         if (!tenantIsActive)
             tenant.IsActive = false;
 
-        Email emailVo = Email.FromPersistence(email);
-
         AppUser user = AppUser.Create(
             username,
-            emailVo,
+            email,
             $"kc-{Guid.NewGuid():N}",
             tenantId: tenantId,
             isActive: userIsActive

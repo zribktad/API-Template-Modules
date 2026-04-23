@@ -1,26 +1,14 @@
 using ErrorOr;
-using Identity.ValueObjects;
 
 namespace Identity.Directory.Entities;
 
 /// <summary>
-///     Domain entity representing an email invitation for a user to join a tenant.
-///     Holds a hashed token used for secure acceptance and tracks the invitation lifecycle via
-///     <see cref="InvitationStatus" />.
+///     Email invitation for a user to join a tenant. The token is stored hashed (never plain-text);
+///     acceptance is gated on expiry and current status to prevent replay and double-accept.
 /// </summary>
 public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
-    public Email Email
-    {
-        get => field;
-        private set
-        {
-            field = value;
-            NormalizedEmail = value.Normalize();
-        }
-    }
-
-    public string NormalizedEmail { get; private set; } = string.Empty;
+    public NormalizedString Email { get; private set; } = null!;
     public string TokenHash { get; private set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; private set; }
     public InvitationStatus Status { get; private set; } = InvitationStatus.Pending;
@@ -33,7 +21,7 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     public Guid Id { get; set; }
 
     public static TenantInvitation Create(
-        Email email,
+        string email,
         string tokenHash,
         int expiryHours,
         TimeProvider timeProvider
@@ -41,7 +29,7 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     {
         TenantInvitation invitation = new();
         invitation.Id = Guid.NewGuid();
-        invitation.Email = email;
+        invitation.Email = new NormalizedString(email);
         invitation.TokenHash = tokenHash;
         invitation.ExpiresAtUtc = timeProvider.GetUtcNow().UtcDateTime.AddHours(expiryHours);
         return invitation;
@@ -65,6 +53,22 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     public void Revoke()
     {
         Status = InvitationStatus.Revoked;
+    }
+
+    /// <summary>
+    ///     Validates that the invitation can be resent. A resend is only allowed while the invitation is
+    ///     still <see cref="InvitationStatus.Pending"/> and not yet expired — once accepted, revoked, or
+    ///     expired a new invitation must be created instead.
+    /// </summary>
+    public ErrorOr<Success> TryResend(TimeProvider timeProvider)
+    {
+        if (Status != InvitationStatus.Pending)
+            return IdentityDomainErrors.Invitations.NotPending();
+
+        if (IsExpired(timeProvider))
+            return IdentityDomainErrors.Invitations.ExpiredCreateNew();
+
+        return Result.Success;
     }
 
     public void RefreshToken(string tokenHash)

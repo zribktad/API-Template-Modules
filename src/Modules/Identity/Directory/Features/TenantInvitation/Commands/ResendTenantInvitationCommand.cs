@@ -34,12 +34,9 @@ public sealed class ResendTenantInvitationCommandHandler
             return (invitationResult.Errors, OutgoingMessagesHelper.Empty);
         TenantInvitationEntity invitation = invitationResult.Value;
 
-        if (invitation.Status != InvitationStatus.Pending)
-            return (DomainErrors.Invitations.NotPending(), OutgoingMessagesHelper.Empty);
-
-        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
-        if (invitation.ExpiresAtUtc < now)
-            return (DomainErrors.Invitations.ExpiredCreateNew(), OutgoingMessagesHelper.Empty);
+        ErrorOr<Success> resendGuard = invitation.TryResend(timeProvider);
+        if (resendGuard.IsError)
+            return (resendGuard.FirstError, OutgoingMessagesHelper.Empty);
 
         ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
             tenantProvider.TenantId,

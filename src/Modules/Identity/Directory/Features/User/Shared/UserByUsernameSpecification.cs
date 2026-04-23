@@ -3,15 +3,13 @@ using Ardalis.Specification;
 namespace Identity.Directory.Features.User;
 
 /// <summary>
-///     Ardalis specification that filters users by their pre-normalised username.
+///     Matches users by username. Expects a pre-normalised value (see <see cref="NormalizedString.Normalize"/>);
+///     passing a raw username will produce case-sensitive results and miss records.
 /// </summary>
 public sealed class UserByUsernameSpecification : Specification<AppUser>
 {
-    /// <summary>
-    ///     Initialises the specification to match the user with the given <paramref name="normalizedUsername" />.
-    /// </summary>
     public UserByUsernameSpecification(string normalizedUsername)
     {
-        Query.Where(u => u.NormalizedUsername == normalizedUsername).AsNoTracking();
+        Query.Where(u => u.Username.Normalized == normalizedUsername).AsNoTracking();
     }
 }

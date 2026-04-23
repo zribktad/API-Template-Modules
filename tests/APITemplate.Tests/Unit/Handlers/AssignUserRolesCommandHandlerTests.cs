@@ -3,6 +3,7 @@ using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Features.User.AssignRoles;
 using Identity.Directory.Interfaces;
+using Identity.ValueObjects;
 using Moq;
 using SharedKernel.Domain.Interfaces;
 using Shouldly;
@@ -32,8 +33,8 @@ public class AssignUserRolesCommandHandlerTests
         var user = new AppUser
         {
             Id = userId,
-            Username = "test",
-            Email = Identity.ValueObjects.Email.FromPersistence("test@test.com"),
+            Username = new NormalizedString("test"),
+            Email = new NormalizedString("test@test.com"),
         };
 
         // Return only one role, simulating one missing
@@ -78,8 +79,8 @@ public class AssignUserRolesCommandHandlerTests
         var user = new AppUser
         {
             Id = userId,
-            Username = "test",
-            Email = Identity.ValueObjects.Email.FromPersistence("test@test.com"),
+            Username = new NormalizedString("test"),
+            Email = new NormalizedString("test@test.com"),
         };
         var role = new CustomRole { Id = role1, Name = "Role1" };
 

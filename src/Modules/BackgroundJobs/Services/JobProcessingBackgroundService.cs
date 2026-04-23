@@ -47,7 +47,12 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
         if (job is null)
             return;
 
-        job.MarkProcessing(_timeProvider);
+        ErrorOr<Success> markProcessingResult = job.MarkProcessing(_timeProvider);
+        if (markProcessingResult.IsError)
+        {
+            _logger.JobAlreadyClaimed(jobId, job.Status);
+            return;
+        }
         await uow.CommitAsync(ct);
 
         for (int step = 1; step <= SimulatedStepCount; step++)
@@ -57,10 +62,17 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
             await uow.CommitAsync(ct);
         }
 
-        job.MarkCompleted(
+        ErrorOr<Success> markCompletedResult = job.MarkCompleted(
             JsonSerializer.Serialize(new { summary = CompletedResultSummary }),
             _timeProvider
         );
+        if (markCompletedResult.IsError)
+        {
+            throw new InvalidOperationException(
+                $"Unexpected state when completing job {jobId}: {markCompletedResult.FirstError.Description}"
+            );
+        }
+
         await uow.CommitAsync(ct);
 
         await SendCallbackAsync(job, ct);
@@ -87,12 +99,18 @@ public sealed class JobProcessingBackgroundService : QueueConsumerBackgroundServ
             IUnitOfWork uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
             JobExecution? job = await repo.GetByIdAsync(jobId, token);
-            if (job is not null)
+            if (job is null)
+                return;
+
+            ErrorOr<Success> markResult = job.MarkFailed(errorMessage, _timeProvider);
+            if (markResult.IsError)
             {
-                job.MarkFailed(errorMessage, _timeProvider);
-                await uow.CommitAsync(token);
-                await SendCallbackAsync(job, token);
+                _logger.JobAlreadyInTerminalState(jobId, job.Status);
+                return;
             }
+
+            await uow.CommitAsync(token);
+            await SendCallbackAsync(job, token);
         }
         catch (Exception ex)
         {
