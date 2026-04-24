@@ -1,9 +1,10 @@
+using APITemplate.Tests.Integration;
 using Identity.Directory.Entities;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Smoke;
 
-public abstract class SmokeTestBase : IAsyncLifetime
+public abstract class SmokeTestBase : IntegrationCollectionTestBase, IAsyncLifetime
 {
     protected sealed record SeededSmokeUser(
         Guid TenantId,
@@ -13,22 +14,16 @@ public abstract class SmokeTestBase : IAsyncLifetime
         string KeycloakUserId
     );
 
-    protected readonly CustomWebApplicationFactory _factory;
     protected SeededSmokeUser SeededUser { get; private set; } = default!;
 
-    protected HttpClient Client => field ??= _factory.CreateClient();
-
     protected SmokeTestBase(CustomWebApplicationFactory factory)
-    {
-        _factory = factory;
-    }
+        : base(factory) { }
 
     protected abstract string UsernamePrefix { get; }
 
     public virtual async ValueTask InitializeAsync()
     {
-        CancellationToken ct = TestContext.Current.CancellationToken;
-        SeededUser = await SeedUniqueTenantUserAsync(ct);
+        SeededUser = await SeedUniqueTenantUserAsync(Ct);
     }
 
     public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -40,7 +35,7 @@ public abstract class SmokeTestBase : IAsyncLifetime
         string email = $"{UsernamePrefix}-{suffix}@example.com";
 
         (Tenant Tenant, AppUser User) result = await IntegrationAuthHelper.SeedTenantUserAsync(
-            _factory.Services,
+            Factory.Services,
             username: username,
             email: email,
             ct: ct

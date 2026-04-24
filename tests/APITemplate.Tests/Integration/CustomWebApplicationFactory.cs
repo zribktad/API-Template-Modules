@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.MongoDb;
 using Testcontainers.PostgreSql;
 using Xunit;
@@ -18,6 +19,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 {
     private PostgreSqlContainer? _postgres;
     private MongoDbContainer? _mongo;
+
+    public Action<IServiceCollection>? AdditionalServiceConfiguration { get; init; }
+
+    public Dictionary<string, string?>? AdditionalConfiguration { get; init; }
 
     public async ValueTask InitializeAsync()
     {
@@ -69,6 +74,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
                 config.Remove("MongoDB:ConnectionString");
                 config.Remove("MongoDB:DatabaseName");
                 configBuilder.AddInMemoryCollection(config);
+                if (AdditionalConfiguration is not null)
+                    configBuilder.AddInMemoryCollection(AdditionalConfiguration);
             }
         );
 
@@ -81,6 +88,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
             TestServiceHelper.ConfigureTestAuthentication(services);
             TestServiceHelper.RemoveTickerQRuntimeServices(services);
             TestServiceHelper.ReplaceStartupCoordinationWithNoOp(services);
+            AdditionalServiceConfiguration?.Invoke(services);
         });
 
         builder.UseEnvironment("Development");

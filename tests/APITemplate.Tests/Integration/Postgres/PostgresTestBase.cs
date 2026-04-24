@@ -1,15 +1,6 @@
-using APITemplate.Api.Extensions;
-using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
-using APITemplate.Infrastructure.Persistence.Auditing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Npgsql;
 using Respawn;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Infrastructure.UnitOfWork;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Postgres;
@@ -62,49 +53,20 @@ public abstract class PostgresTestBase : IAsyncLifetime
         await _respawner.ResetAsync(conn);
     }
 
-    protected async Task<AppDbContext> CreateDbContextAsync(
+    protected Task<AppDbContext> CreateDbContextAsync(
         bool hasTenant,
         Guid tenantId,
         Guid actorId,
         CancellationToken ct
-    )
-    {
-        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        PersistenceServiceCollectionExtensions.ConfigurePostgresDbContext(
-            optionsBuilder,
-            _factory.ConnectionString
+    ) =>
+        TestAppDbContextFactory.CreateAsync(
+            _factory.ConnectionString,
+            tenantId,
+            actorId,
+            hasTenant,
+            ct
         );
-        var options = optionsBuilder.Options;
-
-        var stateManager = new AuditableEntityStateManager();
-        var context = new AppDbContext(
-            options,
-            new TestTenantProvider(tenantId, hasTenant),
-            new TestActorProvider(actorId),
-            TimeProvider.System,
-            stateManager
-        );
-
-        await context.Database.OpenConnectionAsync(ct);
-        return context;
-    }
 
     protected static AppDbUnitOfWork CreateUnitOfWork(AppDbContext dbContext) =>
-        new(
-            dbContext,
-            Options.Create(new TransactionDefaultsOptions()),
-            NullLogger<AppDbUnitOfWork>.Instance,
-            new EfCoreTransactionProvider(dbContext)
-        );
-
-    protected sealed class TestTenantProvider(Guid tenantId, bool hasTenant) : ITenantProvider
-    {
-        public Guid TenantId => tenantId;
-        public bool HasTenant => hasTenant;
-    }
-
-    protected sealed class TestActorProvider(Guid actorId) : IActorProvider
-    {
-        public Guid ActorId => actorId;
-    }
+        TestAppDbContextFactory.CreateUnitOfWork(dbContext);
 }

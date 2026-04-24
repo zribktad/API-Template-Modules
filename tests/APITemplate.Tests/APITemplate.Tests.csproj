@@ -46,7 +46,12 @@
     <Compile Include="Integration\Helpers\TestConfigurationHelper.cs" />
     <Compile Include="Integration\Helpers\TestOutputCacheStore.cs" />
     <Compile Include="Integration\Helpers\TestServiceHelper.cs" />
+    <Compile Include="Integration\Helpers\HttpClientAuthExtensions.cs" />
+    <Compile Include="Integration\Helpers\HttpResponseTestExtensions.cs" />
+    <Compile Include="Integration\Helpers\TestJsonOptions.cs" />
     <Compile Include="Integration\IntegrationAuthHelper.cs" />
+    <Compile Include="Integration\IntegrationCollectionTestBase.cs" />
+    <Compile Include="Integration\IntegrationTestBase.cs" />
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
     <Compile Include="Integration\Postgres\IdentityIntegrationTestProviders.cs" />
     <Compile Include="Integration\Postgres\IsolatedPostgresDatabase.cs" />
