@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace APITemplate.Tests.Integration;
@@ -6,10 +5,7 @@ namespace APITemplate.Tests.Integration;
 public abstract class IntegrationCollectionTestBase
 {
     protected CustomWebApplicationFactory Factory { get; }
-    protected HttpClient Client =>
-        field ??= Factory.CreateClient(
-            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }
-        );
+    protected HttpClient Client => field ??= Factory.CreateClient();
     protected static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     protected IntegrationCollectionTestBase(CustomWebApplicationFactory factory) =>
