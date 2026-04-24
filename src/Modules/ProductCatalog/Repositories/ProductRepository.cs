@@ -78,19 +78,13 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
                     }
             )
             .GroupBy(x => new { x.CategoryId, x.CategoryName })
-            .Select(group => new
-            {
+            .Select(group => new ProductCategoryFacetValue(
                 group.Key.CategoryId,
                 group.Key.CategoryName,
-                Count = group.Count(),
-            })
-            .OrderByDescending(group => group.Count)
-            .ThenBy(group => group.CategoryName)
-            .Select(group => new ProductCategoryFacetValue(
-                group.CategoryId,
-                group.CategoryName,
-                group.Count
+                group.Count()
             ))
+            .OrderByDescending(x => x.Count)
+            .ThenBy(x => x.CategoryName)
             .ToArrayAsync(ct);
     }
 
