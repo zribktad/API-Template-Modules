@@ -24,7 +24,6 @@ public sealed class DeleteProductsCommandHandlerTests
     private static readonly DateTime FixedDeletedAt = new(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc);
 
     private readonly Mock<IProductRepository> _productRepo = new();
-    private readonly Mock<IProductDataLinkRepository> _linkRepo = new();
     private readonly Mock<IUnitOfWork<ProductCatalogDbMarker>> _unitOfWork = new();
     private readonly Mock<IActorProvider> _actorProvider = new();
     private readonly FakeTimeProvider _timeProvider = new(new DateTimeOffset(FixedDeletedAt));
@@ -140,83 +139,6 @@ public sealed class DeleteProductsCommandHandlerTests
     // ── HandleAsync ───────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task HandleAsync_CallsBulkSoftDeleteByProductIdsWithCorrectData()
-    {
-        CancellationToken ct = TestContext.Current.CancellationToken;
-        Guid actorId = Guid.NewGuid();
-        Product product = MakeProduct();
-        DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], actorId, FixedDeletedAt);
-
-        _linkRepo
-            .Setup(r =>
-                r.BulkSoftDeleteByProductIdsAsync(
-                    It.IsAny<IReadOnlyCollection<Guid>>(),
-                    actorId,
-                    FixedDeletedAt,
-                    ct
-                )
-            )
-            .ReturnsAsync(0);
-
-        (ErrorOr<BatchResponse> result, OutgoingMessages _) =
-            await DeleteProductsCommandHandler.HandleAsync(
-                new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
-                state,
-                _productRepo.Object,
-                _linkRepo.Object,
-                _unitOfWork.Object,
-                ct
-            );
-
-        result.IsError.ShouldBeFalse();
-        _linkRepo.Verify(
-            r =>
-                r.BulkSoftDeleteByProductIdsAsync(
-                    It.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(product.Id)),
-                    actorId,
-                    FixedDeletedAt,
-                    ct
-                ),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task HandleAsync_NeverCallsDeleteRangeOnLinks()
-    {
-        CancellationToken ct = TestContext.Current.CancellationToken;
-        Product product = MakeProduct();
-        DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], Guid.NewGuid(), FixedDeletedAt);
-
-        _linkRepo
-            .Setup(r =>
-                r.BulkSoftDeleteByProductIdsAsync(
-                    It.IsAny<IReadOnlyCollection<Guid>>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<DateTime>(),
-                    ct
-                )
-            )
-            .ReturnsAsync(0);
-
-        await DeleteProductsCommandHandler.HandleAsync(
-            new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
-            state,
-            _productRepo.Object,
-            _linkRepo.Object,
-            _unitOfWork.Object,
-            ct
-        );
-
-        _linkRepo.Verify(
-            r => r.DeleteRange(It.IsAny<IReadOnlyCollection<ProductDataLink>>()),
-            Times.Never
-        );
-    }
-
-    [Fact]
     public async Task HandleAsync_PublishesProductsBatchSoftDeletedNotification()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
@@ -226,23 +148,11 @@ public sealed class DeleteProductsCommandHandlerTests
         DeleteProductsCommandHandler.DeleteProductsState state =
             new([product], actorId, FixedDeletedAt);
 
-        _linkRepo
-            .Setup(r =>
-                r.BulkSoftDeleteByProductIdsAsync(
-                    It.IsAny<IReadOnlyCollection<Guid>>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<DateTime>(),
-                    ct
-                )
-            )
-            .ReturnsAsync(0);
-
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
                 new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
                 state,
                 _productRepo.Object,
-                _linkRepo.Object,
                 _unitOfWork.Object,
                 ct
             );
@@ -265,23 +175,11 @@ public sealed class DeleteProductsCommandHandlerTests
         DeleteProductsCommandHandler.DeleteProductsState state =
             new([product], Guid.NewGuid(), FixedDeletedAt);
 
-        _linkRepo
-            .Setup(r =>
-                r.BulkSoftDeleteByProductIdsAsync(
-                    It.IsAny<IReadOnlyCollection<Guid>>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<DateTime>(),
-                    ct
-                )
-            )
-            .ReturnsAsync(0);
-
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
                 new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
                 state,
                 _productRepo.Object,
-                _linkRepo.Object,
                 _unitOfWork.Object,
                 ct
             );
@@ -295,37 +193,17 @@ public sealed class DeleteProductsCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_ExecutesLinkDeleteAndProductDeleteInsideSingleTransaction()
+    public async Task HandleAsync_ExecutesProductDeleteInsideTransaction()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         Product product = MakeProduct();
         DeleteProductsCommandHandler.DeleteProductsState state =
             new([product], Guid.NewGuid(), FixedDeletedAt);
-        List<string> callOrder = [];
-
-        _linkRepo
-            .Setup(r =>
-                r.BulkSoftDeleteByProductIdsAsync(
-                    It.IsAny<IReadOnlyCollection<Guid>>(),
-                    It.IsAny<Guid>(),
-                    It.IsAny<DateTime>(),
-                    ct
-                )
-            )
-            .Callback(() => callOrder.Add("bulkDeleteLinks"))
-            .ReturnsAsync(0);
-        _productRepo
-            .Setup(r =>
-                r.DeleteRangeAsync(It.IsAny<IEnumerable<Product>>(), ct)
-            )
-            .Callback(() => callOrder.Add("deleteProducts"))
-            .ReturnsAsync(1);
 
         await DeleteProductsCommandHandler.HandleAsync(
             new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
             state,
             _productRepo.Object,
-            _linkRepo.Object,
             _unitOfWork.Object,
             ct
         );
@@ -339,6 +217,9 @@ public sealed class DeleteProductsCommandHandlerTests
                 ),
             Times.Once
         );
-        callOrder.ShouldBe(["bulkDeleteLinks", "deleteProducts"]);
+        _productRepo.Verify(
+            r => r.DeleteRangeAsync(It.IsAny<IEnumerable<Product>>(), ct),
+            Times.Once
+        );
     }
 }

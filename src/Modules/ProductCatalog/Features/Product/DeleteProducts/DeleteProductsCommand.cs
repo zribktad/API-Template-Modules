@@ -63,7 +63,6 @@ public sealed class DeleteProductsCommandHandler
         DeleteProductsCommand command,
         DeleteProductsState state,
         ProductRepositoryContract repository,
-        IProductDataLinkRepository linkRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
@@ -71,13 +70,6 @@ public sealed class DeleteProductsCommandHandler
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                IReadOnlyList<Guid> productIds = state.Products.Select(p => p.Id).ToList();
-                await linkRepository.BulkSoftDeleteByProductIdsAsync(
-                    productIds,
-                    state.ActorId,
-                    state.DeletedAtUtc,
-                    ct
-                );
                 await repository.DeleteRangeAsync(state.Products, ct);
             },
             ct

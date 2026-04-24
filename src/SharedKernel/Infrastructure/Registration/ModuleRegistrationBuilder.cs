@@ -37,6 +37,14 @@ public sealed class ModuleRegistrationBuilder<TContext>
         return this;
     }
 
+    public ModuleRegistrationBuilder<TContext> ConfigureDbContext(
+        Action<IServiceProvider, DbContextOptionsBuilder> configure
+    )
+    {
+        Services.AddDbContextWithWolverineIntegration<TContext>(configure);
+        return this;
+    }
+
     public ModuleRegistrationBuilder<TContext> AddRepository<TService, TImplementation>()
         where TService : class
         where TImplementation : class, TService

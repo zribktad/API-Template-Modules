@@ -17,6 +17,7 @@ using ProductCatalog.GraphQL.Queries;
 using ProductCatalog.GraphQL.Types;
 using ProductCatalog.Infrastructure.Health;
 using ProductCatalog.Persistence;
+using ProductCatalog.Persistence.Interceptors;
 using ProductCatalog.Repositories;
 using ProductCatalog.Services;
 using SharedKernel.Application.Batch;
@@ -44,7 +45,14 @@ public static class ProductCatalogModule
 
         services
             .AddModule<ProductCatalogDbContext>(configuration)
-            .ConfigureDbContext(options => options.UseNpgsql(connectionString))
+            .AddScoped<ProductLinkSoftDeleteCascadeInterceptor>()
+            .ConfigureDbContext((sp, options) =>
+                options
+                    .UseNpgsql(connectionString)
+                    .AddInterceptors(
+                        sp.GetRequiredService<ProductLinkSoftDeleteCascadeInterceptor>()
+                    )
+            )
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<ProductCatalogDbMarker>()
             .AddStoredProcedureSupport()

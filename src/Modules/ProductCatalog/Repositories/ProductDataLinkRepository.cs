@@ -122,17 +122,4 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 
-    /// <inheritdoc />
-    public async Task<int> BulkSoftDeleteByProductIdsAsync(
-        IReadOnlyCollection<Guid> productIds,
-        Guid actorId,
-        DateTime deletedAtUtc,
-        CancellationToken ct = default
-    )
-    {
-        return await _dbContext
-            .ProductDataLinks.IgnoreQueryFilters()
-            .Where(link => productIds.Contains(link.ProductId) && !link.IsDeleted)
-            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
-    }
 }
