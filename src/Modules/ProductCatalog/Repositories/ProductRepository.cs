@@ -59,33 +59,35 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
                 specification
             );
 
-        return await query
-            .GroupJoin(
-                _dbContext.Categories,
-                product => product.CategoryId,
-                category => category.Id,
-                (product, categories) => new { product, categories }
-            )
-            .SelectMany(
-                x => x.categories.DefaultIfEmpty(),
-                (x, category) =>
-                    new
-                    {
-                        x.product.CategoryId,
-                        CategoryName = category != null
-                            ? category.Name
-                            : ProductCategoryFacetValue.Uncategorized,
-                    }
-            )
-            .GroupBy(x => new { x.CategoryId, x.CategoryName })
-            .Select(group => new ProductCategoryFacetValue(
-                group.Key.CategoryId,
-                group.Key.CategoryName,
-                group.Count()
+        var rawCounts = await query
+            .GroupBy(p => p.CategoryId)
+            .Select(g => new { CategoryId = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+
+        List<Guid> categoryIds = rawCounts
+            .Where(x => x.CategoryId.HasValue)
+            .Select(x => x.CategoryId!.Value)
+            .ToList();
+
+        Dictionary<Guid, string> categoryNames =
+            categoryIds.Count > 0
+                ? await _dbContext
+                    .Categories.Where(c => categoryIds.Contains(c.Id))
+                    .ToDictionaryAsync(c => c.Id, c => c.Name, ct)
+                : [];
+
+        return rawCounts
+            .Select(x => new ProductCategoryFacetValue(
+                x.CategoryId,
+                x.CategoryId.HasValue
+                && categoryNames.TryGetValue(x.CategoryId.Value, out string? name)
+                    ? name
+                    : ProductCategoryFacetValue.Uncategorized,
+                x.Count
             ))
             .OrderByDescending(x => x.Count)
             .ThenBy(x => x.CategoryName)
-            .ToArrayAsync(ct);
+            .ToArray();
     }
 
     /// <summary>Returns fixed price bucket facet counts computed in a single server-side aggregate query.</summary>
