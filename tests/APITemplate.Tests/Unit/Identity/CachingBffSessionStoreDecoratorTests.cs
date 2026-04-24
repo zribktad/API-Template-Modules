@@ -38,7 +38,8 @@ public sealed class CachingBffSessionStoreDecoratorTests
         BffSessionRecord record = BffSessionStoreUnitTestHelpers.CreateSampleSession("s1");
         BffSessionRecord? outRecord = null;
         _localCache.Setup(c => c.TryGet("s1", out outRecord)).Returns(false);
-        _inner.Setup(i => i.GetAsync("s1", ct)).ReturnsAsync(record);
+        _localCache.SetupGet(c => c.Generation).Returns(7L);
+        _inner.Setup(i => i.GetAsync("s1", It.IsAny<CancellationToken>())).ReturnsAsync(record);
 
         CachingBffSessionStoreDecorator sut = CreateSut();
 
@@ -49,12 +50,35 @@ public sealed class CachingBffSessionStoreDecoratorTests
     }
 
     [Fact]
+    public async Task GetAsync_WhenCacheGenerationChangesDuringFetch_SkipsPopulate()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        BffSessionRecord record = BffSessionStoreUnitTestHelpers.CreateSampleSession("s1");
+        BffSessionRecord? outRecord = null;
+        _localCache.Setup(c => c.TryGet("s1", out outRecord)).Returns(false);
+        _localCache.SetupSequence(c => c.Generation).Returns(7L).Returns(8L);
+        _inner.Setup(i => i.GetAsync("s1", It.IsAny<CancellationToken>())).ReturnsAsync(record);
+
+        CachingBffSessionStoreDecorator sut = CreateSut();
+
+        BffSessionRecord? result = await sut.GetAsync("s1", ct);
+
+        result.ShouldBe(record);
+        _localCache.Verify(
+            c => c.Set(It.IsAny<string>(), It.IsAny<BffSessionRecord>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
     public async Task GetAsync_WhenLocalMissAndInnerReturnsNull_DoesNotPopulate()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         BffSessionRecord? outRecord = null;
         _localCache.Setup(c => c.TryGet("s1", out outRecord)).Returns(false);
-        _inner.Setup(i => i.GetAsync("s1", ct)).ReturnsAsync((BffSessionRecord?)null);
+        _inner
+            .Setup(i => i.GetAsync("s1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((BffSessionRecord?)null);
 
         CachingBffSessionStoreDecorator sut = CreateSut();
 
@@ -68,10 +92,13 @@ public sealed class CachingBffSessionStoreDecoratorTests
     }
 
     [Fact]
-    public async Task StoreAsync_WriteThroughToLocalCache()
+    public async Task StoreAsync_WhenActive_WritesThroughToLocalCacheWithoutPublish()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        BffSessionRecord record = BffSessionStoreUnitTestHelpers.CreateSampleSession("s1");
+        BffSessionRecord record = BffSessionStoreUnitTestHelpers.CreateSampleSession("s1") with
+        {
+            Status = BffSessionStatus.Active,
+        };
 
         CachingBffSessionStoreDecorator sut = CreateSut();
 
@@ -86,7 +113,29 @@ public sealed class CachingBffSessionStoreDecoratorTests
     }
 
     [Fact]
-    public async Task TryUpdateAsync_WhenActive_WritesThroughWithoutPublish()
+    public async Task StoreAsync_WhenTerminal_InvalidatesAndPublishes()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        BffSessionRecord record = BffSessionStoreUnitTestHelpers.CreateSampleSession("s1") with
+        {
+            Status = BffSessionStatus.Revoked,
+        };
+
+        CachingBffSessionStoreDecorator sut = CreateSut();
+
+        await sut.StoreAsync(record, ct);
+
+        _inner.Verify(i => i.StoreAsync(record, ct), Times.Once);
+        _localCache.Verify(c => c.Invalidate("s1"), Times.Once);
+        _localCache.Verify(
+            c => c.Set(It.IsAny<string>(), It.IsAny<BffSessionRecord>()),
+            Times.Never
+        );
+        _notifier.Verify(n => n.PublishRevokedAsync("s1", CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task TryUpdateAsync_WhenActive_WritesThroughAndPublishes()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         BffSessionRecord record = BffSessionStoreUnitTestHelpers.CreateSampleSession("s1") with
@@ -102,10 +151,7 @@ public sealed class CachingBffSessionStoreDecoratorTests
         updated.ShouldBeTrue();
         _localCache.Verify(c => c.Set("s1", record), Times.Once);
         _localCache.Verify(c => c.Invalidate(It.IsAny<string>()), Times.Never);
-        _notifier.Verify(
-            n => n.PublishRevokedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
+        _notifier.Verify(n => n.PublishRevokedAsync("s1", CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -128,7 +174,7 @@ public sealed class CachingBffSessionStoreDecoratorTests
             c => c.Set(It.IsAny<string>(), It.IsAny<BffSessionRecord>()),
             Times.Never
         );
-        _notifier.Verify(n => n.PublishRevokedAsync("s1", ct), Times.Once);
+        _notifier.Verify(n => n.PublishRevokedAsync("s1", CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -147,7 +193,7 @@ public sealed class CachingBffSessionStoreDecoratorTests
 
         updated.ShouldBeTrue();
         _localCache.Verify(c => c.Invalidate("s1"), Times.Once);
-        _notifier.Verify(n => n.PublishRevokedAsync("s1", ct), Times.Once);
+        _notifier.Verify(n => n.PublishRevokedAsync("s1", CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -187,7 +233,7 @@ public sealed class CachingBffSessionStoreDecoratorTests
 
         _inner.Verify(i => i.RemoveAsync("s1", ct), Times.Once);
         _localCache.Verify(c => c.Invalidate("s1"), Times.Once);
-        _notifier.Verify(n => n.PublishRevokedAsync("s1", ct), Times.Once);
+        _notifier.Verify(n => n.PublishRevokedAsync("s1", CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -219,7 +265,7 @@ public sealed class CachingBffSessionStoreDecoratorTests
         foreach (string id in ids)
         {
             _localCache.Verify(c => c.Invalidate(id), Times.Once);
-            _notifier.Verify(n => n.PublishRevokedAsync(id, ct), Times.Once);
+            _notifier.Verify(n => n.PublishRevokedAsync(id, CancellationToken.None), Times.Once);
         }
     }
 

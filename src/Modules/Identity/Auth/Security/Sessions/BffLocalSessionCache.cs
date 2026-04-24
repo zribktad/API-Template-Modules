@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Identity.Auth.Options;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -6,37 +7,42 @@ namespace Identity.Auth.Security.Sessions;
 
 /// <summary>
 ///     <see cref="IMemoryCache" />-backed implementation of <see cref="IBffLocalSessionCache" /> that
-///     applies a sliding TTL from <see cref="BffOptions.LocalCacheTtlSeconds" />. When the TTL is
-///     non-positive the cache becomes a no-op so the behavior matches "local cache disabled".
+///     applies an absolute TTL from <see cref="BffOptions.LocalCacheTtlSeconds" /> relative to each
+///     write — repeated reads do not extend the lifetime. When the TTL is non-positive the cache
+///     becomes a no-op so the behavior matches "local cache disabled".
 /// </summary>
 public sealed class BffLocalSessionCache : IBffLocalSessionCache, IDisposable
 {
     private readonly MemoryCache? _cache;
-    private readonly TimeSpan _ttl;
+    private readonly MemoryCacheEntryOptions? _entryOptions;
+    private long _generation;
 
     public BffLocalSessionCache(IOptions<BffOptions> options)
     {
         BffOptions opts = options.Value;
-        _ttl = TimeSpan.FromSeconds(opts.LocalCacheTtlSeconds);
-        if (_ttl <= TimeSpan.Zero)
+        TimeSpan ttl = TimeSpan.FromSeconds(opts.LocalCacheTtlSeconds);
+        if (ttl <= TimeSpan.Zero)
         {
             _cache = null;
+            _entryOptions = null;
             return;
         }
 
         _cache = new MemoryCache(new MemoryCacheOptions { SizeLimit = opts.LocalCacheMaxEntries });
+        _entryOptions = new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = ttl,
+            Size = 1,
+        };
     }
 
-    public bool TryGet(string sessionId, out BffSessionRecord? record)
-    {
-        if (_cache is null)
-        {
-            record = null;
-            return false;
-        }
+    public long Generation => Interlocked.Read(ref _generation);
 
+    public bool TryGet(string sessionId, [NotNullWhen(true)] out BffSessionRecord? record)
+    {
         if (
-            _cache.TryGetValue(GetKey(sessionId), out BffSessionRecord? cached)
+            _cache is not null
+            && _cache.TryGetValue(GetKey(sessionId), out BffSessionRecord? cached)
             && cached is not null
         )
         {
@@ -50,25 +56,19 @@ public sealed class BffLocalSessionCache : IBffLocalSessionCache, IDisposable
 
     public void Set(string sessionId, BffSessionRecord record)
     {
-        if (_cache is null)
+        if (_cache is null || _entryOptions is null)
             return;
 
-        MemoryCacheEntryOptions entryOptions = new()
-        {
-            AbsoluteExpirationRelativeToNow = _ttl,
-            Size = 1,
-        };
-        _cache.Set(GetKey(sessionId), record, entryOptions);
+        _cache.Set(GetKey(sessionId), record, _entryOptions);
     }
 
     public void Invalidate(string sessionId)
     {
-        _cache?.Remove(GetKey(sessionId));
-    }
+        if (_cache is null)
+            return;
 
-    public void Clear()
-    {
-        _cache?.Clear();
+        Interlocked.Increment(ref _generation);
+        _cache.Remove(GetKey(sessionId));
     }
 
     public void Dispose()

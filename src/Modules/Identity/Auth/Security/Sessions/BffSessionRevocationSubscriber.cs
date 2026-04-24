@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+using Identity.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -6,14 +8,22 @@ namespace Identity.Auth.Security.Sessions;
 
 /// <summary>
 ///     Subscribes to the Redis pub/sub channel that carries BFF session revocation events and
-///     invalidates the local cache for each received session id. Relies on StackExchange.Redis auto-
-///     reconnect for transient Redis failures; on message-level errors we log and continue.
+///     invalidates the local cache for each received session id. Subscribe failures at startup do
+///     not fail the host: the hosted service re-attempts the subscribe on every Redis
+///     <see cref="IConnectionMultiplexer.ConnectionRestored" /> event so a transient boot-time
+///     outage self-heals instead of silently disabling peer invalidation for the process lifetime.
 /// </summary>
-public sealed class BffSessionRevocationSubscriber : IHostedService
+public sealed partial class BffSessionRevocationSubscriber : IHostedService
 {
+    // Session ids are generated as Guid.ToString("N") — 32 lowercase hex chars. Constraining to that
+    // format drops malformed or malicious payloads from untrusted publishers on the shared channel.
+    [GeneratedRegex("^[0-9a-f]{32}$", RegexOptions.CultureInvariant)]
+    private static partial Regex SessionIdFormat();
+
     private readonly IConnectionMultiplexer _multiplexer;
     private readonly IBffLocalSessionCache _localCache;
     private readonly ILogger<BffSessionRevocationSubscriber> _logger;
+    private EventHandler<ConnectionFailedEventArgs>? _reconnectHandler;
 
     public BffSessionRevocationSubscriber(
         IConnectionMultiplexer multiplexer,
@@ -28,6 +38,39 @@ public sealed class BffSessionRevocationSubscriber : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        _reconnectHandler = async (_, _) => await TrySubscribeAsync();
+        _multiplexer.ConnectionRestored += _reconnectHandler;
+
+        await TrySubscribeAsync();
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_reconnectHandler is not null)
+        {
+            _multiplexer.ConnectionRestored -= _reconnectHandler;
+            _reconnectHandler = null;
+        }
+
+        try
+        {
+            ISubscriber subscriber = _multiplexer.GetSubscriber();
+            await subscriber.UnsubscribeAsync(
+                RedisBffSessionRevocationNotifier.Channel,
+                HandleMessage
+            );
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.BffSessionRevocationUnsubscribeFailed(
+                ex,
+                RedisBffSessionRevocationNotifier.ChannelName
+            );
+        }
+    }
+
+    private async Task TrySubscribeAsync()
+    {
         try
         {
             ISubscriber subscriber = _multiplexer.GetSubscriber();
@@ -38,26 +81,8 @@ public sealed class BffSessionRevocationSubscriber : IHostedService
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogError(
+            _logger.BffSessionRevocationSubscribeFailed(
                 ex,
-                "Failed to subscribe to BFF session revocation channel {Channel}",
-                RedisBffSessionRevocationNotifier.ChannelName
-            );
-        }
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            ISubscriber subscriber = _multiplexer.GetSubscriber();
-            await subscriber.UnsubscribeAsync(RedisBffSessionRevocationNotifier.Channel);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            _logger.LogWarning(
-                ex,
-                "Failed to unsubscribe from BFF session revocation channel {Channel}",
                 RedisBffSessionRevocationNotifier.ChannelName
             );
         }
@@ -70,19 +95,18 @@ public sealed class BffSessionRevocationSubscriber : IHostedService
             if (!message.HasValue)
                 return;
 
-            string? sessionId = message.ToString();
-            if (string.IsNullOrEmpty(sessionId))
+            string sessionId = message.ToString();
+            if (!SessionIdFormat().IsMatch(sessionId))
+            {
+                _logger.BffSessionRevocationPayloadMalformed(sessionId.Length, channel.ToString());
                 return;
+            }
 
             _localCache.Invalidate(sessionId);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogWarning(
-                ex,
-                "Failed to process BFF session revocation message on channel {Channel}",
-                channel.ToString()
-            );
+            _logger.BffSessionRevocationMessageProcessingFailed(ex, channel.ToString());
         }
     }
 }

@@ -420,4 +420,70 @@ internal static partial class IdentityLogs
         this ILogger logger,
         Guid appUserId
     );
+
+    // BFF session revocation pub/sub (3070-3075)
+    [LoggerMessage(
+        EventId = 3070,
+        Level = LogLevel.Warning,
+        Message = "Failed to subscribe to BFF session revocation channel {Channel}; will retry on reconnect."
+    )]
+    public static partial void BffSessionRevocationSubscribeFailed(
+        this ILogger logger,
+        Exception exception,
+        string channel
+    );
+
+    [LoggerMessage(
+        EventId = 3071,
+        Level = LogLevel.Warning,
+        Message = "Failed to unsubscribe from BFF session revocation channel {Channel}."
+    )]
+    public static partial void BffSessionRevocationUnsubscribeFailed(
+        this ILogger logger,
+        Exception exception,
+        string channel
+    );
+
+    [LoggerMessage(
+        EventId = 3072,
+        Level = LogLevel.Warning,
+        Message = "Failed to process BFF session revocation message on channel {Channel}."
+    )]
+    public static partial void BffSessionRevocationMessageProcessingFailed(
+        this ILogger logger,
+        Exception exception,
+        string channel
+    );
+
+    [LoggerMessage(
+        EventId = 3073,
+        Level = LogLevel.Debug,
+        Message = "Dropped malformed BFF session revocation payload (length {Length}) on channel {Channel}."
+    )]
+    public static partial void BffSessionRevocationPayloadMalformed(
+        this ILogger logger,
+        int length,
+        string channel
+    );
+
+    [LoggerMessage(
+        EventId = 3074,
+        Level = LogLevel.Debug,
+        Message = "Skipping BFF session revocation publish for {SessionRef}: Redis multiplexer not connected."
+    )]
+    public static partial void BffSessionRevocationPublishSkippedDisconnected(
+        this ILogger logger,
+        string sessionRef
+    );
+
+    [LoggerMessage(
+        EventId = 3075,
+        Level = LogLevel.Warning,
+        Message = "Failed to publish BFF session revocation for {SessionRef}; peers will fall back to TTL eviction."
+    )]
+    public static partial void BffSessionRevocationPublishFailed(
+        this ILogger logger,
+        Exception exception,
+        string sessionRef
+    );
 }

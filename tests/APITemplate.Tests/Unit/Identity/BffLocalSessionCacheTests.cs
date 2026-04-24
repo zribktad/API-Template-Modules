@@ -43,16 +43,14 @@ public sealed class BffLocalSessionCacheTests
     }
 
     [Fact]
-    public void Clear_RemovesAllEntries()
+    public void Invalidate_BumpsGeneration()
     {
         BffLocalSessionCache sut = CreateSut(ttlSeconds: 30);
-        sut.Set("a", BffSessionStoreUnitTestHelpers.CreateSampleSession("a"));
-        sut.Set("b", BffSessionStoreUnitTestHelpers.CreateSampleSession("b"));
+        long before = sut.Generation;
 
-        sut.Clear();
+        sut.Invalidate("abc");
 
-        sut.TryGet("a", out _).ShouldBeFalse();
-        sut.TryGet("b", out _).ShouldBeFalse();
+        sut.Generation.ShouldBeGreaterThan(before);
     }
 
     [Fact]

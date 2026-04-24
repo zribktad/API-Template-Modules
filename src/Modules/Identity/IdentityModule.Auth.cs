@@ -55,17 +55,17 @@ public static partial class IdentityModule
             IPostConfigureOptions<CookieAuthenticationOptions>,
             BffCookieSecurePostConfigure
         >();
-        services.AddMemoryCache();
         services.AddSingleton<IBffLocalSessionCache, BffLocalSessionCache>();
 
         if (configuration.IsRedisConfigured())
         {
             services.AddSingleton<PostgresCachedBffSessionStore>();
-            services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
-                sp.GetRequiredService<PostgresCachedBffSessionStore>(),
-                sp.GetRequiredService<IBffLocalSessionCache>(),
-                sp.GetRequiredService<IBffSessionRevocationNotifier>()
-            ));
+            services.AddSingleton<IBffSessionStore>(sp =>
+                ActivatorUtilities.CreateInstance<CachingBffSessionStoreDecorator>(
+                    sp,
+                    sp.GetRequiredService<PostgresCachedBffSessionStore>()
+                )
+            );
             services.AddSingleton<IBffRefreshCoordinator, RedisBffRefreshCoordinator>();
             services.AddSingleton<
                 IBffSessionRevocationNotifier,
@@ -76,11 +76,12 @@ public static partial class IdentityModule
         else
         {
             services.AddSingleton<PostgresDistributedCacheBffSessionStore>();
-            services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
-                sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>(),
-                sp.GetRequiredService<IBffLocalSessionCache>(),
-                sp.GetRequiredService<IBffSessionRevocationNotifier>()
-            ));
+            services.AddSingleton<IBffSessionStore>(sp =>
+                ActivatorUtilities.CreateInstance<CachingBffSessionStoreDecorator>(
+                    sp,
+                    sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>()
+                )
+            );
             services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();
             services.AddSingleton<
                 IBffSessionRevocationNotifier,

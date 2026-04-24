@@ -79,9 +79,9 @@ public sealed class BffSessionRevocationSubscriberTests
         try
         {
             capturedHandler.ShouldNotBeNull();
-            capturedHandler!(Channel, "sess-42");
+            capturedHandler!(Channel, "00000000000000000000000000000042");
 
-            cache.Verify(c => c.Invalidate("sess-42"), Times.Once);
+            cache.Verify(c => c.Invalidate("00000000000000000000000000000042"), Times.Once);
         }
         finally
         {
@@ -123,6 +123,8 @@ public sealed class BffSessionRevocationSubscriberTests
         {
             capturedHandler!(Channel, RedisValue.Null);
             capturedHandler!(Channel, "");
+            capturedHandler!(Channel, "not-a-valid-session-id");
+            capturedHandler!(Channel, "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
 
             cache.Verify(c => c.Invalidate(It.IsAny<string>()), Times.Never);
         }

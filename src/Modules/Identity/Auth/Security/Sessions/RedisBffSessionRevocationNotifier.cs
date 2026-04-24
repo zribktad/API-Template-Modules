@@ -1,20 +1,25 @@
+using Identity.Logging;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
 namespace Identity.Auth.Security.Sessions;
 
 /// <summary>
-///     Publishes revocation events over a single Redis pub/sub broadcast channel. Subscribers on
-///     every instance listen to this channel and evict their local session caches; using a single
-///     channel keeps the subscriber count O(1) per instance regardless of active session count.
+///     Publishes session-invalidation events over a single Redis pub/sub broadcast channel.
+///     Subscribers on every instance listen to this channel and evict their local session caches;
+///     using a single channel keeps the subscriber count O(1) per instance regardless of active
+///     session count. The payload is a raw session id — callers with PUBLISH permission on the
+///     shared Redis instance can force cache invalidations, so trust boundaries should treat write
+///     access to the revocation channel as equivalent to session-store write access.
 /// </summary>
 public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNotifier
 {
-    internal const string ChannelName = "bff:session:revocations";
+    internal const string ChannelName = BffSessionCacheKeys.RevocationChannelName;
 
     internal static readonly RedisChannel Channel = RedisChannel.Literal(ChannelName);
 
     private readonly IConnectionMultiplexer _multiplexer;
+    private readonly ISubscriber _subscriber;
     private readonly ILogger<RedisBffSessionRevocationNotifier> _logger;
 
     public RedisBffSessionRevocationNotifier(
@@ -23,6 +28,7 @@ public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNot
     )
     {
         _multiplexer = multiplexer;
+        _subscriber = multiplexer.GetSubscriber();
         _logger = logger;
     }
 
@@ -30,25 +36,24 @@ public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNot
     {
         if (!_multiplexer.IsConnected)
         {
-            _logger.LogDebug(
-                "Skipping BFF session revocation publish for {SessionId}: Redis multiplexer not connected",
-                sessionId
-            );
+            _logger.BffSessionRevocationPublishSkippedDisconnected(SafeRef(sessionId));
             return;
         }
 
         try
         {
-            ISubscriber subscriber = _multiplexer.GetSubscriber();
-            await subscriber.PublishAsync(Channel, sessionId);
+            await _subscriber.PublishAsync(Channel, sessionId).WaitAsync(ct);
         }
-        catch (RedisException ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogWarning(
-                ex,
-                "Failed to publish BFF session revocation for {SessionId}; peers will fall back to TTL eviction",
-                sessionId
-            );
+            _logger.BffSessionRevocationPublishFailed(ex, SafeRef(sessionId));
         }
     }
+
+    // Log a short prefix only — full session ids are cookie-equivalent credentials and must not land
+    // in structured logs un-redacted.
+    private static string SafeRef(string sessionId) =>
+        string.IsNullOrEmpty(sessionId)
+            ? "(empty)"
+            : sessionId[..Math.Min(8, sessionId.Length)] + "…";
 }
