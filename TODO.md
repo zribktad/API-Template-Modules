@@ -6,7 +6,7 @@
   A lot of behavior is still concentrated in handlers (`CreateProductsCommand`, `CreateUserCommand`, file workflows). Move invariants and state transitions into entities/factories/domain services so handlers orchestrate instead of constructing business rules inline.
 
 - [ ] **Stabilize soft-delete cascade semantics**  
-  There is still overlap between multiple cascade mechanisms, and category delete still has no dedicated integration event. Decide on one authoritative cascade path, add `CategorySoftDeletedNotification` if cross-module reactions are expected, and resolve the `ClearCategoryAsync()` tracker hazard around `ExecuteUpdateAsync`.
+  There is still overlap between multiple cascade mechanisms, and category delete still has no dedicated integration event. Decide on one authoritative cascade path and resolve the `ClearCategoryAsync()` tracker hazard around `ExecuteUpdateAsync`.
 
 - [x] **Add architecture tests for module boundaries**  
   Added `NetArchTest`-based guardrails in `tests/APITemplate.Tests/Unit/Architecture` to block new direct module-to-module coupling.

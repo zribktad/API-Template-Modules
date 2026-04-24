@@ -21,18 +21,19 @@ public sealed class DeleteProductsCommandHandler
         DeleteProductsCommand command,
         ProductRepositoryContract repository,
         IActorProvider actorProvider,
+        ITenantProvider tenantProvider,
         TimeProvider timeProvider,
         CancellationToken ct
     )
     {
         IReadOnlyList<Guid> ids = command.Request.Ids;
         Guid actorId = actorProvider.ActorId;
+        Guid tenantId = tenantProvider.TenantId;
         DateTime deletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
         BatchFailureContext<Guid> context = new(ids);
 
-        // Load all target products and mark missing ones as failed
         IReadOnlyList<Entities.Product> products = await repository.ListAsync(
-            new ProductsByIdsWithLinksSpecification(ids.ToHashSet()),
+            new ProductsByIdsSpecification(ids),
             ct
         );
 
@@ -52,9 +53,10 @@ public sealed class DeleteProductsCommandHandler
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 
+        IReadOnlyList<Guid> productIds = products.Select(p => p.Id).ToList();
         return (
             HandlerContinuation.Continue,
-            new DeleteProductsState(products, actorId, deletedAtUtc),
+            new DeleteProductsState(productIds, tenantId, actorId, deletedAtUtc),
             OutgoingMessagesHelper.Empty
         );
     }
@@ -63,20 +65,28 @@ public sealed class DeleteProductsCommandHandler
         DeleteProductsCommand command,
         DeleteProductsState state,
         ProductRepositoryContract repository,
-        IProductDataLinkRepository linkRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        IProductDataLinkRepository linkRepository,
         CancellationToken ct
     )
     {
-        List<ProductDataLink> allLinks = state
-            .Products.SelectMany(product => product.ProductDataLinks)
-            .ToList();
-
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                linkRepository.DeleteRange(allLinks);
-                await repository.DeleteRangeAsync(state.Products, ct);
+                await linkRepository.BulkSoftDeleteByProductIdsAsync(
+                    state.ProductIds,
+                    state.TenantId,
+                    state.ActorId,
+                    state.DeletedAtUtc,
+                    ct
+                );
+                await repository.BulkSoftDeleteByIdsAsync(
+                    state.ProductIds,
+                    state.TenantId,
+                    state.ActorId,
+                    state.DeletedAtUtc,
+                    ct
+                );
             },
             ct
         );
@@ -85,12 +95,11 @@ public sealed class DeleteProductsCommandHandler
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
         messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
-        IReadOnlyList<Guid> productIds = state.Products.Select(p => p.Id).ToList();
-        if (productIds.Count > 0)
+        if (state.ProductIds.Count > 0)
             messages.Add(
                 new ProductsBatchSoftDeletedNotification(
-                    productIds,
-                    state.Products[0].TenantId,
+                    state.ProductIds,
+                    state.TenantId,
                     state.ActorId,
                     state.DeletedAtUtc,
                     Guid.NewGuid()
@@ -101,7 +110,8 @@ public sealed class DeleteProductsCommandHandler
     }
 
     public sealed record DeleteProductsState(
-        IReadOnlyList<Entities.Product> Products,
+        IReadOnlyList<Guid> ProductIds,
+        Guid TenantId,
         Guid ActorId,
         DateTime DeletedAtUtc
     );

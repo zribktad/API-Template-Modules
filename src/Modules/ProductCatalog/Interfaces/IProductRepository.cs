@@ -62,4 +62,16 @@ public interface IProductRepository : IRepository<ProductEntity>
         DateTime deletedAtUtc,
         CancellationToken ct = default
     );
+
+    /// <summary>
+    ///     Bulk soft-deletes the specified products by ID for the given tenant via a single
+    ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization).
+    /// </summary>
+    Task<int> BulkSoftDeleteByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    );
 }
