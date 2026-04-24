@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
 using Identity.Auth.Security;
@@ -15,6 +15,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ExceptionHandling;
 
+[Trait("Category", "Unit")]
 public class ApiExceptionHandlerTests
 {
     private const string TestErrorTypeBaseUri = "https://unit-test.invalid/errors";

@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
@@ -19,6 +19,7 @@ namespace APITemplate.Tests.Unit.Persistence;
 
 using AppDbUnitOfWork = SharedKernel.Infrastructure.UnitOfWork.UnitOfWork<APITemplate.Infrastructure.Persistence.AppDbContext>;
 
+[Trait("Category", "Unit")]
 public class UnitOfWorkTests
 {
     [Fact]

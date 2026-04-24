@@ -1,10 +1,11 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using SharedKernel.Infrastructure.Configuration;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Common;
 
+[Trait("Category", "Unit")]
 public sealed class ConfigurationExtensionsTests
 {
     private static IConfiguration BuildConfig(Dictionary<string, string?> values)

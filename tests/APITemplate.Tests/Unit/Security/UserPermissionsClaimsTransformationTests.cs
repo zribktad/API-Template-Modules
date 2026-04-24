@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text.Json;
 using Identity.Auth.Security;
 using Identity.Directory.Interfaces;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Security;
 
+[Trait("Category", "Unit")]
 public class UserPermissionsClaimsTransformationTests
 {
     private readonly Mock<IDistributedCache> _cache = new();

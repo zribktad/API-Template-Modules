@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using APITemplate.Tests.Unit.Helpers;
 using Chatting.Features.GetNotificationStream;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Chatting;
 
+[Trait("Category", "Unit")]
 public sealed class SseStreamRequestValidationTests
 {
     [Theory]

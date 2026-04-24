@@ -1,4 +1,4 @@
-using APITemplate.Api.Extensions;
+﻿using APITemplate.Api.Extensions;
 using APITemplate.Application.Common.BackgroundJobs;
 using APITemplate.Application.Common.Email;
 using APITemplate.Domain.Entities;
@@ -16,6 +16,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class BackgroundJobsServiceCollectionExtensionsTests
 {
     [Fact]

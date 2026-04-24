@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain;
@@ -14,6 +14,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class BeginUploadEndpointCommandHandlerTests
 {
     private readonly Mock<IBlobStoreFactory> _factory = new();

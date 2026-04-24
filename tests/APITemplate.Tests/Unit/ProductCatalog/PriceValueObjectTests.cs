@@ -1,4 +1,4 @@
-using APITemplate.Tests.Unit.TestData;
+﻿using APITemplate.Tests.Unit.TestData;
 using ErrorOr;
 using ProductCatalog.ValueObjects;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class PriceValueObjectTests
 {
     [Theory]

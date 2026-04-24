@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Reviews.Features;
 using Shouldly;
 using Xunit;
@@ -12,6 +12,7 @@ namespace APITemplate.Tests.Unit.Boundary;
 ///     If these pass, Wolverine HTTP will return 400 ProblemDetails; if they fail,
 ///     the request escapes validation and likely 500s downstream.
 /// </summary>
+[Trait("Category", "Unit")]
 public sealed class WolverineHttpValidationTests
 {
     private static bool TryValidateLikeWolverineHttp(

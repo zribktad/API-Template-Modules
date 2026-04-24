@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Moq;
 using ProductCatalog;
 using ProductCatalog.Common.Events;
@@ -17,6 +17,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class DeleteCategoriesCommandHandlerTests
 {
     private static readonly DateTime FixedDeletedAt = new(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -56,18 +57,15 @@ public sealed class DeleteCategoriesCommandHandlerTests
             .Setup(r => r.ListAsync(It.IsAny<CategoriesByIdsSpecification>(), ct))
             .ReturnsAsync([new Category { Id = id, Name = "Cat" }]);
 
-        (
-            HandlerContinuation continuation,
-            DeleteCategoriesState? state,
-            OutgoingMessages _
-        ) = await DeleteCategoriesCommandHandler.LoadAsync(
-            new DeleteCategoriesCommand(new BatchDeleteRequest([id])),
-            _categoryRepo.Object,
-            _actorProvider.Object,
-            _tenantProvider.Object,
-            _timeProvider,
-            ct
-        );
+        (HandlerContinuation continuation, DeleteCategoriesState? state, OutgoingMessages _) =
+            await DeleteCategoriesCommandHandler.LoadAsync(
+                new DeleteCategoriesCommand(new BatchDeleteRequest([id])),
+                _categoryRepo.Object,
+                _actorProvider.Object,
+                _tenantProvider.Object,
+                _timeProvider,
+                ct
+            );
 
         continuation.ShouldBe(HandlerContinuation.Continue);
         state.ShouldNotBeNull();
@@ -84,18 +82,15 @@ public sealed class DeleteCategoriesCommandHandlerTests
             .Setup(r => r.ListAsync(It.IsAny<CategoriesByIdsSpecification>(), ct))
             .ReturnsAsync([]);
 
-        (
-            HandlerContinuation continuation,
-            DeleteCategoriesState? state,
-            OutgoingMessages _
-        ) = await DeleteCategoriesCommandHandler.LoadAsync(
-            new DeleteCategoriesCommand(new BatchDeleteRequest([Guid.NewGuid()])),
-            _categoryRepo.Object,
-            _actorProvider.Object,
-            _tenantProvider.Object,
-            _timeProvider,
-            ct
-        );
+        (HandlerContinuation continuation, DeleteCategoriesState? state, OutgoingMessages _) =
+            await DeleteCategoriesCommandHandler.LoadAsync(
+                new DeleteCategoriesCommand(new BatchDeleteRequest([Guid.NewGuid()])),
+                _categoryRepo.Object,
+                _actorProvider.Object,
+                _tenantProvider.Object,
+                _timeProvider,
+                ct
+            );
 
         continuation.ShouldBe(HandlerContinuation.Stop);
         state.ShouldBeNull();

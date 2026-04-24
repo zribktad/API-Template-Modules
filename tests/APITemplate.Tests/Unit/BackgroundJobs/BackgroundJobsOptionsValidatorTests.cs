@@ -1,11 +1,12 @@
+﻿using BackgroundJobs.Options;
 using BackgroundJobs.Validation;
 using Microsoft.Extensions.Options;
-using BackgroundJobs.Options;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class BackgroundJobsOptionsValidatorTests
 {
     private readonly BackgroundJobsOptionsValidator _sut = new();

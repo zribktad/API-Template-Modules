@@ -1,4 +1,4 @@
-using APITemplate.Domain.Entities;
+﻿using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.Startup;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Persistence;
 
+[Trait("Category", "Unit")]
 public sealed class StartupTaskCoordinatorTests
 {
     [Fact]

@@ -1,8 +1,9 @@
-using Shouldly;
+﻿using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Build;
 
+[Trait("Category", "Unit")]
 public sealed class PackageReferencePolicyTests
 {
     [Fact]

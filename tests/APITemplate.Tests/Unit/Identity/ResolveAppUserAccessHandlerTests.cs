@@ -1,4 +1,4 @@
-using Identity;
+﻿using Identity;
 using Identity.Auth.Entities;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.TenantInvitation.Specifications;
@@ -14,6 +14,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class ResolveAppUserAccessHandlerTests
 {
     private static readonly Guid TenantId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
@@ -23,12 +24,7 @@ public sealed class ResolveAppUserAccessHandlerTests
     [Fact]
     public async Task HandleAsync_WhenUserExistsByKeycloakId_ReturnsAllowed()
     {
-        AppUser existing = AppUser.Create(
-            "user",
-            UserEmail,
-            KeycloakSub,
-            TenantId
-        );
+        AppUser existing = AppUser.Create("user", UserEmail, KeycloakSub, TenantId);
 
         Mock<IUserRepository> users = new();
         users

@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Features.Product.CreateProducts;
@@ -10,6 +10,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class ProductBatchValidatorTests
 {
     private readonly Mock<IProductReferenceValidator> _referenceValidator = new();

@@ -1,4 +1,4 @@
-using APITemplate.Application.Features.Category;
+﻿using APITemplate.Application.Features.Category;
 using APITemplate.Application.Features.Category.Mappings;
 using APITemplate.Application.Features.Category.Specifications;
 using APITemplate.Domain.Entities;
@@ -16,6 +16,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class CategoryRequestHandlersTests
 {
     private readonly Mock<ICategoryRepository> _repositoryMock;

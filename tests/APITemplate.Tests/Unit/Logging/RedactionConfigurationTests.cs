@@ -1,10 +1,11 @@
-using SharedKernel.Application.Options.Security;
+﻿using SharedKernel.Application.Options.Security;
 using SharedKernel.Infrastructure.Logging;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Logging;
 
+[Trait("Category", "Unit")]
 public class RedactionConfigurationTests
 {
     [Fact]

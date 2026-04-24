@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain;
 using FileStorage.Domain.Sagas;
@@ -14,6 +14,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class FileUploadSagaTests
 {
     private readonly Mock<IBlobStore> _store = new();

@@ -1,4 +1,4 @@
-using APITemplate.Api.Middleware;
+﻿using APITemplate.Api.Middleware;
 using Microsoft.AspNetCore.Http;
 using SharedKernel.Application.Http;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Middleware;
 
+[Trait("Category", "Unit")]
 public class RequestContextMiddlewareTests
 {
     [Fact]

@@ -1,4 +1,4 @@
-using APITemplate.Tests.Unit.Helpers;
+﻿using APITemplate.Tests.Unit.Helpers;
 using ProductCatalog.Features.Product.CreateProducts;
 using Reviews.Features;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Boundary;
 
+[Trait("Category", "Unit")]
 public sealed class ValidationAttributeTests
 {
     [Fact]

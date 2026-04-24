@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Email;
+﻿using APITemplate.Application.Common.Email;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Email;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Email;
 
+[Trait("Category", "Unit")]
 public sealed class FailedEmailStoreTests
 {
     [Fact]

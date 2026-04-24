@@ -1,4 +1,4 @@
-using APITemplate.Domain.Entities;
+﻿using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Repositories;
@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Repositories;
 
+[Trait("Category", "Unit")]
 public class ProductRepositoryTests : IDisposable
 {
     private static readonly Guid TestTenantId = Guid.Parse("11111111-1111-1111-1111-111111111111");

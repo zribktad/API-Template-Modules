@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Moq;
 using Polly;
 using ProductCatalog.Features.ProductData.DeleteProductData;
@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class ProductDataCascadeDeleteHandlerModuleTests
 {
     private readonly Mock<IProductDataRepository> _repositoryMock = new();

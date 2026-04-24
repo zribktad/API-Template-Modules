@@ -1,9 +1,10 @@
-using Notifications.Persistence;
+﻿using Notifications.Persistence;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public sealed class NotificationSqlResourceTests
 {
     [Fact]

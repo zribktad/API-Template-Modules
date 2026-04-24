@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using APITemplate.Tests.Unit.Helpers;
 using SharedKernel.Application.Validation;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Boundary;
 
+[Trait("Category", "Unit")]
 public sealed class CollectionValidationAttributeTests
 {
     private sealed record SampleRequest(

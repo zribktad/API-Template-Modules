@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProductCatalog;
 using ProductCatalog.Features.Category.CreateCategories;
@@ -13,6 +13,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class ProductCatalogModuleTests
 {
     /// <summary>

@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.BackgroundJobs;
+﻿using APITemplate.Application.Common.BackgroundJobs;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Jobs;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class EmailRetryRecurringJobTests
 {
     [Fact]

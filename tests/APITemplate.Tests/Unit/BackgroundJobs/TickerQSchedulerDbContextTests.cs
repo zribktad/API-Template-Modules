@@ -1,10 +1,11 @@
-using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
+﻿using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class TickerQSchedulerDbContextTests
 {
     [Fact]

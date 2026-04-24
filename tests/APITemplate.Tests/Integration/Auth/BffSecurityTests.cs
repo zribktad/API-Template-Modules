@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -16,7 +16,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Auth;
 
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFactory>
 {
     private readonly BffSecurityWebApplicationFactory _factory;

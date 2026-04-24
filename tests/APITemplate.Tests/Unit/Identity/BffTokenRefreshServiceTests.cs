@@ -1,4 +1,4 @@
-using Identity.Auth.Options;
+﻿using Identity.Auth.Options;
 using Identity.Auth.Security;
 using Identity.Auth.Security.Keycloak;
 using Identity.Auth.Security.Sessions;
@@ -10,6 +10,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class BffTokenRefreshServiceTests
 {
     private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-04-11T10:00:00Z");

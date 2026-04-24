@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Identity.Auth.Security.Keycloak;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class KeycloakClaimMapperTests
 {
     private readonly Mock<ILogger> _loggerMock = new();

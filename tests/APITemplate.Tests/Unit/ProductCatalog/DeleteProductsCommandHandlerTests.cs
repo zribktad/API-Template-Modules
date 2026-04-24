@@ -1,4 +1,4 @@
-using APITemplate.Tests.Unit.Helpers;
+﻿using APITemplate.Tests.Unit.Helpers;
 using ErrorOr;
 using Moq;
 using ProductCatalog;
@@ -19,6 +19,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class DeleteProductsCommandHandlerTests
 {
     private static readonly DateTime FixedDeletedAt = new(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -167,8 +168,12 @@ public sealed class DeleteProductsCommandHandlerTests
         Guid actorId = Guid.NewGuid();
         Guid tenantId = Guid.NewGuid();
         Product product = MakeProduct(tenantId: tenantId);
-        DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product.Id], tenantId, actorId, FixedDeletedAt);
+        DeleteProductsCommandHandler.DeleteProductsState state = new(
+            [product.Id],
+            tenantId,
+            actorId,
+            FixedDeletedAt
+        );
 
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
@@ -195,8 +200,12 @@ public sealed class DeleteProductsCommandHandlerTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         Product product = MakeProduct();
-        DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product.Id], Guid.NewGuid(), Guid.NewGuid(), FixedDeletedAt);
+        DeleteProductsCommandHandler.DeleteProductsState state = new(
+            [product.Id],
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            FixedDeletedAt
+        );
 
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
@@ -224,8 +233,12 @@ public sealed class DeleteProductsCommandHandlerTests
         Guid actorId = Guid.NewGuid();
         Guid tenantId = Guid.NewGuid();
         Product product = MakeProduct(tenantId: tenantId);
-        DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product.Id], tenantId, actorId, FixedDeletedAt);
+        DeleteProductsCommandHandler.DeleteProductsState state = new(
+            [product.Id],
+            tenantId,
+            actorId,
+            FixedDeletedAt
+        );
         List<string> callOrder = new List<string>();
 
         _linkRepo
@@ -263,28 +276,35 @@ public sealed class DeleteProductsCommandHandlerTests
         );
 
         _unitOfWork.Verify(
-            u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task>>(), ct, It.IsAny<TransactionOptions?>()),
+            u =>
+                u.ExecuteInTransactionAsync(
+                    It.IsAny<Func<Task>>(),
+                    ct,
+                    It.IsAny<TransactionOptions?>()
+                ),
             Times.Once
         );
         callOrder.ShouldBe(["links", "products"]);
         _linkRepo.Verify(
-            r => r.BulkSoftDeleteByProductIdsAsync(
-                It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(state.ProductIds)),
-                tenantId,
-                actorId,
-                FixedDeletedAt,
-                ct
-            ),
+            r =>
+                r.BulkSoftDeleteByProductIdsAsync(
+                    It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(state.ProductIds)),
+                    tenantId,
+                    actorId,
+                    FixedDeletedAt,
+                    ct
+                ),
             Times.Once
         );
         _productRepo.Verify(
-            r => r.BulkSoftDeleteByIdsAsync(
-                It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(state.ProductIds)),
-                tenantId,
-                actorId,
-                FixedDeletedAt,
-                ct
-            ),
+            r =>
+                r.BulkSoftDeleteByIdsAsync(
+                    It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(state.ProductIds)),
+                    tenantId,
+                    actorId,
+                    FixedDeletedAt,
+                    ct
+                ),
             Times.Once
         );
     }

@@ -1,4 +1,4 @@
-using Moq;
+﻿using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Entities;
 using ProductCatalog.Entities.ProductData;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class ProductReferenceValidatorTests
 {
     private readonly Mock<ICategoryRepository> _categoryRepository = new();

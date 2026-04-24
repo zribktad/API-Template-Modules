@@ -1,10 +1,11 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SharedKernel.Infrastructure.StoredProcedures;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.StoredProcedures;
 
+[Trait("Category", "Unit")]
 public sealed class StoredProcedureExecutorTests
 {
     [Fact]

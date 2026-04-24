@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using APITemplate.Api.Controllers;
 using APITemplate.Api.ErrorOrMapping;
 using ErrorOr;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ErrorOrMapping;
 
+[Trait("Category", "Unit")]
 public class ErrorOrExtensionsTests
 {
     // ── ToActionResult ──────────────────────────────────────────────────────

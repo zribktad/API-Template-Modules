@@ -1,4 +1,4 @@
-using APITemplate.Api;
+﻿using APITemplate.Api;
 using Notifications.Infrastructure.Health;
 using ProductCatalog.Infrastructure.Health;
 using SharedKernel.Infrastructure.Health;
@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Health;
 
+[Trait("Category", "Unit")]
 public sealed class HealthCheckModuleRegistryTests
 {
     [Fact]

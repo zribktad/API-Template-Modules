@@ -1,4 +1,4 @@
-using Ardalis.Specification;
+﻿using Ardalis.Specification;
 using FileStorage.Domain;
 using FileStorage.Domain.Sagas;
 using FileStorage.Domain.Storage;
@@ -10,6 +10,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class MaybeDeleteBlobHandlerTests
 {
     private readonly Mock<IStoredFileRepository> _repository = new();

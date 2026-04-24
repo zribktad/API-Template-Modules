@@ -1,9 +1,10 @@
-using BackgroundJobs.TickerQ;
+﻿using BackgroundJobs.TickerQ;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class LocalSingleProcessJobCoordinatorTests
 {
     [Fact]

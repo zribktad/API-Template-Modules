@@ -1,4 +1,4 @@
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -10,6 +10,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Health;
 
+[Trait("Category", "Unit")]
 public sealed class SmtpHealthCheckTests
 {
     private readonly Mock<ISmtpClient> _smtpClient = new();

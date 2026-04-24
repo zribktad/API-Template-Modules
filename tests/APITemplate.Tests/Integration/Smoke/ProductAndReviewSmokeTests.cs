@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using SharedKernel.Contracts.Security;
 using Shouldly;
@@ -8,6 +8,7 @@ namespace APITemplate.Tests.Integration.Smoke;
 
 [Collection("Smoke")]
 [Trait("Category", "Smoke")]
+[Trait("Docker", "true")]
 public sealed class ProductAndReviewSmokeTests : SmokeTestBase
 {
     public ProductAndReviewSmokeTests(CustomWebApplicationFactory factory)

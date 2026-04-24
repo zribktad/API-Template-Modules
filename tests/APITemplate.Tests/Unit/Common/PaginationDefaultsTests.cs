@@ -1,9 +1,10 @@
-using APITemplate.Api.GraphQL.Models;
+﻿using APITemplate.Api.GraphQL.Models;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Common;
 
+[Trait("Category", "Unit")]
 public sealed class PaginationDefaultsTests
 {
     [Fact]

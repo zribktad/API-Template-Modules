@@ -1,4 +1,4 @@
-using APITemplate.Application.Features.User.DTOs;
+﻿using APITemplate.Application.Features.User.DTOs;
 using APITemplate.Application.Features.User.Specifications;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Enums;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Repositories;
 
+[Trait("Category", "Unit")]
 public class UserRepositoryTests : IDisposable
 {
     private static readonly Guid TestTenantId = Guid.Parse("11111111-1111-1111-1111-111111111111");

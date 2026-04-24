@@ -1,10 +1,10 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Identity.Directory.Entities;
-using Identity.ValueObjects;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Features.User.AssignRoles;
 using Identity.Directory.Interfaces;
 using Identity.Errors;
+using Identity.ValueObjects;
 using Moq;
 using SharedKernel.Domain.Interfaces;
 using Shouldly;
@@ -13,6 +13,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Security;
 
+[Trait("Category", "Unit")]
 public class AssignUserRolesTenantValidationTests
 {
     private readonly Mock<IUserRepository> _userRepository = new();

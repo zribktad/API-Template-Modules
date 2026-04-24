@@ -1,4 +1,4 @@
-using BackgroundJobs.Domain;
+﻿using BackgroundJobs.Domain;
 using BackgroundJobs.Features;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs.Jobs;
 
+[Trait("Category", "Unit")]
 public sealed class SubmitJobCommandHandlerTests
 {
     private readonly Mock<IJobQueue> _jobQueue = new();

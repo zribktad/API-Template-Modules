@@ -1,9 +1,10 @@
-using SharedKernel.Application.Options.Infrastructure;
+﻿using SharedKernel.Application.Options.Infrastructure;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Observability;
 
+[Trait("Category", "Unit")]
 public sealed class ObservabilityOptionsResolveOtlpEndpointTests
 {
     [Fact]

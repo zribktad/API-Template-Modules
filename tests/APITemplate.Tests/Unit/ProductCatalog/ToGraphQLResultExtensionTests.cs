@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using HotChocolate;
 using ProductCatalog.GraphQL;
 using SharedKernel.Application.Errors;
@@ -8,6 +8,7 @@ using DomainError = ErrorOr.Error;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class ToGraphQLResultExtensionTests
 {
     [Fact]

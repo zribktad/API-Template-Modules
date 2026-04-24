@@ -1,4 +1,4 @@
-using Identity.Auth.Options;
+﻿using Identity.Auth.Options;
 using Identity.Auth.Security.Sessions;
 using Microsoft.Extensions.Options;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class InProcessBffRefreshCoordinatorTests
 {
     private static readonly BffSessionRecord StubSession = new()

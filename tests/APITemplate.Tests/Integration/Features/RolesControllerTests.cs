@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using APITemplate.Tests.Integration.Helpers;
 using Identity.Directory.Features.Role.CreateRole;
@@ -13,7 +13,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Features;
 
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public sealed class RolesControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

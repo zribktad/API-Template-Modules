@@ -1,4 +1,4 @@
-using FileStorage.Domain.Storage;
+﻿using FileStorage.Domain.Storage;
 using FileStorage.Services;
 using Moq;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class BlobStoreFactoryTests
 {
     [Fact]

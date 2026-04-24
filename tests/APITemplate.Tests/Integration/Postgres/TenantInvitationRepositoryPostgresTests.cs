@@ -1,4 +1,4 @@
-using APITemplate.Tests.Unit.Helpers;
+﻿using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Repositories;
@@ -13,7 +13,8 @@ namespace APITemplate.Tests.Integration.Postgres;
 /// <summary>
 ///     Exercises <see cref="TenantInvitationRepository" /> against real PostgreSQL with Ardalis specifications.
 /// </summary>
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public sealed class TenantInvitationRepositoryPostgresTests
     : IClassFixture<SharedPostgresContainer>,
         IAsyncLifetime
@@ -46,7 +47,11 @@ public sealed class TenantInvitationRepositoryPostgresTests
         _dbContext = CreateDbContext();
         await _dbContext.Database.MigrateAsync(ct);
 
-        Tenant tenant = Tenant.Create(_tenantId, "t" + _tenantId.ToString("N")[..12], "Repo test tenant");
+        Tenant tenant = Tenant.Create(
+            _tenantId,
+            "t" + _tenantId.ToString("N")[..12],
+            "Repo test tenant"
+        );
         _dbContext.Tenants.Add(tenant);
         await _dbContext.SaveChangesAsync(ct);
         _dbContext.ChangeTracker.Clear();

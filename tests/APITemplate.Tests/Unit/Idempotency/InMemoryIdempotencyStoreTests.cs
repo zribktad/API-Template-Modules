@@ -1,4 +1,4 @@
-using APITemplate.Tests.Unit.Helpers;
+﻿using APITemplate.Tests.Unit.Helpers;
 using SharedKernel.Application.Contracts;
 using Shouldly;
 using Xunit;
@@ -9,6 +9,7 @@ namespace APITemplate.Tests.Unit.Idempotency;
 ///     Covers in-process idempotency. <see cref="SharedKernel.Infrastructure.Idempotency.DistributedCacheIdempotencyStore" /> depends on Redis Lua scripts;
 ///     add container-backed integration tests if multi-instance lock semantics need automated coverage.
 /// </summary>
+[Trait("Category", "Unit")]
 public sealed class InMemoryIdempotencyStoreTests
 {
     private static readonly TimeSpan DefaultTtl = TimeSpan.FromMinutes(5);

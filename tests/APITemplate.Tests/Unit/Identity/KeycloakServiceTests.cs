@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using Identity.Auth.Options;
 using Identity.Auth.Security;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class KeycloakServiceTests
 {
     private readonly Mock<HttpMessageHandler> _httpMessageHandler = new();

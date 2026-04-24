@@ -1,4 +1,4 @@
-using APITemplate.Application.Features.Product.Repositories;
+﻿using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.ProductReview;
 using APITemplate.Application.Features.ProductReview.Specifications;
 using APITemplate.Domain.Entities;
@@ -15,6 +15,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class ProductReviewRequestHandlersTests
 {
     private readonly Mock<IProductReviewRepository> _reviewRepoMock;

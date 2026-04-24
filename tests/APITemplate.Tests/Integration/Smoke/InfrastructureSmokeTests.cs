@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Shouldly;
 using Xunit;
@@ -7,6 +7,7 @@ namespace APITemplate.Tests.Integration.Smoke;
 
 [Collection("Smoke")]
 [Trait("Category", "Smoke")]
+[Trait("Docker", "true")]
 public sealed class InfrastructureSmokeTests
 {
     private readonly CustomWebApplicationFactory _factory;

@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.BackgroundJobs;
+﻿using APITemplate.Application.Common.BackgroundJobs;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ.RecurringJobRegistrations;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class TickerQRecurringJobRegistrarTests
 {
     [Fact]

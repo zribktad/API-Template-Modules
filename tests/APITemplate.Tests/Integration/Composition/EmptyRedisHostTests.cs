@@ -1,4 +1,4 @@
-using Identity.Auth.Security.Sessions;
+﻿using Identity.Auth.Security.Sessions;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
@@ -10,7 +10,8 @@ namespace APITemplate.Tests.Integration.Composition;
 ///     <see cref="APITemplate.Tests.Integration.EmptyRedisWebApplicationFactory" />)
 ///     and no Redis multiplexer is registered.
 /// </summary>
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public sealed class EmptyRedisHostTests : IClassFixture<EmptyRedisWebApplicationFactory>
 {
     private readonly EmptyRedisWebApplicationFactory _factory;

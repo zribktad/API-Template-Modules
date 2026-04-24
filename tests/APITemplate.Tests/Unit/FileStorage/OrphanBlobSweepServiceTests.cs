@@ -1,4 +1,4 @@
-using FileStorage.Contracts;
+﻿using FileStorage.Contracts;
 using FileStorage.Domain;
 using FileStorage.Persistence;
 using FileStorage.Services;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class OrphanBlobSweepServiceTests : IDisposable
 {
     private readonly string _tempDir = Path.Combine(

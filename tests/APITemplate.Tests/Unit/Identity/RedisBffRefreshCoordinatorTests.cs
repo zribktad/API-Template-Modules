@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Identity.Auth.Options;
 using Identity.Auth.Security.Sessions;
 using Microsoft.Extensions.Options;
@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class RedisBffRefreshCoordinatorTests
 {
     private const string SessionId = "test-session-42";

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -8,6 +8,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;
 
+[Trait("Category", "Unit")]
 public sealed class OutgoingWebhookSecurityTests
 {
     private readonly Mock<IHostEnvironment> _envMock = new();

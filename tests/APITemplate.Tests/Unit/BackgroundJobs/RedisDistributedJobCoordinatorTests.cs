@@ -1,4 +1,4 @@
-using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
+﻿using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class RedisDistributedJobCoordinatorTests
 {
     [Fact]

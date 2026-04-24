@@ -1,4 +1,4 @@
-using APITemplate.Tests.Unit.Helpers;
+﻿using APITemplate.Tests.Unit.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OutputCaching;
 using SharedKernel.Infrastructure.OutputCache;
@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Cache;
 
+[Trait("Category", "Unit")]
 public sealed class TenantAwareOutputCachePolicyTests
 {
     [Fact]

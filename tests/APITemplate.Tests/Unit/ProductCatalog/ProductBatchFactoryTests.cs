@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Features.Product.CreateProducts;
@@ -11,6 +11,7 @@ using ProductEntity = ProductCatalog.Entities.Product;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class ProductBatchFactoryTests
 {
     private readonly Mock<IProductBatchValidator<CreateProductRequest>> _validator = new();

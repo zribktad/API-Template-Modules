@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Xml.Linq;
 using APITemplate.Api;
 using BackgroundJobs;
@@ -15,6 +15,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Architecture;
 
+[Trait("Category", "Unit")]
 public sealed class ModuleBoundaryArchitectureTests
 {
     [Fact]

@@ -1,4 +1,4 @@
-using APITemplate.Api.Extensions;
+﻿using APITemplate.Api.Extensions;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
@@ -16,7 +16,8 @@ namespace APITemplate.Tests.Integration.Postgres;
 
 using AppDbUnitOfWork = SharedKernel.Infrastructure.UnitOfWork.UnitOfWork<APITemplate.Infrastructure.Persistence.AppDbContext>;
 
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public abstract class PostgresTestBase : IAsyncLifetime
 {
     protected PostgresWebApplicationFactory _factory;

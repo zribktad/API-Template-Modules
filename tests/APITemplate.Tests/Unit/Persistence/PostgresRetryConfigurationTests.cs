@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using APITemplate.Api.Extensions;
 using APITemplate.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Persistence;
 
+[Trait("Category", "Unit")]
 public class PostgresRetryConfigurationTests
 {
     [Fact]

@@ -1,4 +1,4 @@
-using APITemplate.Application.Features.ProductData;
+﻿using APITemplate.Application.Features.ProductData;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using ErrorOr;
@@ -17,6 +17,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class ProductDataRequestHandlersTests
 {
     private readonly Mock<IProductDataRepository> _repositoryMock;

@@ -1,4 +1,4 @@
-using APITemplate.Tests.Unit.Helpers;
+﻿using APITemplate.Tests.Unit.Helpers;
 using Identity.Auth.Entities;
 using Identity.Auth.Handlers;
 using Identity.Auth.Options;
@@ -21,7 +21,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Postgres;
 
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContainer>, IAsyncLifetime
 {
     private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-04-10T12:00:00Z");

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
@@ -7,6 +7,7 @@ namespace APITemplate.Tests.Integration.Smoke;
 
 [Collection("Smoke")]
 [Trait("Category", "Smoke")]
+[Trait("Docker", "true")]
 public sealed class IdentityModuleSmokeTests : SmokeTestBase
 {
     public IdentityModuleSmokeTests(CustomWebApplicationFactory factory)

@@ -1,4 +1,4 @@
-using Notifications.Services;
+﻿using Notifications.Services;
 using Polly;
 using Polly.Registry;
 using SharedKernel.Application.Resilience;
@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public sealed class SmtpSendPipelineProviderTests
 {
     [Fact]
@@ -30,11 +31,15 @@ public sealed class SmtpSendPipelineProviderTests
         SmtpSendPipelineProvider sut = new(registry);
         bool executed = false;
 
-        await sut.Get().ExecuteAsync(_ =>
-        {
-            executed = true;
-            return ValueTask.CompletedTask;
-        }, ct);
+        await sut.Get()
+            .ExecuteAsync(
+                _ =>
+                {
+                    executed = true;
+                    return ValueTask.CompletedTask;
+                },
+                ct
+            );
 
         executed.ShouldBeTrue();
     }

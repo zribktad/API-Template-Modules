@@ -1,4 +1,4 @@
-using Moq;
+﻿using Moq;
 using Reviews.Domain;
 using Reviews.Features.ProductSoftDelete;
 using SharedKernel.Contracts.Events;
@@ -8,6 +8,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Reviews;
 
+[Trait("Category", "Unit")]
 public sealed class ProductsBatchSoftDeletedHandlerTests
 {
     private readonly Mock<IProductReviewRepository> _repositoryMock = new();

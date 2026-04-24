@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using APITemplate.Tests.Unit.Helpers;
 using ProductCatalog.Features.Product.UpdateProducts;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Validators;
 
+[Trait("Category", "Unit")]
 public class UpdateProductRequestValidatorTests
 {
     // --- Data Annotations ---

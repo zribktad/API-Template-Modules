@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Identity.Auth.Security;
 using Identity.Auth.Security.Sessions;
 using Microsoft.AspNetCore.Authentication;
@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class CookieSessionRefresherTests
 {
     private readonly Mock<IBffSessionService> _sessionService = new();

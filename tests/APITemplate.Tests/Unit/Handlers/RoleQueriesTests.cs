@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.GetPermissions;
@@ -13,6 +13,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class RoleQueriesTests
 {
     [Fact]

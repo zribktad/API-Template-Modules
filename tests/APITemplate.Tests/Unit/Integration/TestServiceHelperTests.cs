@@ -1,4 +1,4 @@
-using APITemplate.Api.Extensions;
+﻿using APITemplate.Api.Extensions;
 using APITemplate.Application.Common.BackgroundJobs;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
 using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Integration;
 
+[Trait("Category", "Unit")]
 public sealed class TestServiceHelperTests
 {
     [Fact]

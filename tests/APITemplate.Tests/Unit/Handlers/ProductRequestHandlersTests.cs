@@ -1,4 +1,4 @@
-using APITemplate.Application.Features.Product;
+﻿using APITemplate.Application.Features.Product;
 using APITemplate.Application.Features.Product.DTOs;
 using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.Product.Specifications;
@@ -20,6 +20,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class ProductRequestHandlersTests
 {
     private readonly Mock<IProductRepository> _repositoryMock;

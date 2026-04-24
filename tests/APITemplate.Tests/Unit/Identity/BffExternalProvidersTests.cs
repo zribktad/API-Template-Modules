@@ -1,4 +1,4 @@
-using Identity.Auth.Controllers.V1;
+﻿using Identity.Auth.Controllers.V1;
 using Identity.Auth.Features.Bff.DTOs;
 using Identity.Auth.Options;
 using Identity.Auth.Security;
@@ -14,6 +14,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class BffExternalProvidersTests
 {
     // ── Helpers ──────────────────────────────────────────────────────────────

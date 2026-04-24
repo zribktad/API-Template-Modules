@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Identity.Directory.Domain.Services;
 using Identity.Errors;
 using Moq;
@@ -8,6 +8,7 @@ using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class UserUniquenessCheckerTests
 {
     private readonly Mock<IUserRepository> _repository = new();

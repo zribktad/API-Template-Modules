@@ -1,4 +1,4 @@
-using APITemplate.Tests.Unit.Helpers;
+﻿using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Features.Tenant.DTOs;
 using ProductCatalog.Features.Product.GetProducts;
 using Reviews.Features;
@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Boundary;
 
+[Trait("Category", "Unit")]
 public sealed class BoundaryFilterValidationTests
 {
     [Fact]

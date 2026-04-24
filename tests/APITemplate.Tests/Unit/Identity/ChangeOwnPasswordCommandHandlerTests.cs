@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Identity.Auth.Security;
 using Identity.Auth.Security.Sessions;
 using Identity.Directory.Entities;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class ChangeOwnPasswordCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _repository = new();

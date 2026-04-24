@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Moq;
 using Notifications.Contracts;
 using Notifications.Features;
@@ -10,6 +10,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public sealed class NotificationEmailHandlerTests
 {
     private readonly Mock<IEmailTemplateRenderer> _templateRenderer = new();

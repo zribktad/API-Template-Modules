@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
 using Notifications.Services;
@@ -9,6 +9,7 @@ using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public sealed class MailKitEmailSenderTests
 {
     [Fact]

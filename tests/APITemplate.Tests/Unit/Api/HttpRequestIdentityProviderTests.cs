@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using APITemplate.Api.Security;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Api;
 
+[Trait("Category", "Unit")]
 public sealed class HttpRequestIdentityProviderTests
 {
     private static HttpRequestIdentityProvider CreateProvider(ClaimsPrincipal principal)

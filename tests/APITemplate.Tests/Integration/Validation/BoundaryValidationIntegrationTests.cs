@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -11,7 +11,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Validation;
 
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
@@ -223,27 +224,35 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
             username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}graphql-validation"
         );
 
-        string requestBody = JsonSerializer.Serialize(new
-        {
-            query = @"query($input: ProductQueryInput) { products(input: $input) { page { items { id } } } }",
-            variables = new { input = new { minPrice = -1.0, pageNumber = 1, pageSize = 5 } },
-        });
+        string requestBody = JsonSerializer.Serialize(
+            new
+            {
+                query = @"query($input: ProductQueryInput) { products(input: $input) { page { items { id } } } }",
+                variables = new
+                {
+                    input = new
+                    {
+                        minPrice = -1.0,
+                        pageNumber = 1,
+                        pageSize = 5,
+                    },
+                },
+            }
+        );
         using StringContent content = new(requestBody, Encoding.UTF8, "application/json");
 
         HttpResponseMessage response = await _client.PostAsync("/graphql", content, ct);
         string responseBody = await response.Content.ReadAsStringAsync(ct);
 
         using JsonDocument doc = JsonDocument.Parse(responseBody);
-        doc.RootElement.TryGetProperty("errors", out JsonElement errorsElement).ShouldBeTrue(
-            $"Expected GraphQL errors but got: {responseBody}"
-        );
+        doc.RootElement.TryGetProperty("errors", out JsonElement errorsElement)
+            .ShouldBeTrue($"Expected GraphQL errors but got: {responseBody}");
         errorsElement.GetArrayLength().ShouldBeGreaterThan(0, responseBody);
         errorsElement[0]
             .TryGetProperty("extensions", out JsonElement ext)
             .ShouldBeTrue($"No extensions on error. Body: {responseBody}");
-        ext.TryGetProperty("code", out JsonElement codeElement).ShouldBeTrue(
-            $"No code in extensions. Body: {responseBody}"
-        );
+        ext.TryGetProperty("code", out JsonElement codeElement)
+            .ShouldBeTrue($"No code in extensions. Body: {responseBody}");
         codeElement.GetString().ShouldBe("GEN-0400", responseBody);
     }
 
@@ -256,27 +265,24 @@ public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWeb
             username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}graphql-validation"
         );
 
-        string requestBody = JsonSerializer.Serialize(new
-        {
-            query = @"query($input: ProductQueryInput) { products(input: $input) { page { items { id name } totalCount } } }",
-            variables = new { input = new { pageNumber = 1, pageSize = 5 } },
-        });
+        string requestBody = JsonSerializer.Serialize(
+            new
+            {
+                query = @"query($input: ProductQueryInput) { products(input: $input) { page { items { id name } totalCount } } }",
+                variables = new { input = new { pageNumber = 1, pageSize = 5 } },
+            }
+        );
         using StringContent content = new(requestBody, Encoding.UTF8, "application/json");
 
         HttpResponseMessage response = await _client.PostAsync("/graphql", content, ct);
         string responseBody = await response.Content.ReadAsStringAsync(ct);
 
         using JsonDocument doc = JsonDocument.Parse(responseBody);
-        doc.RootElement.TryGetProperty("errors", out _).ShouldBeFalse(
-            $"Expected no GraphQL errors but got: {responseBody}"
-        );
-        doc.RootElement.TryGetProperty("data", out JsonElement dataElement).ShouldBeTrue(
-            $"Expected data in response. Body: {responseBody}"
-        );
-        dataElement.GetProperty("products").ValueKind.ShouldNotBe(
-            JsonValueKind.Null,
-            responseBody
-        );
+        doc.RootElement.TryGetProperty("errors", out _)
+            .ShouldBeFalse($"Expected no GraphQL errors but got: {responseBody}");
+        doc.RootElement.TryGetProperty("data", out JsonElement dataElement)
+            .ShouldBeTrue($"Expected data in response. Body: {responseBody}");
+        dataElement.GetProperty("products").ValueKind.ShouldNotBe(JsonValueKind.Null, responseBody);
     }
 
     private static async Task<HttpValidationProblemDetails> ReadProblemAsync(

@@ -1,4 +1,4 @@
-using APITemplate.Domain.Entities;
+﻿using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +10,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Persistence;
 
+[Trait("Category", "Unit")]
 public class AuthBootstrapSeederTests
 {
     [Fact]

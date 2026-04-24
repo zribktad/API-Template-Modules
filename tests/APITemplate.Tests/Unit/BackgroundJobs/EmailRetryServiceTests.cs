@@ -1,4 +1,4 @@
-using APITemplate.Application.Common.Email;
+﻿using APITemplate.Application.Common.Email;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.BackgroundJobs.Services;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class EmailRetryServiceTests
 {
     [Fact]

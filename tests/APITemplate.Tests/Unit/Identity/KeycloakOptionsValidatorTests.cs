@@ -1,4 +1,4 @@
-using Identity.Auth.Options;
+﻿using Identity.Auth.Options;
 using Identity.Auth.Validation;
 using Microsoft.Extensions.Options;
 using Shouldly;
@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class KeycloakOptionsValidatorTests
 {
     private readonly KeycloakOptionsValidator _sut = new();

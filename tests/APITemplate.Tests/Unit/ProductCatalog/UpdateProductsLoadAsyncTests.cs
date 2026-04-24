@@ -1,4 +1,4 @@
-using Moq;
+﻿using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Entities;
 using ProductCatalog.Features.Product.Shared;
@@ -20,6 +20,7 @@ namespace APITemplate.Tests.Unit.ProductCatalog;
 ///     rows failing item-level validation (e.g. <see cref="Guid.Empty" /> Id, enforced by the
 ///     <c>[NotEmpty]</c> data-annotation) must be excluded from the DB lookup.
 /// </summary>
+[Trait("Category", "Unit")]
 public sealed class UpdateProductsLoadAsyncTests
 {
     private readonly Mock<IProductRepository> _repository = new();

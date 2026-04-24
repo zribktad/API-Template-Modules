@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Diagnostics.HealthChecks;
+﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Moq;
 using SharedKernel.Infrastructure.Health;
@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Health;
 
+[Trait("Category", "Unit")]
 public sealed class WolverineMessageStoreHealthCheckTests
 {
     private readonly Mock<IMessageStore> _messageStore = new();

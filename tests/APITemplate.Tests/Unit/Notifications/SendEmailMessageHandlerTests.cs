@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Notifications.Contracts;
 using Notifications.Handlers;
@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public sealed class SendEmailMessageHandlerTests
 {
     private readonly Mock<IEmailSender> _senderMock = new();

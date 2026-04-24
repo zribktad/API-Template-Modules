@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using SharedKernel.Contracts.Security;
 using Shouldly;
@@ -8,6 +8,7 @@ namespace APITemplate.Tests.Integration.Smoke;
 
 [Collection("Smoke")]
 [Trait("Category", "Smoke")]
+[Trait("Docker", "true")]
 public sealed class ExampleFeaturesSmokeTests : SmokeTestBase
 {
     public ExampleFeaturesSmokeTests(CustomWebApplicationFactory factory)
@@ -47,7 +48,11 @@ public sealed class ExampleFeaturesSmokeTests : SmokeTestBase
     public async Task Webhooks_MissingSignature_Returns401()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        HttpResponseMessage response = await Client.PostAsJsonAsync("/api/v1/webhooks", new { }, ct);
+        HttpResponseMessage response = await Client.PostAsJsonAsync(
+            "/api/v1/webhooks",
+            new { },
+            ct
+        );
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

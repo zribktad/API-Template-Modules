@@ -1,4 +1,4 @@
-using ErrorOr;
+﻿using ErrorOr;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Features.User.AssignRoles;
@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class AssignUserRolesCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepository = new();
