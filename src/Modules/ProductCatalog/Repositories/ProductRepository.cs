@@ -159,6 +159,21 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 
+    /// <inheritdoc />
+    public async Task<int> BulkSoftDeleteByIdsAsync(
+        IReadOnlyCollection<Guid> ids,
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    )
+    {
+        return await _dbContext
+            .Products.IgnoreQueryFilters()
+            .Where(product => product.TenantId == tenantId && ids.Contains(product.Id) && !product.IsDeleted)
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
+    }
+
     private sealed record PriceFacetCounts(
         int ZeroToFifty,
         int FiftyToOneHundred,

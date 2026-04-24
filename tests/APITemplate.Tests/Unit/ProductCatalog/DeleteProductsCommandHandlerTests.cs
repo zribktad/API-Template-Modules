@@ -98,8 +98,7 @@ public sealed class DeleteProductsCommandHandlerTests
 
         continuation.ShouldBe(HandlerContinuation.Continue);
         state.ShouldNotBeNull();
-        state!.Products.ShouldContain(product);
-        state.ProductIds.ShouldContain(product.Id);
+        state!.ProductIds.ShouldContain(product.Id);
         state.TenantId.ShouldBe(tenantId);
         state.ActorId.ShouldBe(actorId);
         state.DeletedAtUtc.ShouldBe(FixedDeletedAt);
@@ -169,7 +168,7 @@ public sealed class DeleteProductsCommandHandlerTests
         Guid tenantId = Guid.NewGuid();
         Product product = MakeProduct(tenantId: tenantId);
         DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], [product.Id], tenantId, actorId, FixedDeletedAt);
+            new([product.Id], tenantId, actorId, FixedDeletedAt);
 
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
@@ -197,7 +196,7 @@ public sealed class DeleteProductsCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         Product product = MakeProduct();
         DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], [product.Id], Guid.NewGuid(), Guid.NewGuid(), FixedDeletedAt);
+            new([product.Id], Guid.NewGuid(), Guid.NewGuid(), FixedDeletedAt);
 
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
@@ -226,7 +225,7 @@ public sealed class DeleteProductsCommandHandlerTests
         Guid tenantId = Guid.NewGuid();
         Product product = MakeProduct(tenantId: tenantId);
         DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], [product.Id], tenantId, actorId, FixedDeletedAt);
+            new([product.Id], tenantId, actorId, FixedDeletedAt);
         List<string> callOrder = new List<string>();
 
         _linkRepo
@@ -242,9 +241,17 @@ public sealed class DeleteProductsCommandHandlerTests
             .Callback(() => callOrder.Add("links"))
             .ReturnsAsync(1);
         _productRepo
-            .Setup(r => r.DeleteRangeAsync(It.IsAny<IEnumerable<Product>>(), ct))
+            .Setup(r =>
+                r.BulkSoftDeleteByIdsAsync(
+                    It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    ct
+                )
+            )
             .Callback(() => callOrder.Add("products"))
-            .ReturnsAsync(0);
+            .ReturnsAsync(1);
 
         await DeleteProductsCommandHandler.HandleAsync(
             new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
@@ -271,7 +278,13 @@ public sealed class DeleteProductsCommandHandlerTests
             Times.Once
         );
         _productRepo.Verify(
-            r => r.DeleteRangeAsync(state.Products, ct),
+            r => r.BulkSoftDeleteByIdsAsync(
+                It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(state.ProductIds)),
+                tenantId,
+                actorId,
+                FixedDeletedAt,
+                ct
+            ),
             Times.Once
         );
     }

@@ -12,9 +12,7 @@ public sealed class ProductCatalogDbContext : ModuleDbContext
         TimeProvider timeProvider,
         IAuditableEntityStateManager entityStateManager
     )
-        : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager)
-    {
-    }
+        : base(options, tenantProvider, actorProvider, timeProvider, entityStateManager) { }
 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();

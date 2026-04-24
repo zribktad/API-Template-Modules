@@ -56,7 +56,7 @@ public sealed class DeleteProductsCommandHandler
         IReadOnlyList<Guid> productIds = products.Select(p => p.Id).ToList();
         return (
             HandlerContinuation.Continue,
-            new DeleteProductsState(products, productIds, tenantId, actorId, deletedAtUtc),
+            new DeleteProductsState(productIds, tenantId, actorId, deletedAtUtc),
             OutgoingMessagesHelper.Empty
         );
     }
@@ -73,8 +73,20 @@ public sealed class DeleteProductsCommandHandler
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                await linkRepository.BulkSoftDeleteByProductIdsAsync(state.ProductIds, state.TenantId, state.ActorId, state.DeletedAtUtc, ct);
-                await repository.DeleteRangeAsync(state.Products, ct);
+                await linkRepository.BulkSoftDeleteByProductIdsAsync(
+                    state.ProductIds,
+                    state.TenantId,
+                    state.ActorId,
+                    state.DeletedAtUtc,
+                    ct
+                );
+                await repository.BulkSoftDeleteByIdsAsync(
+                    state.ProductIds,
+                    state.TenantId,
+                    state.ActorId,
+                    state.DeletedAtUtc,
+                    ct
+                );
             },
             ct
         );
@@ -98,7 +110,6 @@ public sealed class DeleteProductsCommandHandler
     }
 
     public sealed record DeleteProductsState(
-        IReadOnlyList<Entities.Product> Products,
         IReadOnlyList<Guid> ProductIds,
         Guid TenantId,
         Guid ActorId,

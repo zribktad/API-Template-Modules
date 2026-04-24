@@ -44,7 +44,7 @@ public interface IProductDataLinkRepository
     ///     Bulk soft-deletes all non-deleted product data links for the specified tenant via a single
     ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization).
     /// </summary>
-    Task<int> BulkSoftDeleteByTenantAsync(
+    public Task<int> BulkSoftDeleteByTenantAsync(
         Guid tenantId,
         Guid actorId,
         DateTime deletedAtUtc,
@@ -55,7 +55,7 @@ public interface IProductDataLinkRepository
     ///     Bulk soft-deletes all non-deleted product data links for the specified products via a single
     ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization).
     /// </summary>
-    Task<int> BulkSoftDeleteByProductIdsAsync(
+    public Task<int> BulkSoftDeleteByProductIdsAsync(
         IReadOnlyCollection<Guid> productIds,
         Guid tenantId,
         Guid actorId,
