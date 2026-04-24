@@ -55,15 +55,37 @@ public static partial class IdentityModule
             IPostConfigureOptions<CookieAuthenticationOptions>,
             BffCookieSecurePostConfigure
         >();
+        services.AddMemoryCache();
+        services.AddSingleton<IBffLocalSessionCache, BffLocalSessionCache>();
+
         if (configuration.IsRedisConfigured())
         {
-            services.AddSingleton<IBffSessionStore, PostgresCachedBffSessionStore>();
+            services.AddSingleton<PostgresCachedBffSessionStore>();
+            services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
+                sp.GetRequiredService<PostgresCachedBffSessionStore>(),
+                sp.GetRequiredService<IBffLocalSessionCache>(),
+                sp.GetRequiredService<IBffSessionRevocationNotifier>()
+            ));
             services.AddSingleton<IBffRefreshCoordinator, RedisBffRefreshCoordinator>();
+            services.AddSingleton<
+                IBffSessionRevocationNotifier,
+                RedisBffSessionRevocationNotifier
+            >();
+            services.AddHostedService<BffSessionRevocationSubscriber>();
         }
         else
         {
-            services.AddSingleton<IBffSessionStore, PostgresDistributedCacheBffSessionStore>();
+            services.AddSingleton<PostgresDistributedCacheBffSessionStore>();
+            services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
+                sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>(),
+                sp.GetRequiredService<IBffLocalSessionCache>(),
+                sp.GetRequiredService<IBffSessionRevocationNotifier>()
+            ));
             services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();
+            services.AddSingleton<
+                IBffSessionRevocationNotifier,
+                NullBffSessionRevocationNotifier
+            >();
         }
 
         services.AddSingleton<IBffSessionValidator, BffSessionValidator>();
