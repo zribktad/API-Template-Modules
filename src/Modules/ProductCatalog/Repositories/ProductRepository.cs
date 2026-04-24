@@ -59,25 +59,28 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
                 specification
             );
 
+        // Product.Category navigation property is required here so EF Core can
+        // translate the LEFT JOIN + GROUP BY in a single SQL query.  A manual
+        // GroupJoin/SelectMany LEFT JOIN cannot be used because EF Core 10 wraps
+        // nullable LEFT-JOIN entity columns in CASE WHEN inside BindProperty,
+        // which produces nested CASE in the GROUP BY key and breaks COUNT(*) translation.
         return await query
-            .GroupBy(product => new
+            .GroupBy(p => new
             {
-                product.CategoryId,
-                CategoryName = product.Category != null ? product.Category.Name : "Uncategorized",
+                p.CategoryId,
+                CategoryName = p.Category != null
+                    ? p.Category.Name
+                    : ProductCategoryFacetValue.Uncategorized,
             })
-            .Select(group => new
+            .Select(g => new
             {
-                group.Key.CategoryId,
-                group.Key.CategoryName,
-                Count = group.Count(),
+                g.Key.CategoryId,
+                g.Key.CategoryName,
+                Count = g.Count(),
             })
-            .OrderByDescending(group => group.Count)
-            .ThenBy(group => group.CategoryName)
-            .Select(group => new ProductCategoryFacetValue(
-                group.CategoryId,
-                group.CategoryName,
-                group.Count
-            ))
+            .OrderByDescending(g => g.Count)
+            .ThenBy(g => g.CategoryName)
+            .Select(g => new ProductCategoryFacetValue(g.CategoryId, g.CategoryName, g.Count))
             .ToArrayAsync(ct);
     }
 
@@ -170,7 +173,9 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
     {
         return await _dbContext
             .Products.IgnoreQueryFilters()
-            .Where(product => product.TenantId == tenantId && ids.Contains(product.Id) && !product.IsDeleted)
+            .Where(product =>
+                product.TenantId == tenantId && ids.Contains(product.Id) && !product.IsDeleted
+            )
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 

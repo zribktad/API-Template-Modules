@@ -26,8 +26,14 @@ public sealed class Product : IAuditableTenantEntity, IHasId
 
     public Guid? CategoryId { get; set; }
 
-    /// <summary>Infrastructure-only navigation for query projections. Domain logic must use <see cref="CategoryId" /> instead.</summary>
-    public Category? Category { get; set; }
+    // Read-only navigation for query-side use only (category facets GroupBy).
+    // Category is a separate aggregate root; this property must never be used
+    // to mutate category state — CategoryId is the only write surface.
+    // Removing this property forces a manual LEFT JOIN that EF Core 10 cannot
+    // translate when a conditional expression (null-coalesce on a nullable
+    // LEFT-JOIN entity) appears in a GROUP BY key (BindProperty wraps optional
+    // table columns in CASE WHEN, producing nested CASE that breaks COUNT(*)).
+    public Category? Category { get; private set; }
 
     public ICollection<ProductDataLink> ProductDataLinks { get; set; } = [];
 
