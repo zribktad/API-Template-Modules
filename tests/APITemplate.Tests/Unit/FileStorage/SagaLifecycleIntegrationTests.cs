@@ -112,7 +112,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
                 _factory,
                 db,
                 NullLogger<FileUploadSaga>.Instance,
-                CancellationToken.None
+                TestContext.Current.CancellationToken
             );
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -155,7 +155,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             new TimeoutUploadCommand(token),
             _factory,
             NullLogger<FileUploadSaga>.Instance,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
 
         saga.Status.ShouldBe(FileUploadStatus.Failed);
@@ -250,7 +250,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             await DeleteFileCommandHandler.HandleAsync(
                 new DeleteFileCommand(row.Id),
                 db2,
-                CancellationToken.None
+                TestContext.Current.CancellationToken
             );
         deleteResult.IsError.ShouldBeFalse();
         await db2.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -266,7 +266,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             repo,
             _factory,
             NullLogger<MaybeDeleteBlobHandler>.Instance,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
 
         File.Exists(blobPath).ShouldBeFalse();
@@ -292,7 +292,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         (_, Wolverine.OutgoingMessages outgoing) = await DeleteFileCommandHandler.HandleAsync(
             new DeleteFileCommand(row1.Id),
             db2,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
         await db2.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -304,7 +304,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             repo,
             _factory,
             NullLogger<MaybeDeleteBlobHandler>.Instance,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
 
         File.Exists(blobPath).ShouldBeTrue(); // row2 still references it
@@ -331,7 +331,9 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             NullLogger<OrphanBlobSweepService>.Instance
         );
 
-        OrphanBlobSweepResult result = await sweeper.SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await sweeper.SweepAsync(
+            TestContext.Current.CancellationToken
+        );
 
         result.BlobsDeleted.ShouldBe(1);
         File.Exists(orphanPath).ShouldBeFalse();
@@ -351,7 +353,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         await SweepOrphanBlobsHandler.HandleAsync(
             new SweepOrphanBlobsCommand(),
             sweeper,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
         // No-op run — just asserts the wiring compiles and runs without throwing.
     }
@@ -382,7 +384,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             _factory,
             db,
             NullLogger<FileUploadSaga>.Instance,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         first.IsError.ShouldBeFalse();
@@ -394,7 +396,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
                 _factory,
                 db,
                 NullLogger<FileUploadSaga>.Instance,
-                CancellationToken.None
+                TestContext.Current.CancellationToken
             );
         second.IsError.ShouldBeFalse();
         second.Value.StoredFileId.ShouldBe(first.Value.StoredFileId);
@@ -429,7 +431,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             _factory,
             db,
             NullLogger<FileUploadSaga>.Instance,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
         reply.IsError.ShouldBeFalse();
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);

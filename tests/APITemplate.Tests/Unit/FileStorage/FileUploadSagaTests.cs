@@ -130,7 +130,7 @@ public sealed class FileUploadSagaTests
                 _factory.Object,
                 db,
                 NullLogger<FileUploadSaga>.Instance,
-                CancellationToken.None
+                TestContext.Current.CancellationToken
             );
 
         reply.IsError.ShouldBeFalse();
@@ -141,7 +141,11 @@ public sealed class FileUploadSagaTests
         saga.Status.ShouldBe(FileUploadStatus.Committed);
         saga.StoredFileId.ShouldNotBeNull();
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
-        (await db.StoredFiles.CountAsync(TestContext.Current.CancellationToken)).ShouldBe(1);
+        (
+            await db.StoredFiles.CountAsync(
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        ).ShouldBe(1);
     }
 
     [Fact]
@@ -171,7 +175,7 @@ public sealed class FileUploadSagaTests
                 _factory.Object,
                 db,
                 NullLogger<FileUploadSaga>.Instance,
-                CancellationToken.None
+                TestContext.Current.CancellationToken
             );
 
         reply.IsError.ShouldBeFalse();
@@ -204,7 +208,7 @@ public sealed class FileUploadSagaTests
                 _factory.Object,
                 db,
                 NullLogger<FileUploadSaga>.Instance,
-                CancellationToken.None
+                TestContext.Current.CancellationToken
             );
 
         reply.IsError.ShouldBeTrue();
@@ -221,7 +225,7 @@ public sealed class FileUploadSagaTests
             new TimeoutUploadCommand(saga.Id!),
             _factory.Object,
             NullLogger<FileUploadSaga>.Instance,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
 
         saga.Status.ShouldBe(FileUploadStatus.Failed);
@@ -241,7 +245,7 @@ public sealed class FileUploadSagaTests
             new TimeoutUploadCommand(saga.Id!),
             _factory.Object,
             NullLogger<FileUploadSaga>.Instance,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
 
         saga.Status.ShouldBe(FileUploadStatus.Committed);
@@ -261,7 +265,7 @@ public sealed class FileUploadSagaTests
             new TimeoutUploadCommand(saga.Id!),
             _factory.Object,
             NullLogger<FileUploadSaga>.Instance,
-            CancellationToken.None
+            TestContext.Current.CancellationToken
         );
 
         saga.Status.ShouldBe(FileUploadStatus.Failed);

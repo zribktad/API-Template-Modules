@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
 using Shouldly;
 using Xunit;
@@ -194,5 +196,58 @@ public class GraphQLProductReviewTests : IClassFixture<CustomWebApplicationFacto
             deleteResponse
         );
         deleteResult.DeleteProductReview.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task GraphQL_CreateProductReview_WithOutOfRangeRating_ReturnsGEN0400ValidationError()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
+        Guid productId = await _graphql.CreateProductAsync("Review Validation Target", 9.99m);
+
+        string requestBody = JsonSerializer.Serialize(new
+        {
+            query = """
+                mutation($input: CreateProductReviewRequestInput!) {
+                    createProductReview(input: $input) { id }
+                }
+                """,
+            variables = new { input = new { productId, rating = 10 } },
+        });
+        using StringContent content = new(requestBody, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await _client.PostAsync("/graphql", content, ct);
+        string body = await response.Content.ReadAsStringAsync(ct);
+
+        using JsonDocument doc = JsonDocument.Parse(body);
+        doc.RootElement.TryGetProperty("errors", out JsonElement errors).ShouldBeTrue(body);
+        errors.GetArrayLength().ShouldBeGreaterThan(0, body);
+        errors[0].GetProperty("extensions").GetProperty("code").GetString().ShouldBe("GEN-0400", body);
+    }
+
+    [Fact]
+    public async Task GraphQL_CreateProductReview_WithEmptyProductId_ReturnsGEN0400ValidationError()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
+
+        string requestBody = JsonSerializer.Serialize(new
+        {
+            query = """
+                mutation($input: CreateProductReviewRequestInput!) {
+                    createProductReview(input: $input) { id }
+                }
+                """,
+            variables = new { input = new { productId = Guid.Empty, rating = 3 } },
+        });
+        using StringContent content = new(requestBody, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await _client.PostAsync("/graphql", content, ct);
+        string body = await response.Content.ReadAsStringAsync(ct);
+
+        using JsonDocument doc = JsonDocument.Parse(body);
+        doc.RootElement.TryGetProperty("errors", out JsonElement errors).ShouldBeTrue(body);
+        errors.GetArrayLength().ShouldBeGreaterThan(0, body);
+        errors[0].GetProperty("extensions").GetProperty("code").GetString().ShouldBe("GEN-0400", body);
     }
 }

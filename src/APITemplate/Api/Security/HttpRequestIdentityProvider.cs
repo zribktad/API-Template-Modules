@@ -12,11 +12,6 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private bool _computed;
-    private string? _oidcSubject;
-    private Guid? _applicationUserId;
-    private string? _preferredUsername;
-    private bool _isInteractiveUser = true;
-    private Guid _actorId;
 
     public HttpRequestIdentityProvider(IHttpContextAccessor httpContextAccessor)
     {
@@ -29,8 +24,9 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         get
         {
             EnsureComputed();
-            return _oidcSubject;
+            return field;
         }
+        private set;
     }
 
     /// <inheritdoc />
@@ -39,8 +35,9 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         get
         {
             EnsureComputed();
-            return _applicationUserId;
+            return field;
         }
+        private set;
     }
 
     /// <inheritdoc />
@@ -49,8 +46,9 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         get
         {
             EnsureComputed();
-            return _preferredUsername;
+            return field;
         }
+        private set;
     }
 
     /// <inheritdoc />
@@ -59,9 +57,10 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         get
         {
             EnsureComputed();
-            return _isInteractiveUser;
+            return field;
         }
-    }
+        private set;
+    } = true;
 
     /// <inheritdoc cref="IActorProvider.ActorId" />
     public Guid ActorId
@@ -69,8 +68,9 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         get
         {
             EnsureComputed();
-            return _actorId;
+            return field;
         }
+        private set;
     }
 
     private void EnsureComputed()
@@ -83,29 +83,31 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
         if (user?.Identity?.IsAuthenticated != true)
         {
-            _actorId = Guid.Empty;
+            ActorId = Guid.Empty;
             return;
         }
 
-        string? nameId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        _oidcSubject =
+        string? nameId =
+            user.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.NameId);
+        OidcSubject =
             user.FindFirstValue(AuthConstants.Claims.Subject)
             ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
 
-        _preferredUsername =
+        PreferredUsername =
             user.FindFirstValue(AuthConstants.Claims.PreferredUsername)
             ?? user.FindFirstValue(ClaimTypes.Name);
 
         if (KeycloakServiceAccountClaims.IsServiceAccount(user))
-            _isInteractiveUser = false;
+            IsInteractiveUser = false;
 
         if (Guid.TryParse(nameId, out Guid nameIdGuid))
         {
             if (
-                _oidcSubject is null
-                || !string.Equals(nameId, _oidcSubject, StringComparison.Ordinal)
+                OidcSubject is null
+                || !string.Equals(nameId, OidcSubject, StringComparison.Ordinal)
             )
-                _applicationUserId = nameIdGuid;
+                ApplicationUserId = nameIdGuid;
         }
 
         // Match legacy HttpActorProvider: NameIdentifier → Subject → Name (no Jwt sub in this chain).
@@ -114,6 +116,6 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
             ?? user.FindFirstValue(AuthConstants.Claims.Subject)
             ?? user.FindFirstValue(ClaimTypes.Name);
 
-        _actorId = Guid.TryParse(actorRaw, out Guid parsed) ? parsed : Guid.Empty;
+        ActorId = Guid.TryParse(actorRaw, out Guid parsed) ? parsed : Guid.Empty;
     }
 }

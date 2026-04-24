@@ -27,17 +27,21 @@ internal static class IntegrationAuthHelper
         Guid? tenantId = null,
         string? username = null,
         string role = "PlatformAdmin",
-        string[]? permissions = null
+        string[]? permissions = null,
+        string? email = null,
+        string? subject = null
     )
     {
         var id = userId ?? Guid.NewGuid();
+        string tokenSubject = subject ?? id.ToString();
         var tenant = tenantId ?? Guid.Parse("00000000-0000-0000-0000-000000000001");
 
         var claims = new List<Claim>
         {
-            new(AuthConstants.Claims.Subject, id.ToString()),
+            new(AuthConstants.Claims.Subject, tokenSubject),
+            new(ClaimTypes.NameIdentifier, id.ToString()),
             new(AuthConstants.Claims.PreferredUsername, username ?? "admin"),
-            new(ClaimTypes.Email, $"{username ?? "admin"}@example.com"),
+            new(ClaimTypes.Email, email ?? $"{username ?? "admin"}@example.com"),
             new(AuthConstants.Claims.TenantId, tenant.ToString()),
             new(ClaimTypes.Role, role),
         };
@@ -85,10 +89,20 @@ internal static class IntegrationAuthHelper
         Guid? tenantId = null,
         string? username = null,
         string role = "PlatformAdmin",
-        string[]? permissions = null
+        string[]? permissions = null,
+        string? email = null,
+        string? subject = null
     )
     {
-        string token = CreateTestToken(userId, tenantId, username, role, permissions);
+        string token = CreateTestToken(
+            userId,
+            tenantId,
+            username,
+            role,
+            permissions,
+            email,
+            subject
+        );
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
@@ -101,7 +115,14 @@ internal static class IntegrationAuthHelper
     )
     {
         var userId = Guid.NewGuid();
-        Authenticate(client, userId, tenantId, username, role, permissions);
+        Authenticate(
+            client,
+            userId: userId,
+            tenantId: tenantId,
+            username: username,
+            role: role,
+            permissions: permissions
+        );
         return userId;
     }
 
@@ -110,7 +131,15 @@ internal static class IntegrationAuthHelper
         Guid? userId = null,
         Guid? tenantId = null,
         string[]? permissions = null
-    ) => Authenticate(client, userId, tenantId, username: "user", role: "User", permissions);
+    ) =>
+        Authenticate(
+            client,
+            userId: userId,
+            tenantId: tenantId,
+            username: "user",
+            role: "User",
+            permissions: permissions
+        );
 
     public static void AuthenticateAsTenantAdmin(
         HttpClient client,
@@ -120,11 +149,11 @@ internal static class IntegrationAuthHelper
     ) =>
         Authenticate(
             client,
-            userId,
-            tenantId,
+            userId: userId,
+            tenantId: tenantId,
             username: "tenantadmin",
             role: "TenantAdmin",
-            permissions
+            permissions: permissions
         );
 
     /// <summary>

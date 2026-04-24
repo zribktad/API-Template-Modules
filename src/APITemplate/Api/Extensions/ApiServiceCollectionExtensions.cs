@@ -76,12 +76,14 @@ public static class ApiServiceCollectionExtensions
                     .ToList();
 
                 if (errors.Count == 0)
+                {
                     errors.Add(
                         Error.Validation(
                             ErrorCatalog.General.ValidationFailed,
                             "The request is invalid."
                         )
                     );
+                }
 
                 ProblemDetails problemDetails = errors.ToProblemDetails(context.HttpContext);
                 return new ObjectResult(problemDetails) { StatusCode = problemDetails.Status };
@@ -129,7 +131,9 @@ public static class ApiServiceCollectionExtensions
                 .PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys");
         }
         else
+        {
             services.AddDistributedMemoryCache();
+        }
 
         return services;
     }

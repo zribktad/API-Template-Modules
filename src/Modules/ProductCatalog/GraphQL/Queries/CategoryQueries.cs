@@ -2,6 +2,7 @@ using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Category.GetCategories;
 using ProductCatalog.Features.Category.GetCategoryById;
+using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Queries;
@@ -21,20 +22,16 @@ public sealed class CategoryQueries
     public async Task<CategoryPageResult> GetCategories(
         CategoryQueryInput? input,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
     )
     {
-        CategoryFilter filter = new(
-            input?.Query,
-            input?.SortBy,
-            input?.SortDirection,
-            input?.PageNumber ?? 1,
-            input?.PageSize ?? PaginationFilter.DefaultPageSize
+        CategoryFilter filter = (input ?? new CategoryQueryInput()).ToFilter();
+        validator.ValidateForGraphQL(filter);
+        ErrorOr<PagedResponse<CategoryResponse>> result = await bus.InvokeAsync<ErrorOr<PagedResponse<CategoryResponse>>>(
+            new GetCategoriesQuery(filter),
+            ct
         );
-
-        ErrorOr<PagedResponse<CategoryResponse>> result = await bus.InvokeAsync<
-            ErrorOr<PagedResponse<CategoryResponse>>
-        >(new GetCategoriesQuery(filter), ct);
         return new CategoryPageResult(result.ToGraphQLResult());
     }
 

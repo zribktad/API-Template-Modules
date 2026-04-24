@@ -62,7 +62,7 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         using FileStorageDbContext db = CreateDbContext();
         OrphanBlobSweepService sut = CreateSut(db);
 
-        OrphanBlobSweepResult result = await sut.SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await sut.SweepAsync(TestContext.Current.CancellationToken);
 
         result.StagingDeleted.ShouldBe(0);
         result.BlobsDeleted.ShouldBe(0);
@@ -79,7 +79,8 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         _time.SetUtcNow(DateTimeOffset.UtcNow);
 
         using FileStorageDbContext db = CreateDbContext();
-        OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
 
         result.StagingDeleted.ShouldBe(1);
         File.Exists(oldFile).ShouldBeFalse();
@@ -95,7 +96,8 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         _time.SetUtcNow(DateTimeOffset.UtcNow);
 
         using FileStorageDbContext db = CreateDbContext();
-        OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
 
         result.StagingDeleted.ShouldBe(0);
         File.Exists(freshFile).ShouldBeTrue();
@@ -116,7 +118,8 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         using FileStorageDbContext db = CreateDbContext();
         // no StoredFile row → blob is orphan
 
-        OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
 
         result.BlobsDeleted.ShouldBe(1);
         File.Exists(blobPath).ShouldBeFalse();
@@ -131,7 +134,8 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         _time.SetUtcNow(DateTimeOffset.UtcNow);
 
         using FileStorageDbContext db = CreateDbContext();
-        OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
 
         result.BlobsDeleted.ShouldBe(0);
         File.Exists(blobPath).ShouldBeTrue();
@@ -152,7 +156,8 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         db.StoredFiles.Add(activeRow);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
 
         result.BlobsDeleted.ShouldBe(0);
         File.Exists(blobPath).ShouldBeTrue();
@@ -174,7 +179,8 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         db.StoredFiles.Add(entity);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
 
         result.BlobsDeleted.ShouldBe(1);
         File.Exists(blobPath).ShouldBeFalse();
@@ -199,7 +205,8 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
         db.StoredFiles.Add(entityA);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        OrphanBlobSweepResult result = await CreateSut(db).SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult result = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
 
         result.BlobsDeleted.ShouldBe(1);
         File.Exists(blobA).ShouldBeTrue();
@@ -216,8 +223,10 @@ public sealed class OrphanBlobSweepServiceTests : IDisposable
 
         using FileStorageDbContext db = CreateDbContext();
 
-        OrphanBlobSweepResult first = await CreateSut(db).SweepAsync(CancellationToken.None);
-        OrphanBlobSweepResult second = await CreateSut(db).SweepAsync(CancellationToken.None);
+        OrphanBlobSweepResult first = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
+        OrphanBlobSweepResult second = await CreateSut(db)
+            .SweepAsync(TestContext.Current.CancellationToken);
 
         // fresh blob — neither run deletes; both return zero.
         first.BlobsDeleted.ShouldBe(0);

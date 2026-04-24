@@ -24,6 +24,7 @@ using SharedKernel.Application.Batch.Rules;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Health;
+using SharedKernel.Infrastructure.Persistence;
 using SharedKernel.Infrastructure.Registration;
 using SharedKernel.Infrastructure.Startup;
 using ProductApplicationRepository = ProductCatalog.Interfaces.IProductRepository;
@@ -55,6 +56,8 @@ public static class ProductCatalogModule
         services.AddScoped<IProductReferenceValidator, ProductReferenceValidator>();
         services.AddScoped(typeof(IProductBatchValidator<>), typeof(ProductBatchValidator<>));
         services.AddScoped<IProductBatchFactory, ProductBatchFactory>();
+
+        MongoSerializationConfiguration.Configure();
 
         services.Configure<MongoDbSettings>(
             configuration.GetSection(ConfigurationSections.MongoDB)

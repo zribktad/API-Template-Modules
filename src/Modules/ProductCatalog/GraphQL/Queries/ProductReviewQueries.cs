@@ -1,5 +1,6 @@
 using ErrorOr;
 using HotChocolate.Authorization;
+using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Queries;
@@ -20,22 +21,12 @@ public class ProductReviewQueries
     public async Task<ProductReviewPageResult> GetReviews(
         ProductReviewQueryInput? input,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
     )
     {
-        ProductReviewFilter filter = new(
-            input?.ProductId,
-            input?.UserId,
-            input?.MinRating,
-            input?.MaxRating,
-            input?.CreatedFrom,
-            input?.CreatedTo,
-            input?.SortBy,
-            input?.SortDirection,
-            input?.PageNumber ?? 1,
-            input?.PageSize ?? 20
-        );
-
+        ProductReviewFilter filter = (input ?? new ProductReviewQueryInput()).ToFilter();
+        validator.ValidateForGraphQL(filter);
         ErrorOr<PagedResponse<ProductReviewResponse>> result = await bus.InvokeAsync<
             ErrorOr<PagedResponse<ProductReviewResponse>>
         >(new GetProductReviewsQuery(filter), ct);

@@ -1,5 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!-- Opt in: dotnet test /p:RunDockerIntegration=true (requires Docker). Default run skips Testcontainers/Docker integration tests and smoke tests. -->
+    <VSTestTestCaseFilter Condition="'$(RunDockerIntegration)' != 'true'">Category!=Integration.Docker&amp;Category!=Smoke</VSTestTestCaseFilter>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
@@ -23,11 +30,9 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
   <!--
     Legacy integration tests still target the old monolith layout; they remain excluded. Modular
     integration tests are opted in explicitly below (Docker / Testcontainers required).
@@ -49,6 +54,12 @@
     <Compile Include="Integration\Postgres\IsolatedPostgresDatabase.cs" />
     <Compile Include="Integration\Postgres\SharedPostgresContainer.cs" />
     <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
+    <Compile Include="Integration\Smoke\SmokeTestsCollection.cs" />
+    <Compile Include="Integration\Smoke\SmokeTestBase.cs" />
+    <Compile Include="Integration\Smoke\InfrastructureSmokeTests.cs" />
+    <Compile Include="Integration\Smoke\IdentityModuleSmokeTests.cs" />
+    <Compile Include="Integration\Smoke\ProductAndReviewSmokeTests.cs" />
+    <Compile Include="Integration\Smoke\ExampleFeaturesSmokeTests.cs" />
     <Compile Include="Integration\Validation\BoundaryValidationIntegrationTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\BackgroundJobsServiceCollectionExtensionsTests.cs" />
     <Compile Remove="Unit\BackgroundJobs\CleanupRecurringJobTests.cs" />
@@ -69,7 +80,6 @@
     <Compile Remove="Unit\Repositories\**\*.cs" />
     <Compile Remove="Unit\Validation\**\*.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\APITemplate\Api\APITemplate.csproj" />
     <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.csproj" />
@@ -82,5 +92,4 @@
     <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
-
 </Project>

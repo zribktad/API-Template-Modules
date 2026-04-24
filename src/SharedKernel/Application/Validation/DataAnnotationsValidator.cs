@@ -82,7 +82,10 @@ public sealed class DataAnnotationsValidator : IValidator
             || underlying == typeof(Guid)
             || underlying == typeof(Uri)
         )
+        {
             return false;
+        }
+
         if (typeof(System.Collections.IEnumerable).IsAssignableFrom(underlying))
             return false;
         return underlying.Assembly != typeof(object).Assembly;
