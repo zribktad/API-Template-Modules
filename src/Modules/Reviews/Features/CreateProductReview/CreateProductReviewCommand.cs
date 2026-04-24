@@ -79,8 +79,7 @@ public sealed class CreateProductReviewCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
-        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        messages.AddRange(CacheInvalidationCascades.ForReviewChange);
         return (review.ToResponse(), messages);
     }
 

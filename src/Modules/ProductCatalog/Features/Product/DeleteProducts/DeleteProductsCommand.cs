@@ -92,9 +92,7 @@ public sealed class DeleteProductsCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
-        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
-        messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
+        messages.AddRange(CacheInvalidationCascades.ForProductDeletion);
         if (state.ProductIds.Count > 0)
             messages.Add(
                 new ProductsBatchSoftDeletedNotification(

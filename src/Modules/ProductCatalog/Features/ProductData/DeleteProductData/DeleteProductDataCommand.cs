@@ -67,8 +67,7 @@ public sealed class DeleteProductDataCommandHandler
         messages.Add(
             new SoftDeleteProductDataMongoEvent(state.Data.Id, state.ActorId, state.DeletedAtUtc)
         );
-        messages.Add(new CacheInvalidationNotification(CacheTags.ProductData));
-        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
+        messages.AddRange(CacheInvalidationCascades.ForProductDataDeletion);
         return (Result.Success, messages);
     }
 
