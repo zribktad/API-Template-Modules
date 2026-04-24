@@ -60,33 +60,31 @@ public static partial class IdentityModule
         if (configuration.IsRedisConfigured())
         {
             services.AddSingleton<PostgresCachedBffSessionStore>();
-            services.AddSingleton<IBffSessionStore>(sp =>
-                ActivatorUtilities.CreateInstance<CachingBffSessionStoreDecorator>(
-                    sp,
-                    sp.GetRequiredService<PostgresCachedBffSessionStore>()
-                )
-            );
-            services.AddSingleton<IBffRefreshCoordinator, RedisBffRefreshCoordinator>();
             services.AddSingleton<
                 IBffSessionRevocationNotifier,
                 RedisBffSessionRevocationNotifier
             >();
+            services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
+                sp.GetRequiredService<PostgresCachedBffSessionStore>(),
+                sp.GetRequiredService<IBffLocalSessionCache>(),
+                sp.GetRequiredService<IBffSessionRevocationNotifier>()
+            ));
+            services.AddSingleton<IBffRefreshCoordinator, RedisBffRefreshCoordinator>();
             services.AddHostedService<BffSessionRevocationSubscriber>();
         }
         else
         {
             services.AddSingleton<PostgresDistributedCacheBffSessionStore>();
-            services.AddSingleton<IBffSessionStore>(sp =>
-                ActivatorUtilities.CreateInstance<CachingBffSessionStoreDecorator>(
-                    sp,
-                    sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>()
-                )
-            );
-            services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();
             services.AddSingleton<
                 IBffSessionRevocationNotifier,
                 NullBffSessionRevocationNotifier
             >();
+            services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
+                sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>(),
+                sp.GetRequiredService<IBffLocalSessionCache>(),
+                sp.GetRequiredService<IBffSessionRevocationNotifier>()
+            ));
+            services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();
         }
 
         services.AddSingleton<IBffSessionValidator, BffSessionValidator>();

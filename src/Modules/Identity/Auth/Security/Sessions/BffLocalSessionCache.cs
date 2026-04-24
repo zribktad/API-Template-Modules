@@ -56,7 +56,7 @@ public sealed class BffLocalSessionCache : IBffLocalSessionCache, IDisposable
 
     public void Set(string sessionId, BffSessionRecord record)
     {
-        if (_cache is null || _entryOptions is null)
+        if (_cache is null)
             return;
 
         _cache.Set(GetKey(sessionId), record, _entryOptions);

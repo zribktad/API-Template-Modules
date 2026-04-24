@@ -55,16 +55,13 @@ public sealed partial class BffSessionRevocationSubscriber : IHostedService
         try
         {
             ISubscriber subscriber = _multiplexer.GetSubscriber();
-            await subscriber.UnsubscribeAsync(
-                RedisBffSessionRevocationNotifier.Channel,
-                HandleMessage
-            );
+            await subscriber.UnsubscribeAsync(BffSessionCacheKeys.RevocationChannel, HandleMessage);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.BffSessionRevocationUnsubscribeFailed(
                 ex,
-                RedisBffSessionRevocationNotifier.ChannelName
+                BffSessionCacheKeys.RevocationChannelName
             );
         }
     }
@@ -74,16 +71,13 @@ public sealed partial class BffSessionRevocationSubscriber : IHostedService
         try
         {
             ISubscriber subscriber = _multiplexer.GetSubscriber();
-            await subscriber.SubscribeAsync(
-                RedisBffSessionRevocationNotifier.Channel,
-                HandleMessage
-            );
+            await subscriber.SubscribeAsync(BffSessionCacheKeys.RevocationChannel, HandleMessage);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex)
         {
             _logger.BffSessionRevocationSubscribeFailed(
                 ex,
-                RedisBffSessionRevocationNotifier.ChannelName
+                BffSessionCacheKeys.RevocationChannelName
             );
         }
     }

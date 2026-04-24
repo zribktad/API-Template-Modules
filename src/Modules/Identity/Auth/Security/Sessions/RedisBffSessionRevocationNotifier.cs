@@ -14,10 +14,6 @@ namespace Identity.Auth.Security.Sessions;
 /// </summary>
 public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNotifier
 {
-    internal const string ChannelName = BffSessionCacheKeys.RevocationChannelName;
-
-    internal static readonly RedisChannel Channel = RedisChannel.Literal(ChannelName);
-
     private readonly IConnectionMultiplexer _multiplexer;
     private readonly ISubscriber _subscriber;
     private readonly ILogger<RedisBffSessionRevocationNotifier> _logger;
@@ -42,7 +38,9 @@ public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNot
 
         try
         {
-            await _subscriber.PublishAsync(Channel, sessionId).WaitAsync(ct);
+            await _subscriber
+                .PublishAsync(BffSessionCacheKeys.RevocationChannel, sessionId)
+                .WaitAsync(ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

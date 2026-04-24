@@ -1,3 +1,5 @@
+using StackExchange.Redis;
+
 namespace Identity.Auth.Security.Sessions;
 
 /// <summary>
@@ -9,4 +11,8 @@ internal static class BffSessionCacheKeys
     public const string SessionKeyPrefix = "bff:session:";
 
     public const string RevocationChannelName = SessionKeyPrefix + "revocations";
+
+    public static readonly RedisChannel RevocationChannel = RedisChannel.Literal(
+        RevocationChannelName
+    );
 }
