@@ -2,6 +2,11 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
+  <!-- Suppress GHSA-9mv3-2cwr-p262: affects Microsoft.AspNetCore.DataProtection 10.0.6 (transitive).
+       No patched 10.x version is available yet; suppress until Microsoft ships a fix. -->
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-9mv3-2cwr-p262" />
+  </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="Ardalis.Specification" Version="9.3.1" />
     <PackageVersion Include="Ardalis.Specification.EntityFrameworkCore" Version="9.3.1" />
