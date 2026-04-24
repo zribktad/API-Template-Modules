@@ -12,7 +12,6 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private bool _computed;
-    private string? _oidcSubject;
 
     public HttpRequestIdentityProvider(IHttpContextAccessor httpContextAccessor)
     {
@@ -25,8 +24,9 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         get
         {
             EnsureComputed();
-            return _oidcSubject;
+            return field;
         }
+        private set;
     }
 
     /// <inheritdoc />
@@ -90,7 +90,7 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         string? nameId =
             user.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.NameId);
-        _oidcSubject =
+        OidcSubject =
             user.FindFirstValue(AuthConstants.Claims.Subject)
             ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
 
@@ -104,8 +104,8 @@ public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorPro
         if (Guid.TryParse(nameId, out Guid nameIdGuid))
         {
             if (
-                _oidcSubject is null
-                || !string.Equals(nameId, _oidcSubject, StringComparison.Ordinal)
+                OidcSubject is null
+                || !string.Equals(nameId, OidcSubject, StringComparison.Ordinal)
             )
                 ApplicationUserId = nameIdGuid;
         }

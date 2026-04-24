@@ -1,5 +1,7 @@
+using System.ComponentModel.DataAnnotations;
 using ErrorOr;
 using SharedKernel.Application.Validation;
+using SharedKernelErrorCatalog = SharedKernel.Application.Errors.ErrorCatalog;
 
 namespace ProductCatalog.GraphQL;
 
@@ -16,7 +18,7 @@ public static class ErrorOrGraphQLExtensions
     /// </summary>
     public static void ValidateForGraphQL<T>(this IValidator validator, T model) where T : notnull
     {
-        IReadOnlyList<System.ComponentModel.DataAnnotations.ValidationResult> failures = validator.Validate(model);
+        IReadOnlyList<ValidationResult> failures = validator.Validate(model);
         if (failures.Count == 0)
         {
             return;
@@ -26,9 +28,9 @@ public static class ErrorOrGraphQLExtensions
             failures.Select(f =>
                 ErrorBuilder
                     .New()
-                    .SetMessage(f.ErrorMessage ?? "Validation failed.")
-                    .SetCode(SharedKernel.Application.Errors.ErrorCatalog.General.ValidationFailed)
-                    .SetExtension("propertyName", string.Join(", ", f.MemberNames))
+                    .SetMessage(f.ErrorMessage ?? ValidationConstants.ValidationFailedMessage)
+                    .SetCode(SharedKernelErrorCatalog.General.ValidationFailed)
+                    .SetExtension(ValidationConstants.PropertyNameKey, string.Join(", ", f.MemberNames))
                     .Build()
             )
         );
@@ -42,7 +44,9 @@ public static class ErrorOrGraphQLExtensions
     public static T ToGraphQLResult<T>(this ErrorOr<T> result)
     {
         if (!result.IsError)
+        {
             return result.Value;
+        }
 
         throw new GraphQLException(
             result.Errors.Select(e =>
@@ -51,8 +55,10 @@ public static class ErrorOrGraphQLExtensions
                     .New()
                     .SetMessage(e.Description)
                     .SetCode(e.Code);
-                if (e.Metadata?.TryGetValue("propertyName", out object? pn) == true)
-                    builder = builder.SetExtension("propertyName", pn);
+                if (e.Metadata?.TryGetValue(ValidationConstants.PropertyNameKey, out object? pn) == true)
+                {
+                    builder = builder.SetExtension(ValidationConstants.PropertyNameKey, pn);
+                }
                 return builder.Build();
             })
         );
@@ -66,14 +72,28 @@ public static class ErrorOrGraphQLExtensions
     public static T? ToGraphQLNullableResult<T>(this ErrorOr<T> result)
     {
         if (!result.IsError)
+        {
             return result.Value;
+        }
 
         if (result.FirstError.Type == ErrorType.NotFound)
+        {
             return default;
+        }
 
-        Error firstError = result.FirstError;
         throw new GraphQLException(
-            ErrorBuilder.New().SetMessage(firstError.Description).SetCode(firstError.Code).Build()
+            result.Errors.Select(e =>
+            {
+                IErrorBuilder builder = ErrorBuilder
+                    .New()
+                    .SetMessage(e.Description)
+                    .SetCode(e.Code);
+                if (e.Metadata?.TryGetValue(ValidationConstants.PropertyNameKey, out object? pn) == true)
+                {
+                    builder = builder.SetExtension(ValidationConstants.PropertyNameKey, pn);
+                }
+                return builder.Build();
+            })
         );
     }
 }

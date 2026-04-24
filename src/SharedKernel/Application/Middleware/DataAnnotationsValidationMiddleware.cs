@@ -24,16 +24,18 @@ public static class DataAnnotationsValidationMiddleware
         IReadOnlyList<ValidationResult> failures = _validator.Validate(message);
 
         if (failures.Count == 0)
+        {
             return Task.FromResult((HandlerContinuation.Continue, default(ErrorOr<TResponse>)!));
+        }
 
         List<Error> errors = failures
             .Select(f =>
                 Error.Validation(
                     ErrorCatalog.General.ValidationFailed,
-                    f.ErrorMessage ?? "Validation failed.",
+                    f.ErrorMessage ?? ValidationConstants.ValidationFailedMessage,
                     new Dictionary<string, object>
                     {
-                        ["propertyName"] = string.Join(", ", f.MemberNames),
+                        [ValidationConstants.PropertyNameKey] = string.Join(", ", f.MemberNames),
                     }
                 )
             )
