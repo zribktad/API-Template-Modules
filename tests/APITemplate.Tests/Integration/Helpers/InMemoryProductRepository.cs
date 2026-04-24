@@ -74,7 +74,7 @@ internal sealed class InMemoryProductRepository : IProductRepository
                 CategoryName = product.CategoryId.HasValue
                 && categoryNames.TryGetValue(product.CategoryId.Value, out var categoryName)
                     ? categoryName
-                    : "Uncategorized",
+                    : ProductCategoryFacetValue.Uncategorized,
             })
             .OrderByDescending(group => group.Count())
             .ThenBy(group => group.Key.CategoryName)
