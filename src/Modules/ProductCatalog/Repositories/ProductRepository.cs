@@ -59,35 +59,29 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
                 specification
             );
 
-        var rawCounts = await query
-            .GroupBy(p => p.CategoryId)
-            .Select(g => new { CategoryId = g.Key, Count = g.Count() })
-            .ToListAsync(ct);
-
-        List<Guid> categoryIds = rawCounts
-            .Where(x => x.CategoryId.HasValue)
-            .Select(x => x.CategoryId!.Value)
-            .ToList();
-
-        Dictionary<Guid, string> categoryNames =
-            categoryIds.Count > 0
-                ? await _dbContext
-                    .Categories.Where(c => categoryIds.Contains(c.Id))
-                    .ToDictionaryAsync(c => c.Id, c => c.Name, ct)
-                : [];
-
-        return rawCounts
-            .Select(x => new ProductCategoryFacetValue(
-                x.CategoryId,
-                x.CategoryId.HasValue
-                && categoryNames.TryGetValue(x.CategoryId.Value, out string? name)
-                    ? name
+        // Product.Category navigation property is required here so EF Core can
+        // translate the LEFT JOIN + GROUP BY in a single SQL query.  A manual
+        // GroupJoin/SelectMany LEFT JOIN cannot be used because EF Core 10 wraps
+        // nullable LEFT-JOIN entity columns in CASE WHEN inside BindProperty,
+        // which produces nested CASE in the GROUP BY key and breaks COUNT(*) translation.
+        return await query
+            .GroupBy(p => new
+            {
+                p.CategoryId,
+                CategoryName = p.Category != null
+                    ? p.Category.Name
                     : ProductCategoryFacetValue.Uncategorized,
-                x.Count
-            ))
-            .OrderByDescending(x => x.Count)
-            .ThenBy(x => x.CategoryName)
-            .ToArray();
+            })
+            .Select(g => new
+            {
+                g.Key.CategoryId,
+                g.Key.CategoryName,
+                Count = g.Count(),
+            })
+            .OrderByDescending(g => g.Count)
+            .ThenBy(g => g.CategoryName)
+            .Select(g => new ProductCategoryFacetValue(g.CategoryId, g.CategoryName, g.Count))
+            .ToArrayAsync(ct);
     }
 
     /// <summary>Returns fixed price bucket facet counts computed in a single server-side aggregate query.</summary>
