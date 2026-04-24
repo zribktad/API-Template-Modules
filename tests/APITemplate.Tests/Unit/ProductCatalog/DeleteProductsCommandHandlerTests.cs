@@ -49,6 +49,7 @@ public sealed class DeleteProductsCommandHandlerTests
                 r.BulkSoftDeleteByProductIdsAsync(
                     It.IsAny<IReadOnlyCollection<Guid>>(),
                     It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
                     It.IsAny<DateTime>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -56,14 +57,16 @@ public sealed class DeleteProductsCommandHandlerTests
             .ReturnsAsync(0);
     }
 
-    private static Product MakeProduct(Guid? id = null, Guid? tenantId = null) =>
-        new()
+    private static Product MakeProduct(Guid? id = null, Guid? tenantId = null)
+    {
+        return new Product
         {
             Id = id ?? Guid.NewGuid(),
             Name = "Test Product",
             Price = Price.Zero,
             TenantId = tenantId ?? Guid.NewGuid(),
         };
+    }
 
     // ── LoadAsync ──────────────────────────────────────────────────────────────
 
@@ -206,9 +209,10 @@ public sealed class DeleteProductsCommandHandlerTests
                 ct
             );
 
-        IEnumerable<string> cacheTags = messages
+        IReadOnlyList<string> cacheTags = messages
             .OfType<CacheInvalidationNotification>()
-            .Select(m => m.CacheTag);
+            .Select(m => m.CacheTag)
+            .ToList();
         cacheTags.ShouldContain(CacheTags.Products);
         cacheTags.ShouldContain(CacheTags.Categories);
         cacheTags.ShouldContain(CacheTags.Reviews);
@@ -223,12 +227,13 @@ public sealed class DeleteProductsCommandHandlerTests
         Product product = MakeProduct(tenantId: tenantId);
         DeleteProductsCommandHandler.DeleteProductsState state =
             new([product], [product.Id], tenantId, actorId, FixedDeletedAt);
-        List<string> callOrder = [];
+        List<string> callOrder = new List<string>();
 
         _linkRepo
             .Setup(r =>
                 r.BulkSoftDeleteByProductIdsAsync(
                     It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
                     It.IsAny<DateTime>(),
                     ct
@@ -258,6 +263,7 @@ public sealed class DeleteProductsCommandHandlerTests
         _linkRepo.Verify(
             r => r.BulkSoftDeleteByProductIdsAsync(
                 It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(state.ProductIds)),
+                tenantId,
                 actorId,
                 FixedDeletedAt,
                 ct

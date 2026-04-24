@@ -33,7 +33,7 @@ public sealed class DeleteProductsCommandHandler
         BatchFailureContext<Guid> context = new(ids);
 
         IReadOnlyList<Entities.Product> products = await repository.ListAsync(
-            new ProductsByIdsSpecification(ids.ToHashSet()),
+            new ProductsByIdsSpecification(ids),
             ct
         );
 
@@ -73,7 +73,7 @@ public sealed class DeleteProductsCommandHandler
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                await linkRepository.BulkSoftDeleteByProductIdsAsync(state.ProductIds, state.ActorId, state.DeletedAtUtc, ct);
+                await linkRepository.BulkSoftDeleteByProductIdsAsync(state.ProductIds, state.TenantId, state.ActorId, state.DeletedAtUtc, ct);
                 await repository.DeleteRangeAsync(state.Products, ct);
             },
             ct
@@ -83,15 +83,16 @@ public sealed class DeleteProductsCommandHandler
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
         messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
-        messages.Add(
-            new ProductsBatchSoftDeletedNotification(
-                state.ProductIds,
-                state.TenantId,
-                state.ActorId,
-                state.DeletedAtUtc,
-                Guid.NewGuid()
-            )
-        );
+        if (state.ProductIds.Count > 0)
+            messages.Add(
+                new ProductsBatchSoftDeletedNotification(
+                    state.ProductIds,
+                    state.TenantId,
+                    state.ActorId,
+                    state.DeletedAtUtc,
+                    Guid.NewGuid()
+                )
+            );
 
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }

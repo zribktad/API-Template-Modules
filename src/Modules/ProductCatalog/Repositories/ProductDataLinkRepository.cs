@@ -100,15 +100,6 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     }
 
     /// <inheritdoc />
-    public void DeleteRange(IReadOnlyCollection<ProductDataLink> links)
-    {
-        if (links.Count == 0)
-            return;
-
-        _dbContext.ProductDataLinks.RemoveRange(links);
-    }
-
-    /// <inheritdoc />
     public async Task<int> BulkSoftDeleteByTenantAsync(
         Guid tenantId,
         Guid actorId,
@@ -125,6 +116,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     /// <inheritdoc />
     public async Task<int> BulkSoftDeleteByProductIdsAsync(
         IReadOnlyCollection<Guid> productIds,
+        Guid tenantId,
         Guid actorId,
         DateTime deletedAtUtc,
         CancellationToken ct = default
@@ -132,7 +124,7 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     {
         return await _dbContext
             .ProductDataLinks.IgnoreQueryFilters()
-            .Where(link => productIds.Contains(link.ProductId) && !link.IsDeleted)
+            .Where(link => link.TenantId == tenantId && productIds.Contains(link.ProductId) && !link.IsDeleted)
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

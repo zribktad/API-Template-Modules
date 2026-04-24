@@ -41,12 +41,6 @@ public interface IProductDataLinkRepository
     );
 
     /// <summary>
-    ///     Stages the given already-tracked links for removal so they are soft-deleted
-    ///     when the unit of work commits.
-    /// </summary>
-    public void DeleteRange(IReadOnlyCollection<ProductDataLink> links);
-
-    /// <summary>
     ///     Bulk soft-deletes all non-deleted product data links for the specified tenant via a single
     ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization).
     /// </summary>
@@ -63,6 +57,7 @@ public interface IProductDataLinkRepository
     /// </summary>
     Task<int> BulkSoftDeleteByProductIdsAsync(
         IReadOnlyCollection<Guid> productIds,
+        Guid tenantId,
         Guid actorId,
         DateTime deletedAtUtc,
         CancellationToken ct = default
