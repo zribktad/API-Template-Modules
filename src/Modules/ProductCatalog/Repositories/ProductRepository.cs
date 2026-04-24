@@ -60,11 +60,24 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
             );
 
         return await query
-            .GroupBy(product => new
-            {
-                product.CategoryId,
-                CategoryName = product.Category != null ? product.Category.Name : "Uncategorized",
-            })
+            .GroupJoin(
+                _dbContext.Categories,
+                product => product.CategoryId,
+                category => category.Id,
+                (product, categories) => new { product, categories }
+            )
+            .SelectMany(
+                x => x.categories.DefaultIfEmpty(),
+                (x, category) =>
+                    new
+                    {
+                        x.product.CategoryId,
+                        CategoryName = category != null
+                            ? category.Name
+                            : ProductCategoryFacetValue.Uncategorized,
+                    }
+            )
+            .GroupBy(x => new { x.CategoryId, x.CategoryName })
             .Select(group => new
             {
                 group.Key.CategoryId,
@@ -170,7 +183,9 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
     {
         return await _dbContext
             .Products.IgnoreQueryFilters()
-            .Where(product => product.TenantId == tenantId && ids.Contains(product.Id) && !product.IsDeleted)
+            .Where(product =>
+                product.TenantId == tenantId && ids.Contains(product.Id) && !product.IsDeleted
+            )
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 

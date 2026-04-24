@@ -26,9 +26,6 @@ public sealed class Product : IAuditableTenantEntity, IHasId
 
     public Guid? CategoryId { get; set; }
 
-    /// <summary>Infrastructure-only navigation for query projections. Domain logic must use <see cref="CategoryId" /> instead.</summary>
-    public Category? Category { get; set; }
-
     public ICollection<ProductDataLink> ProductDataLinks { get; set; } = [];
 
     public Guid TenantId { get; set; }

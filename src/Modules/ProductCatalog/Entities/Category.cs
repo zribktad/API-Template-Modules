@@ -17,8 +17,6 @@ public sealed class Category : IAuditableTenantEntity, IHasId
 
     public string? Description { get; set; }
 
-    public ICollection<Product> Products { get; set; } = [];
-
     public static Category Create(string name, string? description)
     {
         return new Category

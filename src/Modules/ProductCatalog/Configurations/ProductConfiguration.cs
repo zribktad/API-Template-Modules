@@ -25,8 +25,8 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasPrecision(18, 2);
 
         builder
-            .HasOne(p => p.Category)
-            .WithMany(c => c.Products)
+            .HasOne<Category>()
+            .WithMany()
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.SetNull);
 
