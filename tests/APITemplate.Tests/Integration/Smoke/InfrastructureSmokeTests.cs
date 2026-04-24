@@ -7,6 +7,7 @@ namespace APITemplate.Tests.Integration.Smoke;
 
 [Collection("Smoke")]
 [Trait("Category", "Smoke")]
+[Trait("Docker", "true")]
 public sealed class InfrastructureSmokeTests
 {
     private readonly CustomWebApplicationFactory _factory;

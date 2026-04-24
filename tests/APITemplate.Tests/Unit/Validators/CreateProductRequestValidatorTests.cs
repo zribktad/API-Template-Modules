@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Validators;
 
+[Trait("Category", "Unit")]
 public class CreateProductRequestValidatorTests
 {
     // --- Data Annotations ([NotEmpty], [MaxLength], [Range]) ---

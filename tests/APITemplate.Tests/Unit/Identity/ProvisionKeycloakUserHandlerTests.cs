@@ -15,6 +15,7 @@ using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class ProvisionKeycloakUserHandlerTests
 {
     private readonly Mock<IKeycloakAdminService> _keycloakAdmin = new();
@@ -106,11 +107,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
         const string keycloakId = "kc-123";
         ProvisionKeycloakUserEvent @event = new(userId, "carol", "carol@example.com");
 
-        AppUser user = AppUser.Create(
-            "carol",
-            "carol@example.com",
-            keycloakUserId: null
-        );
+        AppUser user = AppUser.Create("carol", "carol@example.com", keycloakUserId: null);
 
         _repository.Setup(r => r.GetByIdAsync<Guid>(userId, ct)).ReturnsAsync(user);
         _keycloakAdmin
@@ -156,11 +153,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
         Guid userId = Guid.NewGuid();
         ProvisionKeycloakUserEvent @event = new(userId, "eve", "eve@example.com");
 
-        AppUser user = AppUser.Create(
-            "eve",
-            "eve@example.com",
-            keycloakUserId: null
-        );
+        AppUser user = AppUser.Create("eve", "eve@example.com", keycloakUserId: null);
 
         _repository.Setup(r => r.GetByIdAsync<Guid>(userId, ct)).ReturnsAsync(user);
         _keycloakAdmin
@@ -193,11 +186,7 @@ public sealed class ProvisionKeycloakUserHandlerTests
         Guid userId = Guid.NewGuid();
         ProvisionKeycloakUserEvent @event = new(userId, "dave", "dave@example.com");
 
-        AppUser user = AppUser.Create(
-            "dave",
-            "dave@example.com",
-            keycloakUserId: null
-        );
+        AppUser user = AppUser.Create("dave", "dave@example.com", keycloakUserId: null);
 
         _repository.Setup(r => r.GetByIdAsync<Guid>(userId, ct)).ReturnsAsync(user);
         _keycloakAdmin

@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs;
 
+[Trait("Category", "Unit")]
 public sealed class CleanupRecurringJobTests
 {
     [Fact]

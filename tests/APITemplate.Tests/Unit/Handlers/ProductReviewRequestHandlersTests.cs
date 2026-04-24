@@ -15,6 +15,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class ProductReviewRequestHandlersTests
 {
     private readonly Mock<IProductReviewRepository> _reviewRepoMock;

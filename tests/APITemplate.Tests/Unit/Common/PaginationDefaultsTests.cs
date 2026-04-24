@@ -4,6 +4,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Common;
 
+[Trait("Category", "Unit")]
 public sealed class PaginationDefaultsTests
 {
     [Fact]

@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class BlobStoreFactoryTests
 {
     [Fact]

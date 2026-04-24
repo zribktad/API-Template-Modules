@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class CookieSessionRefresherTests
 {
     private readonly Mock<IBffSessionService> _sessionService = new();

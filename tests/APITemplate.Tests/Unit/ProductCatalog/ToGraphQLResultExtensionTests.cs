@@ -8,6 +8,7 @@ using DomainError = ErrorOr.Error;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class ToGraphQLResultExtensionTests
 {
     [Fact]

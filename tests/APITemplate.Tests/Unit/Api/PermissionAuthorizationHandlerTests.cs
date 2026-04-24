@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Api;
 
+[Trait("Category", "Unit")]
 public class PermissionAuthorizationHandlerTests
 {
     private readonly PermissionAuthorizationHandler _handler = new();

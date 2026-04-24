@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Persistence;
 
+[Trait("Category", "Unit")]
 public sealed class StartupTaskCoordinatorTests
 {
     [Fact]

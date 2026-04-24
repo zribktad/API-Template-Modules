@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class MongoProductDataDeletePipelineProviderTests
 {
     [Fact]
@@ -30,11 +31,15 @@ public sealed class MongoProductDataDeletePipelineProviderTests
         MongoProductDataDeletePipelineProvider sut = new(registry);
         bool executed = false;
 
-        await sut.Get().ExecuteAsync(_ =>
-        {
-            executed = true;
-            return ValueTask.CompletedTask;
-        }, ct);
+        await sut.Get()
+            .ExecuteAsync(
+                _ =>
+                {
+                    executed = true;
+                    return ValueTask.CompletedTask;
+                },
+                ct
+            );
 
         executed.ShouldBeTrue();
     }

@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Health;
 
+[Trait("Category", "Unit")]
 public sealed class HealthCheckModuleRegistryTests
 {
     [Fact]

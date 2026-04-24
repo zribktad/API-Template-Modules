@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Email;
 
+[Trait("Category", "Unit")]
 public sealed class FailedEmailStoreTests
 {
     [Fact]

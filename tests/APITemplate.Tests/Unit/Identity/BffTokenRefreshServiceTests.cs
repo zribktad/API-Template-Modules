@@ -10,6 +10,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class BffTokenRefreshServiceTests
 {
     private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-04-11T10:00:00Z");

@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ErrorOrMapping;
 
+[Trait("Category", "Unit")]
 public class ErrorOrExtensionsTests
 {
     // ── ToActionResult ──────────────────────────────────────────────────────

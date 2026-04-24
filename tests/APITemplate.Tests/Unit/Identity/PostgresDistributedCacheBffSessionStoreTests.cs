@@ -19,6 +19,7 @@ namespace APITemplate.Tests.Unit.Identity;
 /// <summary>
 ///     Covers <see cref="PostgresDistributedCacheBffSessionStore" /> (IDistributedCache only, no multiplexer).
 /// </summary>
+[Trait("Category", "Unit")]
 public sealed class PostgresDistributedCacheBffSessionStoreTests : IDisposable
 {
     private readonly IdentityDbContext _dbContext;

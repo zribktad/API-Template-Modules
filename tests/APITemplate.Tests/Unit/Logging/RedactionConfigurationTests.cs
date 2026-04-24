@@ -5,6 +5,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Logging;
 
+[Trait("Category", "Unit")]
 public class RedactionConfigurationTests
 {
     [Fact]

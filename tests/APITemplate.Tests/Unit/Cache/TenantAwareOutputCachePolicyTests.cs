@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Cache;
 
+[Trait("Category", "Unit")]
 public sealed class TenantAwareOutputCachePolicyTests
 {
     [Fact]

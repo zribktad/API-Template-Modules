@@ -18,6 +18,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class PatchProductCommandHandlerTests
 {
     private static readonly IValidator Validator = new DataAnnotationsValidator();
@@ -205,6 +206,7 @@ public sealed class PatchProductCommandHandlerTests
     }
 }
 
+[Trait("Category", "Unit")]
 public sealed class PriceCreateTests
 {
     [Fact]
@@ -235,6 +237,7 @@ public sealed class PriceCreateTests
     }
 }
 
+[Trait("Category", "Unit")]
 public sealed class ProductSyncProductDataLinksTests
 {
     [Fact]

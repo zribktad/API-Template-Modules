@@ -29,6 +29,7 @@ namespace APITemplate.Tests.Unit.FileStorage;
 ///     isolation, dedup + refcount delete, and orphan reaper interactions without requiring Wolverine
 ///     runtime or Postgres.
 /// </summary>
+[Trait("Category", "Unit")]
 public sealed class SagaLifecycleIntegrationTests : IDisposable
 {
     private readonly string _tempDir = Path.Combine(

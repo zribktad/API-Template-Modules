@@ -5,6 +5,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Reviews;
 
+[Trait("Category", "Unit")]
 public sealed class RatingValueObjectTests
 {
     [Theory]

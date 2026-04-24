@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs.Jobs;
 
+[Trait("Category", "Unit")]
 public sealed class GetJobStatusQueryHandlerTests
 {
     private readonly Mock<IJobExecutionRepository> _repository = new();

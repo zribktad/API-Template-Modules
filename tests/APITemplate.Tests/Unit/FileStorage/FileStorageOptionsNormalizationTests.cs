@@ -10,6 +10,7 @@ namespace APITemplate.Tests.Unit.FileStorage;
 ///     Verifies that the module's PostConfigure hook lowercases <see cref="FileStorageOptions.AllowedExtensions" />
 ///     so the upload handler can rely on a normalized whitelist regardless of config casing.
 /// </summary>
+[Trait("Category", "Unit")]
 public sealed class FileStorageOptionsNormalizationTests
 {
     [Fact]

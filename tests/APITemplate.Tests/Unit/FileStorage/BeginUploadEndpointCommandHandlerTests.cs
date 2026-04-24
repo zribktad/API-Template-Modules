@@ -14,6 +14,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class BeginUploadEndpointCommandHandlerTests
 {
     private readonly Mock<IBlobStoreFactory> _factory = new();

@@ -10,6 +10,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Health;
 
+[Trait("Category", "Unit")]
 public sealed class HealthCheckModuleExtensionsTests
 {
     [Fact]
@@ -73,7 +74,10 @@ public sealed class HealthCheckModuleExtensionsTests
 
     private sealed class AnotherFakeHealthCheckModule : IHealthCheckModule
     {
-        public AnotherFakeHealthCheckModule(IConfiguration configuration, IHostEnvironment environment) { }
+        public AnotherFakeHealthCheckModule(
+            IConfiguration configuration,
+            IHostEnvironment environment
+        ) { }
 
         public void RegisterHealthChecks(IHealthChecksBuilder builder)
         {

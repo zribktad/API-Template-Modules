@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Integration;
 
+[Trait("Category", "Unit")]
 public sealed class TestServiceHelperTests
 {
     [Fact]

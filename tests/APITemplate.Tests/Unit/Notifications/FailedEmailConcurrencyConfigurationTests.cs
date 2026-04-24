@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public sealed class FailedEmailConcurrencyConfigurationTests
 {
     [Fact]

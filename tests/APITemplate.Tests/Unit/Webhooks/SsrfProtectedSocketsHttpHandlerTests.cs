@@ -5,6 +5,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;
 
+[Trait("Category", "Unit")]
 public sealed class SsrfProtectedSocketsHttpHandlerTests
 {
     private readonly Mock<INetworkSecurityPolicy> _policyMock = new();

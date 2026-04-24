@@ -15,6 +15,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Architecture;
 
+[Trait("Category", "Unit")]
 public sealed class ModuleBoundaryArchitectureTests
 {
     [Fact]

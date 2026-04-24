@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Health;
 
+[Trait("Category", "Unit")]
 public sealed class WolverineMessageStoreHealthCheckTests
 {
     private readonly Mock<IMessageStore> _messageStore = new();

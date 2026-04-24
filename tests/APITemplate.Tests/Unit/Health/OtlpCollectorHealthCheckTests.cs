@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Health;
 
+[Trait("Category", "Unit")]
 public sealed class OtlpCollectorHealthCheckTests
 {
     private const string TestEndpoint = "http://localhost:4318";

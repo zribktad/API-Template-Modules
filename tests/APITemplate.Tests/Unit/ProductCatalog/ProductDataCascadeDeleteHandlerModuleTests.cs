@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class ProductDataCascadeDeleteHandlerModuleTests
 {
     private readonly Mock<IProductDataRepository> _repositoryMock = new();

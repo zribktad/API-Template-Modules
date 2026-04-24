@@ -9,7 +9,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Features;
 
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public sealed class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

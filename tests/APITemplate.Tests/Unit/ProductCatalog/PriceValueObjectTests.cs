@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 
+[Trait("Category", "Unit")]
 public sealed class PriceValueObjectTests
 {
     [Theory]

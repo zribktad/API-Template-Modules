@@ -14,6 +14,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class BffExternalProvidersTests
 {
     // ── Helpers ──────────────────────────────────────────────────────────────

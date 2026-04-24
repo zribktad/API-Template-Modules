@@ -13,7 +13,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Features;
 
-[Trait("Category", "Integration.Docker")]
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public sealed class RolesControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;

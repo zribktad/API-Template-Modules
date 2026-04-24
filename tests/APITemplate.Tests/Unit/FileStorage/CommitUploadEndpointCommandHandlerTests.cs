@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class CommitUploadEndpointCommandHandlerTests
 {
     private readonly Mock<IMessageBus> _bus = new();

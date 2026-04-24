@@ -13,6 +13,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class BffSessionServiceTests
 {
     private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-04-11T10:00:00Z");
@@ -105,13 +106,9 @@ public sealed class BffSessionServiceTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         BffSessionRecord malformed = CreateSession() with { AccessToken = "" };
 
+        _sessionStore.Setup(x => x.GetAsync(malformed.SessionId, ct)).ReturnsAsync(malformed);
         _sessionStore
-            .Setup(x => x.GetAsync(malformed.SessionId, ct))
-            .ReturnsAsync(malformed);
-        _sessionStore
-            .Setup(x =>
-                x.GetAsync(malformed.SessionId, It.IsAny<CancellationToken>())
-            )
+            .Setup(x => x.GetAsync(malformed.SessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(malformed);
         _sessionStore
             .Setup(x =>

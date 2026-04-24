@@ -20,6 +20,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class ProductRequestHandlersTests
 {
     private readonly Mock<IProductRepository> _repositoryMock;

@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class KeycloakOptionsValidatorTests
 {
     private readonly KeycloakOptionsValidator _sut = new();

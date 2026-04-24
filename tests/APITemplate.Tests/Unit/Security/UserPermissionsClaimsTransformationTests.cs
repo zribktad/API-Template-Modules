@@ -11,6 +11,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Security;
 
+[Trait("Category", "Unit")]
 public class UserPermissionsClaimsTransformationTests
 {
     private readonly Mock<IDistributedCache> _cache = new();

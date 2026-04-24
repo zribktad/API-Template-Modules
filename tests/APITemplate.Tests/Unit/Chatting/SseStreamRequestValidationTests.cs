@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Chatting;
 
+[Trait("Category", "Unit")]
 public sealed class SseStreamRequestValidationTests
 {
     [Theory]

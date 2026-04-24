@@ -12,6 +12,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Extensions;
 
+[Trait("Category", "Unit")]
 public sealed class ApiBehaviorOptionsValidationTests
 {
     [Fact]
@@ -30,7 +31,9 @@ public sealed class ApiBehaviorOptionsValidationTests
         services.AddApiFoundation(configuration);
         using ServiceProvider provider = services.BuildServiceProvider();
 
-        ApiBehaviorOptions options = provider.GetRequiredService<IOptions<ApiBehaviorOptions>>().Value;
+        ApiBehaviorOptions options = provider
+            .GetRequiredService<IOptions<ApiBehaviorOptions>>()
+            .Value;
         ModelStateDictionary modelState = new();
         modelState.AddModelError("Rating", "Rating must be between 1 and 5.");
 
@@ -52,6 +55,8 @@ public sealed class ApiBehaviorOptionsValidationTests
         problem.Detail.ShouldNotBeNull();
         problem.Detail.ShouldContain("Rating must be between 1 and 5.");
         problem.Extensions["errorCode"].ShouldBe("GEN-0400");
-        ((Dictionary<string, object>)problem.Extensions["metadata"]!).ShouldContainKey("propertyName");
+        ((Dictionary<string, object>)problem.Extensions["metadata"]!).ShouldContainKey(
+            "propertyName"
+        );
     }
 }

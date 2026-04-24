@@ -15,6 +15,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.ExceptionHandling;
 
+[Trait("Category", "Unit")]
 public class ApiExceptionHandlerTests
 {
     private const string TestErrorTypeBaseUri = "https://unit-test.invalid/errors";

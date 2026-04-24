@@ -5,6 +5,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Configuration;
 
+[Trait("Category", "Unit")]
 public sealed class RedisConfigurationExtensionsTests
 {
     [Fact]

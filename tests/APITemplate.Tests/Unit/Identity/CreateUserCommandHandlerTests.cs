@@ -20,6 +20,7 @@ using UserResponse = Identity.Directory.Features.User.UserResponse;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class CreateUserCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _repository = new();

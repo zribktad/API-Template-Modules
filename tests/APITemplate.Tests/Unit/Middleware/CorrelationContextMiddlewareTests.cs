@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Middleware;
 
+[Trait("Category", "Unit")]
 public class CorrelationContextMiddlewareTests
 {
     [Fact]

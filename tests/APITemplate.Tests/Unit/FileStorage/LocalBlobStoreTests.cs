@@ -18,6 +18,7 @@ using FS = FileStorage.Domain.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.FileStorage;
 
+[Trait("Category", "Unit")]
 public sealed class LocalBlobStoreTests : IDisposable
 {
     private readonly string _tempDir = Path.Combine(

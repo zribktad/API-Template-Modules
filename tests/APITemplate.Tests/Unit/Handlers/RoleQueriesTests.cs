@@ -13,6 +13,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Handlers;
 
+[Trait("Category", "Unit")]
 public class RoleQueriesTests
 {
     [Fact]

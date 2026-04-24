@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class UserByUsernameSpecificationTests
 {
     private static AppUser MakeUser(string username) =>
@@ -25,7 +26,8 @@ public sealed class UserByUsernameSpecificationTests
     {
         AppUser user = MakeUser(storedUsername);
         Func<AppUser, bool> filter = new UserByUsernameSpecification(inputUsername)
-            .WhereExpressions.Single().Filter.Compile();
+            .WhereExpressions.Single()
+            .Filter.Compile();
 
         filter(user).ShouldBeTrue();
     }
@@ -35,7 +37,8 @@ public sealed class UserByUsernameSpecificationTests
     {
         AppUser user = MakeUser("alice");
         Func<AppUser, bool> filter = new UserByUsernameSpecification("bob")
-            .WhereExpressions.Single().Filter.Compile();
+            .WhereExpressions.Single()
+            .Filter.Compile();
 
         filter(user).ShouldBeFalse();
     }

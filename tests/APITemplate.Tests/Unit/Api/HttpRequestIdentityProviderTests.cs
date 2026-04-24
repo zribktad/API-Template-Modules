@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Api;
 
+[Trait("Category", "Unit")]
 public sealed class HttpRequestIdentityProviderTests
 {
     private static HttpRequestIdentityProvider CreateProvider(ClaimsPrincipal principal)

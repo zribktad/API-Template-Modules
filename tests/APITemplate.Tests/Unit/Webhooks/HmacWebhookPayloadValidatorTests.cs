@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;
 
+[Trait("Category", "Unit")]
 public class HmacWebhookPayloadValidatorTests
 {
     private const string TestSecret = "test-webhook-secret-at-least-16";

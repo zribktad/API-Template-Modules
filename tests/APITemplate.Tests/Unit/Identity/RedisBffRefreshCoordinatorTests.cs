@@ -9,6 +9,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class RedisBffRefreshCoordinatorTests
 {
     private const string SessionId = "test-session-42";

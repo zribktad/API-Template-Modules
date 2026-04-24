@@ -7,6 +7,7 @@ using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public sealed class FluidEmailTemplateRendererTests
 {
     private sealed record UserRegistrationModel(string Username, string Email, string LoginUrl);

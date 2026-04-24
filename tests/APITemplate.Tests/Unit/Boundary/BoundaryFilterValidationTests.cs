@@ -7,6 +7,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Boundary;
 
+[Trait("Category", "Unit")]
 public sealed class BoundaryFilterValidationTests
 {
     [Fact]

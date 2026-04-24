@@ -4,6 +4,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Observability;
 
+[Trait("Category", "Unit")]
 public sealed class ObservabilityOptionsResolveOtlpEndpointTests
 {
     [Fact]

@@ -5,6 +5,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.StoredProcedures;
 
+[Trait("Category", "Unit")]
 public sealed class StoredProcedureExecutorTests
 {
     [Fact]

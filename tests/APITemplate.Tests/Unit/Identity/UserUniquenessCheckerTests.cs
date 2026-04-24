@@ -8,6 +8,7 @@ using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 
 namespace APITemplate.Tests.Unit.Identity;
 
+[Trait("Category", "Unit")]
 public sealed class UserUniquenessCheckerTests
 {
     private readonly Mock<IUserRepository> _repository = new();

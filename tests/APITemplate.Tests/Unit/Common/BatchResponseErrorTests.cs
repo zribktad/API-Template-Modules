@@ -10,6 +10,7 @@ namespace APITemplate.Tests.Unit.Common;
 ///     and <see cref="BatchResponseError.TryUnwrap" /> must only succeed for errors produced by
 ///     <see cref="BatchResponseError.From" /> and fail predictably for anything else.
 /// </summary>
+[Trait("Category", "Unit")]
 public sealed class BatchResponseErrorTests
 {
     [Fact]

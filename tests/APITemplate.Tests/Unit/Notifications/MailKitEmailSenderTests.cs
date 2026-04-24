@@ -9,6 +9,7 @@ using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public sealed class MailKitEmailSenderTests
 {
     [Fact]

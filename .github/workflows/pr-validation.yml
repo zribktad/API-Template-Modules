@@ -90,7 +90,7 @@ jobs:
             filter: Category=Smoke
           - id: integration
             display_name: Integration Tests
-            filter: Category=Integration.Docker
+            filter: Category=Integration
 
     steps:
       - name: Checkout code

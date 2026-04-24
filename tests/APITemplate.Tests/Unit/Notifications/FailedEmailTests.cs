@@ -6,13 +6,15 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Notifications;
 
+[Trait("Category", "Unit")]
 public class FailedEmailTests
 {
-    private readonly MutableFakeTimeProvider _time = new(DateTimeOffset.Parse("2026-01-01T00:00:00Z"));
-
-    private FailedEmail CreateEmail() => FailedEmail.Create(
-        "to@example.com", "Subject", "<p>body</p>", _time
+    private readonly MutableFakeTimeProvider _time = new(
+        DateTimeOffset.Parse("2026-01-01T00:00:00Z")
     );
+
+    private FailedEmail CreateEmail() =>
+        FailedEmail.Create("to@example.com", "Subject", "<p>body</p>", _time);
 
     [Fact]
     public void Create_SetsRequiredFields()

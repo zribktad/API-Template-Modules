@@ -6,6 +6,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.BackgroundJobs.Jobs;
 
+[Trait("Category", "Unit")]
 public sealed class JobExecutionTests
 {
     private static JobExecution CreatePendingJob()

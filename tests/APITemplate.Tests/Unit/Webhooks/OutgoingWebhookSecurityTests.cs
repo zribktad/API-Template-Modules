@@ -8,6 +8,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.Webhooks;
 
+[Trait("Category", "Unit")]
 public sealed class OutgoingWebhookSecurityTests
 {
     private readonly Mock<IHostEnvironment> _envMock = new();
