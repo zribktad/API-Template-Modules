@@ -28,9 +28,6 @@
 
 ## Low Priority
 
-- [ ] **Revisit aggregate boundaries and navigation modeling**  
-  `Product` still exposes `Category` as an infrastructure navigation property. Either fully accept that compromise, or remove it from the aggregate model and keep only `CategoryId` in the write model.
-
 - [ ] **Add missing bidirectional navigations only where they add real value**  
   If richer aggregate modeling is introduced, add explicit navigations such as `Tenant.Users` / `AppUser.Tenant` only where they simplify invariants or EF configuration rather than just increasing graph size.
 
