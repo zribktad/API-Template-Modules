@@ -52,6 +52,7 @@
     <Compile Include="Integration\IntegrationAuthHelper.cs" />
     <Compile Include="Integration\IntegrationCollectionTestBase.cs" />
     <Compile Include="Integration\IntegrationTestBase.cs" />
+    <Compile Include="Integration\Postgres\TestAppDbContextFactory.cs" />
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
     <Compile Include="Integration\Postgres\IdentityIntegrationTestProviders.cs" />
     <Compile Include="Integration\Postgres\IsolatedPostgresDatabase.cs" />

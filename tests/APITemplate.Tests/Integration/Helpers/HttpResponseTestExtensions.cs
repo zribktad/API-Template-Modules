@@ -12,10 +12,18 @@ internal static class HttpResponseTestExtensions
     )
     {
         var body = await response.Content.ReadAsStringAsync(ct);
-        return JsonSerializer.Deserialize<T>(body, TestJsonOptions.CaseInsensitive)
-            ?? throw new InvalidOperationException(
-                $"Response body could not be deserialized to {typeof(T).Name}. Raw: {body}"
+        try
+        {
+            return JsonSerializer.Deserialize<T>(body, TestJsonOptions.CaseInsensitive)
+                ?? throw new InvalidOperationException($"Response body is null. Raw: {body}");
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException(
+                $"Response body could not be deserialized to {typeof(T).Name}. Raw: {body}",
+                ex
             );
+        }
     }
 
     internal static async Task<HttpResponseMessage> ShouldBeStatusAsync(
