@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using APITemplate.Tests.Integration.Helpers;
 using Identity.Directory.Features.Role.CreateRole;

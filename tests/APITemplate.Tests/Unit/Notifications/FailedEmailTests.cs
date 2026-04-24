@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using ErrorOr;
 using Notifications.Domain;
 using Shouldly;

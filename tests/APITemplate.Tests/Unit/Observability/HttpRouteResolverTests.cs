@@ -1,4 +1,4 @@
-﻿using APITemplate.Infrastructure.Observability;
+using APITemplate.Infrastructure.Observability;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Shouldly;

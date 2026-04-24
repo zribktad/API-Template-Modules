@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OutputCaching;
 using SharedKernel.Infrastructure.OutputCache;

@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using Identity.Directory.Entities;
 using SharedKernel.Contracts.Security;
 using Shouldly;

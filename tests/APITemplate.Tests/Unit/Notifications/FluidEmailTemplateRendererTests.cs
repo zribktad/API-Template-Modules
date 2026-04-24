@@ -1,4 +1,4 @@
-﻿using Notifications.Contracts;
+using Notifications.Contracts;
 using Notifications.Services;
 using SharedKernel.Application.Errors;
 using Shouldly;

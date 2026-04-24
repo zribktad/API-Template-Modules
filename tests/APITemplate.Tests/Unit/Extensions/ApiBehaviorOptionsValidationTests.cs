@@ -1,4 +1,4 @@
-﻿using APITemplate.Api.Extensions;
+using APITemplate.Api.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;

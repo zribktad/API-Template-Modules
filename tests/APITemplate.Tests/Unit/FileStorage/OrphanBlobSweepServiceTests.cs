@@ -1,4 +1,4 @@
-﻿using FileStorage.Contracts;
+using FileStorage.Contracts;
 using FileStorage.Domain;
 using FileStorage.Persistence;
 using FileStorage.Services;

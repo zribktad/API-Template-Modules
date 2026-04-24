@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using APITemplate.Tests.Unit.Helpers;
 using ProductCatalog.Features.Product.UpdateProducts;
 using Shouldly;

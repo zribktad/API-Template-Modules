@@ -1,4 +1,4 @@
-﻿using Notifications.Persistence;
+using Notifications.Persistence;
 using Shouldly;
 using Xunit;
 

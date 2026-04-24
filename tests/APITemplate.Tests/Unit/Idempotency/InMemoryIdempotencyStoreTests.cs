@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using SharedKernel.Application.Contracts;
 using Shouldly;
 using Xunit;

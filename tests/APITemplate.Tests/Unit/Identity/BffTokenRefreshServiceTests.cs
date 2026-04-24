@@ -1,4 +1,4 @@
-﻿using Identity.Auth.Options;
+using Identity.Auth.Options;
 using Identity.Auth.Security;
 using Identity.Auth.Security.Keycloak;
 using Identity.Auth.Security.Sessions;

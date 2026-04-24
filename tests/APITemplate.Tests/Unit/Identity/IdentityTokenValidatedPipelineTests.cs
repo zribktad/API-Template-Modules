@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Auth.Security;
 using Shouldly;
 using Xunit;

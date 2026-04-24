@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Features.Role.CreateRole;
 using Identity.Directory.Features.Role.UpdateRole;
 using Shouldly;

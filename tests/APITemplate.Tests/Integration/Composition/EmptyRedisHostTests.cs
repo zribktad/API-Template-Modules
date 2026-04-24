@@ -1,4 +1,4 @@
-﻿using Identity.Auth.Security.Sessions;
+using Identity.Auth.Security.Sessions;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;

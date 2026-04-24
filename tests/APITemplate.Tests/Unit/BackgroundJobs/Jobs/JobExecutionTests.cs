@@ -1,4 +1,4 @@
-﻿using BackgroundJobs.Domain;
+using BackgroundJobs.Domain;
 using ErrorOr;
 using Moq;
 using Shouldly;

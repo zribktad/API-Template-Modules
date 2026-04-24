@@ -1,4 +1,4 @@
-﻿using APITemplate.Application.Features.Product;
+using APITemplate.Application.Features.Product;
 using APITemplate.Application.Features.Product.DTOs;
 using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.Product.Specifications;

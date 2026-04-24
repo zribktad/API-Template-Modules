@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain;

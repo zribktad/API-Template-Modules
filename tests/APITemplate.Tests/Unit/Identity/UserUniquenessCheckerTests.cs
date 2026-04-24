@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using Identity.Directory.Domain.Services;
 using Identity.Errors;
 using Moq;

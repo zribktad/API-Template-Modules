@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Repositories;

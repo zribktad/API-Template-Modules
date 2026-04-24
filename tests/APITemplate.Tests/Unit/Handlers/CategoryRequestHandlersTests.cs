@@ -1,4 +1,4 @@
-﻿using APITemplate.Application.Features.Category;
+using APITemplate.Application.Features.Category;
 using APITemplate.Application.Features.Category.Mappings;
 using APITemplate.Application.Features.Category.Specifications;
 using APITemplate.Domain.Entities;

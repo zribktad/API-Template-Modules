@@ -1,4 +1,4 @@
-﻿using BackgroundJobs.TickerQ;
+using BackgroundJobs.TickerQ;
 using Shouldly;
 using Xunit;
 

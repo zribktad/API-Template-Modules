@@ -1,4 +1,4 @@
-﻿using APITemplate.Application.Features.ProductData;
+using APITemplate.Application.Features.ProductData;
 using APITemplate.Domain.Entities;
 using APITemplate.Domain.Interfaces;
 using ErrorOr;

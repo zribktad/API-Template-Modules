@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using Identity.Auth.Entities;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Identity.Auth.Security.Keycloak;
 using Microsoft.Extensions.Logging;
 using Moq;

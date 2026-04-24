@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Features.User.AssignRoles;

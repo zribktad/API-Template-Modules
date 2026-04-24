@@ -1,4 +1,4 @@
-﻿using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
+using APITemplate.Infrastructure.BackgroundJobs.TickerQ.Coordination;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;

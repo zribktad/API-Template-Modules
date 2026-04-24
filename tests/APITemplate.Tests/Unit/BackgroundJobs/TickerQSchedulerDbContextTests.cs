@@ -1,4 +1,4 @@
-﻿using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
+using APITemplate.Infrastructure.BackgroundJobs.TickerQ;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using Xunit;

@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using Moq;
 using ProductCatalog;
 using ProductCatalog.Common.Events;

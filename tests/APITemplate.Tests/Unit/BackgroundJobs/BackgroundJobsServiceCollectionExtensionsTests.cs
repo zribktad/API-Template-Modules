@@ -1,4 +1,4 @@
-﻿using APITemplate.Api.Extensions;
+using APITemplate.Api.Extensions;
 using APITemplate.Application.Common.BackgroundJobs;
 using APITemplate.Application.Common.Email;
 using APITemplate.Domain.Entities;

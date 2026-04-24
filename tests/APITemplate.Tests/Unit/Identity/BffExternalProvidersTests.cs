@@ -1,4 +1,4 @@
-﻿using Identity.Auth.Controllers.V1;
+using Identity.Auth.Controllers.V1;
 using Identity.Auth.Features.Bff.DTOs;
 using Identity.Auth.Options;
 using Identity.Auth.Security;

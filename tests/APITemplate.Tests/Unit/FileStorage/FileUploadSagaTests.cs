@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain;
 using FileStorage.Domain.Sagas;

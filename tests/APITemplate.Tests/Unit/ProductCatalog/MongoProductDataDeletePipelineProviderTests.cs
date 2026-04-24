@@ -1,4 +1,4 @@
-﻿using Polly;
+using Polly;
 using Polly.Registry;
 using ProductCatalog.Services;
 using SharedKernel.Application.Resilience;

@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using Reviews.Domain;
 using Shouldly;
 using Xunit;

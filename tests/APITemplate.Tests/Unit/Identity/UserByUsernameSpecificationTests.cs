@@ -1,4 +1,4 @@
-﻿using Identity.Directory.Entities;
+using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
 using Identity.ValueObjects;
 using Shouldly;

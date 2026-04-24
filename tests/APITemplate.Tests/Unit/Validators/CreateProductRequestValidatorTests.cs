@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using APITemplate.Tests.Unit.Helpers;
 using APITemplate.Tests.Unit.TestData;
 using ProductCatalog.Features.Product.CreateProducts;

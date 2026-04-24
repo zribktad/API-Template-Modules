@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.TestData;
+using APITemplate.Tests.Unit.TestData;
 using ErrorOr;
 using ProductCatalog.ValueObjects;
 using Shouldly;

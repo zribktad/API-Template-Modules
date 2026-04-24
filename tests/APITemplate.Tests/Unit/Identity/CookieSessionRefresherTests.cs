@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Identity.Auth.Security;
 using Identity.Auth.Security.Sessions;
 using Microsoft.AspNetCore.Authentication;

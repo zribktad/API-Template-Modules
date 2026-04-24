@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Identity.Auth.Options;
 using Identity.Auth.Security;

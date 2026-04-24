@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
 using Identity.Auth.Security;

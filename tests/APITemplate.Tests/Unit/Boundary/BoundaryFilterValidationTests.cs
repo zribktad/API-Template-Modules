@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Features.Tenant.DTOs;
 using ProductCatalog.Features.Product.GetProducts;
 using Reviews.Features;

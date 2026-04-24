@@ -1,4 +1,4 @@
-﻿using APITemplate.Domain.Entities;
+using APITemplate.Domain.Entities;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;
 using APITemplate.Infrastructure.Persistence.Startup;

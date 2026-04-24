@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Integration.Helpers;
+using APITemplate.Tests.Integration.Helpers;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
 using Xunit;

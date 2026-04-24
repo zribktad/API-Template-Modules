@@ -1,4 +1,4 @@
-﻿using Moq;
+using Moq;
 using Reviews.Domain;
 using Reviews.Features.ProductSoftDelete;
 using SharedKernel.Contracts.Events;

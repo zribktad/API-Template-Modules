@@ -1,4 +1,4 @@
-﻿using BackgroundJobs.Options;
+using BackgroundJobs.Options;
 using BackgroundJobs.Validation;
 using Microsoft.Extensions.Options;
 using Shouldly;

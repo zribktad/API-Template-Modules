@@ -1,4 +1,4 @@
-﻿using APITemplate.Application.Features.Product.Repositories;
+using APITemplate.Application.Features.Product.Repositories;
 using APITemplate.Application.Features.ProductReview;
 using APITemplate.Application.Features.ProductReview.Specifications;
 using APITemplate.Domain.Entities;

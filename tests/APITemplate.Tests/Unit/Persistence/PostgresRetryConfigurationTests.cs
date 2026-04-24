@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using APITemplate.Api.Extensions;
 using APITemplate.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;

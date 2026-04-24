@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using ProductCatalog.Features.Product.CreateProducts;
 using Reviews.Features;
 using Shouldly;

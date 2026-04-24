@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Polly;
 using ProductCatalog.Features.ProductData.DeleteProductData;

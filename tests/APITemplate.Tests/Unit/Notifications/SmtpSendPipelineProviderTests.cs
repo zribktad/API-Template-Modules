@@ -1,4 +1,4 @@
-﻿using Notifications.Services;
+using Notifications.Services;
 using Polly;
 using Polly.Registry;
 using SharedKernel.Application.Resilience;

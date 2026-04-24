@@ -1,4 +1,4 @@
-﻿using APITemplate.Api.Middleware;
+using APITemplate.Api.Middleware;
 using Microsoft.AspNetCore.Http;
 using SharedKernel.Application.Http;
 using Shouldly;

@@ -1,4 +1,4 @@
-﻿using Identity.Auth.Options;
+using Identity.Auth.Options;
 using Identity.Auth.Validation;
 using Microsoft.Extensions.Options;
 using Shouldly;

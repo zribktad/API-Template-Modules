@@ -1,4 +1,4 @@
-﻿using APITemplate.Api.Extensions;
+using APITemplate.Api.Extensions;
 using APITemplate.Domain.Interfaces;
 using APITemplate.Infrastructure.Persistence;
 using APITemplate.Infrastructure.Persistence.Auditing;

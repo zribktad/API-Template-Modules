@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Auth.Entities;
 using Identity.Auth.Handlers;
 using Identity.Auth.Options;

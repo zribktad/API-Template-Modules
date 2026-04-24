@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using APITemplate.Api.Security;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Http;

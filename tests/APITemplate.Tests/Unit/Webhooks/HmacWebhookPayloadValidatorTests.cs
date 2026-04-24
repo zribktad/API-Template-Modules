@@ -1,4 +1,4 @@
-﻿using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Helpers;
 using Microsoft.Extensions.Options;
 using Shouldly;
 using Webhooks.Contracts;

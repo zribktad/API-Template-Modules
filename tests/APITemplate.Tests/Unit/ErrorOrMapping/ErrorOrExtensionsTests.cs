@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using APITemplate.Api.Controllers;
 using APITemplate.Api.ErrorOrMapping;
 using ErrorOr;

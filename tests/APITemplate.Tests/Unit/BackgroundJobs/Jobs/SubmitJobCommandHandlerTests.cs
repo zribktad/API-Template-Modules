@@ -1,4 +1,4 @@
-﻿using BackgroundJobs.Domain;
+using BackgroundJobs.Domain;
 using BackgroundJobs.Features;
 using ErrorOr;
 using Microsoft.Extensions.Logging;

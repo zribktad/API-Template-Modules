@@ -1,4 +1,4 @@
-﻿using SharedKernel.Application.Options.Security;
+using SharedKernel.Application.Options.Security;
 using SharedKernel.Infrastructure.Logging;
 using Shouldly;
 using Xunit;

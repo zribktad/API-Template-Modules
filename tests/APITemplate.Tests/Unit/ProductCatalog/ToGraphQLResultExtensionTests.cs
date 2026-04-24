@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using HotChocolate;
 using ProductCatalog.GraphQL;
 using SharedKernel.Application.Errors;

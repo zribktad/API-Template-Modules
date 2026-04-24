@@ -1,4 +1,4 @@
-﻿using Identity;
+using Identity;
 using Identity.Auth.Entities;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.TenantInvitation.Specifications;

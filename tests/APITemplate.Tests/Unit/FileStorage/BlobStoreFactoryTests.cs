@@ -1,4 +1,4 @@
-﻿using FileStorage.Domain.Storage;
+using FileStorage.Domain.Storage;
 using FileStorage.Services;
 using Moq;
 using Shouldly;

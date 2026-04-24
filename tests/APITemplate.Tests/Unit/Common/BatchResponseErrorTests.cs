@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using SharedKernel.Application.DTOs;
 using Shouldly;
 using Xunit;

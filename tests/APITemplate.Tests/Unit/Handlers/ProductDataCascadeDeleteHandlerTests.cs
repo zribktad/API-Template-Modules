@@ -1,4 +1,4 @@
-﻿using APITemplate.Application.Features.ProductData.Handlers;
+using APITemplate.Application.Features.ProductData.Handlers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Polly.Registry;

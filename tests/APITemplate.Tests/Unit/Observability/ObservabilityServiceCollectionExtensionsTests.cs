@@ -1,4 +1,4 @@
-﻿using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Application.Options.Infrastructure;
 using Shouldly;
 using Xunit;
 

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;

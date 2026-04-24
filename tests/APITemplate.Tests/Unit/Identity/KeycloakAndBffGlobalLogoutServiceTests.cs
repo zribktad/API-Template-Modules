@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using Identity.Auth.Security;
 using Identity.Auth.Security.Sessions;
 using Microsoft.Extensions.Logging.Abstractions;

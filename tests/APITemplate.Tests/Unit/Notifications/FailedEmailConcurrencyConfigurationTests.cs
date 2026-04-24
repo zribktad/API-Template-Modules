@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Notifications.Domain;
 using Notifications.Persistence;
 using Shouldly;

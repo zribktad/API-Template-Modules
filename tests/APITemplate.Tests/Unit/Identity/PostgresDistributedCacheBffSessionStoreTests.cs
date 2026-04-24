@@ -1,4 +1,4 @@
-﻿using Identity.Auth.Entities;
+using Identity.Auth.Entities;
 using Identity.Auth.Options;
 using Identity.Auth.Security.Sessions;
 using Identity.Persistence;

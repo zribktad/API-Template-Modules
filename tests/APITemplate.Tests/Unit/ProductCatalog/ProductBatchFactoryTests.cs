@@ -1,4 +1,4 @@
-﻿using ErrorOr;
+using ErrorOr;
 using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Features.Product.CreateProducts;

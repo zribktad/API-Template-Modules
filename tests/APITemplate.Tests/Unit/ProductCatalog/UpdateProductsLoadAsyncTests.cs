@@ -1,4 +1,4 @@
-﻿using Moq;
+using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Entities;
 using ProductCatalog.Features.Product.Shared;

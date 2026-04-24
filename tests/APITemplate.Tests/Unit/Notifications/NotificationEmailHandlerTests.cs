@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using Moq;
 using Notifications.Contracts;
 using Notifications.Features;

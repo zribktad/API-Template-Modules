@@ -1,4 +1,4 @@
-﻿using APITemplate.Api.GraphQL.Models;
+using APITemplate.Api.GraphQL.Models;
 using Shouldly;
 using Xunit;
 
