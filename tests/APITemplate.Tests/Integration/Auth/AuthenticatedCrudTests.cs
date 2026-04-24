@@ -2,26 +2,70 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
+using Identity.Directory.Entities;
+using Microsoft.AspNetCore.Mvc.Testing;
+using ProductCatalog.Features.Product.Shared;
+using SharedKernel.Application.DTOs;
+using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Auth;
 
-public class AuthenticatedCrudTests : IClassFixture<CustomWebApplicationFactory>
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
+public class AuthenticatedCrudTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
 {
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
-    private readonly Guid _tenantId = Guid.NewGuid();
+
+    private Tenant _adminTenant = default!;
+    private AppUser _adminUser = default!;
 
     public AuthenticatedCrudTests(CustomWebApplicationFactory factory)
     {
-        _client = factory.CreateClient();
+        _factory = factory;
+        _client = factory.CreateClient(
+            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }
+        );
     }
+
+    public async ValueTask InitializeAsync()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        (_adminTenant, _adminUser) = await IntegrationAuthHelper.SeedTenantUserAsync(
+            _factory.Services,
+            "crud_admin",
+            "crud_admin@test.com",
+            ct: ct
+        );
+        AuthenticateAdmin();
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    private void AuthenticateAdmin() =>
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            userId: _adminUser.Id,
+            tenantId: _adminTenant.Id,
+            username: _adminUser.Username.Value,
+            role: "PlatformAdmin",
+            permissions:
+            [
+                Permission.Products.Read,
+                Permission.Products.Create,
+                Permission.Products.Update,
+                Permission.Products.Delete,
+            ],
+            email: _adminUser.Email.Value,
+            subject: _adminUser.KeycloakUserId
+        );
 
     [Fact]
     public async Task FullCrudFlow_WorksWithAuthentication()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
 
         // 2. Get all - empty
         var getAllResponse = await _client.GetAsync("/api/v1/products", ct);
@@ -125,7 +169,6 @@ public class AuthenticatedCrudTests : IClassFixture<CustomWebApplicationFactory>
     public async Task GetById_NonExistentProduct_ReturnsNotFound()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
 
         var response = await _client.GetAsync($"/api/v1/products/{Guid.NewGuid()}", ct);
 
@@ -136,7 +179,6 @@ public class AuthenticatedCrudTests : IClassFixture<CustomWebApplicationFactory>
     public async Task Create_MultipleProducts_AllReturnedInGetAll()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
 
         await _client.PostAsJsonAsync(
             "/api/v1/products",

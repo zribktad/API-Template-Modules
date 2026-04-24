@@ -1,9 +1,10 @@
 using ErrorOr;
-using Identity.Directory.Entities;
-using Identity.Directory.Features.Role.Shared;
-using Identity.Directory.Features.User.AssignRoles;
-using Identity.Directory.Interfaces;
-using Identity.ValueObjects;
+using global::Identity.Directory.Entities;
+using global::Identity.Directory.Features.Role.Shared;
+using global::Identity.Directory.Features.User.AssignRoles;
+using global::Identity.Directory.Features.User.InvalidatePermissions;
+using global::Identity.Directory.Interfaces;
+using global::Identity.ValueObjects;
 using Moq;
 using SharedKernel.Domain.Interfaces;
 using Shouldly;
@@ -17,7 +18,7 @@ public class AssignUserRolesCommandHandlerTests
 {
     private readonly Mock<IUserRepository> _userRepository = new();
     private readonly Mock<IRoleRepository> _roleRepository = new();
-    private readonly Mock<IUnitOfWork<Identity.Persistence.IdentityDbMarker>> _unitOfWork = new();
+    private readonly Mock<IUnitOfWork<global::Identity.IdentityDbMarker>> _unitOfWork = new();
 
     [Fact]
     public async Task AssignRoles_WhenSomeRolesDoNotExist_ReturnsValidationError()
@@ -63,7 +64,7 @@ public class AssignUserRolesCommandHandlerTests
 
         // Assert
         result.IsError.ShouldBeTrue();
-        result.FirstError.Code.ShouldBe("Roles.Invalid");
+        result.FirstError.Code.ShouldBe("ROL-0422-INVALID");
     }
 
     [Fact]
