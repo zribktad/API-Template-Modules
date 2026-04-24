@@ -57,4 +57,14 @@ public interface IProductDataLinkRepository
         CancellationToken ct = default
     );
 
+    /// <summary>
+    ///     Bulk soft-deletes all non-deleted product data links for the specified products via a single
+    ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization).
+    /// </summary>
+    Task<int> BulkSoftDeleteByProductIdsAsync(
+        IReadOnlyCollection<Guid> productIds,
+        Guid actorId,
+        DateTime deletedAtUtc,
+        CancellationToken ct = default
+    );
 }

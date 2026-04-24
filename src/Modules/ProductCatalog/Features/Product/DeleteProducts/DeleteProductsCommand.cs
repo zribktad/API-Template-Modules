@@ -21,12 +21,14 @@ public sealed class DeleteProductsCommandHandler
         DeleteProductsCommand command,
         ProductRepositoryContract repository,
         IActorProvider actorProvider,
+        ITenantProvider tenantProvider,
         TimeProvider timeProvider,
         CancellationToken ct
     )
     {
         IReadOnlyList<Guid> ids = command.Request.Ids;
         Guid actorId = actorProvider.ActorId;
+        Guid tenantId = tenantProvider.TenantId;
         DateTime deletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
         BatchFailureContext<Guid> context = new(ids);
 
@@ -54,7 +56,7 @@ public sealed class DeleteProductsCommandHandler
 
         return (
             HandlerContinuation.Continue,
-            new DeleteProductsState(products, actorId, deletedAtUtc),
+            new DeleteProductsState(products, tenantId, actorId, deletedAtUtc),
             OutgoingMessagesHelper.Empty
         );
     }
@@ -64,12 +66,15 @@ public sealed class DeleteProductsCommandHandler
         DeleteProductsState state,
         ProductRepositoryContract repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        IProductDataLinkRepository linkRepository,
         CancellationToken ct
     )
     {
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
+                IReadOnlyList<Guid> ids = state.Products.Select(p => p.Id).ToList();
+                await linkRepository.BulkSoftDeleteByProductIdsAsync(ids, state.ActorId, state.DeletedAtUtc, ct);
                 await repository.DeleteRangeAsync(state.Products, ct);
             },
             ct
@@ -84,7 +89,7 @@ public sealed class DeleteProductsCommandHandler
             messages.Add(
                 new ProductsBatchSoftDeletedNotification(
                     deletedProductIds,
-                    state.Products[0].TenantId,
+                    state.TenantId,
                     state.ActorId,
                     state.DeletedAtUtc,
                     Guid.NewGuid()
@@ -96,6 +101,7 @@ public sealed class DeleteProductsCommandHandler
 
     public sealed record DeleteProductsState(
         IReadOnlyList<Entities.Product> Products,
+        Guid TenantId,
         Guid ActorId,
         DateTime DeletedAtUtc
     );
