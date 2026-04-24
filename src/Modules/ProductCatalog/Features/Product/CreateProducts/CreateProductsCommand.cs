@@ -53,8 +53,7 @@ public sealed class CreateProductsCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
-        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        messages.AddRange(CacheInvalidationCascades.ForProductChange());
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }

@@ -65,6 +65,9 @@ if (builder.Environment.IsDevelopment())
 
 builder.Host.UseWolverine(options =>
 {
+    if (builder.Environment.IsDevelopment())
+        options.Durability.Mode = DurabilityMode.Solo;
+
     options.PersistMessagesWithPostgresql(connectionString);
 
     // Only activates for handlers with a DbContext enrolled via AddDbContextWithWolverineIntegration.
