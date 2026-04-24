@@ -134,7 +134,10 @@
   Cover cleanup jobs at exactly the retention cutoff, just before cutoff, just after cutoff, empty batches, batch size limits, repeat execution, and cleanup when dependent module data is missing.
 
 
-## Medium Priority
+## Features
+
+
+### Medium Priority
 
 - [ ] **Complete file/media story around `ProductData`**  
   Orphan sweep workflow exists end-to-end. What remains: `ProductData` / `ImageProductData` / `VideoProductData` have no `StoredFileId` or any reference to the `FileStorage` module — the file link is entirely absent. Only `LocalBlobStore` is implemented; no S3/Azure/Minio backend exists.
@@ -142,7 +145,7 @@
 - [ ] **Strengthen exception error-code fallback behavior**  
   `ApiExceptionHandler` already checks `IHasErrorCode` and falls back to `ErrorCatalog.General.Unknown`. What remains: the middle step — if the exception does not implement `IHasErrorCode`, inspect `metadata["errorCode"]` before falling back to `Unknown`.
 
-## Low Priority
+### Low Priority
 
 - [ ] **Add missing bidirectional navigations only where they add real value**  
   If richer aggregate modeling is introduced, add explicit navigations such as `Tenant.Users` / `AppUser.Tenant` only where they simplify invariants or EF configuration rather than just increasing graph size.
