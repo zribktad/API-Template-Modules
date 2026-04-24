@@ -14,7 +14,6 @@ namespace Identity.Auth.Security.Sessions;
 /// </summary>
 public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNotifier
 {
-    private readonly IConnectionMultiplexer _multiplexer;
     private readonly ISubscriber _subscriber;
     private readonly ILogger<RedisBffSessionRevocationNotifier> _logger;
 
@@ -23,19 +22,12 @@ public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNot
         ILogger<RedisBffSessionRevocationNotifier> logger
     )
     {
-        _multiplexer = multiplexer;
         _subscriber = multiplexer.GetSubscriber();
         _logger = logger;
     }
 
     public async Task PublishRevokedAsync(string sessionId, CancellationToken ct = default)
     {
-        if (!_multiplexer.IsConnected)
-        {
-            _logger.BffSessionRevocationPublishSkippedDisconnected(SafeRef(sessionId));
-            return;
-        }
-
         try
         {
             await _subscriber
@@ -48,10 +40,10 @@ public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNot
         }
     }
 
-    // Log a short prefix only — full session ids are cookie-equivalent credentials and must not land
+    // Log a short prefix only; full session ids are cookie-equivalent credentials and must not land
     // in structured logs un-redacted.
     private static string SafeRef(string sessionId) =>
         string.IsNullOrEmpty(sessionId)
             ? "(empty)"
-            : sessionId[..Math.Min(8, sessionId.Length)] + "…";
+            : sessionId[..Math.Min(8, sessionId.Length)] + "...";
 }

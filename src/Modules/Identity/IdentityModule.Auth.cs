@@ -75,13 +75,13 @@ public static partial class IdentityModule
 
         // Hooks into CookieAuthenticationEvents to silently refresh the access token before expiry.
         services.AddScoped<CookieSessionRefresher>();
-        // Builds a ClaimsPrincipal from a stored BffSessionRecord (used after a successful cookie validation).
+        // Rebuilds a ClaimsPrincipal from the stored BFF session after cookie validation.
         services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
-        // Encrypts/decrypts access, refresh, and id tokens stored in the session record using IDataProtector.
+        // Protects token material before persistence and unprotects it after loading from storage.
         services.AddSingleton<IBffSessionTokenProtector, BffSessionTokenProtector>();
-        // Generates and validates the double-submit CSRF token returned by GET /api/v1/bff/csrf.
+        // Issues and validates the double-submit CSRF token returned by GET /api/v1/bff/csrf.
         services.AddSingleton<IBffCsrfTokenService, BffCsrfTokenService>();
-        // Post-configure hook that flips SecurePolicy to Always in non-development environments.
+        // Enforces secure-only cookies outside development after user configuration has been bound.
         services.AddSingleton<
             IPostConfigureOptions<CookieAuthenticationOptions>,
             BffCookieSecurePostConfigure
@@ -91,34 +91,29 @@ public static partial class IdentityModule
     /// <summary>
     ///     Registers the two-tier BFF session storage stack and the ASP.NET Core server-side ticket store.
     ///     <para>
-    ///         <b>L1 — in-process:</b> <see cref="BffLocalSessionCache" /> (<see cref="Microsoft.Extensions.Caching.Memory.IMemoryCache" />-backed,
-    ///         TTL from <see cref="BffOptions.LocalCacheTtlSeconds" />) eliminates Redis round-trips for
-    ///         repeated reads of the same session within a single instance.
+    ///         <b>L1 - in-process:</b> <see cref="BffLocalSessionCache" /> keeps a short-lived local
+    ///         copy to avoid a distributed lookup on repeated requests for the same session.
     ///     </para>
     ///     <para>
-    ///         <b>L2 — distributed:</b> when Redis is configured, <see cref="PostgresCachedBffSessionStore" />
-    ///         (PostgreSQL primary + Redis read-through cache) is used; otherwise
-    ///         <see cref="PostgresDistributedCacheBffSessionStore" /> falls back to the distributed cache
-    ///         provider without Redis-specific features.
+    ///         <b>L2 - distributed:</b> Redis deployments use <see cref="PostgresCachedBffSessionStore" />
+    ///         for read-through caching over PostgreSQL. Non-Redis deployments keep PostgreSQL as the
+    ///         source of truth and use the configured <see cref="Microsoft.Extensions.Caching.Distributed.IDistributedCache" />
+    ///         provider through <see cref="PostgresDistributedCacheBffSessionStore" />.
     ///     </para>
     ///     <para>
-    ///         <b>L1 coherence:</b> <see cref="CachingBffSessionStoreDecorator" /> layers L1 over L2 and
-    ///         publishes revocation events via <see cref="RedisBffSessionRevocationNotifier" /> (or the
-    ///         no-op <see cref="NullBffSessionRevocationNotifier" /> when Redis is absent).
-    ///         <see cref="BffSessionRevocationSubscriber" /> listens to those events as an
-    ///         <see cref="Microsoft.Extensions.Hosting.IHostedService" /> and invalidates the local
-    ///         cache entry on every instance, bounding cross-instance staleness to milliseconds rather
-    ///         than the full <see cref="BffOptions.LocalCacheTtlSeconds" /> window.
+    ///         <b>L1 coherence:</b> <see cref="CachingBffSessionStoreDecorator" /> wraps either L2
+    ///         store. With Redis, <see cref="BffSessionRevocationSubscriber" /> listens for revocation
+    ///         broadcasts and evicts stale local entries on every API instance. Without Redis, local
+    ///         staleness is bounded by <see cref="BffOptions.LocalCacheTtlSeconds" />.
     ///     </para>
     ///     <para>
-    ///         <b>Refresh coordination:</b> <see cref="RedisBffRefreshCoordinator" /> uses a distributed
-    ///         lock so only one instance refreshes a given token concurrently;
-    ///         <see cref="InProcessBffRefreshCoordinator" /> is used as a single-instance fallback.
+    ///         <b>Refresh coordination:</b> Redis deployments use <see cref="RedisBffRefreshCoordinator" />
+    ///         so only one instance refreshes a browser session at a time; single-process deployments
+    ///         use <see cref="InProcessBffRefreshCoordinator" />.
     ///     </para>
     ///     <para>
-    ///         <b>Ticket store:</b> <see cref="RedisTicketStore" /> is wired as the ASP.NET Core cookie
-    ///         session store so the browser cookie holds only an opaque key — no token data ever leaves
-    ///         the server.
+    ///         <b>Ticket store:</b> <see cref="RedisTicketStore" /> keeps authentication ticket
+    ///         contents server-side so the browser cookie contains only an opaque key.
     ///     </para>
     /// </summary>
     private static void AddBffSessionInfrastructure(
@@ -126,54 +121,50 @@ public static partial class IdentityModule
         IConfiguration configuration
     )
     {
-        // L1: per-instance IMemoryCache that skips the Redis round-trip for repeat reads of the same session.
+        // L1: per-instance cache that skips the L2 round-trip for repeat reads of the same session.
         services.AddSingleton<IBffLocalSessionCache, BffLocalSessionCache>();
 
         if (configuration.IsRedisConfigured())
         {
-            // L2: PostgreSQL primary store + Redis read-through cache (sliding TTL, tokens encrypted at rest).
+            // L2: PostgreSQL primary store + Redis read-through cache.
             services.AddSingleton<PostgresCachedBffSessionStore>();
-            // Publishes revoked session ids to the bff:session:revocations pub/sub channel so peer
-            // instances can evict their L1 entries within milliseconds instead of waiting for TTL expiry.
+            // Publishes session mutations so peer instances can evict stale L1 entries promptly.
             services.AddSingleton<
                 IBffSessionRevocationNotifier,
                 RedisBffSessionRevocationNotifier
             >();
-            // Decorator that layers L1 over L2: cache hits skip the store entirely; terminal mutations
-            // invalidate L1 and trigger a revocation broadcast.
+            // Layers L1 over L2; cache hits skip the store, mutations update or invalidate L1.
             services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
                 sp.GetRequiredService<PostgresCachedBffSessionStore>(),
                 sp.GetRequiredService<IBffLocalSessionCache>(),
                 sp.GetRequiredService<IBffSessionRevocationNotifier>()
             ));
-            // Distributed refresh lock: ensures only one instance exchanges the refresh token at a time,
-            // preventing concurrent refresh races under load.
+
+            // Distributed refresh lock prevents concurrent token refreshes across API instances.
             services.AddSingleton<IBffRefreshCoordinator, RedisBffRefreshCoordinator>();
-            // Background subscriber: listens on bff:session:revocations and calls IBffLocalSessionCache.Invalidate
-            // for each received session id. Subscribed before HTTP traffic is accepted (IHostedService.StartAsync).
+            // Redis pub/sub subscriber keeps L1 entries coherent across instances.
             services.AddHostedService<BffSessionRevocationSubscriber>();
         }
         else
         {
-            // L2 fallback: PostgreSQL primary store + IDistributedCache (no Redis-specific features).
+            // L2 fallback: PostgreSQL primary store + configured IDistributedCache provider.
             services.AddSingleton<PostgresDistributedCacheBffSessionStore>();
-            // No Redis → no pub/sub; cross-instance L1 staleness is bounded by LocalCacheTtlSeconds only.
+            // No Redis means no cross-instance broadcast; L1 staleness is bounded by local cache TTL.
             services.AddSingleton<
                 IBffSessionRevocationNotifier,
                 NullBffSessionRevocationNotifier
             >();
+            // Keep the same local-cache decorator shape for Redis and non-Redis deployments.
             services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
                 sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>(),
                 sp.GetRequiredService<IBffLocalSessionCache>(),
                 sp.GetRequiredService<IBffSessionRevocationNotifier>()
             ));
-            // In-process lock: adequate for single-instance deployments; replaced by RedisBffRefreshCoordinator
-            // when Redis is present.
+            // In-process refresh coordination is sufficient only for single-instance deployments.
             services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();
         }
 
-        // Stores ASP.NET Core authentication tickets server-side; the browser cookie carries only
-        // an opaque key — no token data ever reaches the client.
+        // Stores ASP.NET Core authentication tickets server-side; token data never reaches the browser.
         services.AddSingleton<RedisTicketStore>();
         services
             .AddOptions<CookieAuthenticationOptions>(AuthConstants.BffSchemes.Cookie)
@@ -181,30 +172,31 @@ public static partial class IdentityModule
     }
 
     /// <summary>
-    ///     Registers the BFF session application-layer services.
+    ///     Registers BFF session application-layer services.
     ///     <see cref="BffSessionService" /> is the central coordinator and is intentionally exposed
-    ///     under both <see cref="IBffSessionService" /> (read/write) and
-    ///     <see cref="IBffSessionRevocationService" /> (revocation) to keep consumer interfaces
-    ///     focused. <see cref="IBffTokenRefreshService" /> is scoped because it participates in the
-    ///     per-request cookie refresh pipeline via <see cref="CookieSessionRefresher" />.
+    ///     through focused interfaces so consumers depend only on the operations they use.
+    ///     <see cref="IBffTokenRefreshService" /> is scoped because it participates in the request
+    ///     pipeline through <see cref="CookieSessionRefresher" />.
     /// </summary>
     private static void AddBffSessionServices(IServiceCollection services)
     {
-        // Enforces session business rules (expiry, revocation status) before the principal is built.
+        // Enforces session business rules such as expiry and terminal status.
         services.AddSingleton<IBffSessionValidator, BffSessionValidator>();
-        // Constructs new BffSessionRecord instances with all required fields populated and tokens encrypted.
+        // Builds complete BffSessionRecord instances from authentication tickets.
         services.AddSingleton<IBffSessionRecordFactory, BffSessionRecordFactory>();
-        // Applies state transitions (refresh, revoke, expire) to an existing record using optimistic concurrency.
+        // Applies refresh, revoke, and expire transitions through optimistic concurrency.
         services.AddSingleton<IBffSessionMutator, BffSessionMutator>();
-        // Central coordinator: registered as a concrete type so it can be resolved under two interfaces below.
+
+        // Register the concrete coordinator once, then project it through narrower interfaces.
         services.AddSingleton<BffSessionService>();
-        // Exposed for read/write session operations (controllers, middleware).
+        // Exposed for read/write session operations.
         services.AddSingleton<IBffSessionService>(sp => sp.GetRequiredService<BffSessionService>());
-        // Exposed for revocation operations (logout, password-change handlers); intentionally narrow interface.
+        // Exposed for logout, password-change, and revoke-all workflows.
         services.AddSingleton<IBffSessionRevocationService>(sp =>
             sp.GetRequiredService<BffSessionService>()
         );
-        // Scoped because it is called inside CookieSessionRefresher which runs within the request pipeline.
+
+        // Token refresh participates in the request pipeline via CookieSessionRefresher.
         services.AddScoped<IBffTokenRefreshService, BffTokenRefreshService>();
     }
 

@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Identity.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -13,17 +12,14 @@ namespace Identity.Auth.Security.Sessions;
 ///     <see cref="IConnectionMultiplexer.ConnectionRestored" /> event so a transient boot-time
 ///     outage self-heals instead of silently disabling peer invalidation for the process lifetime.
 /// </summary>
-public sealed partial class BffSessionRevocationSubscriber : IHostedService
+public sealed class BffSessionRevocationSubscriber : IHostedService
 {
-    // Session ids are generated as Guid.ToString("N") — 32 lowercase hex chars. Constraining to that
-    // format drops malformed or malicious payloads from untrusted publishers on the shared channel.
-    [GeneratedRegex("^[0-9a-f]{32}$", RegexOptions.CultureInvariant)]
-    private static partial Regex SessionIdFormat();
-
     private readonly IConnectionMultiplexer _multiplexer;
     private readonly IBffLocalSessionCache _localCache;
     private readonly ILogger<BffSessionRevocationSubscriber> _logger;
+    private readonly SemaphoreSlim _subscribeGate = new(1, 1);
     private EventHandler<ConnectionFailedEventArgs>? _reconnectHandler;
+    private volatile bool _subscribed;
 
     public BffSessionRevocationSubscriber(
         IConnectionMultiplexer multiplexer,
@@ -38,7 +34,7 @@ public sealed partial class BffSessionRevocationSubscriber : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _reconnectHandler = async (_, _) => await TrySubscribeAsync();
+        _reconnectHandler = (_, _) => _ = TrySubscribeAsync();
         _multiplexer.ConnectionRestored += _reconnectHandler;
 
         await TrySubscribeAsync();
@@ -52,10 +48,15 @@ public sealed partial class BffSessionRevocationSubscriber : IHostedService
             _reconnectHandler = null;
         }
 
+        await _subscribeGate.WaitAsync(cancellationToken);
         try
         {
+            if (!_subscribed)
+                return;
+
             ISubscriber subscriber = _multiplexer.GetSubscriber();
             await subscriber.UnsubscribeAsync(BffSessionCacheKeys.RevocationChannel, HandleMessage);
+            _subscribed = false;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -64,14 +65,26 @@ public sealed partial class BffSessionRevocationSubscriber : IHostedService
                 BffSessionCacheKeys.RevocationChannelName
             );
         }
+        finally
+        {
+            _subscribeGate.Release();
+        }
     }
 
     private async Task TrySubscribeAsync()
     {
+        if (_subscribed)
+            return;
+
+        await _subscribeGate.WaitAsync();
         try
         {
+            if (_subscribed)
+                return;
+
             ISubscriber subscriber = _multiplexer.GetSubscriber();
             await subscriber.SubscribeAsync(BffSessionCacheKeys.RevocationChannel, HandleMessage);
+            _subscribed = true;
         }
         catch (Exception ex)
         {
@@ -79,6 +92,10 @@ public sealed partial class BffSessionRevocationSubscriber : IHostedService
                 ex,
                 BffSessionCacheKeys.RevocationChannelName
             );
+        }
+        finally
+        {
+            _subscribeGate.Release();
         }
     }
 
@@ -90,7 +107,7 @@ public sealed partial class BffSessionRevocationSubscriber : IHostedService
                 return;
 
             string sessionId = message.ToString();
-            if (!SessionIdFormat().IsMatch(sessionId))
+            if (!BffSessionIds.IsValid(sessionId))
             {
                 _logger.BffSessionRevocationPayloadMalformed(sessionId.Length, channel.ToString());
                 return;

@@ -13,6 +13,8 @@ namespace Identity.Auth.Security.Sessions;
 /// </summary>
 public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
 {
+    private const int MaxConcurrentRevocationPublishes = 8;
+
     private readonly IBffSessionStore _inner;
     private readonly IBffLocalSessionCache _localCache;
     private readonly IBffSessionRevocationNotifier _notifier;
@@ -51,10 +53,13 @@ public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
         {
             // Snapshot the cache generation before the inner read. If an Invalidate races with the
             // fetch (including a pub/sub revocation arriving mid-flight), the generation advances
-            // and we skip writing back so a freshly-invalidated entry is not repopulated stale.
+            // and we re-read so callers do not receive the stale pre-invalidation record.
             long generation = _localCache.Generation;
             BffSessionRecord? record = await _inner.GetAsync(sessionId, CancellationToken.None);
-            if (record is not null && _localCache.Generation == generation)
+            if (_localCache.Generation != generation)
+                return await FetchFreshAfterInvalidationAsync(sessionId);
+
+            if (record is not null)
                 _localCache.Set(sessionId, record);
 
             return record;
@@ -65,18 +70,28 @@ public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
         }
     }
 
+    private async Task<BffSessionRecord?> FetchFreshAfterInvalidationAsync(string sessionId)
+    {
+        long generation = _localCache.Generation;
+        BffSessionRecord? record = await _inner.GetAsync(sessionId, CancellationToken.None);
+        if (record is not null && _localCache.Generation == generation)
+            _localCache.Set(sessionId, record);
+
+        return record;
+    }
+
     public async Task StoreAsync(BffSessionRecord session, CancellationToken ct = default)
     {
         await _inner.StoreAsync(session, ct);
 
-        if (IsTerminal(session.Status))
+        if (session.Status.IsTerminal())
         {
-            _localCache.Invalidate(session.SessionId);
-            await _notifier.PublishRevokedAsync(session.SessionId, CancellationToken.None);
+            ApplyLocalCacheMutation(session);
+            await PublishRevokedAsync(session.SessionId);
         }
         else
         {
-            _localCache.Set(session.SessionId, session);
+            ApplyLocalCacheMutation(session);
         }
     }
 
@@ -90,14 +105,11 @@ public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
         if (!updated)
             return false;
 
-        if (IsTerminal(session.Status))
-            _localCache.Invalidate(session.SessionId);
-        else
-            _localCache.Set(session.SessionId, session);
+        ApplyLocalCacheMutation(session);
 
         // Broadcast on every successful update — peers evict their L1 copies and re-fetch on next
         // access, bounding staleness to one round-trip instead of the full local-cache TTL.
-        await _notifier.PublishRevokedAsync(session.SessionId, CancellationToken.None);
+        await PublishRevokedAsync(session.SessionId);
         return true;
     }
 
@@ -105,7 +117,7 @@ public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
     {
         await _inner.RemoveAsync(sessionId, ct);
         _localCache.Invalidate(sessionId);
-        await _notifier.PublishRevokedAsync(sessionId, CancellationToken.None);
+        await PublishRevokedAsync(sessionId);
     }
 
     public Task<IReadOnlyList<string>> FindActiveSessionIdsBySubjectAsync(
@@ -130,13 +142,37 @@ public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
         foreach (string id in revokedIds)
             _localCache.Invalidate(id);
 
-        await Task.WhenAll(
-            revokedIds.Select(id => _notifier.PublishRevokedAsync(id, CancellationToken.None))
+        ParallelOptions publishOptions = new()
+        {
+            MaxDegreeOfParallelism = MaxConcurrentRevocationPublishes,
+        };
+        await Parallel.ForEachAsync(
+            revokedIds,
+            publishOptions,
+            async (id, _) => await PublishRevokedAsync(id)
         );
 
         return revokedIds;
     }
 
-    private static bool IsTerminal(BffSessionStatus status) =>
-        status is BffSessionStatus.Revoked or BffSessionStatus.Expired;
+    private async Task PublishRevokedAsync(string sessionId)
+    {
+        try
+        {
+            await _notifier.PublishRevokedAsync(sessionId, CancellationToken.None);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // The backing-store mutation already succeeded. A publish implementation failure must
+            // not roll the caller back into an application error; peers will fall back to TTL.
+        }
+    }
+
+    private void ApplyLocalCacheMutation(BffSessionRecord session)
+    {
+        if (session.Status.IsTerminal())
+            _localCache.Invalidate(session.SessionId);
+        else
+            _localCache.Set(session.SessionId, session);
+    }
 }

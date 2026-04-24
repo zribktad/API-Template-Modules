@@ -467,16 +467,6 @@ internal static partial class IdentityLogs
     );
 
     [LoggerMessage(
-        EventId = 3074,
-        Level = LogLevel.Debug,
-        Message = "Skipping BFF session revocation publish for {SessionRef}: Redis multiplexer not connected."
-    )]
-    public static partial void BffSessionRevocationPublishSkippedDisconnected(
-        this ILogger logger,
-        string sessionRef
-    );
-
-    [LoggerMessage(
         EventId = 3075,
         Level = LogLevel.Warning,
         Message = "Failed to publish BFF session revocation for {SessionRef}; peers will fall back to TTL eviction."

@@ -76,6 +76,5 @@ public sealed class BffLocalSessionCache : IBffLocalSessionCache, IDisposable
         _cache?.Dispose();
     }
 
-    private static string GetKey(string sessionId) =>
-        BffSessionCacheKeys.SessionKeyPrefix + sessionId;
+    private static string GetKey(string sessionId) => BffSessionCacheKeys.GetSessionKey(sessionId);
 }

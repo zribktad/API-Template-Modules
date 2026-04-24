@@ -15,4 +15,6 @@ internal static class BffSessionCacheKeys
     public static readonly RedisChannel RevocationChannel = RedisChannel.Literal(
         RevocationChannelName
     );
+
+    public static string GetSessionKey(string sessionId) => SessionKeyPrefix + sessionId;
 }
