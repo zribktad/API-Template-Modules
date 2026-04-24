@@ -32,7 +32,6 @@ public sealed class DeleteProductsCommandHandler
         DateTime deletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
         BatchFailureContext<Guid> context = new(ids);
 
-        // Load all target products and mark missing ones as failed
         IReadOnlyList<Entities.Product> products = await repository.ListAsync(
             new ProductsByIdsSpecification(ids.ToHashSet()),
             ct
@@ -54,9 +53,10 @@ public sealed class DeleteProductsCommandHandler
             return (HandlerContinuation.Stop, null, failureMessages);
         }
 
+        IReadOnlyList<Guid> productIds = products.Select(p => p.Id).ToList();
         return (
             HandlerContinuation.Continue,
-            new DeleteProductsState(products, tenantId, actorId, deletedAtUtc),
+            new DeleteProductsState(products, productIds, tenantId, actorId, deletedAtUtc),
             OutgoingMessagesHelper.Empty
         );
     }
@@ -73,8 +73,7 @@ public sealed class DeleteProductsCommandHandler
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                IReadOnlyList<Guid> ids = state.Products.Select(p => p.Id).ToList();
-                await linkRepository.BulkSoftDeleteByProductIdsAsync(ids, state.ActorId, state.DeletedAtUtc, ct);
+                await linkRepository.BulkSoftDeleteByProductIdsAsync(state.ProductIds, state.ActorId, state.DeletedAtUtc, ct);
                 await repository.DeleteRangeAsync(state.Products, ct);
             },
             ct
@@ -84,23 +83,22 @@ public sealed class DeleteProductsCommandHandler
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
         messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
-        IReadOnlyList<Guid> deletedProductIds = state.Products.Select(p => p.Id).ToList();
-        if (deletedProductIds.Count > 0)
-            messages.Add(
-                new ProductsBatchSoftDeletedNotification(
-                    deletedProductIds,
-                    state.TenantId,
-                    state.ActorId,
-                    state.DeletedAtUtc,
-                    Guid.NewGuid()
-                )
-            );
+        messages.Add(
+            new ProductsBatchSoftDeletedNotification(
+                state.ProductIds,
+                state.TenantId,
+                state.ActorId,
+                state.DeletedAtUtc,
+                Guid.NewGuid()
+            )
+        );
 
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
 
     public sealed record DeleteProductsState(
         IReadOnlyList<Entities.Product> Products,
+        IReadOnlyList<Guid> ProductIds,
         Guid TenantId,
         Guid ActorId,
         DateTime DeletedAtUtc

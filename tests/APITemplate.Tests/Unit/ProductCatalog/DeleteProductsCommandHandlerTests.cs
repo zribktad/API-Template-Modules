@@ -96,6 +96,7 @@ public sealed class DeleteProductsCommandHandlerTests
         continuation.ShouldBe(HandlerContinuation.Continue);
         state.ShouldNotBeNull();
         state!.Products.ShouldContain(product);
+        state.ProductIds.ShouldContain(product.Id);
         state.TenantId.ShouldBe(tenantId);
         state.ActorId.ShouldBe(actorId);
         state.DeletedAtUtc.ShouldBe(FixedDeletedAt);
@@ -165,7 +166,7 @@ public sealed class DeleteProductsCommandHandlerTests
         Guid tenantId = Guid.NewGuid();
         Product product = MakeProduct(tenantId: tenantId);
         DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], tenantId, actorId, FixedDeletedAt);
+            new([product], [product.Id], tenantId, actorId, FixedDeletedAt);
 
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
@@ -193,7 +194,7 @@ public sealed class DeleteProductsCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         Product product = MakeProduct();
         DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], Guid.NewGuid(), Guid.NewGuid(), FixedDeletedAt);
+            new([product], [product.Id], Guid.NewGuid(), Guid.NewGuid(), FixedDeletedAt);
 
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
@@ -214,45 +215,14 @@ public sealed class DeleteProductsCommandHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_ExecutesProductDeleteInsideTransaction()
+    public async Task HandleAsync_SoftDeletesLinksBeforeProductsInsideSingleTransaction()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Product product = MakeProduct();
-        DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], Guid.NewGuid(), Guid.NewGuid(), FixedDeletedAt);
-
-        await DeleteProductsCommandHandler.HandleAsync(
-            new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
-            state,
-            _productRepo.Object,
-            _unitOfWork.Object,
-            _linkRepo.Object,
-            ct
-        );
-
-        _unitOfWork.Verify(
-            u =>
-                u.ExecuteInTransactionAsync(
-                    It.IsAny<Func<Task>>(),
-                    ct,
-                    It.IsAny<TransactionOptions?>()
-                ),
-            Times.Once
-        );
-        _productRepo.Verify(
-            r => r.DeleteRangeAsync(It.IsAny<IEnumerable<Product>>(), ct),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task HandleAsync_BulkSoftDeletesLinksBeforeProducts()
-    {
-        CancellationToken ct = TestContext.Current.CancellationToken;
+        Guid actorId = Guid.NewGuid();
         Guid tenantId = Guid.NewGuid();
         Product product = MakeProduct(tenantId: tenantId);
         DeleteProductsCommandHandler.DeleteProductsState state =
-            new([product], tenantId, Guid.NewGuid(), FixedDeletedAt);
+            new([product], [product.Id], tenantId, actorId, FixedDeletedAt);
         List<string> callOrder = [];
 
         _linkRepo
@@ -280,14 +250,22 @@ public sealed class DeleteProductsCommandHandlerTests
             ct
         );
 
+        _unitOfWork.Verify(
+            u => u.ExecuteInTransactionAsync(It.IsAny<Func<Task>>(), ct, It.IsAny<TransactionOptions?>()),
+            Times.Once
+        );
         callOrder.ShouldBe(["links", "products"]);
         _linkRepo.Verify(
             r => r.BulkSoftDeleteByProductIdsAsync(
-                It.Is<IReadOnlyCollection<Guid>>(ids => ids.Contains(product.Id)),
-                state.ActorId,
-                state.DeletedAtUtc,
+                It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(state.ProductIds)),
+                actorId,
+                FixedDeletedAt,
                 ct
             ),
+            Times.Once
+        );
+        _productRepo.Verify(
+            r => r.DeleteRangeAsync(state.Products, ct),
             Times.Once
         );
     }
