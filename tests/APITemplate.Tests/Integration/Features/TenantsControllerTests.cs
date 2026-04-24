@@ -1,26 +1,67 @@
 using System.Net;
 using System.Net.Http.Json;
 using APITemplate.Tests.Integration.Helpers;
+using Identity.Directory.Entities;
 using Identity.Directory.Features.Tenant.DTOs;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SharedKernel.Contracts.Security;
 using SharedKernel.Domain.Common;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Features;
 
-public class TenantsControllerTests : IClassFixture<CustomWebApplicationFactory>
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
+public class TenantsControllerTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
 {
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
-    private readonly Guid _tenantId = Guid.NewGuid();
+
+    private Tenant _adminTenant = default!;
+    private AppUser _adminUser = default!;
 
     public TenantsControllerTests(CustomWebApplicationFactory factory)
     {
-        _client = factory.CreateClient();
-        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
+        _factory = factory;
+        _client = factory.CreateClient(
+            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }
+        );
     }
 
+    public async ValueTask InitializeAsync()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        (_adminTenant, _adminUser) = await IntegrationAuthHelper.SeedTenantUserAsync(
+            _factory.Services,
+            "tenants_admin",
+            "tenants_admin@test.com",
+            ct: ct
+        );
+        Authenticate();
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
     // Unique per test-class instance → no cross-test collisions even with shared DB
-    private string Code(string prefix) => $"{prefix}-{_tenantId:N}"[..20];
+    private string Code(string prefix) => $"{prefix}-{_adminTenant.Id:N}"[..20];
+
+    private void Authenticate(Guid? tenantId = null) =>
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            userId: _adminUser.Id,
+            tenantId: tenantId ?? _adminTenant.Id,
+            username: _adminUser.Username.Value,
+            role: "PlatformAdmin",
+            permissions:
+            [
+                Permission.Tenants.Read,
+                Permission.Tenants.Create,
+                Permission.Tenants.Delete,
+            ],
+            email: _adminUser.Email.Value,
+            subject: _adminUser.KeycloakUserId
+        );
 
     private async Task<TenantResponse> CreateTenantAsync(
         string code,
@@ -254,12 +295,11 @@ public class TenantsControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
         var ct = TestContext.Current.CancellationToken;
 
-        // Create a tenant while authenticated as _tenantId
         var created = await CreateTenantAsync(Code("CT"), "Cross Tenant Corp", ct);
 
-        // Switch to a completely different tenant context
+        // Switch to a completely different tenant context (same user, different tenantId claim)
         var otherTenantId = Guid.NewGuid();
-        IntegrationAuthHelper.Authenticate(_client, tenantId: otherTenantId);
+        Authenticate(otherTenantId);
 
         var response = await _client.GetAsync("/api/v1/tenants?pageSize=100", ct);
 
@@ -272,7 +312,7 @@ public class TenantsControllerTests : IClassFixture<CustomWebApplicationFactory>
         tenants!.Items.ShouldContain(t => t.Id == created.Id);
 
         // Restore original auth for other tests
-        IntegrationAuthHelper.Authenticate(_client, tenantId: _tenantId);
+        Authenticate();
     }
 
     [Fact]

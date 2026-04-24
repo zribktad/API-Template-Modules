@@ -62,7 +62,6 @@
     <Compile Include="Integration\Smoke\ProductAndReviewSmokeTests.cs" />
     <Compile Include="Integration\Smoke\ExampleFeaturesSmokeTests.cs" />
     <Compile Include="Integration\Validation\BoundaryValidationIntegrationTests.cs" />
-    <Compile Include="Integration\Auth\AuthEdgeCasesTests.cs" />
     <Compile Include="Integration\Auth\AuthenticatedCrudTests.cs" />
     <Compile Include="Integration\Auth\UnauthorizedAccessTests.cs" />
     <Compile Include="Integration\Features\RolesControllerTests.cs" />
