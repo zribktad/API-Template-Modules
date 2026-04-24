@@ -11,7 +11,6 @@ using Notifications;
 using ProductCatalog;
 using Reviews;
 using Serilog;
-using SharedKernel.Application.Middleware;
 using SharedKernel.Infrastructure.Health;
 using Webhooks;
 using Wolverine;
