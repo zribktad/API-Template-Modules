@@ -2,6 +2,7 @@ using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Product.GetProductById;
 using ProductCatalog.Features.Product.GetProducts;
+using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Queries;
@@ -17,11 +18,22 @@ public class ProductQueries
     ///     Returns a paginated product list with search facets, mapping the GraphQL input to the
     ///     application-layer filter before dispatching via the message bus.
     /// </summary>
-    public Task<ProductPageResult> GetProducts(
+    public async Task<ProductPageResult> GetProducts(
         ProductQueryInput? input,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
-    ) => bus.InvokeAsync<ProductPageResult>(new GetProductsQuery((input ?? new ProductQueryInput()).ToFilter()), ct);
+    )
+    {
+        ProductFilter filter = (input ?? new ProductQueryInput()).ToFilter();
+        validator.ValidateForGraphQL(filter);
+        ErrorOr<ProductsResponse> result = await bus.InvokeAsync<ErrorOr<ProductsResponse>>(
+            new GetProductsQuery(filter),
+            ct
+        );
+        ProductsResponse page = result.ToGraphQLResult();
+        return new ProductPageResult(page.Page, page.Facets);
+    }
 
     /// <summary>Returns a single product by ID, or <see langword="null" /> if not found.</summary>
     public async Task<ProductResponse?> GetProductById(
