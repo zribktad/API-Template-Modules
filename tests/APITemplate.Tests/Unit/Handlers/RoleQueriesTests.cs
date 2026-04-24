@@ -1,11 +1,13 @@
 using System.Security.Claims;
-using Identity.Auth.Security;
-using Identity.Directory.Entities;
-using Identity.Directory.Features.Role.GetPermissions;
-using Identity.Directory.Features.Role.GetRoles;
-using Identity.Directory.Interfaces;
+using global::Identity.Auth.Security;
+using global::Identity.Directory.Entities;
+using global::Identity.Directory.Features.Role.GetPermissions;
+using global::Identity.Directory.Features.Role.GetRoles;
+using global::Identity.Directory.Features.Role.Shared;
+using global::Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using SharedKernel.Application.Context;
 using SharedKernel.Contracts.Security;
 using SharedKernel.Domain.Interfaces;
 using Shouldly;
@@ -25,25 +27,15 @@ public class RoleQueriesTests
         tenantProvider.Setup(x => x.TenantId).Returns(tenantId);
 
         var repository = new Mock<IRoleRepository>();
-        var roles = new List<CustomRole>
+        var roles = new List<RoleResponse>
         {
-            new CustomRole
-            {
-                Id = Guid.NewGuid(),
-                Name = "Role 1",
-                TenantId = tenantId,
-            },
-            new CustomRole
-            {
-                Id = Guid.NewGuid(),
-                Name = "Role 2",
-                TenantId = tenantId,
-            },
+            new RoleResponse(Guid.NewGuid(), "Role 1", false, []),
+            new RoleResponse(Guid.NewGuid(), "Role 2", false, []),
         };
         repository
             .Setup(x =>
                 x.ListAsync(
-                    It.IsAny<Ardalis.Specification.ISpecification<CustomRole>>(),
+                    It.IsAny<Ardalis.Specification.ISpecification<CustomRole, RoleResponse>>(),
                     It.IsAny<CancellationToken>()
                 )
             )

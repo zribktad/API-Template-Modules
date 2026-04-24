@@ -1,11 +1,12 @@
 using System.Net;
-using APITemplate.Api.Controllers;
-using APITemplate.Api.ErrorOrMapping;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using SharedKernel.Application.DTOs;
+using SharedKernel.Contracts.Api;
 using Shouldly;
 using Xunit;
 
@@ -129,7 +130,7 @@ public class ErrorOrExtensionsTests
         ErrorOr<string> result = "created-value";
         var controller = CreateApiController();
 
-        var actionResult = result.ToCreatedResult(controller, v => new { id = v });
+        var actionResult = result.ToCreatedResult(controller, "GetById", v => new { id = v });
 
         var created = actionResult.Result.ShouldBeOfType<CreatedAtActionResult>();
         created.Value.ShouldBe("created-value");
@@ -141,7 +142,11 @@ public class ErrorOrExtensionsTests
     {
         ErrorOr<string> result = Error.NotFound("X.NotFound", "Not found.");
 
-        var actionResult = result.ToCreatedResult(CreateApiController(), v => new { id = v });
+        var actionResult = result.ToCreatedResult(
+            CreateApiController(),
+            "GetById",
+            v => new { id = v }
+        );
 
         var obj = actionResult.Result.ShouldBeOfType<ObjectResult>();
         obj.StatusCode.ShouldBe(StatusCodes.Status404NotFound);
@@ -214,7 +219,16 @@ public class ErrorOrExtensionsTests
         var controller = new FakeController();
         controller.ControllerContext = new ControllerContext
         {
-            HttpContext = new DefaultHttpContext { Request = { Path = path } },
+            HttpContext = new DefaultHttpContext
+            {
+                Request =
+                {
+                    Path = path,
+                    Scheme = "https",
+                    Host = new HostString("api-template.local"),
+                },
+                RequestServices = new ServiceCollection().BuildServiceProvider(),
+            },
             ActionDescriptor = new ControllerActionDescriptor(),
             RouteData = new RouteData(),
         };
@@ -226,7 +240,16 @@ public class ErrorOrExtensionsTests
         var controller = new FakeApiController();
         controller.ControllerContext = new ControllerContext
         {
-            HttpContext = new DefaultHttpContext { Request = { Path = path } },
+            HttpContext = new DefaultHttpContext
+            {
+                Request =
+                {
+                    Path = path,
+                    Scheme = "https",
+                    Host = new HostString("api-template.local"),
+                },
+                RequestServices = new ServiceCollection().BuildServiceProvider(),
+            },
             ActionDescriptor = new ControllerActionDescriptor(),
             RouteData = new RouteData(),
         };

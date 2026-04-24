@@ -9,6 +9,7 @@ using Identity.Directory.Features.Role.UpdateRole;
 using Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using SharedKernel.Application.Context;
 using SharedKernel.Contracts.Security;
 using SharedKernel.Domain.Interfaces;
 using Shouldly;
@@ -21,7 +22,7 @@ namespace APITemplate.Tests.Unit.Handlers;
 public class RoleRequestHandlersTests
 {
     private readonly Mock<IRoleRepository> _repository = new();
-    private readonly Mock<IUnitOfWork<Identity.Persistence.IdentityDbMarker>> _unitOfWork = new();
+    private readonly Mock<IUnitOfWork<global::Identity.IdentityDbMarker>> _unitOfWork = new();
     private readonly Mock<ITenantProvider> _tenantProvider = new();
     private readonly Mock<IHttpContextAccessor> _httpContextAccessor = new();
 
@@ -253,7 +254,7 @@ public class RoleRequestHandlersTests
         );
 
         loadResult.IsError.ShouldBeTrue();
-        loadResult.FirstError.Code.ShouldBe("Role.Immutable");
+        loadResult.FirstError.Code.ShouldBe("ROL-0422-IMMUTABLE");
     }
 
     [Fact]
@@ -349,7 +350,7 @@ public class RoleRequestHandlersTests
         _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
 
         messages
-            .OfType<Identity.Directory.Features.Role.InvalidatePermissions.RolePermissionsInvalidatedEvent>()
+            .OfType<global::Identity.Directory.Features.Role.InvalidatePermissions.RolePermissionsInvalidatedEvent>()
             .ShouldHaveSingleItem();
     }
 
@@ -381,7 +382,7 @@ public class RoleRequestHandlersTests
         );
 
         loadResult.IsError.ShouldBeTrue();
-        loadResult.FirstError.Code.ShouldBe("Role.Immutable");
+        loadResult.FirstError.Code.ShouldBe("ROL-0422-IMMUTABLE");
     }
 
     [Fact]
@@ -411,7 +412,7 @@ public class RoleRequestHandlersTests
         _unitOfWork.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
 
         messages
-            .OfType<Identity.Directory.Features.Role.InvalidatePermissions.RolePermissionsInvalidatedEvent>()
+            .OfType<global::Identity.Directory.Features.Role.InvalidatePermissions.RolePermissionsInvalidatedEvent>()
             .ShouldHaveSingleItem();
     }
 }

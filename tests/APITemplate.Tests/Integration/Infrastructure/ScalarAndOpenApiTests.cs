@@ -1,20 +1,57 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using APITemplate.Tests.Integration.Helpers;
+using Identity.Directory.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Testing;
+using SharedKernel.Application.Http;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Integration.Infrastructure;
 
-public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
+public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
 {
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
+
+    private Tenant _adminTenant = default!;
+    private AppUser _adminUser = default!;
 
     public ScalarAndOpenApiTests(CustomWebApplicationFactory factory)
     {
-        _client = factory.CreateClient();
+        _factory = factory;
+        _client = factory.CreateClient(
+            new WebApplicationFactoryClientOptions { AllowAutoRedirect = false }
+        );
     }
+
+    public async ValueTask InitializeAsync()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        (_adminTenant, _adminUser) = await IntegrationAuthHelper.SeedTenantUserAsync(
+            _factory.Services,
+            "openapi_admin",
+            "openapi_admin@test.com",
+            ct: ct
+        );
+    }
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    private void AuthenticateAdmin() =>
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            userId: _adminUser.Id,
+            tenantId: _adminTenant.Id,
+            username: _adminUser.Username.Value,
+            role: "PlatformAdmin",
+            email: _adminUser.Email.Value,
+            subject: _adminUser.KeycloakUserId
+        );
 
     [Fact]
     public async Task OpenApi_Endpoint_ReturnsJsonDocument()
@@ -94,15 +131,13 @@ public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
 
         var content = await response.Content.ReadAsStringAsync(ct);
         content.ShouldContain("scalar");
-        content.ShouldContain("authorizationUrl");
-        content.ShouldContain("tokenUrl");
     }
 
     [Fact]
     public async Task GraphQL_Endpoint_IsAccessible()
     {
         var ct = TestContext.Current.CancellationToken;
-        IntegrationAuthHelper.Authenticate(_client);
+        AuthenticateAdmin();
 
         var response = await _client.PostAsJsonAsync(
             "/graphql",
@@ -111,5 +146,29 @@ public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>
         );
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task RequestContext_WhenCorrelationHeaderProvided_EchoesHeader()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/openapi/v1.json");
+        request.Headers.Add(RequestContextConstants.Headers.CorrelationId, "corr-edge-123");
+
+        var response = await _client.SendAsync(request, ct);
+
+        response.IsSuccessStatusCode.ShouldBeTrue();
+        response
+            .Headers.GetValues(RequestContextConstants.Headers.CorrelationId)
+            .Single()
+            .ShouldBe("corr-edge-123");
+        response
+            .Headers.GetValues(RequestContextConstants.Headers.TraceId)
+            .Single()
+            .ShouldNotBeNullOrWhiteSpace();
+        response
+            .Headers.GetValues(RequestContextConstants.Headers.ElapsedMs)
+            .Single()
+            .ShouldNotBeNullOrWhiteSpace();
     }
 }

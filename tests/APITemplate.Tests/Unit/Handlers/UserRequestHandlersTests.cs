@@ -1,5 +1,4 @@
 using ErrorOr;
-using Identity.Auth.Entities;
 using Identity.Directory.Domain.Services;
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
@@ -11,7 +10,7 @@ using Shouldly;
 using Wolverine;
 using Xunit;
 using ErrorCatalog = Identity.Errors.ErrorCatalog;
-using IdentityUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
+using IdentityUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<global::Identity.IdentityDbMarker>;
 using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 
 namespace APITemplate.Tests.Unit.Handlers;
@@ -34,7 +33,7 @@ public class UserRequestHandlersTests
             "testuser",
             "test@example.com",
             true,
-            UserRole.User,
+            ["User"],
             ProvisioningStatus.Completed,
             DateTime.UtcNow
         );
@@ -95,7 +94,7 @@ public class UserRequestHandlersTests
                 "user1",
                 "user1@test.com",
                 true,
-                UserRole.User,
+                ["User"],
                 ProvisioningStatus.Completed,
                 DateTime.UtcNow
             ),
@@ -104,7 +103,7 @@ public class UserRequestHandlersTests
                 "user2",
                 "user2@test.com",
                 true,
-                UserRole.PlatformAdmin,
+                ["PlatformAdmin"],
                 ProvisioningStatus.Completed,
                 DateTime.UtcNow
             ),
@@ -367,72 +366,6 @@ public class UserRequestHandlersTests
         result.FirstError.Type.ShouldBe(ErrorType.NotFound);
     }
 
-    // --- ChangeRoleAsync ---
-
-    [Fact]
-    public async Task ChangeRoleAsync_ChangesUserRole()
-    {
-        AppUser user = CreateTestUser();
-        _repositoryMock
-            .Setup(r => r.GetByIdAsync(user.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user);
-
-        ChangeUserRoleCommand command = new(
-            user.Id,
-            new ChangeUserRoleRequest(UserRole.PlatformAdmin)
-        );
-
-        ErrorOr<AppUser> validation = await ChangeUserRoleCommandHandler.ValidateAsync(
-            command,
-            _repositoryMock.Object,
-            TestContext.Current.CancellationToken
-        );
-        (ErrorOr<Success> result, OutgoingMessages messages) =
-            await ChangeUserRoleCommandHandler.HandleAsync(
-                command,
-                _repositoryMock.Object,
-                _unitOfWorkMock.Object,
-                validation,
-                TestContext.Current.CancellationToken
-            );
-
-        result.IsError.ShouldBeFalse();
-        user.Role.ShouldBe(UserRole.PlatformAdmin);
-        _repositoryMock.Verify(r => r.UpdateAsync(user, It.IsAny<CancellationToken>()), Times.Once);
-        _unitOfWorkMock.Verify(u => u.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
-        messages.OfType<UserRoleChangedNotification>().ShouldHaveSingleItem();
-        messages.OfType<CacheInvalidationNotification>().ShouldHaveSingleItem();
-    }
-
-    [Fact]
-    public async Task ChangeRoleAsync_WhenUserNotFound_ReturnsNotFoundError()
-    {
-        _repositoryMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((AppUser?)null);
-
-        ChangeUserRoleCommand command = new(
-            Guid.NewGuid(),
-            new ChangeUserRoleRequest(UserRole.PlatformAdmin)
-        );
-
-        ErrorOr<AppUser> validation = await ChangeUserRoleCommandHandler.ValidateAsync(
-            command,
-            _repositoryMock.Object,
-            TestContext.Current.CancellationToken
-        );
-        (ErrorOr<Success> result, _) = await ChangeUserRoleCommandHandler.HandleAsync(
-            command,
-            _repositoryMock.Object,
-            _unitOfWorkMock.Object,
-            validation,
-            TestContext.Current.CancellationToken
-        );
-
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Type.ShouldBe(ErrorType.NotFound);
-    }
-
     // --- DeleteAsync ---
 
     [Fact]
@@ -493,7 +426,7 @@ public class UserRequestHandlersTests
 
     // --- Helpers ---
 
-    private static AppUser CreateTestUser(bool isActive = true, UserRole role = UserRole.User)
+    private static AppUser CreateTestUser(bool isActive = true)
     {
         return AppUser.Create(
             username: "testuser",

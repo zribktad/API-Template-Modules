@@ -197,4 +197,33 @@ internal static class IntegrationAuthHelper
 
         return (tenant, user);
     }
+
+    /// <summary>
+    ///     Seeds a user inside an already-existing tenant.
+    /// </summary>
+    public static async Task<AppUser> SeedUserInTenantAsync(
+        IServiceProvider services,
+        Guid tenantId,
+        string username,
+        string email,
+        bool userIsActive = true,
+        CancellationToken ct = default
+    )
+    {
+        await using AsyncServiceScope scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+
+        AppUser user = AppUser.Create(
+            username,
+            email,
+            $"kc-{Guid.NewGuid():N}",
+            tenantId: tenantId,
+            isActive: userIsActive
+        );
+
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync(ct);
+
+        return user;
+    }
 }

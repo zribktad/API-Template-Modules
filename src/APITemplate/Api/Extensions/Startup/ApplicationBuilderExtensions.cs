@@ -1,6 +1,5 @@
 using APITemplate.Api.Middleware;
 using Chatting;
-using Wolverine.Http;
 using FileStorage;
 using HealthChecks.UI.Client;
 using Identity.Auth.Security;
@@ -13,6 +12,7 @@ using Serilog;
 using Serilog.Events;
 using SharedKernel.Application.Http;
 using SharedKernel.Infrastructure.Health;
+using Wolverine.Http;
 
 namespace APITemplate.Api.Extensions.Startup;
 
@@ -22,6 +22,7 @@ public static class ApplicationBuilderExtensions
     {
         app.UseExceptionHandler();
         app.UseHttpsRedirection();
+        app.UseCors();
         // Correlation in Items + Serilog only (no Response) so Challenge runs before response headers.
         app.UseMiddleware<CorrelationContextMiddleware>();
         app.UseAuthentication();
