@@ -193,4 +193,49 @@ public sealed class DeleteCategoriesCommandHandlerTests
             Times.Once
         );
     }
+
+    [Fact]
+    public async Task HandleAsync_PublishesCategorySoftDeletedNotification()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        Guid id = Guid.NewGuid();
+        Guid actorId = Guid.NewGuid();
+        Guid tenantId = Guid.NewGuid();
+        DeleteCategoriesState state = new([id], tenantId, actorId, FixedDeletedAt);
+
+        _productRepo
+            .Setup(r => r.ClearCategoryAsync(It.IsAny<IReadOnlyCollection<Guid>>(), ct))
+            .Returns(Task.CompletedTask);
+        _categoryRepo
+            .Setup(r =>
+                r.BulkSoftDeleteByIdsAsync(
+                    It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    ct
+                )
+            )
+            .ReturnsAsync(1);
+
+        (ErrorOr<BatchResponse> result, OutgoingMessages messages) =
+            await DeleteCategoriesCommandHandler.HandleAsync(
+                new DeleteCategoriesCommand(new BatchDeleteRequest([id])),
+                state,
+                _categoryRepo.Object,
+                _productRepo.Object,
+                _unitOfWork.Object,
+                ct
+            );
+
+        result.IsError.ShouldBeFalse();
+        CategorySoftDeletedNotification? notification = messages
+            .OfType<CategorySoftDeletedNotification>()
+            .SingleOrDefault();
+        notification.ShouldNotBeNull();
+        notification!.CategoryIds.ShouldContain(id);
+        notification.TenantId.ShouldBe(tenantId);
+        notification.ActorId.ShouldBe(actorId);
+        notification.DeletedAtUtc.ShouldBe(FixedDeletedAt);
+    }
 }

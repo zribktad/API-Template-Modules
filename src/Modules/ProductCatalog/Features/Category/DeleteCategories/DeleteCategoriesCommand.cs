@@ -110,6 +110,14 @@ public sealed class DeleteCategoriesCommandHandler
         OutgoingMessages messages = new();
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
+        if (state.CategoryIds.Count > 0)
+            messages.Add(new CategorySoftDeletedNotification(
+                state.CategoryIds.ToList(),
+                state.TenantId,
+                state.ActorId,
+                state.DeletedAtUtc,
+                Guid.NewGuid()
+            ));
 
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }

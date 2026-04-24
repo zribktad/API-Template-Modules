@@ -32,7 +32,7 @@ public sealed class DeleteProductsCommandHandler
 
         // Load all target products and mark missing ones as failed
         IReadOnlyList<Entities.Product> products = await repository.ListAsync(
-            new ProductsByIdsWithLinksSpecification(ids.ToHashSet()),
+            new ProductsByIdsSpecification(ids.ToHashSet()),
             ct
         );
 
@@ -68,14 +68,16 @@ public sealed class DeleteProductsCommandHandler
         CancellationToken ct
     )
     {
-        List<ProductDataLink> allLinks = state
-            .Products.SelectMany(product => product.ProductDataLinks)
-            .ToList();
-
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
-                linkRepository.DeleteRange(allLinks);
+                IReadOnlyList<Guid> productIds = state.Products.Select(p => p.Id).ToList();
+                await linkRepository.BulkSoftDeleteByProductIdsAsync(
+                    productIds,
+                    state.ActorId,
+                    state.DeletedAtUtc,
+                    ct
+                );
                 await repository.DeleteRangeAsync(state.Products, ct);
             },
             ct
@@ -85,11 +87,11 @@ public sealed class DeleteProductsCommandHandler
         messages.Add(new CacheInvalidationNotification(CacheTags.Products));
         messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
         messages.Add(new CacheInvalidationNotification(CacheTags.Reviews));
-        IReadOnlyList<Guid> productIds = state.Products.Select(p => p.Id).ToList();
-        if (productIds.Count > 0)
+        IReadOnlyList<Guid> deletedProductIds = state.Products.Select(p => p.Id).ToList();
+        if (deletedProductIds.Count > 0)
             messages.Add(
                 new ProductsBatchSoftDeletedNotification(
-                    productIds,
+                    deletedProductIds,
                     state.Products[0].TenantId,
                     state.ActorId,
                     state.DeletedAtUtc,

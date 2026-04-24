@@ -32,9 +32,6 @@ public interface ICategoryRepository : IRepository<Category>
     ///     <c>ExecuteUpdateAsync</c> SQL statement (zero entity materialization). <paramref name="tenantId"/>
     ///     is supplied explicitly so this method is safe to call from both HTTP and background (Wolverine
     ///     durable-local-queue) contexts where <c>ITenantProvider.HasTenant</c> may be <c>false</c>.
-    ///     No <c>CategorySoftDeletedNotification</c> is published — no module currently subscribes
-    ///     to category deletion events. Publish the notification from the call site if a cross-module
-    ///     consumer is introduced.
     /// </summary>
     Task<int> BulkSoftDeleteByIdsAsync(
         IReadOnlyCollection<Guid> ids,
