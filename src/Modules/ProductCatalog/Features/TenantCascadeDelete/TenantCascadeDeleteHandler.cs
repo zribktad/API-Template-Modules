@@ -54,7 +54,7 @@ public static class TenantCascadeDeleteHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForProductDeletion());
+        messages.AddRange(CacheInvalidationCascades.ForProductDeletion);
 
         if (productIds.Count > 0)
         {

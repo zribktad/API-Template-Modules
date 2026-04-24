@@ -108,7 +108,7 @@ public sealed class DeleteCategoriesCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForCategoryDeletion());
+        messages.AddRange(CacheInvalidationCascades.ForCategoryDeletion);
         return (new BatchResponse([], command.Request.Ids.Count, 0), messages);
     }
 }

@@ -53,7 +53,7 @@ public sealed class CreateProductsCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForProductChange());
+        messages.AddRange(CacheInvalidationCascades.ForProductChange);
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }

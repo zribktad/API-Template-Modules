@@ -58,7 +58,7 @@ public sealed class DeleteProductReviewCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForReviewChange());
+        messages.AddRange(CacheInvalidationCascades.ForReviewChange);
         return (Result.Success, messages);
     }
 }

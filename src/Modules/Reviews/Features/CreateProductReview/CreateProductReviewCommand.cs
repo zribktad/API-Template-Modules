@@ -79,7 +79,7 @@ public sealed class CreateProductReviewCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForReviewChange());
+        messages.AddRange(CacheInvalidationCascades.ForReviewChange);
         return (review.ToResponse(), messages);
     }
 

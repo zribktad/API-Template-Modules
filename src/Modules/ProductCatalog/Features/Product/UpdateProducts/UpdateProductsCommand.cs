@@ -117,7 +117,7 @@ public sealed class UpdateProductsCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForProductChange());
+        messages.AddRange(CacheInvalidationCascades.ForProductChange);
         return (new BatchResponse([], items.Count, 0), messages);
     }
 }
