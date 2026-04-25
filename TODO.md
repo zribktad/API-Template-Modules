@@ -2,35 +2,6 @@
 
 ## Testing Backlog
 
-### UNIT
-
-#### High Priority
-
-- [ ] **Cover ProductCatalog category command/query handlers beyond delete**  
-  Missing focused unit coverage for `CreateCategoriesCommandHandler`, `UpdateCategoriesCommandHandler`, `GetCategoriesQueryHandler`, `GetCategoryByIdQueryHandler`, and `GetCategoryStatsQueryHandler`. Existing tests cover category delete behavior and batch-rule DI resolution, but not create/update/query success and failure paths.
-
-- [ ] **Cover ProductData command/query handlers**  
-  Missing focused unit coverage for `CreateImageProductDataCommandHandler`, `CreateVideoProductDataCommandHandler`, `DeleteProductDataCommandHandler`, `GetProductDataQueryHandler`, and `GetProductDataByIdQueryHandler`. Existing tests cover cascade delete/pipeline behavior, but not the command/query handlers themselves.
-
-- [ ] **Cover Reviews create/delete/query handlers**  
-  Missing focused unit coverage for `CreateProductReviewCommandHandler`, `DeleteProductReviewCommandHandler`, `GetProductReviewsQueryHandler`, `GetProductReviewByIdQueryHandler`, `GetProductReviewsByProductIdQueryHandler`, and `GetProductReviewsByProductIdsQueryHandler`. Existing tests cover rating value object validation, boundary validation, and product-soft-delete cascade behavior.
-
-#### Medium Priority
-
-- [ ] **Cover cache invalidation cascade contracts**  
-  Add regression tests for `ProductCatalog.Common.Events.CacheInvalidationCascades` and `Reviews.Common.Events.CacheInvalidationCascades` so product/category/product-data/review changes keep invalidating the expected cache tags.
-
-- [ ] **Cover FileStorage endpoint command gaps**  
-  Existing unit tests cover begin/commit upload, saga lifecycle, local blob store, maybe-delete, and orphan sweep behavior. Add focused tests for `UploadFileCommandHandler`, `DownloadFileQueryHandler`, and `DeleteFileCommandHandler`.
-
-- [ ] **Cover tenant invitation command handlers**  
-  Repository and notification email behavior are tested, but command-level behavior still needs focused unit tests for `CreateTenantInvitationCommandHandler`, `AcceptTenantInvitationCommandHandler`, `ResendTenantInvitationCommandHandler`, and `RevokeTenantInvitationCommandHandler`.
-
-#### Low Priority
-
-- [ ] **Cover simple projection/query mapping edge cases**  
-  Add lightweight tests for category/product-data/review response projections only where they encode non-trivial behavior such as nullable fields, sorting aliases, or filter criteria.
-
 ### Integration
 
 #### High Priority
