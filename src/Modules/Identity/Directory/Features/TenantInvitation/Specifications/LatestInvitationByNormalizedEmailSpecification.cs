@@ -14,7 +14,7 @@ public sealed class LatestInvitationByNormalizedEmailSpecification
     {
         Query
             .IgnoreQueryFilters()
-            .Where(i => i.Email.Normalized == normalizedEmail)
+            .Where(i => i.DbNormalizedEmail == normalizedEmail)
             .OrderByDescending(i => i.Audit.CreatedAtUtc)
             .Take(1)
             .AsNoTracking();

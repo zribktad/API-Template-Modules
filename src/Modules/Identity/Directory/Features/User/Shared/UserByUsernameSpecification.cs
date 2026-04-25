@@ -10,6 +10,6 @@ public sealed class UserByUsernameSpecification : Specification<AppUser>
     public UserByUsernameSpecification(string username)
     {
         string normalizedUsername = NormalizedString.Normalize(username);
-        Query.Where(u => u.Username.Normalized == normalizedUsername).AsNoTracking();
+        Query.Where(u => u.DbNormalizedUsername == normalizedUsername).AsNoTracking();
     }
 }

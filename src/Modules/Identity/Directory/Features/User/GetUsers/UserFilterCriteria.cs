@@ -15,13 +15,13 @@ internal static class UserFilterCriteria
         if (!string.IsNullOrWhiteSpace(filter.Username))
         {
             string normalizedUsername = NormalizedString.Normalize(filter.Username);
-            query.Where(u => u.Username.Normalized.Contains(normalizedUsername));
+            query.Where(u => u.DbNormalizedUsername.Contains(normalizedUsername));
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Email))
         {
             string normalizedEmail = NormalizedString.Normalize(filter.Email);
-            query.Where(u => u.Email.Normalized == normalizedEmail);
+            query.Where(u => u.DbNormalizedEmail == normalizedEmail);
         }
 
         if (filter.IsActive.HasValue)

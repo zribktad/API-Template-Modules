@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using ErrorOr;
 
 namespace Identity.Directory.Entities;
@@ -10,7 +11,20 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
     public const int EmailMaxLength = 320;
 
-    public NormalizedString Email { get; private set; } = null!;
+    public string DbEmail { get; private set; } = null!;
+    public string DbNormalizedEmail { get; private set; } = null!;
+
+    [NotMapped]
+    public NormalizedString Email
+    {
+        get => new NormalizedString(DbEmail);
+        set
+        {
+            DbEmail = value.Value;
+            DbNormalizedEmail = value.Normalized;
+        }
+    }
+
     public string TokenHash { get; private set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; private set; }
     public InvitationStatus Status { get; private set; } = InvitationStatus.Pending;

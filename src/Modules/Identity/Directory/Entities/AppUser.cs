@@ -1,18 +1,43 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Identity.Directory.Entities;
 
 /// <summary>
-///     Tenant-scoped user. Email and Username are stored as <see cref="NormalizedString"/> — both the
-///     original value and its normalised form — so uniqueness checks and lookups are case-insensitive
-///     without losing the display representation.
+///     Tenant-scoped user. Email and Username are stored as flat primitives so EF Core can build
+///     Npgsql-specific indexes directly in C#. <see cref="Email"/> and <see cref="Username"/> are
+///     <see cref="NotMappedAttribute"/> facades that expose the domain value object to business logic.
 /// </summary>
 public sealed class AppUser : IAuditableTenantEntity, IHasId
 {
     public const int UsernameMaxLength = 100;
     public const int EmailMaxLength = 320;
 
-    public required NormalizedString Username { get; set; }
+    public string DbEmail { get; private set; } = null!;
+    public string DbNormalizedEmail { get; private set; } = null!;
+    public string DbUsername { get; private set; } = null!;
+    public string DbNormalizedUsername { get; private set; } = null!;
 
-    public required NormalizedString Email { get; set; }
+    [NotMapped]
+    public NormalizedString Email
+    {
+        get => new NormalizedString(DbEmail);
+        set
+        {
+            DbEmail = value.Value;
+            DbNormalizedEmail = value.Normalized;
+        }
+    }
+
+    [NotMapped]
+    public NormalizedString Username
+    {
+        get => new NormalizedString(DbUsername);
+        set
+        {
+            DbUsername = value.Value;
+            DbNormalizedUsername = value.Normalized;
+        }
+    }
 
     /// <summary>
     ///     The user's subject ID in Keycloak. Nullable — existing users may not have one yet.
@@ -60,7 +85,9 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
             KeycloakUserId = keycloakUserId,
             TenantId = tenantId ?? Guid.Empty,
             IsActive = isActive,
-            ProvisioningStatus = keycloakUserId is not null ? ProvisioningStatus.Completed : ProvisioningStatus.Pending,
+            ProvisioningStatus = keycloakUserId is not null
+                ? ProvisioningStatus.Completed
+                : ProvisioningStatus.Pending,
         };
 
         return user;

@@ -1,1 +1,0 @@
--- pg_trgm extension is shared across schemas and is not dropped on rollback.

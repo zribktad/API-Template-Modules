@@ -20,6 +20,7 @@ public sealed class IdentityDbContext : ModuleDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("pg_trgm");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(IdentityDbContext).Assembly);
         ApplyGlobalFilters(modelBuilder);
     }

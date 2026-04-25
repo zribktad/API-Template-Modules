@@ -14,7 +14,7 @@ public sealed class PendingInvitationByNormalizedEmailSpecification
     {
         Query
             .Where(i =>
-                i.Email.Normalized == normalizedEmail && i.Status == InvitationStatus.Pending
+                i.DbNormalizedEmail == normalizedEmail && i.Status == InvitationStatus.Pending
             )
             .AsNoTracking();
     }
