@@ -130,7 +130,7 @@ public sealed class AppUserPersistencePostgresTests
         await using NpgsqlCommand cmd = conn.CreateCommand();
         cmd.CommandText = $"""
             SELECT "Email", "NormalizedEmail", "Username", "NormalizedUsername"
-            FROM identity."Users"
+            FROM "Users"
             WHERE "Id" = '{user.Id}'
             """;
         await using NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(ct);

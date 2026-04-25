@@ -33,20 +33,6 @@ namespace Identity.Migrations
                 .Annotation("Npgsql:IndexMethod", "GIN")
                 .Annotation("Npgsql:IndexOperators", new[] { "gin_trgm_ops" });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_TenantId_NormalizedEmail",
-                table: "Users",
-                columns: new[] { "TenantId", "NormalizedEmail" },
-                unique: true
-            );
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_TenantId_NormalizedUsername",
-                table: "Users",
-                columns: new[] { "TenantId", "NormalizedUsername" },
-                unique: true
-            );
-
             migrationBuilder
                 .CreateIndex(
                     name: "IX_Tenants_Code_Name",
@@ -55,12 +41,6 @@ namespace Identity.Migrations
                 )
                 .Annotation("Npgsql:IndexMethod", "GIN")
                 .Annotation("Npgsql:TsVectorConfig", "english");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TenantInvitations_TenantId_NormalizedEmail",
-                table: "TenantInvitations",
-                columns: new[] { "TenantId", "NormalizedEmail" }
-            );
         }
 
         /// <inheritdoc />
@@ -72,19 +52,7 @@ namespace Identity.Migrations
 
             migrationBuilder.DropIndex(name: "IX_Users_NormalizedUsername_Trgm", table: "Users");
 
-            migrationBuilder.DropIndex(name: "IX_Users_TenantId_NormalizedEmail", table: "Users");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Users_TenantId_NormalizedUsername",
-                table: "Users"
-            );
-
             migrationBuilder.DropIndex(name: "IX_Tenants_Code_Name", table: "Tenants");
-
-            migrationBuilder.DropIndex(
-                name: "IX_TenantInvitations_TenantId_NormalizedEmail",
-                table: "TenantInvitations"
-            );
 
             migrationBuilder
                 .AlterDatabase()
