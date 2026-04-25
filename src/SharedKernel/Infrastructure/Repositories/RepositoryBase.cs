@@ -1,8 +1,6 @@
-using System.Linq.Expressions;
 using Ardalis.Specification;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Application.Errors;
 using SharedKernel.Domain.Common;
 using SharedKernel.Domain.Interfaces;
 using SharedKernel.Infrastructure.Repositories.Pagination;
@@ -27,50 +25,22 @@ public abstract class RepositoryBase<T>
         CancellationToken ct = default
     )
     {
-        IQueryable<T> baseQuery = ApplySpecification((ISpecification<T>)spec);
-        IQueryable<T> countSource = ApplySpecification(spec, true);
-
         if (spec.Selector is null)
-        {
             throw new InvalidOperationException(
                 $"Specification {spec.GetType().Name} must define a Select projection to use GetPagedAsync."
             );
-        }
 
-        Expression<Func<T, PagedRow<TResult>>> combinedSelector = spec.Selector.BuildPaged(
-            countSource
+        IQueryable<T> baseQuery = ApplySpecification((ISpecification<T>)spec);
+        IQueryable<T> countSource = ApplySpecification(spec, true);
+
+        return await PagedQueryExecutor.ExecuteAsync(
+            baseQuery,
+            countSource,
+            spec.Selector,
+            pageNumber,
+            pageSize,
+            ct
         );
-        int skip = (pageNumber - 1) * pageSize;
-        List<PagedRow<TResult>> results = await baseQuery
-            .Skip(skip)
-            .Take(pageSize)
-            .Select(combinedSelector)
-            .ToListAsync(ct);
-
-        if (results.Count > 0)
-        {
-            return new PagedResponse<TResult>(
-                results.Select(r => r.Item),
-                results[0].TotalCount,
-                pageNumber,
-                pageSize
-            );
-        }
-
-        if (pageNumber > 1)
-        {
-            int totalCount = await baseQuery.CountAsync(ct);
-            if (totalCount > 0)
-            {
-                int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-                return Error.Validation(
-                    ErrorCatalog.General.PageOutOfRange,
-                    $"PageNumber {pageNumber} exceeds total pages ({totalPages})."
-                );
-            }
-        }
-
-        return new PagedResponse<TResult>([], 0, pageNumber, pageSize);
     }
 
     public override Task<T> AddAsync(T entity, CancellationToken ct = default)

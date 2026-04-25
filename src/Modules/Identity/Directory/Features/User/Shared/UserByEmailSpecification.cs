@@ -10,6 +10,6 @@ public sealed class UserByEmailSpecification : Specification<AppUser>
     public UserByEmailSpecification(string email)
     {
         string normalizedEmail = NormalizedString.Normalize(email);
-        Query.Where(u => u.Email.Normalized == normalizedEmail).AsNoTracking();
+        Query.Where(u => u.DbNormalizedEmail == normalizedEmail).AsNoTracking();
     }
 }

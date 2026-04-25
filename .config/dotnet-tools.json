@@ -13,6 +13,24 @@
       "commands": [
         "csharpier"
       ]
+    },
+    "dotnet-ef": {
+      "version": "10.0.7",
+      "commands": [
+        "dotnet-ef"
+      ]
+    },
+    "dotnet-reportgenerator-globaltool": {
+      "version": "5.5.6",
+      "commands": [
+        "reportgenerator"
+      ]
+    },
+    "dotnet-stryker": {
+      "version": "4.14.1",
+      "commands": [
+        "dotnet-stryker"
+      ]
     }
   }
 }

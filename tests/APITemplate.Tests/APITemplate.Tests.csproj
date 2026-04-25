@@ -50,6 +50,7 @@
     <Compile Include="Integration\IntegrationAuthHelper.cs" />
     <Compile Include="Integration\IntegrationCollectionTestBase.cs" />
     <Compile Include="Integration\IntegrationTestBase.cs" />
+    <Compile Include="Integration\Postgres\AppUserPersistencePostgresTests.cs" />
     <Compile Include="Integration\Postgres\BffSessionPostgresTests.cs" />
     <Compile Include="Integration\Postgres\BffSessionServiceE2ETests.cs" />
     <Compile Include="Integration\Postgres\IdentityIntegrationTestProviders.cs" />

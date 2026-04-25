@@ -30,7 +30,7 @@ internal static class TenantInvitationFilterCriteria
         if (!string.IsNullOrWhiteSpace(filter.Email))
         {
             string normalized = NormalizedString.Normalize(filter.Email);
-            query.Where(i => i.Email.Normalized.Contains(normalized));
+            query.Where(i => i.DbNormalizedEmail.Contains(normalized));
         }
 
         if (filter.Status.HasValue)

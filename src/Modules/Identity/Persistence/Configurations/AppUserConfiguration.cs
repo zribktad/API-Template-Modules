@@ -1,4 +1,3 @@
-using EFCore.ComplexIndexes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SharedKernel.Infrastructure.Configurations;
@@ -12,20 +11,29 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasKey(u => u.Id);
         builder.ConfigureTenantAuditable();
 
-        // NormalizedString uses ComplexProperty (not OwnsOne) so that EF Core can model composite
-        // indexes that span the owner column (TenantId) and the complex-type column (NormalizedEmail /
-        // NormalizedUsername). OwnsOne creates a separate ownership scope that prevents cross-boundary
-        // HasIndex — ComplexProperty keeps everything in the same entity scope and fully supports it.
-        builder.ComplexProperty(u => u.Username, b =>
-        {
-            b.Property(x => x.Value).HasColumnName("Username").IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
-            b.Property(x => x.Normalized).HasColumnName("NormalizedUsername").IsRequired().HasMaxLength(AppUser.UsernameMaxLength);
-        });
-        builder.ComplexProperty(u => u.Email, b =>
-        {
-            b.Property(x => x.Value).HasColumnName("Email").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
-            b.Property(x => x.Normalized).HasColumnName("NormalizedEmail").IsRequired().HasMaxLength(AppUser.EmailMaxLength);
-        });
+        builder
+            .Property(u => u.DbEmail)
+            .HasColumnName("Email")
+            .IsRequired()
+            .HasMaxLength(AppUser.EmailMaxLength);
+        builder
+            .Property(u => u.DbNormalizedEmail)
+            .HasColumnName("NormalizedEmail")
+            .IsRequired()
+            .HasMaxLength(AppUser.EmailMaxLength);
+        builder
+            .Property(u => u.DbUsername)
+            .HasColumnName("Username")
+            .IsRequired()
+            .HasMaxLength(AppUser.UsernameMaxLength);
+        builder
+            .Property(u => u.DbNormalizedUsername)
+            .HasColumnName("NormalizedUsername")
+            .IsRequired()
+            .HasMaxLength(AppUser.UsernameMaxLength);
+
+        builder.Ignore(u => u.Email);
+        builder.Ignore(u => u.Username);
 
         builder.Property(u => u.KeycloakUserId).HasMaxLength(256);
 
@@ -49,14 +57,21 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .WithMany(r => r.Users)
             .UsingEntity(j => j.ToTable("AppUserRoles", "identity"));
 
-        // FK to Tenant — no navigation property on Tenant side (module boundary)
         builder
             .HasOne<Tenant>()
             .WithMany()
             .HasForeignKey(u => u.TenantId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasComplexCompositeIndex(u => new { u.TenantId, u.Email.Normalized }, isUnique: true);
-        builder.HasComplexCompositeIndex(u => new { u.TenantId, u.Username.Normalized }, isUnique: true);
+        builder.HasIndex(u => new { u.TenantId, u.DbNormalizedEmail }).IsUnique();
+        builder.HasIndex(u => new { u.TenantId, u.DbNormalizedUsername }).IsUnique();
+
+        builder.HasIndex(u => u.DbNormalizedEmail, "IX_Users_NormalizedEmail");
+        builder.HasIndex(u => u.DbNormalizedUsername, "IX_Users_NormalizedUsername");
+
+        builder
+            .HasIndex(u => u.DbNormalizedUsername, "IX_Users_NormalizedUsername_Trgm")
+            .HasMethod("GIN")
+            .HasOperators("gin_trgm_ops");
     }
 }

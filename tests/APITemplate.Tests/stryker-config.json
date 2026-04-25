@@ -1,0 +1,7 @@
+{
+  "stryker-config": {
+    "project": "SharedKernel.csproj",
+    "reporters": ["html", "progress"],
+    "mutation-level": "Standard"
+  }
+}

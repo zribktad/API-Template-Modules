@@ -17,7 +17,7 @@ public static class TenantInvitationMappings
         Func<TenantInvitationEntity, TenantInvitationResponse>
     > Projection = i => new TenantInvitationResponse(
         i.Id,
-        i.Email.Value,
+        i.DbEmail,
         i.Status,
         i.ExpiresAtUtc,
         i.Audit.CreatedAtUtc
