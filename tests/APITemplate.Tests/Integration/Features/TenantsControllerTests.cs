@@ -325,4 +325,43 @@ public class TenantsControllerTests : IClassFixture<CustomWebApplicationFactory>
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public async Task GetAll_SearchByCode_ReturnsMatchingTenant()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var code = Code("FTS");
+        var created = await CreateTenantAsync(code, "Search By Code Corp", ct);
+
+        var response = await _client.GetAsync($"/api/v1/tenants?query={code}&pageSize=100", ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var tenants = await response.Content.ReadFromJsonAsync<PagedResponse<TenantResponse>>(
+            TestJsonOptions.CaseInsensitive,
+            ct
+        );
+        tenants.ShouldNotBeNull();
+        tenants!.Items.ShouldContain(t => t.Id == created.Id);
+    }
+
+    [Fact]
+    public async Task GetAll_SearchByName_ReturnsMatchingTenant()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var uniqueName = $"UniqueName{_adminTenant.Id:N}"[..30];
+        var created = await CreateTenantAsync(Code("NM"), uniqueName, ct);
+
+        var response = await _client.GetAsync(
+            $"/api/v1/tenants?query={Uri.EscapeDataString(uniqueName)}&pageSize=100",
+            ct
+        );
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var tenants = await response.Content.ReadFromJsonAsync<PagedResponse<TenantResponse>>(
+            TestJsonOptions.CaseInsensitive,
+            ct
+        );
+        tenants.ShouldNotBeNull();
+        tenants!.Items.ShouldContain(t => t.Id == created.Id);
+    }
 }

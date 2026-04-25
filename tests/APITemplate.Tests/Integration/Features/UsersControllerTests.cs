@@ -4,6 +4,8 @@ using APITemplate.Tests.Integration.Helpers;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
 using Microsoft.AspNetCore.Mvc.Testing;
+using SharedKernel.Contracts.Security;
+using SharedKernel.Domain.Common;
 using Shouldly;
 using Xunit;
 
@@ -39,6 +41,18 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>, 
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    private void AuthenticateAsAdmin() =>
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            userId: _user.Id,
+            tenantId: _tenant.Id,
+            username: _user.Username.Value,
+            role: "PlatformAdmin",
+            permissions: [Permission.Users.Read],
+            email: _user.Email.Value,
+            subject: _user.KeycloakUserId
+        );
 
     [Fact]
     public async Task GetMe_WithAuthenticatedNonAdminUser_ReturnsCurrentUser()
@@ -86,5 +100,35 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>, 
         var response = await _client.GetAsync("/api/v1/users", ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetAll_FilterByPartialUsername_ReturnsMatchingUser()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Seed a user with a unique username for this test
+        string uniqueUsername = $"filtertest{_user.Id:N}"[..20];
+        AppUser seededUser = await IntegrationAuthHelper.SeedUserInTenantAsync(
+            _factory.Services,
+            _tenant.Id,
+            uniqueUsername,
+            $"{uniqueUsername}@test.com",
+            ct: ct
+        );
+
+        AuthenticateAsAdmin();
+
+        // Search by partial (first 8 chars)
+        string partial = uniqueUsername[..8];
+        var response = await _client.GetAsync($"/api/v1/users?username={partial}&pageSize=100", ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var payload = await response.Content.ReadFromJsonAsync<PagedResponse<UserResponse>>(
+            TestJsonOptions.CaseInsensitive,
+            ct
+        );
+        payload.ShouldNotBeNull();
+        payload!.Items.ShouldContain(u => u.Id == seededUser.Id);
     }
 }
