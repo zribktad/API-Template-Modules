@@ -118,7 +118,23 @@ public sealed class RedisBffSessionRevocationNotifierTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         string sessionId = "1234567890abcdef1234567890abcdef";
+        string? capturedMessage = null;
         Mock<ILogger<RedisBffSessionRevocationNotifier>> logger = new();
+        logger.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
+        logger
+            .Setup(l =>
+                l.Log(
+                    It.IsAny<LogLevel>(),
+                    It.IsAny<EventId>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception?>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                )
+            )
+            .Callback<LogLevel, EventId, object, Exception?, Delegate>(
+                (_, _, state, ex, formatter) =>
+                    capturedMessage = formatter.DynamicInvoke(state, ex) as string
+            );
         RedisConnectionMultiplexerMockHarness redis = new RedisConnectionMultiplexerMockBuilder()
             .WithConnected(true)
             .WithPublishThrowing<RedisConnectionException>()
@@ -133,15 +149,14 @@ public sealed class RedisBffSessionRevocationNotifierTests
                 x.Log(
                     It.IsAny<LogLevel>(),
                     It.Is<EventId>(e => e.Id == 3075),
-                    It.Is<It.IsAnyType>(
-                        (state, _) =>
-                            state.ToString()!.Contains("12345678...")
-                            && !state.ToString()!.Contains(sessionId)
-                    ),
+                    It.IsAny<It.IsAnyType>(),
                     It.IsAny<Exception?>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()
                 ),
             Times.Once
         );
+        capturedMessage.ShouldNotBeNull();
+        capturedMessage.ShouldContain("12345678...");
+        capturedMessage.ShouldNotContain(sessionId);
     }
 }

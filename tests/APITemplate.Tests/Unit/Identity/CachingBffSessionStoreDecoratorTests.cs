@@ -61,7 +61,12 @@ public sealed class CachingBffSessionStoreDecoratorTests
         };
         BffSessionRecord? outRecord = null;
         _localCache.Setup(c => c.TryGet("s1", out outRecord)).Returns(false);
-        _localCache.SetupSequence(c => c.Generation).Returns(7L).Returns(8L).Returns(8L);
+        _localCache
+            .SetupSequence(c => c.Generation)
+            .Returns(7L)
+            .Returns(8L)
+            .Returns(8L)
+            .Returns(8L);
         _inner
             .SetupSequence(i => i.GetAsync("s1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(staleRecord)

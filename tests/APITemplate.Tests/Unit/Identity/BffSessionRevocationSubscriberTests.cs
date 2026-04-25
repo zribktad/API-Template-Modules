@@ -213,6 +213,7 @@ public sealed class BffSessionRevocationSubscriberTests
     public async Task StartAsync_WhenInitialSubscribeThrows_DoesNotPropagate()
     {
         Mock<ILogger<BffSessionRevocationSubscriber>> logger = new();
+        logger.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         RedisConnectionMultiplexerMockHarness redis = new RedisConnectionMultiplexerMockBuilder()
             .WithSubscribeThrowing<RedisConnectionException>()
             .Build();
@@ -254,6 +255,7 @@ public sealed class BffSessionRevocationSubscriberTests
             .Build();
         Mock<IBffLocalSessionCache> cache = new();
         Mock<ILogger<BffSessionRevocationSubscriber>> logger = new();
+        logger.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
         int invalidateCalls = 0;
         cache
             .Setup(c => c.Invalidate(It.IsAny<string>()))
