@@ -26,7 +26,7 @@ graph TB
     subgraph APP[ASP.NET Core API]
         BFF[BffController<br/>/api/v1/bff/login<br/>/api/v1/bff/login/{idpHint}<br/>/api/v1/bff/external-providers<br/>/api/v1/bff/logout<br/>/api/v1/bff/user<br/>/api/v1/bff/csrf]
         JWT_VAL[JwtBearer Middleware<br/>validates Bearer token]
-        COOKIE_VAL[Cookie Middleware<br/>looks up session in PostgreSQL + Redis cache]
+        COOKIE_VAL[Cookie Middleware<br/>L1 in-process cache → Redis → PostgreSQL]
         REFRESH[CookieSessionRefresher<br/>loads session, delegates to<br/>BffTokenRefreshService]
         CSRF[CsrfValidationMiddleware<br/>X-CSRF token required]
         TENANT[IdentityTokenValidatedPipeline<br/>validates tenant_id claim]
@@ -38,9 +38,14 @@ graph TB
         PG_STORE[BffPersistedSession table<br/>primary session store<br/>tokens encrypted at rest]
     end
 
+    subgraph LOCAL[Per-Instance In-Process Cache]
+        L1[BffLocalSessionCache<br/>IMemoryCache, 10s TTL<br/>invalidated via Redis pub/sub]
+    end
+
     subgraph SESSION[DragonFly / Redis]
         CACHE[Redis Cache<br/>bff:session:GUID → BffSessionRecord<br/>read-through cache, 10 min TTL]
         LOCK[Refresh Coordinator<br/>bff:session:GUID:refresh:lock<br/>bff:session:GUID:refresh:result]
+        REVOKE[Revocation Channel<br/>bff:session:revocations<br/>pub/sub broadcast]
         DP[DataProtection Keys<br/>DataProtection:Keys]
     end
 
@@ -54,8 +59,10 @@ graph TB
     SCALAR -->|OAuth2 Authorization Code| REALM
     BFF -->|OIDC Code Flow| REALM
     JWT_VAL --> TENANT --> CLAIM --> AUTHZ
-    COOKIE_VAL --> CACHE
+    COOKIE_VAL --> L1
+    L1 -.->|miss| CACHE
     CACHE -.->|miss| PG_STORE
+    REVOKE -. subscribe .-> L1
     COOKIE_VAL --> REFRESH
     REFRESH -->|grant_type=refresh_token| REALM
     REFRESH --> LOCK
@@ -71,7 +78,7 @@ graph TB
 | **Scalar OAuth2**      | Scalar UI (dev tool)           | Yes (in Scalar memory only)                                      |
 | **JWT Bearer**         | Mobile apps, Postman, curl     | Yes (client manages it)                                          |
 | **Client Credentials** | Microservices, background jobs | N/A (machine-to-machine)                                         |
-| **BFF Cookie**         | SPA frontend (browser)         | **No** — httpOnly cookie, tokens in PostgreSQL (cached in Redis) |
+| **BFF Cookie**         | SPA frontend (browser)         | **No** — httpOnly cookie, tokens in PostgreSQL (L2 Redis cache + L1 per-instance cache) |
 
 ---
 
@@ -499,7 +506,7 @@ sequenceDiagram
 
 ### 3d. Session revocation
 
-Revocation means the session is **soft-deleted in PostgreSQL** and **removed from Redis cache**. The `BffPersistedSession` is marked with `IsDeleted = true` and `Status = Revoked`, `RevokedAtUtc`, and `RevocationReason` populated. Any subsequent request that loads a revoked session gets rejected immediately (`BffSessionService.GetSessionAsync` returns `null` for revoked sessions).
+Revocation means the session is **soft-deleted in PostgreSQL**, **removed from the Redis L2 cache**, and **broadcast on the `bff:session:revocations` pub/sub channel** so every instance evicts its per-process L1 entry within milliseconds (see [§ 3e.i](#3ei-l1-local-cache-and-redis-pubsub-invalidation)). The `BffPersistedSession` is marked with `IsDeleted = true` and `Status = Revoked`, `RevokedAtUtc`, and `RevocationReason` populated. Any subsequent request that loads a revoked session gets rejected immediately (`BffSessionService.GetSessionAsync` returns `null` for revoked sessions).
 
 This is intentional — keeping the record allows:
 - **Audit trail**: the reason and timestamp of revocation remain in PostgreSQL for 24h (cleanup job retention)
@@ -523,18 +530,55 @@ This is intentional — keeping the record allows:
 
 ### 3e. Storage architecture and Redis cache keys
 
-**PostgreSQL** is the primary durable session store (`BffPersistedSession` table). **Redis/DragonFly** acts as a read-through cache with short TTL (`CacheTtlMinutes`, default 10 min). This design supports offline sessions (`offline_access` scope) — the refresh token in PostgreSQL survives Redis restarts and long idle periods (up to 30 days).
+**PostgreSQL** is the primary durable session store (`BffPersistedSession` table). **Redis/DragonFly** acts as a read-through L2 cache with short TTL (`CacheTtlMinutes`, default 10 min). **Each application instance** also keeps a per-process L1 cache (`BffLocalSessionCache`, `IMemoryCache`-backed, default 10 s TTL) so repeated requests for the same session skip the Redis round-trip entirely. L1 coherence across instances is maintained by a Redis pub/sub revocation broadcast. This design supports offline sessions (`offline_access` scope) — the refresh token in PostgreSQL survives Redis restarts and long idle periods (up to 30 days).
 
-| Layer      | Key / Table                       | Content                                             | TTL                                          | Set by                          |
-| ---------- | --------------------------------- | --------------------------------------------------- | -------------------------------------------- | ------------------------------- |
-| PostgreSQL | `BffPersistedSession`             | Full session entity, tokens encrypted               | No TTL (cleanup job)                         | `PostgresCachedBffSessionStore` |
-| Redis      | `bff:session:{id}`                | `BffSessionRecord` as JSON (tokens encrypted)       | `CacheTtlMinutes` (10 min), **sliding**      | `PostgresCachedBffSessionStore` |
-| Redis      | `bff:session:{id}:refresh:lock`   | Lock owner identifier (`machine:pid:guid`)          | `RefreshLockTimeoutMilliseconds` (5s), fixed | `RedisBffRefreshCoordinator`    |
-| Redis      | `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed   | `RedisBffRefreshCoordinator`    |
+| Layer               | Key / Table                       | Content                                             | TTL                                          | Set by                              |
+| ------------------- | --------------------------------- | --------------------------------------------------- | -------------------------------------------- | ----------------------------------- |
+| L1 (in-process)     | `bff:session:{id}`                | `BffSessionRecord` (plaintext, per-instance)        | `LocalCacheTtlSeconds` (10 s), absolute      | `CachingBffSessionStoreDecorator`   |
+| L2 (Redis)          | `bff:session:{id}`                | `BffSessionRecord` as JSON (tokens encrypted)       | `CacheTtlMinutes` (10 min), **sliding**      | `PostgresCachedBffSessionStore`     |
+| PostgreSQL          | `BffPersistedSession`             | Full session entity, tokens encrypted               | No TTL (cleanup job)                         | `PostgresCachedBffSessionStore`     |
+| Redis (refresh)     | `bff:session:{id}:refresh:lock`   | Lock owner identifier (`machine:pid:guid`)          | `RefreshLockTimeoutMilliseconds` (5s), fixed | `RedisBffRefreshCoordinator`        |
+| Redis (refresh)     | `bff:session:{id}:refresh:result` | Refresh outcome JSON (`{succeeded, failureReason}`) | `RefreshResultTtlMilliseconds` (5s), fixed   | `RedisBffRefreshCoordinator`        |
+| Redis (pub/sub)     | `bff:session:revocations`         | Revoked session id (plain string)                   | N/A (broadcast)                              | `RedisBffSessionRevocationNotifier` |
 
-**Read path:** Redis cache hit → return. Cache miss → load from PostgreSQL → populate Redis cache → return.
+**Read path:** L1 hit → return. L1 miss → L2 (Redis) hit → populate L1 → return. L2 miss → load from PostgreSQL → populate L2 + L1 → return.
 
-**Write path:** Write to PostgreSQL (primary) → write to Redis cache.
+**Write path:** Write to PostgreSQL (primary) → write to Redis (L2) → update or invalidate L1 through `CachingBffSessionStoreDecorator`. Terminal mutations (`RemoveAsync`, `TryUpdateAsync` with `Status = Revoked | Expired`, `BulkRevokeActiveSessionsBySubjectAsync`) also publish the affected session id to `bff:session:revocations`.
+
+### 3e.i. L1 local cache and Redis pub/sub invalidation
+
+Without an L1 cache, every authenticated request paid a Redis `GET`. The L1 cache (`BffLocalSessionCache`, backed by `IMemoryCache`) collapses repeated reads of the same session into an in-memory dictionary lookup. Because L1 is per-process, a revocation on instance A would otherwise go unseen on instance B until L1's TTL expired. To close that window, the store is wrapped in `CachingBffSessionStoreDecorator` which publishes every terminal mutation over a single Redis pub/sub broadcast channel; on every instance, `BffSessionRevocationSubscriber` (registered as an `IHostedService`) listens on that channel and invalidates the matching L1 entry.
+
+**Coherence rules applied by the decorator:**
+
+| Mutation                                                 | L1 action                                  | Pub/sub publish |
+| -------------------------------------------------------- | ------------------------------------------ | --------------- |
+| `StoreAsync` (initial sign-in)                           | Write new record to L1                     | No              |
+| `TryUpdateAsync` with `Status = Active` (token refresh)  | Write-through: replace L1 record           | Yes             |
+| `TryUpdateAsync` with `Status = Revoked \| Expired`      | Invalidate L1 entry                        | Yes             |
+| `RemoveAsync` (logout / `RedisTicketStore` eviction)     | Invalidate L1 entry                        | Yes             |
+| `BulkRevokeActiveSessionsBySubjectAsync` (password change, revoke-all) | Invalidate L1 entry per session id | Yes, one message per session |
+| `GetAsync` on L1 miss                                    | Populate L1 with the record returned by L2 | No              |
+
+**Why a single broadcast channel (`bff:session:revocations`) rather than per-session channels?** Each instance needs a constant number of subscriptions regardless of how many sessions are in its L1. Messages for sessions not present in the local cache translate into a cheap dictionary no-op; the volume of revocation events is bounded by logout/password-change/revoke-all activity, which is low.
+
+**Failure modes:**
+
+- **Redis disconnected:** `RedisBffSessionRevocationNotifier` logs a warning and returns without throwing. Peer instances fall back to TTL-bounded eviction (≤ `LocalCacheTtlSeconds`). StackExchange.Redis auto-reconnect restores the subscription when Redis comes back.
+- **Malformed pub/sub message:** The subscriber logs a warning and ignores the message. One bad message cannot disable the subscription.
+- **Redis not configured at all (`Redis:ConnectionString` empty):** `NullBffSessionRevocationNotifier` is registered and the hosted subscriber is not. The L1 cache still works locally; cross-instance staleness is bounded by TTL only. This mirrors the existing `InProcessBffRefreshCoordinator` fallback pattern.
+
+**Why subscribe in `StartAsync`, not `ExecuteAsync`?** `IHostedService.StartAsync` is awaited by the host before HTTP traffic is accepted, so the subscription is guaranteed to be active before the first request. Deferring the subscribe to `BackgroundService.ExecuteAsync` would leave a short window where the application serves requests while its L1 cache is effectively non-coherent.
+
+**Configuration:**
+
+| Setting (`BffOptions`)    | Default | Description                                                           |
+| ------------------------- | ------- | --------------------------------------------------------------------- |
+| `LocalCacheTtlSeconds`    | `10`    | Absolute TTL for L1 entries. Set to `0` to disable the L1 cache.      |
+| `LocalCacheMaxEntries`    | `10000` | `MemoryCache.SizeLimit` — caps L1 memory footprint per instance.      |
+| `CacheTtlMinutes`         | `10`    | Sliding TTL for L2 (Redis) entries, unchanged.                        |
+
+Setting `LocalCacheTtlSeconds = 0` produces a no-op L1 cache (`TryGet` always returns `false`, `Set` is ignored) and restores the previous single-level Redis-only behaviour without removing the decorator from the pipeline.
 
 **Sliding cache TTL** — every time the session cache key is read, the TTL is atomically reset via a Lua script (`GET` + `PEXPIRE` in one roundtrip). This keeps the cache warm for active sessions:
 
@@ -630,23 +674,30 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    Browser["Browser<br/>cookie = opaque GUID (HttpOnly)"] -->|lookup| Cache
+    Browser["Browser<br/>cookie = opaque GUID (HttpOnly)"] -->|lookup| L1
+
+    subgraph Instance[Per-instance memory]
+        L1["BffLocalSessionCache<br/>├── BffSessionRecord (in-process)<br/>└── TTL = LocalCacheTtlSeconds (10 s)<br/>(skip-window L1 cache)"]
+    end
 
     subgraph PostgreSQL
         PGSession["BffPersistedSession table<br/>├── access_token (encrypted)<br/>├── refresh_token (encrypted)<br/>├── id_token (encrypted)<br/>├── AccessTokenExpiresAtUtc<br/>├── Status, Version<br/>└── identity claims<br/>(primary store, durable)"]
     end
 
     subgraph DragonFly
-        Cache["bff:session:&lt;GUID&gt;<br/>├── BffSessionRecord (JSON)<br/>│   ├── tokens (encrypted)<br/>│   └── identity claims<br/>└── TTL = CacheTtlMinutes (10 min)<br/>(read-through cache)"]
+        Cache["bff:session:&lt;GUID&gt;<br/>├── BffSessionRecord (JSON)<br/>│   ├── tokens (encrypted)<br/>│   └── identity claims<br/>└── TTL = CacheTtlMinutes (10 min)<br/>(L2 read-through cache)"]
         Lock["bff:session:&lt;GUID&gt;:refresh:lock<br/>└── distributed mutex (NX, TTL=5s)"]
         Result["bff:session:&lt;GUID&gt;:refresh:result<br/>└── leader outcome (TTL=5s)"]
+        Revoke["bff:session:revocations<br/>└── pub/sub broadcast of revoked session ids"]
         DP["DataProtection:Keys<br/>└── ASP.NET Data Protection key ring"]
     end
 
+    L1 -.->|miss| Cache
     Cache -.->|miss| PGSession
+    Revoke -. subscribe/invalidate .-> L1
 ```
 
-**Storage architecture:** PostgreSQL is the primary durable session store. Redis/DragonFly acts as a read-through cache with a short TTL (`CacheTtlMinutes`, default 10 min). On cache miss, the session is loaded from PostgreSQL and populated into Redis. All writes go to PostgreSQL first, then to Redis cache. This design allows offline sessions (with `offline_access` scope) to survive across Redis restarts and long idle periods — the refresh token in PostgreSQL remains available for up to 30 days.
+**Storage architecture:** PostgreSQL is the primary durable session store. Redis/DragonFly acts as an L2 read-through cache with a short TTL (`CacheTtlMinutes`, default 10 min). Each instance also holds an L1 in-process cache (`BffLocalSessionCache`, default 10 s TTL) so repeated reads of the same session don't cross the network at all; coherence between L1 caches is preserved by the `bff:session:revocations` pub/sub channel. On L1 miss the session is loaded from L2; on L2 miss from PostgreSQL; in both cases the upper tiers are populated on the way back. All writes go to PostgreSQL first, then L2, then L1 is written-through (for active sessions) or invalidated (for terminal mutations). This design allows offline sessions (with `offline_access` scope) to survive across Redis restarts and long idle periods — the refresh token in PostgreSQL remains available for up to 30 days.
 
 **Security principle:** Tokens never leave the server — the browser only holds an opaque GUID. Token fields (`access_token`, `refresh_token`, `id_token`) are encrypted at rest by `BffSessionTokenProtector` using `IDataProtector` with purpose `bff:session:tokens`.
 

@@ -243,7 +243,7 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
     }
 
     private static string GetCacheKey(string sessionId) =>
-        BffSessionCacheKeys.SessionKeyPrefix + sessionId;
+        BffSessionCacheKeys.GetSessionKey(sessionId);
 
     private static string SerializeRecord(BffSessionRecord protectedRecord)
     {

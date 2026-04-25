@@ -7,7 +7,7 @@ internal sealed class BffSessionRecordFactory : IBffSessionRecordFactory
 {
     public BffSessionRecord CreateNew(AuthenticationTicket ticket, DateTimeOffset now)
     {
-        return CreateRecord(Guid.NewGuid().ToString("N"), ticket, now, now, version: 1);
+        return CreateRecord(BffSessionIds.NewId(), ticket, now, now, version: 1);
     }
 
     public BffSessionRecord CreateUpdated(

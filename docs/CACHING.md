@@ -7,6 +7,8 @@ The application uses **ASP.NET Core Output Cache** with an optional **DragonFly*
 - **With DragonFly configured** — all application instances share the same cache, ensuring consistency behind a load balancer.
 - **Without DragonFly** — falls back to in-memory cache with a warning log. Suitable for local development and single-instance deployments.
 
+> **BFF session caching is a separate concern.** Authenticated BFF sessions are cached in a two-tier layout (per-instance L1 `IMemoryCache` + shared L2 Redis) with Redis pub/sub invalidation for cross-instance coherence. That layer is documented in [AUTHENTICATION.md § 3e](AUTHENTICATION.md#3e-storage-architecture-and-redis-cache-keys); this document covers **output caching** for HTTP GET responses only.
+
 ## Architecture
 
 ### Single Instance (Development)

@@ -82,4 +82,15 @@ public sealed class BffOptions
     [Description("Redis cache TTL, in minutes, for the read-through session cache layer.")]
     [Range(1, int.MaxValue)]
     public int CacheTtlMinutes { get; init; } = 10;
+
+    [Description(
+        "Local in-process session cache TTL in seconds. Set to 0 to disable the local cache. "
+            + "Bounds staleness window when Redis pub/sub revocation notifications are unavailable."
+    )]
+    [Range(0, 3600)]
+    public int LocalCacheTtlSeconds { get; init; } = 10;
+
+    [Description("Maximum number of session entries retained in the local in-process cache.")]
+    [Range(100, int.MaxValue)]
+    public int LocalCacheMaxEntries { get; init; } = 10_000;
 }

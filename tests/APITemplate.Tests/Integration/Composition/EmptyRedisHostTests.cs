@@ -29,7 +29,11 @@ public sealed class EmptyRedisHostTests : IClassFixture<EmptyRedisWebApplication
         response.EnsureSuccessStatusCode();
 
         IBffSessionStore store = _factory.Services.GetRequiredService<IBffSessionStore>();
-        store.ShouldBeOfType<PostgresDistributedCacheBffSessionStore>();
+        store.ShouldBeOfType<CachingBffSessionStoreDecorator>();
+
+        PostgresDistributedCacheBffSessionStore inner =
+            _factory.Services.GetRequiredService<PostgresDistributedCacheBffSessionStore>();
+        inner.ShouldNotBeNull();
 
         IBffRefreshCoordinator refresh =
             _factory.Services.GetRequiredService<IBffRefreshCoordinator>();
