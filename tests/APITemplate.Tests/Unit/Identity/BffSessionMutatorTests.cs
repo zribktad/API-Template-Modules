@@ -7,9 +7,6 @@ using Moq;
 using Shouldly;
 using Xunit;
 
-// Moq cannot create ILogger<BffSessionMutator> proxies because BffSessionMutator is internal
-// and Microsoft.Extensions.Logging.Abstractions is strong-named. Use a plain capturing logger.
-
 namespace APITemplate.Tests.Unit.Identity;
 
 [Trait("Category", "Unit")]
@@ -104,20 +101,31 @@ public sealed class BffSessionMutatorTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         BffSessionRecord session = BffSessionStoreUnitTestHelpers.CreateSampleSession();
-        CapturingLogger logger = new();
+        Mock<ILogger<BffSessionMutator>> logger = new();
+        logger.Setup(l => l.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
 
         _sessionStore.Setup(s => s.GetAsync(session.SessionId, ct)).ReturnsAsync(session);
         _sessionStore
             .Setup(s => s.TryUpdateAsync(It.IsAny<BffSessionRecord>(), session.Version, ct))
             .ReturnsAsync(false);
 
-        BffSessionMutator sut = CreateSut(logger);
+        BffSessionMutator sut = CreateSut(logger.Object);
 
         await Should.NotThrowAsync(async () =>
             await sut.MutateAsync(session.SessionId, s => s, ct)
         );
 
-        logger.LoggedEventIds.ShouldContain(e => e.Id == 3050);
+        logger.Verify(
+            x =>
+                x.Log(
+                    It.IsAny<LogLevel>(),
+                    It.Is<EventId>(e => e.Id == 3050),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Exception?>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -164,23 +172,5 @@ public sealed class BffSessionMutatorTests
 
         capturedInput.ShouldNotBeNull();
         capturedInput.ShouldBe(session);
-    }
-
-    private sealed class CapturingLogger : ILogger<BffSessionMutator>
-    {
-        public List<EventId> LoggedEventIds { get; } = [];
-
-        public IDisposable? BeginScope<TState>(TState state)
-            where TState : notnull => null;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter
-        ) => LoggedEventIds.Add(eventId);
     }
 }

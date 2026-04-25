@@ -42,7 +42,7 @@ public sealed class RedisBffSessionRevocationNotifier : IBffSessionRevocationNot
 
     // Log a short prefix only; full session ids are cookie-equivalent credentials and must not land
     // in structured logs un-redacted.
-    private static string SafeRef(string sessionId) =>
+    internal static string SafeRef(string sessionId) =>
         string.IsNullOrEmpty(sessionId)
             ? "(empty)"
             : sessionId[..Math.Min(8, sessionId.Length)] + "...";

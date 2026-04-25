@@ -114,6 +114,38 @@ public sealed class RedisBffSessionRevocationNotifierTests
     }
 
     [Fact]
+    public void SafeRef_WhenSessionIdIsEmpty_ReturnsEmptyPlaceholder()
+    {
+        RedisBffSessionRevocationNotifier.SafeRef("").ShouldBe("(empty)");
+    }
+
+    [Fact]
+    public void SafeRef_WhenSessionIdIsShorterThanEightChars_ReturnsPrefixWithEllipsis()
+    {
+        RedisBffSessionRevocationNotifier.SafeRef("abc").ShouldBe("abc...");
+    }
+
+    [Fact]
+    public void SafeRef_WhenSessionIdIsExactlyEightChars_ReturnsFullValueWithEllipsis()
+    {
+        RedisBffSessionRevocationNotifier.SafeRef("12345678").ShouldBe("12345678...");
+    }
+
+    [Fact]
+    public void SafeRef_WhenSessionIdIsLongerThanEightChars_ReturnsTruncatedPrefixWithEllipsis()
+    {
+        string sessionId = "1234567890abcdef1234567890abcdef";
+        RedisBffSessionRevocationNotifier.SafeRef(sessionId).ShouldBe("12345678...");
+    }
+
+    [Fact]
+    public void SafeRef_NeverContainsFullSessionIdForLongIds()
+    {
+        string sessionId = "1234567890abcdef1234567890abcdef";
+        RedisBffSessionRevocationNotifier.SafeRef(sessionId).ShouldNotContain(sessionId);
+    }
+
+    [Fact]
     public async Task PublishRevokedAsync_LogsRedactedSessionRef_NotFullId()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
