@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
 using Shouldly;
@@ -13,8 +14,7 @@ public sealed class UserFilterCriteriaTests
 
     private static Func<AppUser, bool> CompileFilter(UserFilter filter)
     {
-        var spec = new UserFilterSpecification(filter);
-        var predicates = spec.WhereExpressions.Select(e => e.Filter.Compile()).ToList();
+        List<Func<AppUser, bool>> predicates = new UserFilterSpecification(filter).CompileFilters();
         return user => predicates.All(p => p(user));
     }
 
