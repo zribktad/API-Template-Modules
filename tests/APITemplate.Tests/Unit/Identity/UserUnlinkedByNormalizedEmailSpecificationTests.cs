@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
 using Identity.ValueObjects;
@@ -20,9 +21,9 @@ public sealed class UserUnlinkedByNormalizedEmailSpecificationTests
     public void Filter_WhenEmailMatchesAndNoKeycloakId_ReturnsTrue()
     {
         AppUser user = MakeUser("alice@example.com", keycloakUserId: null);
-        Func<AppUser, bool> filter = new UserUnlinkedByNormalizedEmailSpecification(NormalizedEmail)
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        Func<AppUser, bool> filter = new UserUnlinkedByNormalizedEmailSpecification(
+            NormalizedEmail
+        ).CompileSingleFilter();
 
         filter(user).ShouldBeTrue();
     }
@@ -31,9 +32,9 @@ public sealed class UserUnlinkedByNormalizedEmailSpecificationTests
     public void Filter_WhenEmailMatchesButLinkedToKeycloak_ReturnsFalse()
     {
         AppUser user = MakeUser("alice@example.com", keycloakUserId: "kc-abc123");
-        Func<AppUser, bool> filter = new UserUnlinkedByNormalizedEmailSpecification(NormalizedEmail)
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        Func<AppUser, bool> filter = new UserUnlinkedByNormalizedEmailSpecification(
+            NormalizedEmail
+        ).CompileSingleFilter();
 
         filter(user).ShouldBeFalse();
     }
@@ -42,9 +43,9 @@ public sealed class UserUnlinkedByNormalizedEmailSpecificationTests
     public void Filter_WhenEmailDoesNotMatchAndNoKeycloakId_ReturnsFalse()
     {
         AppUser user = MakeUser("bob@example.com", keycloakUserId: null);
-        Func<AppUser, bool> filter = new UserUnlinkedByNormalizedEmailSpecification(NormalizedEmail)
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        Func<AppUser, bool> filter = new UserUnlinkedByNormalizedEmailSpecification(
+            NormalizedEmail
+        ).CompileSingleFilter();
 
         filter(user).ShouldBeFalse();
     }
@@ -53,9 +54,9 @@ public sealed class UserUnlinkedByNormalizedEmailSpecificationTests
     public void Filter_WhenEmailMatchesCaseInsensitively_ReturnsTrue()
     {
         AppUser user = MakeUser("ALICE@EXAMPLE.COM", keycloakUserId: null);
-        Func<AppUser, bool> filter = new UserUnlinkedByNormalizedEmailSpecification(NormalizedEmail)
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        Func<AppUser, bool> filter = new UserUnlinkedByNormalizedEmailSpecification(
+            NormalizedEmail
+        ).CompileSingleFilter();
 
         filter(user).ShouldBeTrue();
     }

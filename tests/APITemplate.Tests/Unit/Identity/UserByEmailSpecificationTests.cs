@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.Helpers;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
 using Shouldly;
@@ -23,9 +24,7 @@ public sealed class UserByEmailSpecificationTests
     )
     {
         AppUser user = MakeUser(storedEmail);
-        Func<AppUser, bool> filter = new UserByEmailSpecification(inputEmail)
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        Func<AppUser, bool> filter = new UserByEmailSpecification(inputEmail).CompileSingleFilter();
 
         filter(user).ShouldBeTrue();
     }
@@ -34,9 +33,9 @@ public sealed class UserByEmailSpecificationTests
     public void Filter_WhenEmailDoesNotMatch_ReturnsFalse()
     {
         AppUser user = MakeUser("alice@example.com");
-        Func<AppUser, bool> filter = new UserByEmailSpecification("bob@example.com")
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        Func<AppUser, bool> filter = new UserByEmailSpecification(
+            "bob@example.com"
+        ).CompileSingleFilter();
 
         filter(user).ShouldBeFalse();
     }

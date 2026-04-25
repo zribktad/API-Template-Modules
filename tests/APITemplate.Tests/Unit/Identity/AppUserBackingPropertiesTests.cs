@@ -8,10 +8,13 @@ namespace APITemplate.Tests.Unit.Identity;
 [Trait("Category", "Unit")]
 public sealed class AppUserBackingPropertiesTests
 {
+    private static AppUser MakeAlice() =>
+        AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+
     [Fact]
     public void Create_SetsDbEmailFromValue()
     {
-        AppUser user = AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+        AppUser user = MakeAlice();
 
         user.DbEmail.ShouldBe("alice@example.com");
     }
@@ -19,7 +22,7 @@ public sealed class AppUserBackingPropertiesTests
     [Fact]
     public void Create_SetsDbNormalizedEmailToUppercaseInvariant()
     {
-        AppUser user = AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+        AppUser user = MakeAlice();
 
         user.DbNormalizedEmail.ShouldBe("ALICE@EXAMPLE.COM");
     }
@@ -27,7 +30,7 @@ public sealed class AppUserBackingPropertiesTests
     [Fact]
     public void Create_SetsDbUsernameFromValue()
     {
-        AppUser user = AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+        AppUser user = MakeAlice();
 
         user.DbUsername.ShouldBe("alice");
     }
@@ -35,7 +38,7 @@ public sealed class AppUserBackingPropertiesTests
     [Fact]
     public void Create_SetsDbNormalizedUsernameToUppercaseInvariant()
     {
-        AppUser user = AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+        AppUser user = MakeAlice();
 
         user.DbNormalizedUsername.ShouldBe("ALICE");
     }
@@ -61,7 +64,7 @@ public sealed class AppUserBackingPropertiesTests
     [Fact]
     public void EmailFacade_GetReturnsNormalizedStringBackedByDbEmail()
     {
-        AppUser user = AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+        AppUser user = MakeAlice();
 
         user.Email.Value.ShouldBe(user.DbEmail);
         user.Email.Normalized.ShouldBe(user.DbNormalizedEmail);
@@ -70,7 +73,7 @@ public sealed class AppUserBackingPropertiesTests
     [Fact]
     public void UsernameFacade_GetReturnsNormalizedStringBackedByDbUsername()
     {
-        AppUser user = AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+        AppUser user = MakeAlice();
 
         user.Username.Value.ShouldBe(user.DbUsername);
         user.Username.Normalized.ShouldBe(user.DbNormalizedUsername);
@@ -79,7 +82,7 @@ public sealed class AppUserBackingPropertiesTests
     [Fact]
     public void EmailFacade_SetUpdatesBothDbEmailAndDbNormalizedEmail()
     {
-        AppUser user = AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+        AppUser user = MakeAlice();
 
         user.Email = new NormalizedString("bob@example.com");
 
@@ -90,7 +93,7 @@ public sealed class AppUserBackingPropertiesTests
     [Fact]
     public void UsernameFacade_SetUpdatesBothDbUsernameAndDbNormalizedUsername()
     {
-        AppUser user = AppUser.Create("alice", "alice@example.com", keycloakUserId: null);
+        AppUser user = MakeAlice();
 
         user.Username = new NormalizedString("bob");
 

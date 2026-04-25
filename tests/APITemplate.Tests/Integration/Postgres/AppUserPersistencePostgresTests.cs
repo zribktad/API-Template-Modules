@@ -235,20 +235,18 @@ public sealed class AppUserPersistencePostgresTests
         AppUser userInTenantA = CreateUser("alice@example.com", "alice");
         await PersistUserAsync(userInTenantA, ct);
 
-        AppUser userInTenantB = AppUser.Create(
-            "alice",
-            "alice@example.com",
-            keycloakUserId: null,
-            otherTenantId
-        );
+        AppUser userInTenantB = CreateUser("alice@example.com", "alice", otherTenantId);
         _dbContext.Users.Add(userInTenantB);
         await _dbContext.SaveChangesAsync(ct);
 
-        _dbContext.Users.Count(u => u.DbNormalizedEmail == "ALICE@EXAMPLE.COM").ShouldBe(2);
+        int total = await _dbContext
+            .Users.IgnoreQueryFilters()
+            .CountAsync(u => u.DbNormalizedEmail == "ALICE@EXAMPLE.COM", ct);
+        total.ShouldBe(2);
     }
 
-    private AppUser CreateUser(string email, string username) =>
-        AppUser.Create(username, email, keycloakUserId: null, _tenantId);
+    private AppUser CreateUser(string email, string username, Guid? tenantId = null) =>
+        AppUser.Create(username, email, keycloakUserId: null, tenantId ?? _tenantId);
 
     private async Task PersistUserAsync(AppUser user, CancellationToken ct)
     {

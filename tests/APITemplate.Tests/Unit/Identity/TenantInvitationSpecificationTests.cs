@@ -35,6 +35,15 @@ public sealed class TenantInvitationSpecificationTests
         return i;
     }
 
+    private static TenantInvitation MakeWithStatus(InvitationStatus status, string email) =>
+        status switch
+        {
+            InvitationStatus.Pending => MakePending(email),
+            InvitationStatus.Accepted => MakeAccepted(email),
+            InvitationStatus.Revoked => MakeRevoked(email),
+            _ => throw new ArgumentOutOfRangeException(nameof(status)),
+        };
+
     // ── AcceptedInvitationByNormalizedEmailSpecification ──────────────────
 
     [Fact]
@@ -43,9 +52,7 @@ public sealed class TenantInvitationSpecificationTests
         TenantInvitation invitation = MakeAccepted("alice@example.com");
         Func<TenantInvitation, bool> filter = new AcceptedInvitationByNormalizedEmailSpecification(
             NormalizedAlice
-        )
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        ).CompileSingleFilter();
 
         filter(invitation).ShouldBeTrue();
     }
@@ -56,9 +63,7 @@ public sealed class TenantInvitationSpecificationTests
         TenantInvitation invitation = MakePending("alice@example.com");
         Func<TenantInvitation, bool> filter = new AcceptedInvitationByNormalizedEmailSpecification(
             NormalizedAlice
-        )
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        ).CompileSingleFilter();
 
         filter(invitation).ShouldBeFalse();
     }
@@ -69,9 +74,7 @@ public sealed class TenantInvitationSpecificationTests
         TenantInvitation invitation = MakeAccepted("bob@example.com");
         Func<TenantInvitation, bool> filter = new AcceptedInvitationByNormalizedEmailSpecification(
             NormalizedAlice
-        )
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        ).CompileSingleFilter();
 
         filter(invitation).ShouldBeFalse();
     }
@@ -84,9 +87,7 @@ public sealed class TenantInvitationSpecificationTests
         TenantInvitation invitation = MakePending("alice@example.com");
         Func<TenantInvitation, bool> filter = new PendingInvitationByNormalizedEmailSpecification(
             NormalizedAlice
-        )
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        ).CompileSingleFilter();
 
         filter(invitation).ShouldBeTrue();
     }
@@ -97,9 +98,7 @@ public sealed class TenantInvitationSpecificationTests
         TenantInvitation invitation = MakeAccepted("alice@example.com");
         Func<TenantInvitation, bool> filter = new PendingInvitationByNormalizedEmailSpecification(
             NormalizedAlice
-        )
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        ).CompileSingleFilter();
 
         filter(invitation).ShouldBeFalse();
     }
@@ -110,9 +109,7 @@ public sealed class TenantInvitationSpecificationTests
         TenantInvitation invitation = MakeRevoked("alice@example.com");
         Func<TenantInvitation, bool> filter = new PendingInvitationByNormalizedEmailSpecification(
             NormalizedAlice
-        )
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        ).CompileSingleFilter();
 
         filter(invitation).ShouldBeFalse();
     }
@@ -120,23 +117,15 @@ public sealed class TenantInvitationSpecificationTests
     // ── LatestInvitationByNormalizedEmailSpecification ────────────────────
 
     [Theory]
-    [InlineData("Pending")]
-    [InlineData("Accepted")]
-    [InlineData("Revoked")]
-    public void LatestSpec_WhenEmailMatchesRegardlessOfStatus_ReturnsTrue(string statusLabel)
+    [InlineData(InvitationStatus.Pending)]
+    [InlineData(InvitationStatus.Accepted)]
+    [InlineData(InvitationStatus.Revoked)]
+    public void LatestSpec_WhenEmailMatchesRegardlessOfStatus_ReturnsTrue(InvitationStatus status)
     {
-        TenantInvitation invitation = statusLabel switch
-        {
-            "Pending" => MakePending("alice@example.com"),
-            "Accepted" => MakeAccepted("alice@example.com"),
-            "Revoked" => MakeRevoked("alice@example.com"),
-            _ => throw new ArgumentOutOfRangeException(),
-        };
+        TenantInvitation invitation = MakeWithStatus(status, "alice@example.com");
         Func<TenantInvitation, bool> filter = new LatestInvitationByNormalizedEmailSpecification(
             NormalizedAlice
-        )
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        ).CompileSingleFilter();
 
         filter(invitation).ShouldBeTrue();
     }
@@ -147,9 +136,7 @@ public sealed class TenantInvitationSpecificationTests
         TenantInvitation invitation = MakePending("bob@example.com");
         Func<TenantInvitation, bool> filter = new LatestInvitationByNormalizedEmailSpecification(
             NormalizedAlice
-        )
-            .WhereExpressions.Single()
-            .Filter.Compile();
+        ).CompileSingleFilter();
 
         filter(invitation).ShouldBeFalse();
     }
@@ -182,21 +169,12 @@ public sealed class TenantInvitationSpecificationTests
     }
 
     [Theory]
-    [InlineData(InvitationStatus.Pending, "Pending")]
-    [InlineData(InvitationStatus.Accepted, "Accepted")]
-    [InlineData(InvitationStatus.Revoked, "Revoked")]
-    public void FilterSpec_StatusFilter_MatchesExactStatusOnly(
-        InvitationStatus status,
-        string label
-    )
+    [InlineData(InvitationStatus.Pending)]
+    [InlineData(InvitationStatus.Accepted)]
+    [InlineData(InvitationStatus.Revoked)]
+    public void FilterSpec_StatusFilter_MatchesExactStatusOnly(InvitationStatus status)
     {
-        TenantInvitation matching = label switch
-        {
-            "Pending" => MakePending("alice@example.com"),
-            "Accepted" => MakeAccepted("alice@example.com"),
-            "Revoked" => MakeRevoked("alice@example.com"),
-            _ => throw new ArgumentOutOfRangeException(),
-        };
+        TenantInvitation matching = MakeWithStatus(status, "alice@example.com");
         TenantInvitation nonMatching =
             status == InvitationStatus.Pending
                 ? MakeAccepted("alice@example.com")
@@ -223,9 +201,7 @@ public sealed class TenantInvitationSpecificationTests
     private static Func<TenantInvitation, bool> BuildFilterPredicate(TenantInvitationFilter filter)
     {
         TenantInvitationFilterSpecification spec = new(filter);
-        List<Func<TenantInvitation, bool>> predicates = spec
-            .WhereExpressions.Select(e => e.Filter.Compile())
-            .ToList();
+        List<Func<TenantInvitation, bool>> predicates = spec.CompileFilters();
         return item => predicates.All(p => p(item));
     }
 }
