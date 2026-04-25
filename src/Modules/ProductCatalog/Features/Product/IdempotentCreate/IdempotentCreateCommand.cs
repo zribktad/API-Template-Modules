@@ -13,12 +13,13 @@ public sealed class IdempotentCreateCommandHandler
         IdempotentCreateCommand command,
         IProductRepository repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        IIdGenerator idGenerator,
         CancellationToken ct
     )
     {
         ProductEntity entity = new()
         {
-            Id = Guid.NewGuid(),
+            Id = idGenerator.NewId(),
             Name = command.Request.Name,
             Description = command.Request.Description,
             Price = Price.Zero,

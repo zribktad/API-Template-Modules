@@ -56,6 +56,9 @@ public sealed class PostgresDistributedCacheBffSessionStoreTests : IDisposable
 
         IServiceScopeFactory scopeFactory =
             _serviceProvider.GetRequiredService<IServiceScopeFactory>();
+        IBffSessionDbContextFactory dbContextFactory = new ScopedBffSessionDbContextFactory(
+            scopeFactory
+        );
 
         IBffSessionTokenProtector tokenProtector = new BffSessionTokenProtector(
             new EphemeralDataProtectionProvider(),
@@ -64,7 +67,7 @@ public sealed class PostgresDistributedCacheBffSessionStoreTests : IDisposable
 
         _sut = new PostgresDistributedCacheBffSessionStore(
             _cache.Object,
-            scopeFactory,
+            dbContextFactory,
             tokenProtector,
             Options.Create(_bffOptions),
             TimeProvider.System

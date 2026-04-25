@@ -1,6 +1,5 @@
 using Identity.Auth.Options;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Identity.Auth.Security.Sessions;
@@ -13,12 +12,12 @@ public sealed class PostgresDistributedCacheBffSessionStore : BffPostgresSession
 {
     public PostgresDistributedCacheBffSessionStore(
         IDistributedCache cache,
-        IServiceScopeFactory scopeFactory,
+        IBffSessionDbContextFactory dbContextFactory,
         IBffSessionTokenProtector tokenProtector,
         IOptions<BffOptions> options,
         TimeProvider timeProvider
     )
-        : base(cache, scopeFactory, tokenProtector, timeProvider, options) { }
+        : base(cache, dbContextFactory, tokenProtector, timeProvider, options) { }
 
     protected override Task<string?> GetCachedPayloadAsync(string cacheKey, CancellationToken ct) =>
         GetDistributedCachePayloadSlidingAsync(DistributedCache, cacheKey, ct);

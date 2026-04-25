@@ -11,7 +11,8 @@ namespace APITemplate.Tests.Integration.Features;
 
 [Trait("Category", "Integration")]
 [Trait("Docker", "true")]
-public sealed class WebhooksControllerTests : IClassFixture<CustomWebApplicationFactory>
+[Collection(IntegrationCollectionNames.HttpRead)]
+public sealed class WebhooksControllerTests
 {
     private readonly CustomWebApplicationFactory _factory;
 

@@ -8,7 +8,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Infrastructure;
 
-public sealed class WolverineNotificationTests : IClassFixture<CustomWebApplicationFactory>
+[Collection(IntegrationCollectionNames.HttpRead)]
+public sealed class WolverineNotificationTests
 {
     private readonly CustomWebApplicationFactory _factory;
 

@@ -16,20 +16,17 @@ public sealed class TickerQRecurringJobRegistrar
     private readonly TickerQSchedulerDbContext _dbContext;
     private readonly ILogger<TickerQRecurringJobRegistrar> _logger;
     private readonly IEnumerable<IRecurringBackgroundJobRegistration> _registrations;
-    private readonly IServiceProvider _serviceProvider;
     private readonly TimeProvider _timeProvider;
 
     public TickerQRecurringJobRegistrar(
         TickerQSchedulerDbContext dbContext,
         IEnumerable<IRecurringBackgroundJobRegistration> registrations,
-        IServiceProvider serviceProvider,
         TimeProvider timeProvider,
         ILogger<TickerQRecurringJobRegistrar> logger
     )
     {
         _dbContext = dbContext;
         _registrations = registrations;
-        _serviceProvider = serviceProvider;
         _timeProvider = timeProvider;
         _logger = logger;
     }
@@ -38,7 +35,7 @@ public sealed class TickerQRecurringJobRegistrar
     {
         DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
         List<RecurringBackgroundJobDefinition> definitions = _registrations
-            .Select(x => x.Build(_serviceProvider))
+            .Select(x => x.Build())
             .ToList();
         Dictionary<Guid, CronTickerEntity> tickersById = (
             await _dbContext.Set<CronTickerEntity>().ToListAsync(ct)

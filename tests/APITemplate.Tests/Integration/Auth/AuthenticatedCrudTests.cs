@@ -14,7 +14,8 @@ namespace APITemplate.Tests.Integration.Auth;
 
 [Trait("Category", "Integration")]
 [Trait("Docker", "true")]
-public class AuthenticatedCrudTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
+[Collection(IntegrationCollectionNames.HttpStateful)]
+public class AuthenticatedCrudTests : IAsyncLifetime
 {
     private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;

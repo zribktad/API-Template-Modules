@@ -30,6 +30,7 @@ public sealed class DeleteProductsCommandHandlerTests
     private readonly Mock<IUnitOfWork<ProductCatalogDbMarker>> _unitOfWork = new();
     private readonly Mock<IActorProvider> _actorProvider = new();
     private readonly Mock<ITenantProvider> _tenantProvider = new();
+    private readonly Mock<IIdGenerator> _idGenerator = new();
     private readonly FakeTimeProvider _timeProvider = new(new DateTimeOffset(FixedDeletedAt));
 
     public DeleteProductsCommandHandlerTests()
@@ -158,6 +159,7 @@ public sealed class DeleteProductsCommandHandlerTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         Guid actorId = Guid.NewGuid();
         Guid tenantId = Guid.NewGuid();
+        Guid correlationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
         Product product = MakeProduct(tenantId: tenantId);
         DeleteProductsCommandHandler.DeleteProductsState state = new(
             [product.Id],
@@ -165,6 +167,7 @@ public sealed class DeleteProductsCommandHandlerTests
             actorId,
             FixedDeletedAt
         );
+        _idGenerator.Setup(g => g.NewId()).Returns(correlationId);
 
         (ErrorOr<BatchResponse> _, OutgoingMessages messages) =
             await DeleteProductsCommandHandler.HandleAsync(
@@ -173,6 +176,7 @@ public sealed class DeleteProductsCommandHandlerTests
                 _productRepo.Object,
                 _unitOfWork.Object,
                 _linkRepo.Object,
+                _idGenerator.Object,
                 ct
             );
 
@@ -184,6 +188,7 @@ public sealed class DeleteProductsCommandHandlerTests
         notification.TenantId.ShouldBe(tenantId);
         notification.ActorId.ShouldBe(actorId);
         notification.DeletedAtUtc.ShouldBe(FixedDeletedAt);
+        notification.CorrelationId.ShouldBe(correlationId);
     }
 
     [Fact]
@@ -205,6 +210,7 @@ public sealed class DeleteProductsCommandHandlerTests
                 _productRepo.Object,
                 _unitOfWork.Object,
                 _linkRepo.Object,
+                _idGenerator.Object,
                 ct
             );
 
@@ -261,6 +267,7 @@ public sealed class DeleteProductsCommandHandlerTests
             _productRepo.Object,
             _unitOfWork.Object,
             _linkRepo.Object,
+            _idGenerator.Object,
             ct
         );
 

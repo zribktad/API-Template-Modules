@@ -91,7 +91,7 @@ jobs:
             filter: Category=Smoke
           - id: integration
             display_name: Integration Tests
-            filter: Category=Integration
+            filter: Category=Integration&Category!=Smoke
 
     steps:
       - name: Checkout code

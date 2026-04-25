@@ -1,15 +1,19 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace BackgroundJobs.TickerQ.RecurringJobRegistrations;
 
 public sealed class CleanupRecurringJobRegistration : IRecurringBackgroundJobRegistration
 {
-    public RecurringBackgroundJobDefinition Build(IServiceProvider serviceProvider)
+    private readonly IOptions<BackgroundJobsOptions> _options;
+
+    public CleanupRecurringJobRegistration(IOptions<BackgroundJobsOptions> options)
     {
-        BackgroundJobsOptions options = serviceProvider
-            .GetRequiredService<IOptions<BackgroundJobsOptions>>()
-            .Value;
+        _options = options;
+    }
+
+    public RecurringBackgroundJobDefinition Build()
+    {
+        BackgroundJobsOptions options = _options.Value;
         return new RecurringBackgroundJobDefinition(
             TickerQJobIds.Cleanup,
             TickerQFunctionNames.Cleanup,

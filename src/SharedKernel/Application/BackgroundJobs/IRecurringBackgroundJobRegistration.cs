@@ -8,7 +8,7 @@ public interface IRecurringBackgroundJobRegistration
 {
     /// <summary>
     ///     Constructs the raw <see cref="RecurringBackgroundJobDefinition" /> struct to be persisted.
-    ///     Typically reads the required interval and enablement from configuration bound elsewhere.
+    ///     Implementations receive their dependencies through constructor injection.
     /// </summary>
-    public RecurringBackgroundJobDefinition Build(IServiceProvider serviceProvider);
+    public RecurringBackgroundJobDefinition Build();
 }

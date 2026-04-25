@@ -61,6 +61,9 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
 
         Mock<IServiceScopeFactory> scopeFactory = new();
         scopeFactory.Setup(x => x.CreateScope()).Returns(scope.Object);
+        IBffSessionDbContextFactory dbContextFactory = new ScopedBffSessionDbContextFactory(
+            scopeFactory.Object
+        );
 
         BffOptions bffOptions = new() { CacheTtlMinutes = 10 };
         IBffSessionTokenProtector tokenProtector = new BffSessionTokenProtector(
@@ -74,7 +77,7 @@ public sealed class BffSessionPostgresTests : IClassFixture<SharedPostgresContai
         _store = new PostgresCachedBffSessionStore(
             _cache.Object,
             multiplexer.Object,
-            scopeFactory.Object,
+            dbContextFactory,
             tokenProtector,
             Options.Create(bffOptions),
             TimeProvider.System

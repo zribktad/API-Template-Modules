@@ -26,6 +26,7 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     public Guid Id { get; set; }
 
     public static JobExecution Create(
+        Guid id,
         string jobType,
         TimeProvider timeProvider,
         string? parameters = null,
@@ -34,7 +35,7 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     {
         return new JobExecution
         {
-            Id = Guid.NewGuid(),
+            Id = id,
             JobType = jobType,
             Parameters = parameters,
             CallbackUrl = callbackUrl,
@@ -49,7 +50,8 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     public ErrorOr<Success> MarkProcessing(TimeProvider timeProvider)
     {
         ErrorOr<Success> guard = RequireStatus(JobStatus.Pending, JobStatus.Processing);
-        if (guard.IsError) return guard;
+        if (guard.IsError)
+            return guard;
 
         Status = JobStatus.Processing;
         StartedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
@@ -64,7 +66,8 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     public ErrorOr<Success> MarkCompleted(string? resultPayload, TimeProvider timeProvider)
     {
         ErrorOr<Success> guard = RequireStatus(JobStatus.Processing, JobStatus.Completed);
-        if (guard.IsError) return guard;
+        if (guard.IsError)
+            return guard;
 
         Status = JobStatus.Completed;
         ProgressPercent = 100;
@@ -81,7 +84,8 @@ public sealed class JobExecution : IAuditableTenantEntity, IHasId
     public ErrorOr<Success> MarkFailed(string errorMessage, TimeProvider timeProvider)
     {
         ErrorOr<Success> guard = RequireStatus(JobStatus.Processing, JobStatus.Failed);
-        if (guard.IsError) return guard;
+        if (guard.IsError)
+            return guard;
 
         Status = JobStatus.Failed;
         ErrorMessage = errorMessage;

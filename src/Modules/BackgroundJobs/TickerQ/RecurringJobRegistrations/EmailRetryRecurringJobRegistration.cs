@@ -1,15 +1,19 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace BackgroundJobs.TickerQ.RecurringJobRegistrations;
 
 public sealed class EmailRetryRecurringJobRegistration : IRecurringBackgroundJobRegistration
 {
-    public RecurringBackgroundJobDefinition Build(IServiceProvider serviceProvider)
+    private readonly IOptions<BackgroundJobsOptions> _options;
+
+    public EmailRetryRecurringJobRegistration(IOptions<BackgroundJobsOptions> options)
     {
-        EmailRetryJobOptions options = serviceProvider
-            .GetRequiredService<IOptions<BackgroundJobsOptions>>()
-            .Value.EmailRetry;
+        _options = options;
+    }
+
+    public RecurringBackgroundJobDefinition Build()
+    {
+        EmailRetryJobOptions options = _options.Value.EmailRetry;
 
         return new RecurringBackgroundJobDefinition(
             new Guid("31261201-e220-45d0-bd7e-6d662ca1acaf"),

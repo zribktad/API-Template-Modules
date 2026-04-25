@@ -14,9 +14,8 @@ namespace APITemplate.Tests.Integration.Features;
 
 [Trait("Category", "Integration")]
 [Trait("Docker", "true")]
-public sealed class RolesControllerTests
-    : IClassFixture<CustomWebApplicationFactory>,
-        IAsyncLifetime
+[Collection(IntegrationCollectionNames.HttpStateful)]
+public sealed class RolesControllerTests : IAsyncLifetime
 {
     private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;

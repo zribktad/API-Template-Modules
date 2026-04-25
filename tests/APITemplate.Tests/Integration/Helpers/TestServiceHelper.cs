@@ -1,4 +1,3 @@
-using BackgroundJobs.TickerQ;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -10,10 +9,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using SharedKernel.Application.BackgroundJobs;
 using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Application.Startup;
-using SharedKernel.Infrastructure.Health;
 using StackExchange.Redis;
 
 namespace APITemplate.Tests.Integration.Helpers;
@@ -65,33 +62,6 @@ internal static class TestServiceHelper
         );
     }
 
-    private static readonly HashSet<string> ExternalHealthCheckNames = new(StringComparer.Ordinal)
-    {
-        HealthCheckNames.MongoDb,
-        HealthCheckNames.Keycloak,
-        HealthCheckNames.PostgreSql,
-        HealthCheckNames.Redis,
-        HealthCheckNames.Smtp,
-        HealthCheckNames.WolverineMessageStore,
-        HealthCheckNames.WolverineDeadLetters,
-        HealthCheckNames.OtlpCollector,
-    };
-
-    internal static void RemoveExternalHealthChecks(IServiceCollection services)
-    {
-        services.Configure<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckServiceOptions>(
-            options =>
-            {
-                List<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckRegistration> toRemove =
-                    options
-                        .Registrations.Where(r => ExternalHealthCheckNames.Contains(r.Name))
-                        .ToList();
-                foreach (var r in toRemove)
-                    options.Registrations.Remove(r);
-            }
-        );
-    }
-
     internal static void ReplaceOutputCacheWithInMemory(IServiceCollection services)
     {
         services.RemoveAll<IOutputCacheStore>();
@@ -118,15 +88,6 @@ internal static class TestServiceHelper
         services.AddDistributedMemoryCache();
     }
 
-    internal static void RemoveTickerQRuntimeServices(IServiceCollection services)
-    {
-        List<ServiceDescriptor> runtimeDescriptors = services
-            .Where(IsTickerQRuntimeDescriptor)
-            .ToList();
-        foreach (ServiceDescriptor descriptor in runtimeDescriptors)
-            services.Remove(descriptor);
-    }
-
     internal static void ReplaceStartupCoordinationWithNoOp(IServiceCollection services)
     {
         services.RemoveAll<IStartupTaskCoordinator>();
@@ -136,54 +97,4 @@ internal static class TestServiceHelper
             sp.GetRequiredService<APITemplate.Tests.Helpers.TestNoOpStartupTaskCoordinator>()
         );
     }
-
-    private static bool IsTickerQRuntimeDescriptor(ServiceDescriptor descriptor) =>
-        IsTickerQRuntimeType(descriptor.ServiceType)
-        || IsTickerQRuntimeType(descriptor.ImplementationType)
-        || IsTickerQRuntimeInstance(descriptor.ImplementationInstance)
-        || IsTickerQRuntimeFactory(descriptor.ImplementationFactory)
-        || descriptor.ServiceType == typeof(TickerQSchedulerDbContext)
-        || descriptor.ServiceType == typeof(TickerQRecurringJobRegistrar)
-        || descriptor.ServiceType == typeof(IDistributedJobCoordinator)
-        || (
-            descriptor.ServiceType == typeof(IRecurringBackgroundJobRegistration)
-            && IsTickerQRuntimeType(descriptor.ImplementationType)
-        );
-
-    private static bool IsTickerQRuntimeFactory(
-        Func<IServiceProvider, object>? implementationFactory
-    ) =>
-        implementationFactory?.Method.DeclaringType is { } declaringType
-        && IsTickerQRuntimeType(declaringType);
-
-    private static bool IsTickerQRuntimeInstance(object? implementationInstance) =>
-        implementationInstance is not null
-        && IsTickerQRuntimeType(implementationInstance.GetType());
-
-    private static bool IsTickerQRuntimeType(Type? type)
-    {
-        if (type is null)
-            return false;
-
-        if (
-            IsTickerQRuntimeNamespace(type.Namespace)
-            || IsTickerQRuntimeAssembly(type.Assembly.GetName().Name)
-        )
-            return true;
-
-        if (!type.IsGenericType)
-            return false;
-
-        return type.GetGenericArguments().Any(IsTickerQRuntimeType);
-    }
-
-    private static bool IsTickerQRuntimeNamespace(string? typeNamespace) =>
-        typeNamespace is not null
-        && (
-            typeNamespace.StartsWith("TickerQ", StringComparison.Ordinal)
-            || typeNamespace.Contains(".BackgroundJobs.TickerQ", StringComparison.Ordinal)
-        );
-
-    private static bool IsTickerQRuntimeAssembly(string? assemblyName) =>
-        assemblyName is not null && assemblyName.StartsWith("TickerQ", StringComparison.Ordinal);
 }

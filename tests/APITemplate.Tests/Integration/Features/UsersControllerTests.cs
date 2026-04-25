@@ -13,7 +13,8 @@ namespace APITemplate.Tests.Integration.Features;
 
 [Trait("Category", "Integration")]
 [Trait("Docker", "true")]
-public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
+[Collection(IntegrationCollectionNames.HttpStateful)]
+public class UsersControllerTests : IAsyncLifetime
 {
     private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;

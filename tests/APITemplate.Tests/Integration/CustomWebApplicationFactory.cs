@@ -65,6 +65,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         builder.UseSetting("ConnectionStrings:DefaultConnection", pg);
         builder.UseSetting("MongoDB:ConnectionString", mongoConnectionString);
         builder.UseSetting("MongoDB:DatabaseName", "apitemplate_integration");
+        builder.UseSetting("BackgroundJobs:TickerQ:Enabled", "false");
+        builder.UseSetting("RuntimeFeatures:ModuleHealthChecksEnabled", "false");
 
         builder.ConfigureAppConfiguration(
             (_, configBuilder) =>
@@ -81,12 +83,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 
         builder.ConfigureTestServices(services =>
         {
-            TestServiceHelper.RemoveExternalHealthChecks(services);
             TestServiceHelper.ReplaceOutputCacheWithInMemory(services);
             TestServiceHelper.ReplaceDataProtectionWithInMemory(services);
             TestServiceHelper.ReplaceDistributedCacheWithInMemory(services);
             TestServiceHelper.ConfigureTestAuthentication(services);
-            TestServiceHelper.RemoveTickerQRuntimeServices(services);
             TestServiceHelper.ReplaceStartupCoordinationWithNoOp(services);
             AdditionalServiceConfiguration?.Invoke(services);
         });

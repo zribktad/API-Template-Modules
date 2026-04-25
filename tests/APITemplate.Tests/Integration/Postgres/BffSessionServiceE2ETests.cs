@@ -65,6 +65,7 @@ public sealed class BffSessionServiceE2ETests
                 NullLogger<BffSessionTokenProtector>.Instance
             )
         );
+        services.AddSingleton<IBffSessionDbContextFactory, ScopedBffSessionDbContextFactory>();
         services.AddSingleton<PostgresDistributedCacheBffSessionStore>();
         services.AddSingleton<IBffLocalSessionCache, BffLocalSessionCache>();
         services.AddSingleton<IBffSessionRevocationNotifier, NullBffSessionRevocationNotifier>();

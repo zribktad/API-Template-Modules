@@ -5,7 +5,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Auth;
 
-public class UnauthorizedAccessTests : IClassFixture<CustomWebApplicationFactory>
+[Collection(IntegrationCollectionNames.HttpRead)]
+public class UnauthorizedAccessTests
 {
     private readonly HttpClient _client;
 

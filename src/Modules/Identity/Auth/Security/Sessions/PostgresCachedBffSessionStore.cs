@@ -1,6 +1,5 @@
 using Identity.Auth.Options;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SharedKernel.Infrastructure.Redis;
 using StackExchange.Redis;
@@ -19,12 +18,12 @@ public sealed class PostgresCachedBffSessionStore : BffPostgresSessionStoreBase
     public PostgresCachedBffSessionStore(
         IDistributedCache cache,
         IConnectionMultiplexer connectionMultiplexer,
-        IServiceScopeFactory scopeFactory,
+        IBffSessionDbContextFactory dbContextFactory,
         IBffSessionTokenProtector tokenProtector,
         IOptions<BffOptions> options,
         TimeProvider timeProvider
     )
-        : base(cache, scopeFactory, tokenProtector, timeProvider, options) =>
+        : base(cache, dbContextFactory, tokenProtector, timeProvider, options) =>
         _multiplexer = connectionMultiplexer;
 
     protected override async Task<string?> GetCachedPayloadAsync(

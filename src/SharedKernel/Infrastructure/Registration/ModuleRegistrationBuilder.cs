@@ -6,6 +6,7 @@ using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Domain.Interfaces;
 using SharedKernel.Infrastructure.Auditing;
 using SharedKernel.Infrastructure.Configuration;
+using SharedKernel.Infrastructure.Ids;
 using SharedKernel.Infrastructure.Persistence;
 using SharedKernel.Infrastructure.StoredProcedures;
 using SharedKernel.Infrastructure.UnitOfWork;
@@ -88,6 +89,7 @@ public sealed class ModuleRegistrationBuilder<TContext>
         Services.AddValidatedOptions<TransactionDefaultsOptions>(Configuration);
 
         Services.TryAddSingleton(TimeProvider.System);
+        Services.TryAddSingleton<IIdGenerator, GuidIdGenerator>();
         Services.TryAddSingleton<IAuditableEntityStateManager, AuditableEntityStateManager>();
 
         Services.AddScoped<IDbTransactionProvider<TContext>, EfCoreTransactionProvider<TContext>>();
