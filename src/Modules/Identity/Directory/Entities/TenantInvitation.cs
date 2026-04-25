@@ -11,8 +11,8 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
 {
     public const int EmailMaxLength = 320;
 
-    public string DbEmail { get; private set; } = null!;
-    public string DbNormalizedEmail { get; private set; } = null!;
+    internal string DbEmail { get; private set; } = null!;
+    internal string DbNormalizedEmail { get; private set; } = null!;
 
     [NotMapped]
     public NormalizedString Email

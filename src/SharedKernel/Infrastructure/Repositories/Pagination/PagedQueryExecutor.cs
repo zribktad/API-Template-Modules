@@ -17,6 +17,17 @@ internal static class PagedQueryExecutor
         CancellationToken ct
     )
     {
+        if (pageNumber < 1)
+            return Error.Validation(
+                ErrorCatalog.General.PageOutOfRange,
+                "Page number must be at least 1."
+            );
+        if (pageSize < 1)
+            return Error.Validation(
+                ErrorCatalog.General.PageOutOfRange,
+                "Page size must be at least 1."
+            );
+
         int skip = (pageNumber - 1) * pageSize;
         int totalCount = await countSource.CountAsync(ct);
 

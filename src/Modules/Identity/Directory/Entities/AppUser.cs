@@ -12,10 +12,10 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     public const int UsernameMaxLength = 100;
     public const int EmailMaxLength = 320;
 
-    public string DbEmail { get; private set; } = null!;
-    public string DbNormalizedEmail { get; private set; } = null!;
-    public string DbUsername { get; private set; } = null!;
-    public string DbNormalizedUsername { get; private set; } = null!;
+    internal string DbEmail { get; private set; } = null!;
+    internal string DbNormalizedEmail { get; private set; } = null!;
+    internal string DbUsername { get; private set; } = null!;
+    internal string DbNormalizedUsername { get; private set; } = null!;
 
     [NotMapped]
     public NormalizedString Email
