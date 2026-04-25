@@ -13,7 +13,8 @@ namespace APITemplate.Tests.Integration.Validation;
 
 [Trait("Category", "Integration")]
 [Trait("Docker", "true")]
-public sealed class BoundaryValidationIntegrationTests : IClassFixture<CustomWebApplicationFactory>
+[Collection(IntegrationCollectionNames.HttpRead)]
+public sealed class BoundaryValidationIntegrationTests
 {
     private readonly HttpClient _client;
 

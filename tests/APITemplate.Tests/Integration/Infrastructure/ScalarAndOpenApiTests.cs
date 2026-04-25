@@ -13,7 +13,8 @@ namespace APITemplate.Tests.Integration.Infrastructure;
 
 [Trait("Category", "Integration")]
 [Trait("Docker", "true")]
-public class ScalarAndOpenApiTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
+[Collection(IntegrationCollectionNames.HttpRead)]
+public class ScalarAndOpenApiTests : IAsyncLifetime
 {
     private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
