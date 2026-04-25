@@ -16,6 +16,7 @@ public sealed class SubmitJobCommandHandlerTests
 {
     private readonly Mock<IJobQueue> _jobQueue = new();
     private readonly Mock<ILogger<SubmitJobCommandHandler>> _logger = new();
+    private readonly Mock<IIdGenerator> _idGenerator = new();
     private readonly DateTime _now = new(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
     private readonly Mock<IJobExecutionRepository> _repository = new();
     private readonly Mock<TimeProvider> _timeProvider = new();
@@ -38,6 +39,36 @@ public sealed class SubmitJobCommandHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_UsesInjectedIdGeneratorForPersistedJobId()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        Guid generatedId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        JobExecution? persisted = null;
+        _idGenerator.Setup(g => g.NewId()).Returns(generatedId);
+        _repository
+            .Setup(r => r.AddAsync(It.IsAny<JobExecution>(), ct))
+            .Callback<JobExecution, CancellationToken>((entity, _) => persisted = entity)
+            .ReturnsAsync((JobExecution entity, CancellationToken _) => entity);
+        _jobQueue.Setup(q => q.EnqueueAsync(It.IsAny<Guid>(), ct)).Returns(ValueTask.CompletedTask);
+
+        ErrorOr<JobStatusResponse> result = await SubmitJobCommandHandler.HandleAsync(
+            new SubmitJobCommand(new SubmitJobRequest("data-export")),
+            _repository.Object,
+            _jobQueue.Object,
+            _unitOfWork.Object,
+            _timeProvider.Object,
+            _idGenerator.Object,
+            _logger.Object,
+            ct
+        );
+
+        result.IsError.ShouldBeFalse();
+        persisted.ShouldNotBeNull();
+        persisted!.Id.ShouldBe(generatedId);
+        result.Value.Id.ShouldBe(generatedId);
+    }
+
+    [Fact]
     public async Task HandleAsync_PersistsEntityAndEnqueuesId()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
@@ -53,6 +84,7 @@ public sealed class SubmitJobCommandHandlerTests
             _jobQueue.Object,
             _unitOfWork.Object,
             _timeProvider.Object,
+            _idGenerator.Object,
             _logger.Object,
             ct
         );
@@ -74,6 +106,7 @@ public sealed class SubmitJobCommandHandlerTests
             _jobQueue.Object,
             _unitOfWork.Object,
             _timeProvider.Object,
+            _idGenerator.Object,
             _logger.Object,
             ct
         );
@@ -105,6 +138,7 @@ public sealed class SubmitJobCommandHandlerTests
             _jobQueue.Object,
             _unitOfWork.Object,
             _timeProvider.Object,
+            _idGenerator.Object,
             _logger.Object,
             ct
         );
@@ -131,6 +165,7 @@ public sealed class SubmitJobCommandHandlerTests
             _jobQueue.Object,
             _unitOfWork.Object,
             _timeProvider.Object,
+            _idGenerator.Object,
             _logger.Object,
             ct
         );

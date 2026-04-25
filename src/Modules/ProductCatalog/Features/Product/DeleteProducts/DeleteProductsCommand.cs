@@ -67,6 +67,7 @@ public sealed class DeleteProductsCommandHandler
         ProductRepositoryContract repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         IProductDataLinkRepository linkRepository,
+        IIdGenerator idGenerator,
         CancellationToken ct
     )
     {
@@ -100,7 +101,7 @@ public sealed class DeleteProductsCommandHandler
                     state.TenantId,
                     state.ActorId,
                     state.DeletedAtUtc,
-                    Guid.NewGuid()
+                    idGenerator.NewId()
                 )
             );
 

@@ -54,6 +54,29 @@ public sealed class HealthCheckModuleExtensionsTests
         registrations.ShouldContain(r => r.Name == "another-fake");
     }
 
+    [Fact]
+    public void AddModuleHealthChecks_WhenRuntimeHealthChecksDisabled_SkipsModuleHealthChecks()
+    {
+        IServiceCollection services = new ServiceCollection();
+        IConfiguration config = new ConfigurationBuilder()
+            .AddInMemoryCollection([
+                new KeyValuePair<string, string?>(
+                    "RuntimeFeatures:ModuleHealthChecksEnabled",
+                    "false"
+                ),
+            ])
+            .Build();
+
+        services.AddModuleHealthChecks(config, FakeEnvironment, [typeof(FakeHealthCheckModule)]);
+
+        ServiceProvider sp = services.BuildServiceProvider();
+        ICollection<HealthCheckRegistration> registrations = sp.GetRequiredService<
+            IOptions<HealthCheckServiceOptions>
+        >().Value.Registrations;
+
+        registrations.ShouldNotContain(r => r.Name == "fake-default");
+    }
+
     private static IHostEnvironment FakeEnvironment { get; } = new FakeHostEnvironment();
 
     // Stub modules used only by these tests

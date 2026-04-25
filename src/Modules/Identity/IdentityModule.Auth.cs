@@ -80,6 +80,7 @@ public static partial class IdentityModule
         services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
         // Protects token material before persistence and unprotects it after loading from storage.
         services.AddSingleton<IBffSessionTokenProtector, BffSessionTokenProtector>();
+        services.AddSingleton<IBffSessionDbContextFactory, ScopedBffSessionDbContextFactory>();
         // Issues and validates the double-submit CSRF token returned by GET /api/v1/bff/csrf.
         services.AddSingleton<IBffCsrfTokenService, BffCsrfTokenService>();
         // Enforces secure-only cookies outside development after user configuration has been bound.

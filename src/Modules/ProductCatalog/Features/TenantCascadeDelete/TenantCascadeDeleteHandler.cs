@@ -18,6 +18,7 @@ public static class TenantCascadeDeleteHandler
         IProductRepository productRepository,
         IProductDataLinkRepository linkRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        IIdGenerator idGenerator,
         CancellationToken ct
     )
     {
@@ -64,7 +65,7 @@ public static class TenantCascadeDeleteHandler
                     notification.TenantId,
                     notification.ActorId,
                     notification.DeletedAtUtc,
-                    Guid.NewGuid()
+                    idGenerator.NewId()
                 )
             );
         }

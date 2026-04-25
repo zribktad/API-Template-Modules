@@ -11,7 +11,7 @@ public sealed class JobExecutionTests
 {
     private static JobExecution CreatePendingJob()
     {
-        return JobExecution.Create("test-job", TimeProvider.System);
+        return JobExecution.Create(Guid.NewGuid(), "test-job", TimeProvider.System);
     }
 
     private static TimeProvider MockTimeAt(DateTime utcNow)
@@ -22,6 +22,16 @@ public sealed class JobExecutionTests
     }
 
     // ── Happy path ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Create_UsesProvidedId()
+    {
+        Guid id = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+
+        JobExecution sut = JobExecution.Create(id, "test-job", TimeProvider.System);
+
+        sut.Id.ShouldBe(id);
+    }
 
     [Fact]
     public void MarkProcessing_FromPending_Succeeds()

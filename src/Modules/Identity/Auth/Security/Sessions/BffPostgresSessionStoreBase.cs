@@ -4,7 +4,6 @@ using Identity.Auth.Options;
 using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Identity.Auth.Security.Sessions;
@@ -17,21 +16,21 @@ namespace Identity.Auth.Security.Sessions;
 /// </summary>
 public abstract class BffPostgresSessionStoreBase : IBffSessionStore
 {
-    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IBffSessionDbContextFactory _dbContextFactory;
     private readonly IBffSessionTokenProtector _tokenProtector;
     private readonly TimeProvider _timeProvider;
     private readonly DistributedCacheEntryOptions _cacheEntryOptions;
 
     protected BffPostgresSessionStoreBase(
         IDistributedCache cache,
-        IServiceScopeFactory scopeFactory,
+        IBffSessionDbContextFactory dbContextFactory,
         IBffSessionTokenProtector tokenProtector,
         TimeProvider timeProvider,
         IOptions<BffOptions> options
     )
     {
         DistributedCache = cache;
-        _scopeFactory = scopeFactory;
+        _dbContextFactory = dbContextFactory;
         _tokenProtector = tokenProtector;
         _timeProvider = timeProvider;
         TimeSpan cacheTtl = TimeSpan.FromMinutes(options.Value.CacheTtlMinutes);
@@ -57,8 +56,8 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
                 return cached;
         }
 
-        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await using IBffSessionDbContextLease lease = _dbContextFactory.Create();
+        IdentityDbContext dbContext = lease.DbContext;
 
         BffPersistedSession? entity = await dbContext
             .BffSessions.IgnoreQueryFilters()
@@ -81,8 +80,8 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
         BffSessionRecord protectedRecord = _tokenProtector.Protect(session);
         BffPersistedSession entity = BffSessionMapper.ToEntity(session, protectedRecord);
 
-        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await using IBffSessionDbContextLease lease = _dbContextFactory.Create();
+        IdentityDbContext dbContext = lease.DbContext;
 
         dbContext.BffSessions.Add(entity);
         await dbContext.SaveChangesAsync(ct);
@@ -99,8 +98,8 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
         CancellationToken ct = default
     )
     {
-        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await using IBffSessionDbContextLease lease = _dbContextFactory.Create();
+        IdentityDbContext dbContext = lease.DbContext;
 
         BffPersistedSession? entity = await dbContext
             .BffSessions.IgnoreQueryFilters()
@@ -135,8 +134,8 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
     /// <inheritdoc />
     public async Task RemoveAsync(string sessionId, CancellationToken ct = default)
     {
-        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await using IBffSessionDbContextLease lease = _dbContextFactory.Create();
+        IdentityDbContext dbContext = lease.DbContext;
 
         BffPersistedSession? entity = await dbContext
             .BffSessions.IgnoreQueryFilters()
@@ -158,8 +157,8 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
         CancellationToken ct = default
     )
     {
-        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await using IBffSessionDbContextLease lease = _dbContextFactory.Create();
+        IdentityDbContext dbContext = lease.DbContext;
 
         List<string> ids = await dbContext
             .BffSessions.IgnoreQueryFilters()
@@ -184,8 +183,8 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
         CancellationToken ct = default
     )
     {
-        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        IdentityDbContext dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await using IBffSessionDbContextLease lease = _dbContextFactory.Create();
+        IdentityDbContext dbContext = lease.DbContext;
 
         List<string> sessionIds = await dbContext
             .BffSessions.IgnoreQueryFilters()

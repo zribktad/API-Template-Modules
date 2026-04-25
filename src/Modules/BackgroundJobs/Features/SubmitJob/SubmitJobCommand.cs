@@ -13,11 +13,13 @@ public sealed class SubmitJobCommandHandler
         IJobQueue jobQueue,
         IUnitOfWork<BackgroundJobsDbMarker> unitOfWork,
         TimeProvider timeProvider,
+        IIdGenerator idGenerator,
         ILogger<SubmitJobCommandHandler> logger,
         CancellationToken ct
     )
     {
         JobExecution entity = JobExecution.Create(
+            idGenerator.NewId(),
             command.Request.JobType,
             timeProvider,
             command.Request.Parameters,

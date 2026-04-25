@@ -1,6 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using SharedKernel.Application.Options.Infrastructure;
+using SharedKernel.Infrastructure.Configuration;
 
 namespace SharedKernel.Infrastructure.Health;
 
@@ -14,6 +17,14 @@ public static class HealthCheckModuleExtensions
     )
     {
         IHealthChecksBuilder builder = services.AddHealthChecks();
+        RuntimeFeaturesOptions runtimeFeatures =
+            configuration.SectionFor<RuntimeFeaturesOptions>().Get<RuntimeFeaturesOptions>()
+            ?? new RuntimeFeaturesOptions();
+        if (!runtimeFeatures.ModuleHealthChecksEnabled)
+        {
+            services.AddOptions<HealthCheckServiceOptions>();
+            return services;
+        }
 
         ServiceCollection tempServices = new();
         tempServices.AddSingleton(configuration);
