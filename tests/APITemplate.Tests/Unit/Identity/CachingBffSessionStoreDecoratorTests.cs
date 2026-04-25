@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Identity.Auth.Security.Sessions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -523,5 +524,10 @@ public sealed class CachingBffSessionStoreDecoratorTests
     }
 
     private CachingBffSessionStoreDecorator CreateSut() =>
-        new(_inner.Object, _localCache.Object, _notifier.Object);
+        new(
+            _inner.Object,
+            _localCache.Object,
+            _notifier.Object,
+            NullLogger<CachingBffSessionStoreDecorator>.Instance
+        );
 }

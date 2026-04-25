@@ -14,10 +14,7 @@ internal sealed class BffSessionValidator : IBffSessionValidator
 
     public BffSessionValidationResult Validate(BffSessionRecord session, DateTimeOffset now)
     {
-        if (
-            session.Status == BffSessionStatus.Revoked
-            || session.Status == BffSessionStatus.Expired
-        )
+        if (session.Status.IsTerminal())
             return BffSessionValidationResult.Reject();
 
         if (IsMalformed(session))

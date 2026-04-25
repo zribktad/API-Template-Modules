@@ -10,4 +10,11 @@ internal static partial class BffSessionIds
     public static string NewId() => Guid.NewGuid().ToString("N");
 
     public static bool IsValid(string sessionId) => Format().IsMatch(sessionId);
+
+    // Log a short prefix only; full session ids are cookie-equivalent credentials and must not land
+    // in structured logs un-redacted.
+    public static string SafeRef(string sessionId) =>
+        string.IsNullOrEmpty(sessionId)
+            ? "(empty)"
+            : sessionId[..Math.Min(8, sessionId.Length)] + "...";
 }

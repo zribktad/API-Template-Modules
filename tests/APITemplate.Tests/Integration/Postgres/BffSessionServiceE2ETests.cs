@@ -71,7 +71,8 @@ public sealed class BffSessionServiceE2ETests
         services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
             sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>(),
             sp.GetRequiredService<IBffLocalSessionCache>(),
-            sp.GetRequiredService<IBffSessionRevocationNotifier>()
+            sp.GetRequiredService<IBffSessionRevocationNotifier>(),
+            NullLogger<CachingBffSessionStoreDecorator>.Instance
         ));
         services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
         services.AddSingleton<IBffSessionRecordFactory, BffSessionRecordFactory>();
@@ -134,7 +135,8 @@ public sealed class BffSessionServiceE2ETests
         CachingBffSessionStoreDecorator sut = new(
             inner,
             localCache,
-            new NullBffSessionRevocationNotifier()
+            new NullBffSessionRevocationNotifier(),
+            NullLogger<CachingBffSessionStoreDecorator>.Instance
         );
         BffSessionRecord session = CreateSession();
         await sut.StoreAsync(session, ct);
@@ -255,7 +257,8 @@ public sealed class BffSessionServiceE2ETests
         CachingBffSessionStoreDecorator sut = new(
             inner,
             localCache,
-            new NullBffSessionRevocationNotifier()
+            new NullBffSessionRevocationNotifier(),
+            NullLogger<CachingBffSessionStoreDecorator>.Instance
         );
         BffSessionRecord session = CreateSession();
         await sut.StoreAsync(session, ct);
@@ -286,7 +289,8 @@ public sealed class BffSessionServiceE2ETests
         CachingBffSessionStoreDecorator sut = new(
             inner,
             localCache,
-            new NullBffSessionRevocationNotifier()
+            new NullBffSessionRevocationNotifier(),
+            NullLogger<CachingBffSessionStoreDecorator>.Instance
         );
         BffSessionRecord session = CreateSession();
         await sut.StoreAsync(session, ct);

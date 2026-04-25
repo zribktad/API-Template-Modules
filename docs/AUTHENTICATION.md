@@ -554,7 +554,7 @@ Without an L1 cache, every authenticated request paid a Redis `GET`. The L1 cach
 | Mutation                                                 | L1 action                                  | Pub/sub publish |
 | -------------------------------------------------------- | ------------------------------------------ | --------------- |
 | `StoreAsync` (initial sign-in)                           | Write new record to L1                     | No              |
-| `TryUpdateAsync` with `Status = Active` (token refresh)  | Write-through: replace L1 record           | No              |
+| `TryUpdateAsync` with `Status = Active` (token refresh)  | Write-through: replace L1 record           | Yes             |
 | `TryUpdateAsync` with `Status = Revoked \| Expired`      | Invalidate L1 entry                        | Yes             |
 | `RemoveAsync` (logout / `RedisTicketStore` eviction)     | Invalidate L1 entry                        | Yes             |
 | `BulkRevokeActiveSessionsBySubjectAsync` (password change, revoke-all) | Invalidate L1 entry per session id | Yes, one message per session |

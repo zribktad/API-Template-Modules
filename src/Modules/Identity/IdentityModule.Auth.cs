@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SharedKernel.Application.Resilience;
@@ -137,7 +138,8 @@ public static partial class IdentityModule
             services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
                 sp.GetRequiredService<PostgresCachedBffSessionStore>(),
                 sp.GetRequiredService<IBffLocalSessionCache>(),
-                sp.GetRequiredService<IBffSessionRevocationNotifier>()
+                sp.GetRequiredService<IBffSessionRevocationNotifier>(),
+                sp.GetRequiredService<ILogger<CachingBffSessionStoreDecorator>>()
             ));
 
             // Distributed refresh lock prevents concurrent token refreshes across API instances.
@@ -158,7 +160,8 @@ public static partial class IdentityModule
             services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
                 sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>(),
                 sp.GetRequiredService<IBffLocalSessionCache>(),
-                sp.GetRequiredService<IBffSessionRevocationNotifier>()
+                sp.GetRequiredService<IBffSessionRevocationNotifier>(),
+                sp.GetRequiredService<ILogger<CachingBffSessionStoreDecorator>>()
             ));
             // In-process refresh coordination is sufficient only for single-instance deployments.
             services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();

@@ -12,7 +12,7 @@ namespace Identity.Auth.Security.Sessions;
 ///     <see cref="IConnectionMultiplexer.ConnectionRestored" /> event so a transient boot-time
 ///     outage self-heals instead of silently disabling peer invalidation for the process lifetime.
 /// </summary>
-public sealed class BffSessionRevocationSubscriber : IHostedService
+public sealed class BffSessionRevocationSubscriber : IHostedService, IDisposable
 {
     private readonly IConnectionMultiplexer _multiplexer;
     private readonly IBffLocalSessionCache _localCache;
@@ -97,6 +97,11 @@ public sealed class BffSessionRevocationSubscriber : IHostedService
         {
             _subscribeGate.Release();
         }
+    }
+
+    public void Dispose()
+    {
+        _subscribeGate.Dispose();
     }
 
     private void HandleMessage(RedisChannel channel, RedisValue message)

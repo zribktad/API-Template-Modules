@@ -120,14 +120,14 @@ public sealed class RedisBffSessionRevocationNotifierTests
     [InlineData("1234567890abcdef1234567890abcdef", "12345678...")]
     public void SafeRef_ReturnsRedactedRef(string sessionId, string expected)
     {
-        RedisBffSessionRevocationNotifier.SafeRef(sessionId).ShouldBe(expected);
+        BffSessionIds.SafeRef(sessionId).ShouldBe(expected);
     }
 
     [Fact]
     public void SafeRef_NeverContainsFullSessionIdForLongIds()
     {
         string sessionId = "1234567890abcdef1234567890abcdef";
-        RedisBffSessionRevocationNotifier.SafeRef(sessionId).ShouldNotContain(sessionId);
+        BffSessionIds.SafeRef(sessionId).ShouldNotContain(sessionId);
     }
 
     [Fact]

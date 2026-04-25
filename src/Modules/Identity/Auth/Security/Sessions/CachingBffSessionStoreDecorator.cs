@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using Identity.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Identity.Auth.Security.Sessions;
 
@@ -6,29 +8,31 @@ namespace Identity.Auth.Security.Sessions;
 ///     Decorates <see cref="IBffSessionStore" /> with an in-process skip-window cache and broadcasts
 ///     invalidation events so peer instances can evict their own local caches. Mutations go to the
 ///     inner store first; the local cache is updated/invalidated only after the store confirms the
-///     change. Every successful mutation publishes to the revocation channel so peers that hold a
-///     stale copy of the session drop it and re-fetch on the next request. Revocation broadcasts
-///     run with <see cref="CancellationToken.None" /> so a client disconnect after the inner store
-///     mutation succeeded cannot abort peer notification.
+///     change. Mutations that invalidate peer-held cached state (terminal session updates and
+///     removals) publish to the revocation channel so peers that hold a stale copy of the session
+///     drop it and re-fetch on the next request. Revocation broadcasts run with
+///     <see cref="CancellationToken.None" /> so a client disconnect after the inner store mutation
+///     succeeded cannot abort peer notification.
 /// </summary>
 public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
 {
-    private const int MaxConcurrentRevocationPublishes = 8;
-
     private readonly IBffSessionStore _inner;
     private readonly IBffLocalSessionCache _localCache;
     private readonly IBffSessionRevocationNotifier _notifier;
+    private readonly ILogger<CachingBffSessionStoreDecorator> _logger;
     private readonly ConcurrentDictionary<string, Lazy<Task<BffSessionRecord?>>> _inflight = new();
 
     public CachingBffSessionStoreDecorator(
         IBffSessionStore inner,
         IBffLocalSessionCache localCache,
-        IBffSessionRevocationNotifier notifier
+        IBffSessionRevocationNotifier notifier,
+        ILogger<CachingBffSessionStoreDecorator> logger
     )
     {
         _inner = inner;
         _localCache = localCache;
         _notifier = notifier;
+        _logger = logger;
     }
 
     public Task<BffSessionRecord?> GetAsync(string sessionId, CancellationToken ct = default)
@@ -83,16 +87,10 @@ public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
     public async Task StoreAsync(BffSessionRecord session, CancellationToken ct = default)
     {
         await _inner.StoreAsync(session, ct);
+        ApplyLocalCacheMutation(session);
 
         if (session.Status.IsTerminal())
-        {
-            ApplyLocalCacheMutation(session);
             await PublishRevokedAsync(session.SessionId);
-        }
-        else
-        {
-            ApplyLocalCacheMutation(session);
-        }
     }
 
     public async Task<bool> TryUpdateAsync(
@@ -142,15 +140,7 @@ public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
         foreach (string id in revokedIds)
             _localCache.Invalidate(id);
 
-        ParallelOptions publishOptions = new()
-        {
-            MaxDegreeOfParallelism = MaxConcurrentRevocationPublishes,
-        };
-        await Parallel.ForEachAsync(
-            revokedIds,
-            publishOptions,
-            async (id, _) => await PublishRevokedAsync(id)
-        );
+        await Task.WhenAll(revokedIds.Select(PublishRevokedAsync));
 
         return revokedIds;
     }
@@ -163,8 +153,11 @@ public sealed class CachingBffSessionStoreDecorator : IBffSessionStore
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            // The backing-store mutation already succeeded. A publish implementation failure must
-            // not roll the caller back into an application error; peers will fall back to TTL.
+            // The notifier contract is to handle its own transport errors; reaching this catch means
+            // the implementation violated that contract. Log so the regression is visible, but do
+            // not roll the caller back — the backing-store mutation already succeeded and peers
+            // will fall back to TTL eviction.
+            _logger.BffSessionRevocationPublishFailed(ex, BffSessionIds.SafeRef(sessionId));
         }
     }
 

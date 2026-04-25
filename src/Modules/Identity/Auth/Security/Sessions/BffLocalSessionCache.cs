@@ -13,8 +13,7 @@ namespace Identity.Auth.Security.Sessions;
 /// </summary>
 public sealed class BffLocalSessionCache : IBffLocalSessionCache, IDisposable
 {
-    private readonly MemoryCache? _cache;
-    private readonly MemoryCacheEntryOptions? _entryOptions;
+    private readonly CacheState? _state;
     private long _generation;
 
     public BffLocalSessionCache(IOptions<BffOptions> options)
@@ -22,18 +21,15 @@ public sealed class BffLocalSessionCache : IBffLocalSessionCache, IDisposable
         BffOptions opts = options.Value;
         TimeSpan ttl = TimeSpan.FromSeconds(opts.LocalCacheTtlSeconds);
         if (ttl <= TimeSpan.Zero)
-        {
-            _cache = null;
-            _entryOptions = null;
             return;
-        }
 
-        _cache = new MemoryCache(new MemoryCacheOptions { SizeLimit = opts.LocalCacheMaxEntries });
-        _entryOptions = new MemoryCacheEntryOptions
+        MemoryCache cache = new(new MemoryCacheOptions { SizeLimit = opts.LocalCacheMaxEntries });
+        MemoryCacheEntryOptions entryOptions = new()
         {
             AbsoluteExpirationRelativeToNow = ttl,
             Size = 1,
         };
+        _state = new CacheState(cache, entryOptions);
     }
 
     public long Generation => Interlocked.Read(ref _generation);
@@ -41,8 +37,8 @@ public sealed class BffLocalSessionCache : IBffLocalSessionCache, IDisposable
     public bool TryGet(string sessionId, [NotNullWhen(true)] out BffSessionRecord? record)
     {
         if (
-            _cache is not null
-            && _cache.TryGetValue(GetKey(sessionId), out BffSessionRecord? cached)
+            _state is not null
+            && _state.Cache.TryGetValue(GetKey(sessionId), out BffSessionRecord? cached)
             && cached is not null
         )
         {
@@ -56,25 +52,27 @@ public sealed class BffLocalSessionCache : IBffLocalSessionCache, IDisposable
 
     public void Set(string sessionId, BffSessionRecord record)
     {
-        if (_cache is null)
+        if (_state is null)
             return;
 
-        _cache.Set(GetKey(sessionId), record, _entryOptions);
+        _state.Cache.Set(GetKey(sessionId), record, _state.EntryOptions);
     }
 
     public void Invalidate(string sessionId)
     {
-        if (_cache is null)
+        if (_state is null)
             return;
 
         Interlocked.Increment(ref _generation);
-        _cache.Remove(GetKey(sessionId));
+        _state.Cache.Remove(GetKey(sessionId));
     }
 
     public void Dispose()
     {
-        _cache?.Dispose();
+        _state?.Cache.Dispose();
     }
 
     private static string GetKey(string sessionId) => BffSessionCacheKeys.GetSessionKey(sessionId);
+
+    private sealed record CacheState(MemoryCache Cache, MemoryCacheEntryOptions EntryOptions);
 }
