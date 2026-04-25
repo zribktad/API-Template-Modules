@@ -53,6 +53,7 @@ jobs:
         run: >
           dotnet test APITemplate.slnx
           --no-build --no-restore --configuration Release --verbosity normal
+          --filter "Category=Unit&Category!=Unit.Component"
           --logger "trx;LogFileName=unit-results.trx"
           --collect:"XPlat Code Coverage"
           --results-directory ./test-results/unit

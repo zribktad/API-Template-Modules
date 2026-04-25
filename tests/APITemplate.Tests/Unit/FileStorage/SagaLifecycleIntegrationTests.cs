@@ -30,6 +30,7 @@ namespace APITemplate.Tests.Unit.FileStorage;
 ///     runtime or Postgres.
 /// </summary>
 [Trait("Category", "Unit")]
+[Trait("Category", "Unit.Component")]
 public sealed class SagaLifecycleIntegrationTests : IDisposable
 {
     private readonly string _tempDir = Path.Combine(

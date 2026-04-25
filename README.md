@@ -1252,20 +1252,23 @@ services.AddDbContext<AppDbContext>(options =>
 # Run all tests
 dotnet test
 
-# Run only unit tests
-dotnet test --filter "FullyQualifiedName~Unit"
+# Run fast unit tests (inner loop)
+dotnet test APITemplate.slnx --filter "Category=Unit&Category!=Unit.Component"
+
+# Run slower component-style unit tests
+dotnet test APITemplate.slnx --filter "Category=Unit.Component"
 
 # Run only integration tests (in-memory, no external dependencies)
-dotnet test --filter "FullyQualifiedName~Integration&Category!=Integration.Postgres"
+dotnet test APITemplate.slnx --filter "Category=Integration"
 
 # Run Testcontainers PostgreSQL tests (requires Docker)
-dotnet test --filter "Category=Integration.Postgres"
+dotnet test APITemplate.slnx --filter "Category=Integration.Postgres"
 
-# Run Smoke and Docker integration tests (requires a running Docker engine for Testcontainers)
-dotnet test /p:RunDockerIntegration=true
+# Run smoke tests
+dotnet test APITemplate.slnx --filter "Category=Smoke"
 ```
 
-> **Test category filter:** By default, tests tagged `Category=Integration.Docker` and `Category=Smoke` are excluded from every `dotnet test` run. These tests spin up PostgreSQL and MongoDB via Testcontainers — a running Docker engine is required. Set `RunDockerIntegration=true` to opt in and run them.
+> **Test category filter:** `dotnet test` runs every compiled test unless a `--filter` is provided. Use explicit `Category` filters to keep inner-loop runs fast.
 
 ---
 

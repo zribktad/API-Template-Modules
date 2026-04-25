@@ -1,3 +1,4 @@
+using APITemplate.Tests.Unit.Infrastructure;
 using ErrorOr;
 using Moq;
 using ProductCatalog;
@@ -8,9 +9,7 @@ using ProductCatalog.Features.Category.Shared;
 using ProductCatalog.Interfaces;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.DTOs;
-using SharedKernel.Contracts.Events;
 using SharedKernel.Domain.Interfaces;
-using SharedKernel.Domain.Options;
 using Shouldly;
 using Wolverine;
 using Xunit;
@@ -31,17 +30,7 @@ public sealed class DeleteCategoriesCommandHandlerTests
 
     public DeleteCategoriesCommandHandlerTests()
     {
-        _unitOfWork
-            .Setup(u =>
-                u.ExecuteInTransactionAsync(
-                    It.IsAny<Func<Task>>(),
-                    It.IsAny<CancellationToken>(),
-                    It.IsAny<TransactionOptions?>()
-                )
-            )
-            .Returns<Func<Task>, CancellationToken, TransactionOptions?>(
-                (action, _, _) => action()
-            );
+        UnitOfWorkTestHelper.SetupTransactionPassthrough(_unitOfWork);
     }
 
     [Fact]
@@ -135,10 +124,7 @@ public sealed class DeleteCategoriesCommandHandlerTests
 
         result.IsError.ShouldBeFalse();
         callOrder.ShouldBe(["clear", "softDelete"]);
-        messages
-            .OfType<CacheInvalidationNotification>()
-            .Select(m => m.CacheTag)
-            .ShouldBe([CacheTags.Categories, CacheTags.Products], ignoreOrder: true);
+        messages.ShouldContainCacheTags([CacheTags.Categories, CacheTags.Products]);
     }
 
     [Fact]

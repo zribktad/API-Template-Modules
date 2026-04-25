@@ -471,11 +471,14 @@ public sealed record OrdersData(OrderConnection Orders);
 # Run all tests
 dotnet test
 
-# Run only unit tests
-dotnet test --filter "FullyQualifiedName~Unit"
+# Run fast unit tests (inner loop)
+dotnet test APITemplate.slnx --filter "Category=Unit&Category!=Unit.Component"
+
+# Run slower component-style unit tests
+dotnet test APITemplate.slnx --filter "Category=Unit.Component"
 
 # Run only integration tests
-dotnet test --filter "FullyQualifiedName~Integration"
+dotnet test APITemplate.slnx --filter "Category=Integration"
 
 # Run a single test class
 dotnet test --filter "FullyQualifiedName~ProductServiceTests"

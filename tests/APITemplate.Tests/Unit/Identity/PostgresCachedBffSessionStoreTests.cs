@@ -19,6 +19,7 @@ using Xunit;
 namespace APITemplate.Tests.Unit.Identity;
 
 [Trait("Category", "Unit")]
+[Trait("Category", "Unit.Component")]
 public sealed class PostgresCachedBffSessionStoreTests : IDisposable
 {
     private static readonly DateTimeOffset Now = BffSessionStoreUnitTestHelpers.DefaultSessionEpoch;

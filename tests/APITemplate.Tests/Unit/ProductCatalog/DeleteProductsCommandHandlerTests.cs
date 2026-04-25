@@ -1,4 +1,5 @@
 using APITemplate.Tests.Unit.Helpers;
+using APITemplate.Tests.Unit.Infrastructure;
 using ErrorOr;
 using Moq;
 using ProductCatalog;
@@ -33,17 +34,7 @@ public sealed class DeleteProductsCommandHandlerTests
 
     public DeleteProductsCommandHandlerTests()
     {
-        _unitOfWork
-            .Setup(u =>
-                u.ExecuteInTransactionAsync(
-                    It.IsAny<Func<Task>>(),
-                    It.IsAny<CancellationToken>(),
-                    It.IsAny<TransactionOptions?>()
-                )
-            )
-            .Returns<Func<Task>, CancellationToken, TransactionOptions?>(
-                (action, _, _) => action()
-            );
+        UnitOfWorkTestHelper.SetupTransactionPassthrough(_unitOfWork);
 
         _linkRepo
             .Setup(r =>
@@ -217,13 +208,11 @@ public sealed class DeleteProductsCommandHandlerTests
                 ct
             );
 
-        IReadOnlyList<string> cacheTags = messages
-            .OfType<CacheInvalidationNotification>()
-            .Select(m => m.CacheTag)
-            .ToList();
-        cacheTags.ShouldContain(CacheTags.Products);
-        cacheTags.ShouldContain(CacheTags.Categories);
-        cacheTags.ShouldContain(CacheTags.Reviews);
+        messages.ShouldContainCacheTags([
+            CacheTags.Products,
+            CacheTags.Categories,
+            CacheTags.Reviews,
+        ]);
     }
 
     [Fact]
