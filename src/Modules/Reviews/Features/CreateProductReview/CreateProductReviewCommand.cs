@@ -33,27 +33,11 @@ public sealed class CreateProductReviewCommandHandler
             return (HandlerContinuation.Stop, null, ratingFailure);
         }
 
-        ErrorOr<Success> productExists;
-        try
-        {
-            productExists = await bus.InvokeAsync<ErrorOr<Success>>(
-                new ValidateProductExistsQuery(command.Request.ProductId),
-                ct
-            );
-        }
-        catch
-        {
-            return (
-                HandlerContinuation.Continue,
-                CreateState(
-                    command,
-                    userId,
-                    rating.Value,
-                    ProductNotFound(command.Request.ProductId)
-                ),
-                OutgoingMessagesHelper.Empty
-            );
-        }
+        ErrorOr<Success> productExists = await bus.InvokeAsync<ErrorOr<Success>>(
+            new ValidateProductExistsQuery(command.Request.ProductId),
+            ct
+        );
+
         if (productExists.IsError)
         {
             return (

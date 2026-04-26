@@ -1,4 +1,5 @@
 using ErrorOr;
+using Npgsql;
 using ProductCategoryStatsEntity = ProductCatalog.Entities.ProductCategoryStats;
 
 namespace ProductCatalog.Features.Category.GetCategoryStats;
@@ -20,7 +21,7 @@ public sealed class GetCategoryStatsQueryHandler
         {
             stats = await repository.GetStatsByIdAsync(request.Id, ct);
         }
-        catch
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UndefinedFunction)
         {
             ProductCatalog.Entities.Category? category = await repository.GetByIdAsync(
                 request.Id,
