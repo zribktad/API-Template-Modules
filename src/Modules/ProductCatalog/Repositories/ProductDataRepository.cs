@@ -88,7 +88,7 @@ public sealed class ProductDataRepository : IProductDataRepository
     }
 
     /// <summary>Soft-deletes a single document by setting <c>IsDeleted</c>, <c>DeletedAtUtc</c>, and <c>DeletedBy</c>.</summary>
-    public async Task SoftDeleteAsync(
+    public async Task<bool> SoftDeleteAsync(
         Guid id,
         Guid actorId,
         DateTime deletedAtUtc,
@@ -100,11 +100,12 @@ public sealed class ProductDataRepository : IProductDataRepository
             .Set(x => x.DeletedAtUtc, deletedAtUtc)
             .Set(x => x.DeletedBy, actorId);
 
-        await _collection.UpdateOneAsync(
+        UpdateResult result = await _collection.UpdateOneAsync(
             x => x.Id == id && x.TenantId == _tenantProvider.TenantId && !x.IsDeleted,
             update,
             cancellationToken: ct
         );
+        return result.ModifiedCount > 0;
     }
 
     /// <summary>

@@ -41,7 +41,9 @@ public sealed class CategoryApiIntegrationTests : IAsyncLifetime
             "category_admin@test.com",
             ct: ct
         );
-        Authenticate(
+        _client.AuthenticateAs(
+            _tenant,
+            _user,
             Permission.Categories.Read,
             Permission.Categories.Create,
             Permission.Categories.Update,
@@ -68,7 +70,7 @@ public sealed class CategoryApiIntegrationTests : IAsyncLifetime
         createBatch.Failures.ShouldBeEmpty();
         createBatch.SuccessCount.ShouldBe(1);
 
-        Guid categoryId = await ResolveCategoryIdAsync(name, ct);
+        Guid categoryId = await _client.ResolveCategoryIdAsync(name, ct);
 
         HttpResponseMessage byIdResponse = await _client.GetAsync(
             $"/api/v1/categories/{categoryId}",
@@ -153,7 +155,7 @@ public sealed class CategoryApiIntegrationTests : IAsyncLifetime
     public async Task CreateCategory_WithoutCreatePermission_ReturnsForbidden()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Authenticate(Permission.Categories.Read);
+        _client.AuthenticateAs(_tenant, _user, Permission.Categories.Read);
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
             "/api/v1/categories",
@@ -162,32 +164,5 @@ public sealed class CategoryApiIntegrationTests : IAsyncLifetime
         );
 
         await response.ShouldBeStatusAsync(HttpStatusCode.Forbidden, ct);
-    }
-
-    private void Authenticate(params string[] permissions) =>
-        _client.WithAuth(
-            "PlatformAdmin",
-            userId: _user.Id,
-            tenantId: _tenant.Id,
-            username: _user.Username.Value,
-            permissions: permissions,
-            email: _user.Email.Value,
-            subject: _user.KeycloakUserId
-        );
-
-    private async Task<Guid> ResolveCategoryIdAsync(string name, CancellationToken ct)
-    {
-        HttpResponseMessage response = await _client.GetAsync(
-            $"/api/v1/categories?name={Uri.EscapeDataString(name)}",
-            ct
-        );
-        await response.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-
-        PagedResponse<CategoryResponse> payload = await response.ReadJsonAsync<
-            PagedResponse<CategoryResponse>
-        >(ct);
-        CategoryResponse? category = payload.Items.FirstOrDefault(i => i.Name == name);
-        category.ShouldNotBeNull();
-        return category!.Id;
     }
 }

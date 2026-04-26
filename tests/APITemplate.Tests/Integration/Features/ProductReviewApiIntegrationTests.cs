@@ -40,7 +40,9 @@ public sealed class ProductReviewApiIntegrationTests : IAsyncLifetime
             "review_admin@test.com",
             ct: ct
         );
-        Authenticate(
+        _client.AuthenticateAs(
+            _tenant,
+            _user,
             Permission.Products.Read,
             Permission.Products.Create,
             Permission.ProductReviews.Read,
@@ -55,7 +57,7 @@ public sealed class ProductReviewApiIntegrationTests : IAsyncLifetime
     public async Task CreateReadDeleteReview_Flow_Works()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Guid productId = await CreateProductAsync($"Review Product-{Guid.NewGuid():N}", ct);
+        Guid productId = await _client.CreateProductAsync($"Review Product-{Guid.NewGuid():N}", ct);
 
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync(
             "/api/v1/product-reviews",
@@ -122,8 +124,8 @@ public sealed class ProductReviewApiIntegrationTests : IAsyncLifetime
     public async Task CreateReview_WithoutPermission_ReturnsForbidden()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Guid productId = await CreateProductAsync($"NoPerm Product-{Guid.NewGuid():N}", ct);
-        Authenticate(Permission.ProductReviews.Read);
+        Guid productId = await _client.CreateProductAsync($"NoPerm Product-{Guid.NewGuid():N}", ct);
+        _client.AuthenticateAs(_tenant, _user, Permission.ProductReviews.Read);
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
             "/api/v1/product-reviews",
@@ -143,7 +145,10 @@ public sealed class ProductReviewApiIntegrationTests : IAsyncLifetime
     public async Task CreateReview_WithInvalidPayload_ReturnsValidationFailure()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Guid productId = await CreateProductAsync($"Invalid Review Product-{Guid.NewGuid():N}", ct);
+        Guid productId = await _client.CreateProductAsync(
+            $"Invalid Review Product-{Guid.NewGuid():N}",
+            ct
+        );
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
             "/api/v1/product-reviews",
@@ -161,46 +166,4 @@ public sealed class ProductReviewApiIntegrationTests : IAsyncLifetime
             HttpStatusCode.UnprocessableEntity
         );
     }
-
-    private async Task<Guid> CreateProductAsync(string productName, CancellationToken ct)
-    {
-        HttpResponseMessage create = await _client.PostAsJsonAsync(
-            "/api/v1/products",
-            new
-            {
-                Items = new[]
-                {
-                    new
-                    {
-                        Name = productName,
-                        Description = "x",
-                        Price = 10m,
-                    },
-                },
-            },
-            ct
-        );
-        await create.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-
-        HttpResponseMessage list = await _client.GetAsync(
-            $"/api/v1/products?name={Uri.EscapeDataString(productName)}",
-            ct
-        );
-        await list.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-        ProductsResponse payload = await list.ReadJsonAsync<ProductsResponse>(ct);
-        ProductResponse? product = payload.Page.Items.FirstOrDefault(p => p.Name == productName);
-        product.ShouldNotBeNull();
-        return product!.Id;
-    }
-
-    private void Authenticate(params string[] permissions) =>
-        _client.WithAuth(
-            "PlatformAdmin",
-            userId: _user.Id,
-            tenantId: _tenant.Id,
-            username: _user.Username.Value,
-            permissions: permissions,
-            email: _user.Email.Value,
-            subject: _user.KeycloakUserId
-        );
 }

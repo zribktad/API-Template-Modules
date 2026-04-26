@@ -88,29 +88,31 @@ public sealed class ProductDataCommandHandlersTests
     }
 
     [Fact]
-    public async Task DeleteLoad_WhenTenantMismatch_ShouldStop()
+    public async Task DeleteLoad_ShouldCaptureTenantActorAndTimestamp()
     {
-        Guid id = Guid.NewGuid();
-        _tenantProvider.SetupGet(x => x.TenantId).Returns(Guid.NewGuid());
-        _repository
-            .Setup(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(DomainTestDataFactory.ImageProductData(id: id, tenantId: Guid.NewGuid()));
+        Guid tenantId = Guid.NewGuid();
+        Guid actorId = Guid.NewGuid();
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        _tenantProvider.SetupGet(x => x.TenantId).Returns(tenantId);
+        _actorProvider.SetupGet(x => x.ActorId).Returns(actorId);
 
         (
             HandlerContinuation continuation,
             DeleteProductDataCommandHandler.DeleteProductDataState? state,
             _
         ) = await DeleteProductDataCommandHandler.LoadAsync(
-            new DeleteProductDataCommand(id),
-            _repository.Object,
+            new DeleteProductDataCommand(Guid.NewGuid()),
             _tenantProvider.Object,
             _actorProvider.Object,
-            TimeProvider.System,
+            new FakeTimeProvider(now),
             TestContext.Current.CancellationToken
         );
 
-        continuation.ShouldBe(HandlerContinuation.Stop);
-        state.ShouldBeNull();
+        continuation.ShouldBe(HandlerContinuation.Continue);
+        state.ShouldNotBeNull();
+        state!.TenantId.ShouldBe(tenantId);
+        state.ActorId.ShouldBe(actorId);
+        state.DeletedAtUtc.ShouldBe(now.UtcDateTime);
     }
 
     [Fact]
@@ -121,11 +123,13 @@ public sealed class ProductDataCommandHandlersTests
         Guid actorId = Guid.NewGuid();
         DateTime deletedAt = DateTime.UtcNow;
         DeleteProductDataCommandHandler.DeleteProductDataState state = new(
-            DomainTestDataFactory.ImageProductData(id: id, tenantId: tenantId),
             tenantId,
             actorId,
             deletedAt
         );
+        _repository
+            .Setup(r => r.SoftDeleteAsync(id, actorId, deletedAt, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         (ErrorOr<Success> result, OutgoingMessages messages) =
             await DeleteProductDataCommandHandler.HandleAsync(
@@ -139,7 +143,14 @@ public sealed class ProductDataCommandHandlersTests
 
         result.IsError.ShouldBeFalse();
         _linkRepository.Verify(
-            r => r.SoftDeleteActiveLinksForProductDataAsync(id, It.IsAny<CancellationToken>()),
+            r =>
+                r.SoftDeleteActiveLinksForProductDataAsync(
+                    id,
+                    tenantId,
+                    actorId,
+                    deletedAt,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
         _repository.Verify(
@@ -147,5 +158,50 @@ public sealed class ProductDataCommandHandlersTests
             Times.Once
         );
         messages.ShouldContainCacheTags([CacheTags.ProductData, CacheTags.Products]);
+    }
+
+    [Fact]
+    public async Task DeleteHandle_WhenProductDataMissing_ShouldReturnNotFoundWithoutDeletingLinks()
+    {
+        Guid id = Guid.NewGuid();
+        DeleteProductDataCommandHandler.DeleteProductDataState state = new(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            DateTime.UtcNow
+        );
+        _repository
+            .Setup(r =>
+                r.SoftDeleteAsync(
+                    id,
+                    state.ActorId,
+                    state.DeletedAtUtc,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(false);
+
+        (ErrorOr<Success> result, OutgoingMessages messages) =
+            await DeleteProductDataCommandHandler.HandleAsync(
+                new DeleteProductDataCommand(id),
+                state,
+                _linkRepository.Object,
+                _repository.Object,
+                _unitOfWork.Object,
+                TestContext.Current.CancellationToken
+            );
+
+        result.IsError.ShouldBeTrue();
+        messages.ShouldBeEmpty();
+        _linkRepository.Verify(
+            r =>
+                r.SoftDeleteActiveLinksForProductDataAsync(
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
     }
 }

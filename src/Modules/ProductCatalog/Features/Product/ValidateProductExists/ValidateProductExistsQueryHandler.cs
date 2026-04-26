@@ -1,6 +1,5 @@
 using ErrorOr;
 using SharedKernel.Contracts.Queries.ProductCatalog;
-using ProductEntity = ProductCatalog.Entities.Product;
 
 namespace ProductCatalog.Features.Product.ValidateProductExists;
 
@@ -12,9 +11,7 @@ public sealed class ValidateProductExistsQueryHandler
         CancellationToken ct
     )
     {
-        ProductEntity? product = await repository.GetByIdAsync(query.ProductId, ct);
-
-        if (product is null)
+        if (!await repository.ExistsByIdAsync(query.ProductId, ct))
             return DomainErrors.Products.NotFound(query.ProductId);
 
         return Result.Success;

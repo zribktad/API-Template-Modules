@@ -71,8 +71,8 @@ public sealed class HighPriorityEdgeCaseIntegrationTests : IAsyncLifetime
             Permission.ProductData.Delete,
         ];
 
-        Authenticate(_tenantAClient, _tenantA, _userA, perms);
-        Authenticate(_tenantBClient, _tenantB, _userB, perms);
+        _tenantAClient.AuthenticateAs(_tenantA, _userA, perms);
+        _tenantBClient.AuthenticateAs(_tenantB, _userB, perms);
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -81,18 +81,16 @@ public sealed class HighPriorityEdgeCaseIntegrationTests : IAsyncLifetime
     public async Task TenantBoundary_ResourcesFromAnotherTenant_AreNotAccessible()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Guid categoryId = await CreateCategoryAsync(
-            _tenantAClient,
+        Guid categoryId = await _tenantAClient.CreateCategoryAsync(
             $"TenantA-Cat-{Guid.NewGuid():N}",
             ct
         );
-        Guid productId = await CreateProductAsync(
-            _tenantAClient,
+        Guid productId = await _tenantAClient.CreateProductAsync(
             $"TenantA-Product-{Guid.NewGuid():N}",
             ct
         );
         Guid reviewId = await CreateReviewAsync(_tenantAClient, productId, ct);
-        Guid productDataId = await CreateImageProductDataAsync(_tenantAClient, ct);
+        Guid productDataId = await _tenantAClient.CreateImageProductDataAsync(ct);
 
         HttpResponseMessage[] tenantBResponses = await Task.WhenAll(
             _tenantBClient.GetAsync($"/api/v1/categories/{categoryId}", ct),
@@ -109,7 +107,7 @@ public sealed class HighPriorityEdgeCaseIntegrationTests : IAsyncLifetime
     public async Task ProductData_SecondDeleteIsHandled()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Guid productDataId = await CreateImageProductDataAsync(_tenantAClient, ct);
+        Guid productDataId = await _tenantAClient.CreateImageProductDataAsync(ct);
 
         HttpResponseMessage firstProductDataDelete = await _tenantAClient.DeleteAsync(
             $"/api/v1/product-data/{productDataId}",
@@ -125,77 +123,6 @@ public sealed class HighPriorityEdgeCaseIntegrationTests : IAsyncLifetime
             HttpStatusCode.NoContent,
             HttpStatusCode.NotFound
         );
-    }
-
-    private static void Authenticate(
-        HttpClient client,
-        Tenant tenant,
-        AppUser user,
-        string[] permissions
-    ) =>
-        client.WithAuth(
-            "PlatformAdmin",
-            userId: user.Id,
-            tenantId: tenant.Id,
-            username: user.Username.Value,
-            permissions: permissions,
-            email: user.Email.Value,
-            subject: user.KeycloakUserId
-        );
-
-    private static async Task<Guid> CreateCategoryAsync(
-        HttpClient client,
-        string name,
-        CancellationToken ct
-    )
-    {
-        HttpResponseMessage create = await client.PostAsJsonAsync(
-            "/api/v1/categories",
-            new { Items = new[] { new { Name = name, Description = "tenant edge" } } },
-            ct
-        );
-        await create.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-        HttpResponseMessage list = await client.GetAsync(
-            $"/api/v1/categories?name={Uri.EscapeDataString(name)}",
-            ct
-        );
-        await list.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-        PagedResponse<CategoryResponse> payload = await list.ReadJsonAsync<
-            PagedResponse<CategoryResponse>
-        >(ct);
-        return payload.Items.Single(i => i.Name == name).Id;
-    }
-
-    private static async Task<Guid> CreateProductAsync(
-        HttpClient client,
-        string name,
-        CancellationToken ct
-    )
-    {
-        HttpResponseMessage create = await client.PostAsJsonAsync(
-            "/api/v1/products",
-            new
-            {
-                Items = new[]
-                {
-                    new
-                    {
-                        Name = name,
-                        Description = "tenant edge",
-                        Price = 11m,
-                    },
-                },
-            },
-            ct
-        );
-        await create.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-        HttpResponseMessage list = await client.GetAsync(
-            $"/api/v1/products?name={Uri.EscapeDataString(name)}",
-            ct
-        );
-        await list.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-        ProductsResponse payload = await list.ReadJsonAsync<ProductsResponse>(ct);
-        return payload.Page.Items.Single(i => i.Name == name).Id;
     }
 
     private static async Task<Guid> CreateReviewAsync(
@@ -217,29 +144,5 @@ public sealed class HighPriorityEdgeCaseIntegrationTests : IAsyncLifetime
         await response.ShouldBeStatusAsync(HttpStatusCode.Created, ct);
         ProductReviewResponse review = await response.ReadJsonAsync<ProductReviewResponse>(ct);
         return review.Id;
-    }
-
-    private static async Task<Guid> CreateImageProductDataAsync(
-        HttpClient client,
-        CancellationToken ct
-    )
-    {
-        HttpResponseMessage response = await client.PostAsJsonAsync(
-            "/api/v1/product-data/image",
-            new
-            {
-                Title = $"TenantEdgeImage-{Guid.NewGuid():N}",
-                Description = "tenant edge image",
-                Width = 100,
-                Height = 100,
-                Format = "png",
-                FileSizeBytes = 200L,
-            },
-            ct
-        );
-        await response.ShouldBeStatusAsync(HttpStatusCode.Created, ct);
-        ProductDataContractResponse created =
-            await response.ReadJsonAsync<ProductDataContractResponse>(ct);
-        return created.Id;
     }
 }

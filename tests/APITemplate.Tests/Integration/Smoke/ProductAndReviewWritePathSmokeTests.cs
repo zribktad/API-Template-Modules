@@ -42,7 +42,7 @@ public sealed class ProductAndReviewWritePathSmokeTests : SmokeTestBase
         BatchResponse createBatch = await create.ReadJsonAsync<BatchResponse>(ct);
         createBatch.Failures.ShouldBeEmpty();
 
-        Guid id = await ResolveCategoryIdAsync(name, ct);
+        Guid id = await Client.ResolveCategoryIdAsync(name, ct);
         HttpResponseMessage byId = await Client.GetAsync($"/api/v1/categories/{id}", ct);
         await byId.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
 
@@ -83,7 +83,7 @@ public sealed class ProductAndReviewWritePathSmokeTests : SmokeTestBase
         );
         await create.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
 
-        Guid id = await ResolveProductIdAsync(name, ct);
+        Guid id = await Client.ResolveProductIdAsync(name, ct);
         HttpResponseMessage byId = await Client.GetAsync($"/api/v1/products/{id}", ct);
         await byId.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
 
@@ -107,7 +107,10 @@ public sealed class ProductAndReviewWritePathSmokeTests : SmokeTestBase
             Permission.ProductReviews.Delete,
         ]);
 
-        Guid productId = await CreateProductAsync($"SmokeReviewProduct-{Guid.NewGuid():N}", ct);
+        Guid productId = await Client.CreateProductAsync(
+            $"SmokeReviewProduct-{Guid.NewGuid():N}",
+            ct
+        );
 
         HttpResponseMessage createReview = await Client.PostAsJsonAsync(
             "/api/v1/product-reviews",
@@ -133,55 +136,5 @@ public sealed class ProductAndReviewWritePathSmokeTests : SmokeTestBase
             ct
         );
         await deleteReview.ShouldBeStatusAsync(HttpStatusCode.NoContent, ct);
-    }
-
-    private async Task<Guid> CreateProductAsync(string name, CancellationToken ct)
-    {
-        HttpResponseMessage create = await Client.PostAsJsonAsync(
-            "/api/v1/products",
-            new
-            {
-                Items = new[]
-                {
-                    new
-                    {
-                        Name = name,
-                        Description = "smoke",
-                        Price = 10m,
-                    },
-                },
-            },
-            ct
-        );
-        await create.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-        return await ResolveProductIdAsync(name, ct);
-    }
-
-    private async Task<Guid> ResolveProductIdAsync(string name, CancellationToken ct)
-    {
-        HttpResponseMessage response = await Client.GetAsync(
-            $"/api/v1/products?name={Uri.EscapeDataString(name)}",
-            ct
-        );
-        await response.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-        ProductsResponse payload = await response.ReadJsonAsync<ProductsResponse>(ct);
-        ProductResponse? product = payload.Page.Items.FirstOrDefault(p => p.Name == name);
-        product.ShouldNotBeNull();
-        return product!.Id;
-    }
-
-    private async Task<Guid> ResolveCategoryIdAsync(string name, CancellationToken ct)
-    {
-        HttpResponseMessage response = await Client.GetAsync(
-            $"/api/v1/categories?name={Uri.EscapeDataString(name)}",
-            ct
-        );
-        await response.ShouldBeStatusAsync(HttpStatusCode.OK, ct);
-        PagedResponse<CategoryResponse> payload = await response.ReadJsonAsync<
-            PagedResponse<CategoryResponse>
-        >(ct);
-        CategoryResponse? category = payload.Items.FirstOrDefault(i => i.Name == name);
-        category.ShouldNotBeNull();
-        return category!.Id;
     }
 }

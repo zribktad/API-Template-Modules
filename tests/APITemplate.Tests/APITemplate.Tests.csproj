@@ -44,6 +44,7 @@
     <Compile Include="Integration\Helpers\TestConfigurationHelper.cs" />
     <Compile Include="Integration\Helpers\TestOutputCacheStore.cs" />
     <Compile Include="Integration\Helpers\TestServiceHelper.cs" />
+    <Compile Include="Integration\Helpers\CatalogApiTestHelper.cs" />
     <Compile Include="Integration\Helpers\HttpClientAuthExtensions.cs" />
     <Compile Include="Integration\Helpers\HttpResponseTestExtensions.cs" />
     <Compile Include="Integration\Helpers\TestJsonOptions.cs" />

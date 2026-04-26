@@ -81,22 +81,22 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     }
 
     /// <summary>
-    ///     Stages removal of all active links for the given product data document so they
-    ///     are soft-deleted when the unit of work commits.
+    ///     Soft-deletes all active links for the given product data document in one database update.
     /// </summary>
-    public async Task SoftDeleteActiveLinksForProductDataAsync(
+    public async Task<int> SoftDeleteActiveLinksForProductDataAsync(
         Guid productDataId,
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
         CancellationToken ct = default
     )
     {
-        List<ProductDataLink> links = await _dbContext
-            .ProductDataLinks.Where(link => link.ProductDataId == productDataId)
-            .ToListAsync(ct);
-
-        if (links.Count == 0)
-            return;
-
-        _dbContext.ProductDataLinks.RemoveRange(links);
+        return await _dbContext
+            .ProductDataLinks.IgnoreQueryFilters()
+            .Where(link =>
+                link.TenantId == tenantId && link.ProductDataId == productDataId && !link.IsDeleted
+            )
+            .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 
     /// <inheritdoc />
@@ -124,7 +124,9 @@ public sealed class ProductDataLinkRepository : IProductDataLinkRepository
     {
         return await _dbContext
             .ProductDataLinks.IgnoreQueryFilters()
-            .Where(link => link.TenantId == tenantId && productIds.Contains(link.ProductId) && !link.IsDeleted)
+            .Where(link =>
+                link.TenantId == tenantId && productIds.Contains(link.ProductId) && !link.IsDeleted
+            )
             .BulkSoftDeleteAsync(actorId, deletedAtUtc, ct);
     }
 }

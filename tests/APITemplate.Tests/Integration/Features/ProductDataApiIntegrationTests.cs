@@ -37,7 +37,9 @@ public sealed class ProductDataApiIntegrationTests : IAsyncLifetime
             "productdata_admin@test.com",
             ct: ct
         );
-        Authenticate(
+        _client.AuthenticateAs(
+            _tenant,
+            _user,
             Permission.ProductData.Read,
             Permission.ProductData.Create,
             Permission.ProductData.Delete
@@ -155,7 +157,12 @@ public sealed class ProductDataApiIntegrationTests : IAsyncLifetime
     public async Task DeleteProductData_WithoutDeletePermission_ReturnsForbidden()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        Authenticate(Permission.ProductData.Read, Permission.ProductData.Create);
+        _client.AuthenticateAs(
+            _tenant,
+            _user,
+            Permission.ProductData.Read,
+            Permission.ProductData.Create
+        );
 
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync(
             "/api/v1/product-data/image",
@@ -180,15 +187,4 @@ public sealed class ProductDataApiIntegrationTests : IAsyncLifetime
         );
         await deleteResponse.ShouldBeStatusAsync(HttpStatusCode.Forbidden, ct);
     }
-
-    private void Authenticate(params string[] permissions) =>
-        _client.WithAuth(
-            "PlatformAdmin",
-            userId: _user.Id,
-            tenantId: _tenant.Id,
-            username: _user.Username.Value,
-            permissions: permissions,
-            email: _user.Email.Value,
-            subject: _user.KeycloakUserId
-        );
 }

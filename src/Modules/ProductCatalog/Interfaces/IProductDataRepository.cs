@@ -25,7 +25,7 @@ public interface IProductDataRepository
     public Task<ProductData> CreateAsync(ProductData productData, CancellationToken ct = default);
 
     /// <summary>Soft-deletes the product-data document with the given ID, recording the actor and timestamp.</summary>
-    public Task SoftDeleteAsync(
+    public Task<bool> SoftDeleteAsync(
         Guid id,
         Guid actorId,
         DateTime deletedAtUtc,
