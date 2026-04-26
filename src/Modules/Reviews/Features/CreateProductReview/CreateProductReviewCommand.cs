@@ -39,14 +39,19 @@ public sealed class CreateProductReviewCommandHandler
 
         if (productExists.IsError)
         {
-            OutgoingMessages failureMessages = new();
-            failureMessages.RespondToSender(
-                (ErrorOr<ProductReviewResponse>)
+            return (
+                HandlerContinuation.Continue,
+                new CreateProductReviewState(
+                    command.Request.ProductId,
+                    userId,
+                    command.Request.Comment,
+                    rating.Value,
                     Reviews.Common.Errors.DomainErrors.Reviews.ProductNotFoundForReview(
                         command.Request.ProductId
                     )
+                ),
+                OutgoingMessagesHelper.Empty
             );
-            return (HandlerContinuation.Stop, null, failureMessages);
         }
 
         return (
@@ -69,6 +74,9 @@ public sealed class CreateProductReviewCommandHandler
         CancellationToken ct
     )
     {
+        if (state.ValidationError is not null)
+            return (state.ValidationError.Value, OutgoingMessagesHelper.Empty);
+
         ProductReviewEntity review = await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
@@ -93,6 +101,7 @@ public sealed class CreateProductReviewCommandHandler
         Guid ProductId,
         Guid UserId,
         string? Comment,
-        Rating Rating
+        Rating Rating,
+        Error? ValidationError = null
     );
 }
