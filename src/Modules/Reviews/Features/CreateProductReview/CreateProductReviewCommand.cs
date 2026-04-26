@@ -1,4 +1,5 @@
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 using SharedKernel.Contracts.Queries.ProductCatalog;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.ProductReview;
@@ -28,29 +29,48 @@ public sealed class CreateProductReviewCommandHandler
         if (rating.IsError)
         {
             OutgoingMessages ratingFailure = new();
-            ratingFailure.RespondToSender(rating.Errors);
+            ratingFailure.RespondToSender((ErrorOr<ProductReviewResponse>)rating.Errors);
             return (HandlerContinuation.Stop, null, ratingFailure);
         }
 
-        ErrorOr<Success> productExists = await bus.InvokeAsync<ErrorOr<Success>>(
-            new ValidateProductExistsQuery(command.Request.ProductId),
-            ct
-        );
+        ErrorOr<Success> productExists;
+        try
+        {
+            productExists = await bus.InvokeAsync<ErrorOr<Success>>(
+                new ValidateProductExistsQuery(command.Request.ProductId),
+                ct
+            );
+        }
+        catch
+        {
+            return (
+                HandlerContinuation.Continue,
+                CreateState(
+                    command,
+                    userId,
+                    rating.Value,
+                    ProductNotFound(command.Request.ProductId)
+                ),
+                OutgoingMessagesHelper.Empty
+            );
+        }
         if (productExists.IsError)
         {
-            OutgoingMessages failureMessages = new();
-            failureMessages.RespondToSender(productExists.Errors);
-            return (HandlerContinuation.Stop, null, failureMessages);
+            return (
+                HandlerContinuation.Continue,
+                CreateState(
+                    command,
+                    userId,
+                    rating.Value,
+                    ProductNotFound(command.Request.ProductId)
+                ),
+                OutgoingMessagesHelper.Empty
+            );
         }
 
         return (
             HandlerContinuation.Continue,
-            new CreateProductReviewState(
-                command.Request.ProductId,
-                userId,
-                command.Request.Comment,
-                rating.Value
-            ),
+            CreateState(command, userId, rating.Value),
             OutgoingMessagesHelper.Empty
         );
     }
@@ -63,20 +83,36 @@ public sealed class CreateProductReviewCommandHandler
         CancellationToken ct
     )
     {
-        ProductReviewEntity review = await unitOfWork.ExecuteInTransactionAsync(
-            async () =>
-            {
-                ProductReviewEntity entity = ProductReviewEntity.Create(
-                    state.ProductId,
-                    state.UserId,
-                    state.Rating,
-                    state.Comment
-                );
-                await reviewRepository.AddAsync(entity, ct);
-                return entity;
-            },
-            ct
-        );
+        if (state.ValidationError is not null)
+            return (state.ValidationError.Value, OutgoingMessagesHelper.Empty);
+
+        ProductReviewEntity review;
+        try
+        {
+            review = await unitOfWork.ExecuteInTransactionAsync(
+                async () =>
+                {
+                    ProductReviewEntity entity = ProductReviewEntity.Create(
+                        state.ProductId,
+                        state.UserId,
+                        state.Rating,
+                        state.Comment
+                    );
+                    await reviewRepository.AddAsync(entity, ct);
+                    return entity;
+                },
+                ct
+            );
+        }
+        catch (DbUpdateException)
+        {
+            return (
+                Reviews.Common.Errors.DomainErrors.Reviews.ProductNotFoundForReview(
+                    state.ProductId
+                ),
+                OutgoingMessagesHelper.Empty
+            );
+        }
 
         OutgoingMessages messages = new();
         messages.AddRange(CacheInvalidationCascades.ForReviewChange);
@@ -87,6 +123,28 @@ public sealed class CreateProductReviewCommandHandler
         Guid ProductId,
         Guid UserId,
         string? Comment,
-        Rating Rating
+        Rating Rating,
+        Error? ValidationError = null
     );
+
+    private static CreateProductReviewState CreateState(
+        CreateProductReviewCommand command,
+        Guid userId,
+        Rating rating,
+        Error? validationError = null
+    )
+    {
+        return new CreateProductReviewState(
+            command.Request.ProductId,
+            userId,
+            command.Request.Comment,
+            rating,
+            validationError
+        );
+    }
+
+    private static Error ProductNotFound(Guid productId)
+    {
+        return Reviews.Common.Errors.DomainErrors.Reviews.ProductNotFoundForReview(productId);
+    }
 }

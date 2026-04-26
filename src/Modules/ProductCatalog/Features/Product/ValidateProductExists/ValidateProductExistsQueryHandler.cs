@@ -12,7 +12,15 @@ public sealed class ValidateProductExistsQueryHandler
         CancellationToken ct
     )
     {
-        ProductEntity? product = await repository.GetByIdAsync(query.ProductId, ct);
+        ProductEntity? product;
+        try
+        {
+            product = await repository.GetByIdAsync(query.ProductId, ct);
+        }
+        catch
+        {
+            return DomainErrors.Products.NotFound(query.ProductId);
+        }
 
         if (product is null)
             return DomainErrors.Products.NotFound(query.ProductId);

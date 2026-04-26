@@ -114,7 +114,7 @@ public sealed class ProductDataCommandHandlersTests
     }
 
     [Fact]
-    public async Task DeleteHandle_ShouldSoftDeleteLinksAndEmitCascadeMessages()
+    public async Task DeleteHandle_ShouldSoftDeleteLinksProductDataAndEmitCacheInvalidations()
     {
         Guid id = Guid.NewGuid();
         Guid tenantId = Guid.NewGuid();
@@ -132,6 +132,7 @@ public sealed class ProductDataCommandHandlersTests
                 new DeleteProductDataCommand(id),
                 state,
                 _linkRepository.Object,
+                _repository.Object,
                 _unitOfWork.Object,
                 TestContext.Current.CancellationToken
             );
@@ -139,6 +140,10 @@ public sealed class ProductDataCommandHandlersTests
         result.IsError.ShouldBeFalse();
         _linkRepository.Verify(
             r => r.SoftDeleteActiveLinksForProductDataAsync(id, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _repository.Verify(
+            r => r.SoftDeleteAsync(id, actorId, deletedAt, It.IsAny<CancellationToken>()),
             Times.Once
         );
         messages.ShouldContainCacheTags([CacheTags.ProductData, CacheTags.Products]);

@@ -86,6 +86,31 @@ public sealed class DeleteCategoriesCommandHandlerTests
     }
 
     [Fact]
+    public async Task LoadAsync_WithDuplicateIds_StoresDistinctCategoryIdsInState()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        Guid id = Guid.NewGuid();
+        _categoryRepo
+            .Setup(r => r.ListAsync(It.IsAny<CategoriesByIdsSpecification>(), ct))
+            .ReturnsAsync([new Category { Id = id, Name = "Cat" }]);
+
+        (HandlerContinuation continuation, DeleteCategoriesState? state, OutgoingMessages _) =
+            await DeleteCategoriesCommandHandler.LoadAsync(
+                new DeleteCategoriesCommand(new BatchDeleteRequest([id, id])),
+                _categoryRepo.Object,
+                _actorProvider.Object,
+                _tenantProvider.Object,
+                _timeProvider,
+                ct
+            );
+
+        continuation.ShouldBe(HandlerContinuation.Continue);
+        state.ShouldNotBeNull();
+        state!.CategoryIds.Count.ShouldBe(1);
+        state.CategoryIds.Single().ShouldBe(id);
+    }
+
+    [Fact]
     public async Task HandleAsync_ClearsCategoryBeforeSoftDelete()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
@@ -172,6 +197,45 @@ public sealed class DeleteCategoriesCommandHandlerTests
                     ct
                 ),
             Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenClearCategoryFails_ShouldNotSoftDeleteCategories()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        Guid id = Guid.NewGuid();
+        Guid actorId = Guid.NewGuid();
+        Guid tenantId = Guid.NewGuid();
+        DeleteCategoriesState state = new([id], tenantId, actorId, FixedDeletedAt);
+
+        _productRepo
+            .Setup(r => r.ClearCategoryAsync(It.IsAny<IReadOnlyCollection<Guid>>(), ct))
+            .ThrowsAsync(new InvalidOperationException("clear failed"));
+
+        Func<Task> act = async () =>
+        {
+            await DeleteCategoriesCommandHandler.HandleAsync(
+                new DeleteCategoriesCommand(new BatchDeleteRequest([id])),
+                state,
+                _categoryRepo.Object,
+                _productRepo.Object,
+                _unitOfWork.Object,
+                ct
+            );
+        };
+
+        await act.ShouldThrowAsync<InvalidOperationException>();
+        _categoryRepo.Verify(
+            r =>
+                r.BulkSoftDeleteByIdsAsync(
+                    It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
         );
     }
 }

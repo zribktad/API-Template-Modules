@@ -193,4 +193,51 @@ public sealed class ProductReviewHandlersTests
         paged.IsError.ShouldBeFalse();
         batched.IsError.ShouldBeFalse();
     }
+
+    [Fact]
+    public async Task CreateHandle_WhenRepositoryFails_ShouldBubbleAndNotEmitCacheMessages()
+    {
+        Guid userId = Guid.NewGuid();
+        Guid productId = Guid.NewGuid();
+        _actorProvider.SetupGet(x => x.ActorId).Returns(userId);
+        _bus.Setup(b =>
+                b.InvokeAsync<ErrorOr<Success>>(
+                    It.Is<ValidateProductExistsQuery>(q => q.ProductId == productId),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<TimeSpan?>()
+                )
+            )
+            .ReturnsAsync(Result.Success);
+        _repository
+            .Setup(r => r.AddAsync(It.IsAny<ProductReview>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("persist failed"));
+
+        CreateProductReviewRequest request = new()
+        {
+            ProductId = productId,
+            Rating = 4,
+            Comment = "will fail",
+        };
+        (_, CreateProductReviewCommandHandler.CreateProductReviewState? state, _) =
+            await CreateProductReviewCommandHandler.LoadAsync(
+                new CreateProductReviewCommand(request),
+                _bus.Object,
+                _actorProvider.Object,
+                TestContext.Current.CancellationToken
+            );
+        state.ShouldNotBeNull();
+
+        Func<Task> act = async () =>
+        {
+            await CreateProductReviewCommandHandler.HandleAsync(
+                new CreateProductReviewCommand(request),
+                state!,
+                _repository.Object,
+                _unitOfWork.Object,
+                TestContext.Current.CancellationToken
+            );
+        };
+
+        await act.ShouldThrowAsync<InvalidOperationException>();
+    }
 }

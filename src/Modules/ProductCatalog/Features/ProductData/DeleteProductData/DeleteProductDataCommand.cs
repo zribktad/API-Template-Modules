@@ -48,6 +48,7 @@ public sealed class DeleteProductDataCommandHandler
         DeleteProductDataCommand command,
         DeleteProductDataState state,
         IProductDataLinkRepository productDataLinkRepository,
+        IProductDataRepository productDataRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
@@ -63,10 +64,14 @@ public sealed class DeleteProductDataCommandHandler
             ct
         );
 
-        OutgoingMessages messages = new();
-        messages.Add(
-            new SoftDeleteProductDataMongoEvent(state.Data.Id, state.ActorId, state.DeletedAtUtc)
+        await productDataRepository.SoftDeleteAsync(
+            command.Id,
+            state.ActorId,
+            state.DeletedAtUtc,
+            ct
         );
+
+        OutgoingMessages messages = new();
         messages.AddRange(CacheInvalidationCascades.ForProductDataDeletion);
         return (Result.Success, messages);
     }
