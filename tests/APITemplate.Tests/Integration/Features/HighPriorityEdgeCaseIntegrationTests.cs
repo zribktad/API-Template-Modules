@@ -119,10 +119,7 @@ public sealed class HighPriorityEdgeCaseIntegrationTests : IAsyncLifetime
             $"/api/v1/product-data/{productDataId}",
             ct
         );
-        secondProductDataDelete.StatusCode.ShouldBeOneOf(
-            HttpStatusCode.NoContent,
-            HttpStatusCode.NotFound
-        );
+        await secondProductDataDelete.ShouldBeStatusAsync(HttpStatusCode.NotFound, ct);
     }
 
     private static async Task<Guid> CreateReviewAsync(

@@ -45,6 +45,7 @@ public static class ApiServiceCollectionExtensions
         );
         services.ConfigureOptions<ProblemDetailsErrorTypeConfigureOptions>();
         services.AddExceptionHandler<ApiExceptionHandler>();
+        services.AddSingleton<ApiExceptionMetrics>();
         services.Configure<MvcOptions>(options =>
         {
             options.Conventions.Add(

@@ -77,7 +77,11 @@ public class ApiExceptionHandlerTests
     {
         DefaultHttpContext context = CreateHttpContext();
 
-        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService);
+        ApiExceptionHandler handler = new(
+            _loggerMock.Object,
+            _problemDetailsService,
+            new ApiExceptionMetrics()
+        );
         bool handled = await handler.TryHandleAsync(
             context,
             exception,
@@ -106,7 +110,11 @@ public class ApiExceptionHandlerTests
         DefaultHttpContext context = CreateHttpContext();
         context.Request.Path = "/graphql";
 
-        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService);
+        ApiExceptionHandler handler = new(
+            _loggerMock.Object,
+            _problemDetailsService,
+            new ApiExceptionMetrics()
+        );
         bool handled = await handler.TryHandleAsync(
             context,
             new InvalidOperationException("boom"),
@@ -124,7 +132,11 @@ public class ApiExceptionHandlerTests
         context.RequestAborted = cts.Token;
         cts.Cancel();
 
-        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService);
+        ApiExceptionHandler handler = new(
+            _loggerMock.Object,
+            _problemDetailsService,
+            new ApiExceptionMetrics()
+        );
         bool handled = await handler.TryHandleAsync(
             context,
             new OperationCanceledException(cts.Token),

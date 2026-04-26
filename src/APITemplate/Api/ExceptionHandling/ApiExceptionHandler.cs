@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace APITemplate.Api.ExceptionHandling;
 
@@ -8,15 +7,18 @@ public sealed class ApiExceptionHandler : IExceptionHandler
 {
     private const int ClientClosedRequestStatusCode = 499;
     private readonly ILogger<ApiExceptionHandler> _logger;
+    private readonly ApiExceptionMetrics _metrics;
     private readonly IProblemDetailsService _problemDetailsService;
 
     public ApiExceptionHandler(
         ILogger<ApiExceptionHandler> logger,
-        IProblemDetailsService problemDetailsService
+        IProblemDetailsService problemDetailsService,
+        ApiExceptionMetrics metrics
     )
     {
         _logger = logger;
         _problemDetailsService = problemDetailsService;
+        _metrics = metrics;
     }
 
     public async ValueTask<bool> TryHandleAsync(
@@ -57,15 +59,19 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             problemDetails.Extensions["metadata"] = metadata;
 
         if (statusCode >= StatusCodes.Status500InternalServerError)
+        {
             _logger.UnhandledException(exception, statusCode, errorCode, context.TraceIdentifier);
+            _metrics.RecordUnhandledException(statusCode, errorCode);
+        }
         else
         {
-            _logger.HandledApplicationException(
+            _logger.MappedInfrastructureException(
                 exception,
                 statusCode,
                 errorCode,
                 context.TraceIdentifier
             );
+            _metrics.RecordMappedInfrastructureException(statusCode, errorCode);
         }
 
         context.Response.StatusCode = statusCode;
@@ -101,15 +107,9 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         IReadOnlyDictionary<string, object>? Metadata
     ) Resolve(Exception exception)
     {
-        if (exception is DbUpdateConcurrencyException)
+        if (ApiExceptionMapper.TryMap(exception, out var mapped))
         {
-            return (
-                StatusCodes.Status409Conflict,
-                "Conflict",
-                "The resource was modified by another request. Please retrieve the latest version and retry.",
-                ErrorCatalog.General.ConcurrencyConflict,
-                null
-            );
+            return mapped;
         }
 
         IReadOnlyDictionary<string, object>? metadata = exception is IHasErrorMetadata hasMetadata
