@@ -123,6 +123,34 @@ public sealed class DeleteProductsCommandHandlerTests
     }
 
     [Fact]
+    public async Task LoadAsync_WithDuplicateIds_StoresDistinctProductIdsInState()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        Product product = MakeProduct();
+        _productRepo
+            .Setup(r => r.ListAsync(It.IsAny<ProductsByIdsSpecification>(), ct))
+            .ReturnsAsync([product]);
+
+        (
+            HandlerContinuation continuation,
+            DeleteProductsCommandHandler.DeleteProductsState? state,
+            OutgoingMessages _
+        ) = await DeleteProductsCommandHandler.LoadAsync(
+            new DeleteProductsCommand(new BatchDeleteRequest([product.Id, product.Id])),
+            _productRepo.Object,
+            _actorProvider.Object,
+            _tenantProvider.Object,
+            _timeProvider,
+            ct
+        );
+
+        continuation.ShouldBe(HandlerContinuation.Continue);
+        state.ShouldNotBeNull();
+        state!.ProductIds.Count.ShouldBe(1);
+        state.ProductIds.Single().ShouldBe(product.Id);
+    }
+
+    [Fact]
     public async Task LoadAsync_UsesProductsByIdsSpecificationWithoutLinks()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
@@ -302,6 +330,59 @@ public sealed class DeleteProductsCommandHandlerTests
                     ct
                 ),
             Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenLinkSoftDeleteFails_ShouldNotSoftDeleteProducts()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        Guid actorId = Guid.NewGuid();
+        Guid tenantId = Guid.NewGuid();
+        Product product = MakeProduct(tenantId: tenantId);
+        DeleteProductsCommandHandler.DeleteProductsState state = new(
+            [product.Id],
+            tenantId,
+            actorId,
+            FixedDeletedAt
+        );
+
+        _linkRepo
+            .Setup(r =>
+                r.BulkSoftDeleteByProductIdsAsync(
+                    It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    ct
+                )
+            )
+            .ThrowsAsync(new InvalidOperationException("link delete failed"));
+
+        Func<Task> act = async () =>
+        {
+            await DeleteProductsCommandHandler.HandleAsync(
+                new DeleteProductsCommand(new BatchDeleteRequest([product.Id])),
+                state,
+                _productRepo.Object,
+                _unitOfWork.Object,
+                _linkRepo.Object,
+                _idGenerator.Object,
+                ct
+            );
+        };
+
+        await act.ShouldThrowAsync<InvalidOperationException>();
+        _productRepo.Verify(
+            r =>
+                r.BulkSoftDeleteByIdsAsync(
+                    It.IsAny<IReadOnlyCollection<Guid>>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
         );
     }
 }

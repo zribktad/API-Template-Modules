@@ -44,6 +44,7 @@
     <Compile Include="Integration\Helpers\TestConfigurationHelper.cs" />
     <Compile Include="Integration\Helpers\TestOutputCacheStore.cs" />
     <Compile Include="Integration\Helpers\TestServiceHelper.cs" />
+    <Compile Include="Integration\Helpers\CatalogApiTestHelper.cs" />
     <Compile Include="Integration\Helpers\HttpClientAuthExtensions.cs" />
     <Compile Include="Integration\Helpers\HttpResponseTestExtensions.cs" />
     <Compile Include="Integration\Helpers\TestJsonOptions.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Integration\Smoke\InfrastructureSmokeTests.cs" />
     <Compile Include="Integration\Smoke\IdentityModuleSmokeTests.cs" />
     <Compile Include="Integration\Smoke\ProductAndReviewSmokeTests.cs" />
+    <Compile Include="Integration\Smoke\ProductAndReviewWritePathSmokeTests.cs" />
     <Compile Include="Integration\Smoke\ExampleFeaturesSmokeTests.cs" />
     <Compile Include="Integration\Validation\BoundaryValidationIntegrationTests.cs" />
     <Compile Include="Integration\Auth\AuthenticatedCrudTests.cs" />
@@ -71,6 +73,10 @@
     <Compile Include="Integration\Features\RolesControllerTests.cs" />
     <Compile Include="Integration\Features\UsersControllerTests.cs" />
     <Compile Include="Integration\Features\TenantsControllerTests.cs" />
+    <Compile Include="Integration\Features\CategoryApiIntegrationTests.cs" />
+    <Compile Include="Integration\Features\ProductReviewApiIntegrationTests.cs" />
+    <Compile Include="Integration\Features\ProductDataApiIntegrationTests.cs" />
+    <Compile Include="Integration\Features\HighPriorityEdgeCaseIntegrationTests.cs" />
     <Compile Include="Integration\Infrastructure\CorsTests.cs" />
     <!-- RateLimitingOptions removed in modular arch — test needs rewrite -->
     <!--<Compile Include="Integration\Infrastructure\RateLimitingTests.cs" />-->

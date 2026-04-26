@@ -29,6 +29,12 @@ public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepo
         _dbContext = dbContext;
     }
 
+    /// <inheritdoc />
+    public Task<bool> ExistsByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        return _dbContext.Products.AsNoTracking().AnyAsync(product => product.Id == id, ct);
+    }
+
     /// <summary>Returns a single-query paged result of products matching the given filter.</summary>
     public async Task<ErrorOr<PagedResponse<ProductResponse>>> GetPagedAsync(
         ProductFilter filter,

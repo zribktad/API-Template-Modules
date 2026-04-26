@@ -10,6 +10,9 @@ namespace ProductCatalog.Interfaces;
 /// </summary>
 public interface IProductRepository : IRepository<ProductEntity>
 {
+    /// <summary>Returns whether a non-deleted product with the given ID exists in the current tenant.</summary>
+    public Task<bool> ExistsByIdAsync(Guid id, CancellationToken ct = default);
+
     /// <summary>Returns a single-query paged result of products matching the given filter.</summary>
     public Task<ErrorOr<PagedResponse<ProductResponse>>> GetPagedAsync(
         ProductFilter filter,

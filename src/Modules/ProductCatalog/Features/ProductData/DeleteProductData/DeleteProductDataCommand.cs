@@ -14,29 +14,16 @@ public sealed class DeleteProductDataCommandHandler
         OutgoingMessages
     )> LoadAsync(
         DeleteProductDataCommand command,
-        IProductDataRepository repository,
         ITenantProvider tenantProvider,
         IActorProvider actorProvider,
         TimeProvider timeProvider,
         CancellationToken ct
     )
     {
-        Guid tenantId = tenantProvider.TenantId;
-
-        Entities.ProductData.ProductData? data = await repository.GetByIdAsync(command.Id, ct);
-
-        if (data is null || data.TenantId != tenantId)
-        {
-            OutgoingMessages failureMessages = new();
-            failureMessages.RespondToSender(DomainErrors.ProductData.NotFound(command.Id));
-            return (HandlerContinuation.Stop, null, failureMessages);
-        }
-
         return (
             HandlerContinuation.Continue,
             new DeleteProductDataState(
-                data,
-                tenantId,
+                tenantProvider.TenantId,
                 actorProvider.ActorId,
                 timeProvider.GetUtcNow().UtcDateTime
             ),
@@ -48,15 +35,29 @@ public sealed class DeleteProductDataCommandHandler
         DeleteProductDataCommand command,
         DeleteProductDataState state,
         IProductDataLinkRepository productDataLinkRepository,
+        IProductDataRepository productDataRepository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
+        bool productDataDeleted = await productDataRepository.SoftDeleteAsync(
+            command.Id,
+            state.ActorId,
+            state.DeletedAtUtc,
+            ct
+        );
+
+        if (!productDataDeleted)
+            return (DomainErrors.ProductData.NotFound(command.Id), OutgoingMessagesHelper.Empty);
+
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
                 await productDataLinkRepository.SoftDeleteActiveLinksForProductDataAsync(
                     command.Id,
+                    state.TenantId,
+                    state.ActorId,
+                    state.DeletedAtUtc,
                     ct
                 );
             },
@@ -64,17 +65,9 @@ public sealed class DeleteProductDataCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.Add(
-            new SoftDeleteProductDataMongoEvent(state.Data.Id, state.ActorId, state.DeletedAtUtc)
-        );
         messages.AddRange(CacheInvalidationCascades.ForProductDataDeletion);
         return (Result.Success, messages);
     }
 
-    public sealed record DeleteProductDataState(
-        Entities.ProductData.ProductData Data,
-        Guid TenantId,
-        Guid ActorId,
-        DateTime DeletedAtUtc
-    );
+    public sealed record DeleteProductDataState(Guid TenantId, Guid ActorId, DateTime DeletedAtUtc);
 }

@@ -35,8 +35,11 @@ public interface IProductDataLinkRepository
     /// <summary>
     ///     Soft-deletes all active links that reference the given product-data document.
     /// </summary>
-    public Task SoftDeleteActiveLinksForProductDataAsync(
+    public Task<int> SoftDeleteActiveLinksForProductDataAsync(
         Guid productDataId,
+        Guid tenantId,
+        Guid actorId,
+        DateTime deletedAtUtc,
         CancellationToken ct = default
     );
 

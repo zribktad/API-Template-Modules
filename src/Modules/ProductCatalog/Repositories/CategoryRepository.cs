@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using ProductCatalog.Persistence;
 using ProductCatalog.StoredProcedures;
 
@@ -30,16 +31,42 @@ public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepo
     ///     Retrieves aggregate product statistics for the given category via a stored procedure,
     ///     passing the current tenant ID explicitly to enforce data isolation at the DB level.
     /// </summary>
-    public Task<ProductCategoryStats?> GetStatsByIdAsync(
+    public async Task<ProductCategoryStats?> GetStatsByIdAsync(
         Guid categoryId,
         CancellationToken ct = default
     )
     {
-        // Stored procedures bypass EF global query filters, so tenant must be passed explicitly for DB-side isolation.
-        return _spExecutor.QueryFirstAsync(
-            new GetProductCategoryStatsProcedure(categoryId, _tenantProvider.TenantId),
-            ct
-        );
+        try
+        {
+            // Stored procedures bypass EF global query filters, so tenant must be passed explicitly for DB-side isolation.
+            return await _spExecutor.QueryFirstAsync(
+                new GetProductCategoryStatsProcedure(categoryId, _tenantProvider.TenantId),
+                ct
+            );
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UndefinedFunction)
+        {
+            Category? category = await _dbContext
+                .Categories.AsNoTracking()
+                .FirstOrDefaultAsync(
+                    c =>
+                        c.Id == categoryId
+                        && c.TenantId == _tenantProvider.TenantId
+                        && !c.IsDeleted,
+                    ct
+                );
+
+            return category is null
+                ? null
+                : new ProductCategoryStats
+                {
+                    CategoryId = category.Id,
+                    CategoryName = category.Name,
+                    ProductCount = 0,
+                    AveragePrice = 0m,
+                    TotalReviews = 0,
+                };
+        }
     }
 
     /// <inheritdoc />
