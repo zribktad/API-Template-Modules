@@ -30,7 +30,7 @@ public static partial class IdentityModule
     )
     {
         RegisterOptions(services, configuration);
-        RegisterCors(services, configuration);
+        RegisterCors(services);
         RegisterAuthentication(services, configuration);
         RegisterDbInfrastructure(services, configuration);
         RegisterApplicationServices(services);
@@ -72,29 +72,31 @@ public static partial class IdentityModule
 
     // ── CORS ─────────────────────────────────────────────────────────────────
 
-    private static void RegisterCors(IServiceCollection services, IConfiguration configuration)
+    private static void RegisterCors(IServiceCollection services)
     {
-        string[] corsOrigins = (
-            configuration.SectionFor<CorsOptions>().Get<CorsOptions>() ?? new CorsOptions()
-        )
-            .AllowedOrigins.Where(o => !string.IsNullOrWhiteSpace(o))
-            .Select(o => o.Trim())
-            .ToArray();
-
-        if (corsOrigins.Length > 0)
-        {
-            services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(policy =>
+        services.AddCors();
+        services
+            .AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>()
+            .Configure<IOptions<CorsOptions>>(
+                (aspNetCorsOptions, corsOpts) =>
                 {
-                    policy
-                        .WithOrigins(corsOrigins)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                });
-            });
-        }
+                    string[] origins = corsOpts
+                        .Value.AllowedOrigins.Where(o => !string.IsNullOrWhiteSpace(o))
+                        .Select(o => o.Trim())
+                        .ToArray();
+
+                    if (origins.Length > 0)
+                    {
+                        aspNetCorsOptions.AddDefaultPolicy(policy =>
+                            policy
+                                .WithOrigins(origins)
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials()
+                        );
+                    }
+                }
+            );
     }
 
     // ── Application Services ─────────────────────────────────────────────────

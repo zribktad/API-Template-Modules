@@ -44,13 +44,13 @@ public static class ApiServiceCollectionExtensions
 
         services.AddRedisInfrastructure(configuration, redisConfiguration);
         services.AddCaching(configuration, redisConfiguration);
-        services.AddOpenApiDocumentation();
+        AddOpenApiDocumentation(services);
 
         return services;
     }
 
     // Registers IHttpContextAccessor and the single per-request adapter that exposes the
-    // authenticated user's identity and tenant to the application layer.
+    // authenticated user's identity, actor, and tenant to the application layer via three interfaces.
     private static void AddRequestContext(IServiceCollection services)
     {
         services.AddHttpContextAccessor();
@@ -93,7 +93,7 @@ public static class ApiServiceCollectionExtensions
         );
     }
 
-    // Registers RFC 7807 ProblemDetails, the global exception handler, and error metrics.
+    // Registers RFC 7807 ProblemDetails, the global exception handler, and error-type metrics.
     private static void AddErrorHandling(IServiceCollection services, IConfiguration configuration)
     {
         services
@@ -111,7 +111,7 @@ public static class ApiServiceCollectionExtensions
         services.AddSingleton<ApiExceptionMetrics>();
     }
 
-    // Applies kebab-case URL routing and maps model validation errors to ProblemDetails.
+    // Applies kebab-case URL routing and maps model validation errors to RFC 7807 ProblemDetails.
     private static void AddMvcConventions(IServiceCollection services)
     {
         services.Configure<MvcOptions>(options =>
@@ -158,7 +158,7 @@ public static class ApiServiceCollectionExtensions
         return new ObjectResult(problemDetails) { StatusCode = problemDetails.Status };
     }
 
-    private static void AddOpenApiDocumentation(this IServiceCollection services)
+    private static void AddOpenApiDocumentation(IServiceCollection services)
     {
         services.AddOpenApi(options =>
         {

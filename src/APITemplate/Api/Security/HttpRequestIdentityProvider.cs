@@ -29,16 +29,20 @@ public sealed class HttpRequestIdentityProvider
     public bool IsInteractiveUser => GetSnapshot().IsInteractiveUser;
     public Guid ActorId => GetSnapshot().ActorId;
     public Guid TenantId => GetSnapshot().TenantId;
-    public bool HasTenant => GetSnapshot().TenantId != Guid.Empty;
+    public bool HasTenant => TenantId != Guid.Empty;
 
-    private IdentitySnapshot GetSnapshot() =>
-        _snapshot ??= Compute(_httpContextAccessor.HttpContext?.User);
-
-    private static IdentitySnapshot Compute(ClaimsPrincipal? user)
+    private IdentitySnapshot GetSnapshot()
     {
-        if (user?.Identity?.IsAuthenticated != true)
+        if (_snapshot.HasValue)
+            return _snapshot.Value;
+        ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
+        if (user is null || user.Identity?.IsAuthenticated != true)
             return new IdentitySnapshot();
+        return (_snapshot = Compute(user)).Value;
+    }
 
+    private static IdentitySnapshot Compute(ClaimsPrincipal user)
+    {
         string? nameId =
             user.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? user.FindFirstValue(JwtRegisteredClaimNames.NameId);
@@ -58,7 +62,7 @@ public sealed class HttpRequestIdentityProvider
             ApplicationUserId: appUserId,
             PreferredUsername: user.FindFirstValue(AuthConstants.Claims.PreferredUsername) ?? name,
             IsInteractiveUser: !KeycloakServiceAccountClaims.IsServiceAccount(user),
-            ActorId: Guid.TryParse(nameId ?? subject ?? name, out Guid actor) ? actor : Guid.Empty,
+            ActorId: Guid.TryParse(nameId ?? subject, out Guid actor) ? actor : Guid.Empty,
             TenantId: Guid.TryParse(
                 user.FindFirstValue(AuthConstants.Claims.TenantId),
                 out Guid tid

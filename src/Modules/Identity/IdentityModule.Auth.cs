@@ -34,15 +34,8 @@ public static partial class IdentityModule
         IConfiguration configuration
     )
     {
-        KeycloakOptions keycloak =
-            configuration.SectionFor<KeycloakOptions>().Get<KeycloakOptions>()
-            ?? throw new InvalidOperationException("Keycloak configuration section is missing.");
-        BffOptions bff =
-            configuration.SectionFor<BffOptions>().Get<BffOptions>() ?? new BffOptions();
-        string authority = KeycloakUrlHelper.BuildAuthority(keycloak.AuthServerUrl, keycloak.Realm);
-
-        AddJwtBearerAuthentication(services, keycloak, authority);
-        AddBffAuthentication(services, keycloak, bff, authority);
+        AddJwtBearerAuthentication(services);
+        AddBffAuthentication(services);
         AddKeycloakWebhookScheme(services);
         AddBffSessionInfrastructure(services, configuration);
         AddBffSessionServices(services);
@@ -55,32 +48,44 @@ public static partial class IdentityModule
     ///     <see cref="IdentityTokenValidatedPipeline" /> and challenge handler via
     ///     <c>PostConfigure</c> so they run after all options are fully configured.
     /// </summary>
-    private static void AddJwtBearerAuthentication(
-        IServiceCollection services,
-        KeycloakOptions keycloak,
-        string authority
-    )
+    private static void AddJwtBearerAuthentication(IServiceCollection services)
     {
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+
         services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.Authority = authority;
-                options.Audience = keycloak.Resource;
-                options.RequireHttpsMetadata = KeycloakUrlHelper.ShouldRequireHttpsMetadata(
-                    authority
-                );
-                options.TokenValidationParameters = new TokenValidationParameters
+            .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<KeycloakOptions>, ILoggerFactory>(
+                (options, keycloakOpts, loggerFactory) =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = keycloak.VerifyTokenAudience,
-                    ValidAudience = keycloak.Resource,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    NameClaimType = ClaimTypes.Name,
-                    RoleClaimType = ClaimTypes.Role,
-                };
-            });
+                    KeycloakOptions keycloak = keycloakOpts.Value;
+                    string authority = KeycloakUrlHelper.BuildAuthority(
+                        keycloak.AuthServerUrl,
+                        keycloak.Realm
+                    );
+                    options.Authority = authority;
+                    options.Audience = keycloak.Resource;
+                    options.RequireHttpsMetadata = KeycloakUrlHelper.ShouldRequireHttpsMetadata(
+                        authority
+                    );
+                    if (!options.RequireHttpsMetadata)
+                        loggerFactory
+                            .CreateLogger("Identity.Authentication")
+                            .LogWarning(
+                                "JWT Bearer: Keycloak authority {Authority} uses plain HTTP — HTTPS metadata validation is disabled. Do not use HTTP in production.",
+                                authority
+                            );
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = keycloak.VerifyTokenAudience,
+                        ValidAudience = keycloak.Resource,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        NameClaimType = ClaimTypes.Name,
+                        RoleClaimType = ClaimTypes.Role,
+                    };
+                }
+            );
 
         // PostConfigure runs after all AddJwtBearer calls so options are fully settled before
         // attaching the token-validated pipeline and challenge handler.
@@ -102,38 +107,46 @@ public static partial class IdentityModule
     ///     the Authorization Code flow against Keycloak. <see cref="BffCookieSecurePostConfigure" />
     ///     enforces <c>Secure</c>-only cookies outside of development environments.
     /// </summary>
-    private static void AddBffAuthentication(
-        IServiceCollection services,
-        KeycloakOptions keycloak,
-        BffOptions bff,
-        string authority
-    )
+    private static void AddBffAuthentication(IServiceCollection services)
     {
         services
             .AddAuthentication()
             // Issues the HttpOnly session cookie; session data lives server-side in RedisTicketStore.
-            .AddCookie(AuthConstants.BffSchemes.Cookie, options => ConfigureCookie(options, bff))
+            .AddCookie(AuthConstants.BffSchemes.Cookie)
             // Drives the Keycloak Authorization Code flow and hands tokens to the session store.
-            .AddOpenIdConnect(
-                AuthConstants.BffSchemes.Oidc,
-                options => ConfigureOidc(options, keycloak, bff, authority)
-            )
-            // Authenticates inbound Keycloak event webhook calls via shared-secret header.
-            .AddScheme<
-                KeycloakWebhookAuthenticationSchemeOptions,
-                KeycloakWebhookAuthenticationHandler
-            >(AuthConstants.WebhookSchemes.KeycloakEvent, _ => { });
+            .AddOpenIdConnect(AuthConstants.BffSchemes.Oidc, _ => { });
 
-        // Hooks into CookieAuthenticationEvents to silently refresh the access token before expiry.
+        services
+            .AddOptions<CookieAuthenticationOptions>(AuthConstants.BffSchemes.Cookie)
+            .Configure<IOptions<BffOptions>>(
+                (options, bffOpts) => ConfigureCookie(options, bffOpts.Value)
+            );
+
+        services
+            .AddOptions<OpenIdConnectOptions>(AuthConstants.BffSchemes.Oidc)
+            .Configure<IOptions<KeycloakOptions>, IOptions<BffOptions>, ILoggerFactory>(
+                (options, keycloakOpts, bffOpts, loggerFactory) =>
+                {
+                    string authority = KeycloakUrlHelper.BuildAuthority(
+                        keycloakOpts.Value.AuthServerUrl,
+                        keycloakOpts.Value.Realm
+                    );
+                    if (!KeycloakUrlHelper.ShouldRequireHttpsMetadata(authority))
+                        loggerFactory
+                            .CreateLogger("Identity.Authentication")
+                            .LogWarning(
+                                "OIDC: Keycloak authority {Authority} uses plain HTTP — HTTPS metadata validation is disabled. Do not use HTTP in production.",
+                                authority
+                            );
+                    ConfigureOidc(options, keycloakOpts.Value, bffOpts.Value, authority);
+                }
+            );
+
         services.AddScoped<CookieSessionRefresher>();
-        // Rebuilds a ClaimsPrincipal from the stored BFF session after cookie validation.
         services.AddSingleton<IBffSessionPrincipalFactory, BffSessionPrincipalFactory>();
-        // Protects token material before persistence and unprotects it after loading from storage.
         services.AddSingleton<IBffSessionTokenProtector, BffSessionTokenProtector>();
         services.AddSingleton<IBffSessionDbContextFactory, ScopedBffSessionDbContextFactory>();
-        // Issues and validates the double-submit CSRF token returned by GET /api/v1/bff/csrf.
         services.AddSingleton<IBffCsrfTokenService, BffCsrfTokenService>();
-        // Enforces secure-only cookies outside development after user configuration has been bound.
         services.AddSingleton<
             IPostConfigureOptions<CookieAuthenticationOptions>,
             BffCookieSecurePostConfigure
@@ -274,12 +287,11 @@ public static partial class IdentityModule
     /// </summary>
     private static void AddAuthorizationPolicies(IServiceCollection services)
     {
-        // Evaluates permission claims added by UserPermissionsClaimsTransformation.
+        // Evaluates permission claims that UserPermissionsClaimsTransformation adds to the principal.
         services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
-        // Builds per-permission policies on demand so attributes like [Authorize("Orders.Read")] work.
+        // Builds per-permission policies on demand so [Authorize("Orders.Read")] style attributes work without pre-registering each policy.
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
-
-        // Translates Keycloak realm roles into application-level permission claims on every request.
+        // Translates Keycloak realm roles into application-level permission claims on every authenticated request.
         services.AddTransient<IClaimsTransformation, UserPermissionsClaimsTransformation>();
 
         services
