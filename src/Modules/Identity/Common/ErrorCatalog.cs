@@ -4,6 +4,8 @@ public static class ErrorCatalog
 {
     public static class KeycloakWebhook
     {
+        public const string Disabled = "KC-WH-0404";
+        public const string Unauthorized = "KC-WH-0401";
         public const string MissingUserId = "KC-WH-0400";
     }
 

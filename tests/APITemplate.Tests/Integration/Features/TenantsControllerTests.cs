@@ -1,8 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Tenant.DTOs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedKernel.Contracts.Security;
 using SharedKernel.Domain.Common;
@@ -168,6 +171,14 @@ public class TenantsControllerTests : IAsyncLifetime
         );
 
         duplicate.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        duplicate.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
+        HttpValidationProblemDetails? problem =
+            await duplicate.Content.ReadFromJsonAsync<HttpValidationProblemDetails>(
+                TestJsonOptions.CaseInsensitive,
+                ct
+            );
+        problem.ShouldNotBeNull();
+        ExtractErrorCode(problem!).ShouldBe("TNT-0409-CODE");
     }
 
     [Fact]
@@ -364,5 +375,13 @@ public class TenantsControllerTests : IAsyncLifetime
         );
         tenants.ShouldNotBeNull();
         tenants!.Items.ShouldContain(t => t.Id == created.Id);
+    }
+
+    private static string ExtractErrorCode(HttpValidationProblemDetails problem)
+    {
+        return
+            problem.Extensions.TryGetValue("errorCode", out object? code) && code is JsonElement je
+            ? je.GetString() ?? string.Empty
+            : code?.ToString() ?? string.Empty;
     }
 }

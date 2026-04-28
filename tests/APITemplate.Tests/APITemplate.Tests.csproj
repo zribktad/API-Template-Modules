@@ -73,6 +73,7 @@
     <Compile Include="Integration\Features\RolesControllerTests.cs" />
     <Compile Include="Integration\Features\UsersControllerTests.cs" />
     <Compile Include="Integration\Features\TenantsControllerTests.cs" />
+    <Compile Include="Integration\Features\IdentityErrorContractIntegrationTests.cs" />
     <Compile Include="Integration\Features\CategoryApiIntegrationTests.cs" />
     <Compile Include="Integration\Features\ProductReviewApiIntegrationTests.cs" />
     <Compile Include="Integration\Features\ProductDataApiIntegrationTests.cs" />

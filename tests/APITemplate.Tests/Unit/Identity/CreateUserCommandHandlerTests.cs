@@ -4,6 +4,7 @@ using Identity.Directory.Domain.Services;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
 using Identity.Errors;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using SharedKernel.Contracts.Events;
 using Shouldly;
@@ -123,5 +124,34 @@ public sealed class CreateUserCommandHandlerTests
         result.IsError.ShouldBeTrue();
         result.FirstError.Type.ShouldBe(ErrorType.Conflict);
         result.FirstError.Code.ShouldBe(ErrorCatalog.Users.UsernameAlreadyExists);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenWriteHitsUniqueEmailRace_ReturnsConflictAndNoSideEffects()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        CreateUserRequest request = new("alice", "alice@example.com");
+        CreateUserCommand command = new(request);
+
+        _repository
+            .Setup(r => r.AddAsync(It.IsAny<AppUser>(), ct))
+            .ReturnsAsync((AppUser u, CancellationToken _) => u);
+        _unitOfWork
+            .Setup(u => u.CommitAsync(ct))
+            .ThrowsAsync(new DbUpdateException("duplicate NormalizedEmail", new Exception()));
+
+        (ErrorOr<UserResponse> result, OutgoingMessages messages) =
+            await CreateUserCommandHandler.HandleAsync(
+                command,
+                _repository.Object,
+                _unitOfWork.Object,
+                Result.Success,
+                ct
+            );
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Conflict);
+        result.FirstError.Code.ShouldBe(ErrorCatalog.Users.EmailAlreadyExists);
+        messages.ShouldBeEmpty();
     }
 }

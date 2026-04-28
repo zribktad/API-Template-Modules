@@ -1,8 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedKernel.Contracts.Security;
 using SharedKernel.Domain.Common;
@@ -51,6 +54,18 @@ public class UsersControllerTests : IAsyncLifetime
             username: _user.Username.Value,
             role: "PlatformAdmin",
             permissions: [Permission.Users.Read],
+            email: _user.Email.Value,
+            subject: _user.KeycloakUserId
+        );
+
+    private void AuthenticateWithPermissions(params string[] permissions) =>
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            userId: _user.Id,
+            tenantId: _tenant.Id,
+            username: _user.Username.Value,
+            role: "PlatformAdmin",
+            permissions: permissions,
             email: _user.Email.Value,
             subject: _user.KeycloakUserId
         );
@@ -131,5 +146,33 @@ public class UsersControllerTests : IAsyncLifetime
         );
         payload.ShouldNotBeNull();
         payload!.Items.ShouldContain(u => u.Id == seededUser.Id);
+    }
+
+    [Fact]
+    public async Task Create_WithDuplicateEmail_ReturnsConflictProblemDetailsWithErrorCode()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        AuthenticateWithPermissions(Permission.Users.Create);
+
+        var request = new CreateUserRequest("new-user-duplicate", _user.Email.Value);
+        var response = await _client.PostAsJsonAsync("/api/v1/users", request, ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        response.Content.Headers.ContentType?.MediaType.ShouldBe("application/problem+json");
+        HttpValidationProblemDetails? problem =
+            await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>(
+                TestJsonOptions.CaseInsensitive,
+                ct
+            );
+        problem.ShouldNotBeNull();
+        ExtractErrorCode(problem!).ShouldBe("USR-0409-EMAIL");
+    }
+
+    private static string ExtractErrorCode(HttpValidationProblemDetails problem)
+    {
+        return
+            problem.Extensions.TryGetValue("errorCode", out object? code) && code is JsonElement je
+            ? je.GetString() ?? string.Empty
+            : code?.ToString() ?? string.Empty;
     }
 }
