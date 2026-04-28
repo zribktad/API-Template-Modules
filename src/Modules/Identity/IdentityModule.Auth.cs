@@ -67,13 +67,7 @@ public static partial class IdentityModule
                     options.RequireHttpsMetadata = KeycloakUrlHelper.ShouldRequireHttpsMetadata(
                         authority
                     );
-                    if (!options.RequireHttpsMetadata)
-                        loggerFactory
-                            .CreateLogger("Identity.Authentication")
-                            .LogWarning(
-                                "JWT Bearer: Keycloak authority {Authority} uses plain HTTP — HTTPS metadata validation is disabled. Do not use HTTP in production.",
-                                authority
-                            );
+                    WarnIfPlainHttp(loggerFactory, "JWT Bearer", authority);
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
@@ -111,9 +105,7 @@ public static partial class IdentityModule
     {
         services
             .AddAuthentication()
-            // Issues the HttpOnly session cookie; session data lives server-side in RedisTicketStore.
             .AddCookie(AuthConstants.BffSchemes.Cookie)
-            // Drives the Keycloak Authorization Code flow and hands tokens to the session store.
             .AddOpenIdConnect(AuthConstants.BffSchemes.Oidc, _ => { });
 
         services
@@ -131,13 +123,7 @@ public static partial class IdentityModule
                         keycloakOpts.Value.AuthServerUrl,
                         keycloakOpts.Value.Realm
                     );
-                    if (!KeycloakUrlHelper.ShouldRequireHttpsMetadata(authority))
-                        loggerFactory
-                            .CreateLogger("Identity.Authentication")
-                            .LogWarning(
-                                "OIDC: Keycloak authority {Authority} uses plain HTTP — HTTPS metadata validation is disabled. Do not use HTTP in production.",
-                                authority
-                            );
+                    WarnIfPlainHttp(loggerFactory, "OIDC", authority);
                     ConfigureOidc(options, keycloakOpts.Value, bffOpts.Value, authority);
                 }
             );
@@ -424,5 +410,21 @@ public static partial class IdentityModule
                 return Task.CompletedTask;
             },
         };
+    }
+
+    private static void WarnIfPlainHttp(
+        ILoggerFactory loggerFactory,
+        string scheme,
+        string authority
+    )
+    {
+        if (!KeycloakUrlHelper.ShouldRequireHttpsMetadata(authority))
+            loggerFactory
+                .CreateLogger("Identity.Authentication")
+                .LogWarning(
+                    "{Scheme}: Keycloak authority {Authority} uses plain HTTP — HTTPS metadata validation is disabled. Do not use HTTP in production.",
+                    scheme,
+                    authority
+                );
     }
 }

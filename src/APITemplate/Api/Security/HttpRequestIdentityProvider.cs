@@ -37,7 +37,7 @@ public sealed class HttpRequestIdentityProvider
             return _snapshot.Value;
         ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
         if (user is null || user.Identity?.IsAuthenticated != true)
-            return new IdentitySnapshot();
+            return (_snapshot = new IdentitySnapshot()).Value;
         return (_snapshot = Compute(user)).Value;
     }
 

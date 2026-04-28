@@ -6,20 +6,15 @@ using Asp.Versioning;
 using ErrorOr;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using Microsoft.AspNetCore.OutputCaching.StackExchangeRedis;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
 using SharedKernel.Application.Context;
-using SharedKernel.Application.Errors;
 using SharedKernel.Application.Options.Http;
-using SharedKernel.Application.Options.Infrastructure;
 using SharedKernel.Application.Validation;
 using SharedKernel.Contracts.Api;
 using SharedKernel.Contracts.Api.Routing;
-using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.OutputCache;
 using StackExchange.Redis;
 
@@ -136,7 +131,7 @@ public static class ApiServiceCollectionExtensions
                 {
                     Dictionary<string, object> metadata = [];
                     if (!string.IsNullOrWhiteSpace(kvp.Key))
-                        metadata["propertyName"] = kvp.Key;
+                        metadata[ValidationConstants.PropertyNameKey] = kvp.Key;
 
                     return Error.Validation(
                         ErrorCatalog.General.ValidationFailed,
