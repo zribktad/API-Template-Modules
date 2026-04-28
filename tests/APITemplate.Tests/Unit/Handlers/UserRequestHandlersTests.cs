@@ -3,6 +3,7 @@ using Identity.Directory.Domain.Services;
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Features.User;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using SharedKernel.Contracts.Events;
 using SharedKernel.Domain.Common;
@@ -274,6 +275,49 @@ public class UserRequestHandlersTests
         validation.IsError.ShouldBeTrue();
         validation.FirstError.Type.ShouldBe(ErrorType.Conflict);
         validation.FirstError.Code.ShouldBe(ErrorCatalog.Users.EmailAlreadyExists);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WhenWriteHitsUniqueUsernameRace_ReturnsConflictAndNoMessages()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        AppUser user = CreateTestUser();
+        _repositoryMock
+            .Setup(r => r.GetByIdAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _repositoryMock
+            .Setup(r => r.ExistsByEmailAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _repositoryMock
+            .Setup(r => r.ExistsByUsernameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _unitOfWorkMock
+            .Setup(u => u.CommitAsync(ct))
+            .ThrowsAsync(new DbUpdateException("duplicate NormalizedUsername", new Exception()));
+
+        UpdateUserCommand command = new(
+            user.Id,
+            new UpdateUserRequest("another-name", "another@test.com")
+        );
+        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+            command,
+            _repositoryMock.Object,
+            Uniqueness,
+            ct
+        );
+        (ErrorOr<Success> result, OutgoingMessages messages) =
+            await UpdateUserCommandHandler.HandleAsync(
+                command,
+                _repositoryMock.Object,
+                _unitOfWorkMock.Object,
+                validation,
+                ct
+            );
+
+        result.IsError.ShouldBeTrue();
+        result.FirstError.Type.ShouldBe(ErrorType.Conflict);
+        result.FirstError.Code.ShouldBe(ErrorCatalog.Users.UsernameAlreadyExists);
+        messages.ShouldBeEmpty();
     }
 
     // --- ActivateAsync / DeactivateAsync ---

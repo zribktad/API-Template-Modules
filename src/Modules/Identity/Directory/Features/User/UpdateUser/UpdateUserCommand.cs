@@ -1,5 +1,7 @@
 using ErrorOr;
 using Identity.Directory.Domain.Services;
+using Identity.Directory.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Wolverine;
 
 namespace Identity.Directory.Features.User;
@@ -24,9 +26,18 @@ public sealed class UpdateUserCommandHandler
             return userResult.Errors;
         AppUser user = userResult.Value;
 
-        if (!string.Equals(user.Email.Normalized, NormalizedString.Normalize(command.Request.Email), StringComparison.Ordinal))
+        if (
+            !string.Equals(
+                user.Email.Normalized,
+                NormalizedString.Normalize(command.Request.Email),
+                StringComparison.Ordinal
+            )
+        )
         {
-            ErrorOr<Success> emailResult = await uniqueness.EnsureEmailUniqueAsync(command.Request.Email, ct);
+            ErrorOr<Success> emailResult = await uniqueness.EnsureEmailUniqueAsync(
+                command.Request.Email,
+                ct
+            );
             if (emailResult.IsError)
                 return emailResult.Errors;
         }
@@ -60,8 +71,25 @@ public sealed class UpdateUserCommandHandler
         user.Username = new NormalizedString(command.Request.Username);
         user.Email = new NormalizedString(command.Request.Email);
 
-        await repository.UpdateAsync(user, ct);
-        await unitOfWork.CommitAsync(ct);
+        try
+        {
+            await repository.UpdateAsync(user, ct);
+            await unitOfWork.CommitAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.IsUserEmailUniqueViolation())
+        {
+            return (
+                DomainErrors.Users.EmailAlreadyExists(command.Request.Email),
+                OutgoingMessagesHelper.Empty
+            );
+        }
+        catch (DbUpdateException ex) when (ex.IsUserUsernameUniqueViolation())
+        {
+            return (
+                DomainErrors.Users.UsernameAlreadyExists(command.Request.Username),
+                OutgoingMessagesHelper.Empty
+            );
+        }
 
         OutgoingMessages messages = new();
         messages.Add(new CacheInvalidationNotification(CacheTags.Users));

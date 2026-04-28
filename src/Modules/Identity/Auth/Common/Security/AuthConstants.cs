@@ -163,6 +163,12 @@ public static class AuthConstants
         public const string Oidc = "BffOidc";
     }
 
+    /// <summary>Authentication scheme names for inbound webhooks authenticated by shared secret.</summary>
+    public static class WebhookSchemes
+    {
+        public const string KeycloakEvent = "KeycloakEventWebhook";
+    }
+
     /// <summary>Named authorization policy identifiers registered in the ASP.NET Core policy store.</summary>
     public static class Policies
     {

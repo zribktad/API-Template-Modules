@@ -1,5 +1,6 @@
 using APITemplate.Tests.Unit.Infrastructure;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Reviews;
 using Reviews.Domain;
@@ -239,5 +240,52 @@ public sealed class ProductReviewHandlersTests
         };
 
         await act.ShouldThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task CreateHandle_WhenDbUpdateExceptionOccurs_ShouldBubble()
+    {
+        Guid userId = Guid.NewGuid();
+        Guid productId = Guid.NewGuid();
+        _actorProvider.SetupGet(x => x.ActorId).Returns(userId);
+        _bus.Setup(b =>
+                b.InvokeAsync<ErrorOr<Success>>(
+                    It.Is<ValidateProductExistsQuery>(q => q.ProductId == productId),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<TimeSpan?>()
+                )
+            )
+            .ReturnsAsync(Result.Success);
+        _repository
+            .Setup(r => r.AddAsync(It.IsAny<ProductReview>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateException("fk", new Exception("inner")));
+
+        CreateProductReviewRequest request = new()
+        {
+            ProductId = productId,
+            Rating = 5,
+            Comment = "review",
+        };
+        (_, CreateProductReviewCommandHandler.CreateProductReviewState? state, _) =
+            await CreateProductReviewCommandHandler.LoadAsync(
+                new CreateProductReviewCommand(request),
+                _bus.Object,
+                _actorProvider.Object,
+                TestContext.Current.CancellationToken
+            );
+        state.ShouldNotBeNull();
+
+        Func<Task> act = async () =>
+        {
+            await CreateProductReviewCommandHandler.HandleAsync(
+                new CreateProductReviewCommand(request),
+                state!,
+                _repository.Object,
+                _unitOfWork.Object,
+                TestContext.Current.CancellationToken
+            );
+        };
+
+        await act.ShouldThrowAsync<DbUpdateException>();
     }
 }

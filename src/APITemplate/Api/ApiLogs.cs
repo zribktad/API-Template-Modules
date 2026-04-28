@@ -8,7 +8,7 @@ namespace APITemplate.Api;
 /// </summary>
 internal static partial class ApiLogs
 {
-    // ApiExceptionHandler (1001-1002)
+    // ApiExceptionHandler (1001, 1003)
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Error,
@@ -23,11 +23,11 @@ internal static partial class ApiLogs
     );
 
     [LoggerMessage(
-        EventId = 1002,
+        EventId = 1003,
         Level = LogLevel.Warning,
-        Message = "Handled application exception. StatusCode: {StatusCode}, ErrorCode: {ErrorCode}, TraceId: {TraceId}"
+        Message = "Mapped infrastructure exception to API error. StatusCode: {StatusCode}, ErrorCode: {ErrorCode}, TraceId: {TraceId}"
     )]
-    public static partial void HandledApplicationException(
+    public static partial void MappedInfrastructureException(
         this ILogger logger,
         Exception exception,
         int statusCode,
@@ -35,9 +35,9 @@ internal static partial class ApiLogs
         string traceId
     );
 
-    // OutputCacheInvalidationService (1003)
+    // OutputCacheInvalidationService (1005)
     [LoggerMessage(
-        EventId = 1003,
+        EventId = 1005,
         Level = LogLevel.Error,
         Message = "Failed to evict output cache for tag: {Tag}"
     )]

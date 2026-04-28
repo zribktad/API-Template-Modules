@@ -1,5 +1,7 @@
 using ErrorOr;
 using Identity.Directory.Domain.Services;
+using Identity.Directory.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Wolverine;
 
 namespace Identity.Directory.Features.User;
@@ -32,13 +34,36 @@ public sealed class CreateUserCommandHandler
         if (validation.IsError)
             return (validation.Errors, OutgoingMessagesHelper.Empty);
 
-        AppUser user = AppUser.Create(command.Request.Username, command.Request.Email, keycloakUserId: null);
+        AppUser user = AppUser.Create(
+            command.Request.Username,
+            command.Request.Email,
+            keycloakUserId: null
+        );
 
-        await repository.AddAsync(user, ct);
-        await unitOfWork.CommitAsync(ct);
+        try
+        {
+            await repository.AddAsync(user, ct);
+            await unitOfWork.CommitAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.IsUserEmailUniqueViolation())
+        {
+            return (
+                DomainErrors.Users.EmailAlreadyExists(command.Request.Email),
+                OutgoingMessagesHelper.Empty
+            );
+        }
+        catch (DbUpdateException ex) when (ex.IsUserUsernameUniqueViolation())
+        {
+            return (
+                DomainErrors.Users.UsernameAlreadyExists(command.Request.Username),
+                OutgoingMessagesHelper.Empty
+            );
+        }
 
         OutgoingMessages messages = new();
-        messages.Add(new ProvisionKeycloakUserEvent(user.Id, user.Username.Value, user.Email.Value));
+        messages.Add(
+            new ProvisionKeycloakUserEvent(user.Id, user.Username.Value, user.Email.Value)
+        );
         messages.Add(new CacheInvalidationNotification(CacheTags.Users));
         return (user.ToResponse(), messages);
     }

@@ -72,7 +72,12 @@ public static partial class IdentityModule
             .AddOpenIdConnect(
                 AuthConstants.BffSchemes.Oidc,
                 options => ConfigureOidc(options, keycloak, bff, authority)
-            );
+            )
+            // Authenticates inbound Keycloak event webhook calls via shared-secret header.
+            .AddScheme<
+                KeycloakWebhookAuthenticationSchemeOptions,
+                KeycloakWebhookAuthenticationHandler
+            >(AuthConstants.WebhookSchemes.KeycloakEvent, _ => { });
 
         // Hooks into CookieAuthenticationEvents to silently refresh the access token before expiry.
         services.AddScoped<CookieSessionRefresher>();

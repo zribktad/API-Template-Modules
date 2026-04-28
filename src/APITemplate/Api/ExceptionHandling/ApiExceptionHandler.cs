@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace APITemplate.Api.ExceptionHandling;
 
@@ -8,15 +7,18 @@ public sealed class ApiExceptionHandler : IExceptionHandler
 {
     private const int ClientClosedRequestStatusCode = 499;
     private readonly ILogger<ApiExceptionHandler> _logger;
+    private readonly ApiExceptionMetrics _metrics;
     private readonly IProblemDetailsService _problemDetailsService;
 
     public ApiExceptionHandler(
         ILogger<ApiExceptionHandler> logger,
-        IProblemDetailsService problemDetailsService
+        IProblemDetailsService problemDetailsService,
+        ApiExceptionMetrics metrics
     )
     {
         _logger = logger;
         _problemDetailsService = problemDetailsService;
+        _metrics = metrics;
     }
 
     public async ValueTask<bool> TryHandleAsync(
@@ -36,39 +38,42 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             return true;
         }
 
-        (
-            int statusCode,
-            string title,
-            string detail,
-            string errorCode,
-            IReadOnlyDictionary<string, object>? metadata
-        ) = Resolve(exception);
+        MappedApiError resolved = Resolve(exception);
         ProblemDetails problemDetails = new()
         {
-            Status = statusCode,
-            Title = title,
-            Detail = detail,
+            Status = resolved.StatusCode,
+            Title = resolved.Title,
+            Detail = resolved.Detail,
             Instance = context.Request.Path,
         };
 
-        problemDetails.Extensions["errorCode"] = errorCode;
+        problemDetails.Extensions["errorCode"] = resolved.ErrorCode;
 
-        if (metadata is { Count: > 0 })
-            problemDetails.Extensions["metadata"] = metadata;
+        if (resolved.Metadata is { Count: > 0 })
+            problemDetails.Extensions["metadata"] = resolved.Metadata;
 
-        if (statusCode >= StatusCodes.Status500InternalServerError)
-            _logger.UnhandledException(exception, statusCode, errorCode, context.TraceIdentifier);
-        else
+        if (resolved.StatusCode >= StatusCodes.Status500InternalServerError)
         {
-            _logger.HandledApplicationException(
+            _logger.UnhandledException(
                 exception,
-                statusCode,
-                errorCode,
+                resolved.StatusCode,
+                resolved.ErrorCode,
                 context.TraceIdentifier
             );
+            _metrics.RecordUnhandledException(resolved.StatusCode, resolved.ErrorCode);
+        }
+        else
+        {
+            _logger.MappedInfrastructureException(
+                exception,
+                resolved.StatusCode,
+                resolved.ErrorCode,
+                context.TraceIdentifier
+            );
+            _metrics.RecordMappedInfrastructureException(resolved.StatusCode, resolved.ErrorCode);
         }
 
-        context.Response.StatusCode = statusCode;
+        context.Response.StatusCode = resolved.StatusCode;
 
         return await _problemDetailsService.TryWriteAsync(
             new ProblemDetailsContext
@@ -93,24 +98,10 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             );
     }
 
-    private static (
-        int StatusCode,
-        string Title,
-        string Detail,
-        string ErrorCode,
-        IReadOnlyDictionary<string, object>? Metadata
-    ) Resolve(Exception exception)
+    private static MappedApiError Resolve(Exception exception)
     {
-        if (exception is DbUpdateConcurrencyException)
-        {
-            return (
-                StatusCodes.Status409Conflict,
-                "Conflict",
-                "The resource was modified by another request. Please retrieve the latest version and retry.",
-                ErrorCatalog.General.ConcurrencyConflict,
-                null
-            );
-        }
+        if (ApiExceptionMapper.TryMap(exception, out MappedApiError mapped))
+            return mapped;
 
         IReadOnlyDictionary<string, object>? metadata = exception is IHasErrorMetadata hasMetadata
             ? hasMetadata.Metadata
@@ -120,7 +111,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             ? hasErrorCode.ErrorCode
             : ErrorCatalog.General.Unknown;
 
-        return (
+        return new MappedApiError(
             StatusCodes.Status500InternalServerError,
             "Internal Server Error",
             "An unexpected error occurred.",
