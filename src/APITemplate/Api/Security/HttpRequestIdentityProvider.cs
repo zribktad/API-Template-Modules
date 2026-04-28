@@ -42,44 +42,29 @@ public sealed class HttpRequestIdentityProvider
         string? nameId =
             user.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? user.FindFirstValue(JwtRegisteredClaimNames.NameId);
-
-        string? oidcSubject =
+        string? subject =
             user.FindFirstValue(AuthConstants.Claims.Subject)
             ?? user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        string? name = user.FindFirstValue(ClaimTypes.Name);
 
-        string? preferredUsername =
-            user.FindFirstValue(AuthConstants.Claims.PreferredUsername)
-            ?? user.FindFirstValue(ClaimTypes.Name);
-
-        bool isInteractiveUser = !KeycloakServiceAccountClaims.IsServiceAccount(user);
-
-        Guid? applicationUserId = null;
-        if (
-            Guid.TryParse(nameId, out Guid nameIdGuid)
-            && (
-                oidcSubject is null || !string.Equals(nameId, oidcSubject, StringComparison.Ordinal)
-            )
-        )
-            applicationUserId = nameIdGuid;
-
-        // NameIdentifier → Subject → Name (no Jwt sub fallback — matches legacy HttpActorProvider).
-        string? actorRaw = nameId ?? oidcSubject ?? user.FindFirstValue(ClaimTypes.Name);
-        Guid actorId = Guid.TryParse(actorRaw, out Guid parsed) ? parsed : Guid.Empty;
-
-        Guid tenantId = Guid.TryParse(
-            user.FindFirstValue(AuthConstants.Claims.TenantId),
-            out Guid tid
-        )
-            ? tid
-            : Guid.Empty;
+        Guid? appUserId =
+            Guid.TryParse(nameId, out Guid g)
+            && (subject is null || !string.Equals(nameId, subject, StringComparison.Ordinal))
+                ? g
+                : null;
 
         return new IdentitySnapshot(
-            oidcSubject,
-            applicationUserId,
-            preferredUsername,
-            isInteractiveUser,
-            actorId,
-            tenantId
+            OidcSubject: subject,
+            ApplicationUserId: appUserId,
+            PreferredUsername: user.FindFirstValue(AuthConstants.Claims.PreferredUsername) ?? name,
+            IsInteractiveUser: !KeycloakServiceAccountClaims.IsServiceAccount(user),
+            ActorId: Guid.TryParse(nameId ?? subject ?? name, out Guid actor) ? actor : Guid.Empty,
+            TenantId: Guid.TryParse(
+                user.FindFirstValue(AuthConstants.Claims.TenantId),
+                out Guid tid
+            )
+                ? tid
+                : Guid.Empty
         );
     }
 
