@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace APITemplate.Api.Authorization;
+namespace Identity.Auth.Security;
 
 public sealed record PermissionRequirement(string Permission) : IAuthorizationRequirement;

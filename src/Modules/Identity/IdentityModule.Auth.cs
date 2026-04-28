@@ -1,13 +1,9 @@
+using System.Security.Claims;
 using Identity.Auth.Http;
 using Identity.Auth.Options;
-using Identity.Auth.Security;
-using Identity.Auth.Security.ExternalIdentityProviders;
 using Identity.Auth.Security.Keycloak;
 using Identity.Auth.Security.Sessions;
 using Identity.Auth.Security.Sessions.Lifecycle;
-using Identity.Common.Email;
-using Identity.Directory.Domain.Services;
-using Keycloak.AuthServices.Sdk;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 
@@ -26,13 +23,13 @@ namespace Identity;
 
 public static partial class IdentityModule
 {
-    // ── BFF Authentication ────────────────────────────────────────────────────
+    // ── Authentication ────────────────────────────────────────────────────────
 
     /// <summary>
-    ///     Entry point for BFF authentication registration. Resolves configuration, then delegates
-    ///     each concern to a focused helper so the registration stays readable as the feature grows.
+    ///     Entry point for all authentication registration: resolves configuration, sets up JWT Bearer
+    ///     as the default scheme, then registers BFF cookie/OIDC and webhook schemes.
     /// </summary>
-    private static void RegisterBffAuthentication(
+    private static void RegisterAuthentication(
         IServiceCollection services,
         IConfiguration configuration
     )
@@ -44,11 +41,59 @@ public static partial class IdentityModule
             configuration.SectionFor<BffOptions>().Get<BffOptions>() ?? new BffOptions();
         string authority = KeycloakUrlHelper.BuildAuthority(keycloak.AuthServerUrl, keycloak.Realm);
 
-        AddBffAuthenticationSchemes(services, keycloak, bff, authority);
+        AddJwtBearerAuthentication(services, keycloak, authority);
+        AddBffAuthentication(services, keycloak, bff, authority);
+        AddKeycloakWebhookScheme(services);
         AddBffSessionInfrastructure(services, configuration);
         AddBffSessionServices(services);
-        AddBffAuthorizationPolicies(services);
+        AddAuthorizationPolicies(services);
         AddKeycloakTokenHttpClient(services);
+    }
+
+    /// <summary>
+    ///     Registers JWT Bearer as the default authentication scheme and wires the
+    ///     <see cref="IdentityTokenValidatedPipeline" /> and challenge handler via
+    ///     <c>PostConfigure</c> so they run after all options are fully configured.
+    /// </summary>
+    private static void AddJwtBearerAuthentication(
+        IServiceCollection services,
+        KeycloakOptions keycloak,
+        string authority
+    )
+    {
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.Authority = authority;
+                options.Audience = keycloak.Resource;
+                options.RequireHttpsMetadata = KeycloakUrlHelper.ShouldRequireHttpsMetadata(
+                    authority
+                );
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = keycloak.VerifyTokenAudience,
+                    ValidAudience = keycloak.Resource,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    NameClaimType = ClaimTypes.Name,
+                    RoleClaimType = ClaimTypes.Role,
+                };
+            });
+
+        // PostConfigure runs after all AddJwtBearer calls so options are fully settled before
+        // attaching the token-validated pipeline and challenge handler.
+        services.PostConfigure<JwtBearerOptions>(
+            JwtBearerDefaults.AuthenticationScheme,
+            options =>
+            {
+                options.Events ??= new JwtBearerEvents();
+                options.Events.OnTokenValidated = IdentityTokenValidatedPipeline.OnTokenValidated;
+                // Returns 403 with a structured ProblemDetails body instead of the default 401 redirect.
+                options.Events.OnChallenge = JwtBearerAccessDeniedChallenge.OnChallengeAsync;
+            }
+        );
     }
 
     /// <summary>
@@ -57,7 +102,7 @@ public static partial class IdentityModule
     ///     the Authorization Code flow against Keycloak. <see cref="BffCookieSecurePostConfigure" />
     ///     enforces <c>Secure</c>-only cookies outside of development environments.
     /// </summary>
-    private static void AddBffAuthenticationSchemes(
+    private static void AddBffAuthentication(
         IServiceCollection services,
         KeycloakOptions keycloak,
         BffOptions bff,
@@ -93,6 +138,20 @@ public static partial class IdentityModule
             IPostConfigureOptions<CookieAuthenticationOptions>,
             BffCookieSecurePostConfigure
         >();
+    }
+
+    /// <summary>
+    ///     Registers the custom authentication scheme that validates inbound Keycloak event webhook
+    ///     calls via a shared-secret request header.
+    /// </summary>
+    private static void AddKeycloakWebhookScheme(IServiceCollection services)
+    {
+        services
+            .AddAuthentication()
+            .AddScheme<
+                KeycloakWebhookAuthenticationSchemeOptions,
+                KeycloakWebhookAuthenticationHandler
+            >(AuthConstants.WebhookSchemes.KeycloakEvent, _ => { });
     }
 
     /// <summary>
@@ -210,37 +269,15 @@ public static partial class IdentityModule
     }
 
     /// <summary>
-    ///     Configures JWT Bearer post-processing hooks, claims transformation, and authorization policies.
-    ///     <para>
-    ///         The JWT Bearer post-configure hook wires <see cref="IdentityTokenValidatedPipeline" />
-    ///         so both the JWT Bearer and Cookie schemes run the same tenant-validation logic after a
-    ///         token is validated.
-    ///     </para>
-    ///     <para>
-    ///         <see cref="UserPermissionsClaimsTransformation" /> enriches the principal with
-    ///         application-level permission claims derived from Keycloak roles.
-    ///     </para>
-    ///     <para>
-    ///         The fallback policy requires an authenticated user on either scheme. The
-    ///         <c>PlatformAdmin</c> policy requires the <c>Platform.Manage</c> permission claim; the
-    ///         <c>TenantAdmin</c> policy accepts either <c>Tenant.Manage</c> or <c>Platform.Manage</c>
-    ///         because platform admins subsume tenant admin rights.
-    ///     </para>
+    ///     Registers permission infrastructure, claims transformation, and authorization policies.
+    ///     Applies to both JWT Bearer and Cookie schemes.
     /// </summary>
-    private static void AddBffAuthorizationPolicies(IServiceCollection services)
+    private static void AddAuthorizationPolicies(IServiceCollection services)
     {
-        // Attaches tenant-validation and permission-claim extraction to the JWT Bearer scheme so
-        // both JWT and Cookie callers go through the same IdentityTokenValidatedPipeline.
-        services.PostConfigure<JwtBearerOptions>(
-            JwtBearerDefaults.AuthenticationScheme,
-            options =>
-            {
-                options.Events ??= new JwtBearerEvents();
-                options.Events.OnTokenValidated = IdentityTokenValidatedPipeline.OnTokenValidated;
-                // Returns 403 with a structured ProblemDetails body instead of the default 401 redirect.
-                options.Events.OnChallenge = JwtBearerAccessDeniedChallenge.OnChallengeAsync;
-            }
-        );
+        // Evaluates permission claims added by UserPermissionsClaimsTransformation.
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        // Builds per-permission policies on demand so attributes like [Authorize("Orders.Read")] work.
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
         // Translates Keycloak realm roles into application-level permission claims on every request.
         services.AddTransient<IClaimsTransformation, UserPermissionsClaimsTransformation>();
@@ -375,42 +412,5 @@ public static partial class IdentityModule
                 return Task.CompletedTask;
             },
         };
-    }
-
-    // ── Application Services ─────────────────────────────────────────────────
-
-    private static void RegisterApplicationServices(IServiceCollection services)
-    {
-        services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
-        services.AddSingleton<IKeycloakService, KeycloakService>();
-        services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
-        services.AddScoped<IUserUniquenessChecker, UserUniquenessChecker>();
-        services.AddScoped<ITenantUniquenessChecker, TenantUniquenessChecker>();
-    }
-
-    // ── Keycloak Admin ────────────────────────────────────────────────────────
-
-    private static void RegisterKeycloakAdmin(IServiceCollection services)
-    {
-        services
-            .AddOptions<KeycloakAdminClientOptions>()
-            .Configure<IOptions<KeycloakOptions>>(
-                (adminOpts, keycloakOpts) =>
-                {
-                    adminOpts.AuthServerUrl = keycloakOpts.Value.AuthServerUrl;
-                    adminOpts.Realm = keycloakOpts.Value.Realm;
-                }
-            );
-
-        services.AddSingleton<KeycloakAdminTokenProvider>();
-        services.AddTransient<KeycloakAdminTokenHandler>();
-
-        services
-            .AddKeycloakAdminHttpClient(_ => { })
-            .AddHttpMessageHandler<KeycloakAdminTokenHandler>()
-            .AddKeycloakHttpRetry(ResiliencePipelineKeys.KeycloakAdmin);
-
-        services.AddScoped<IKeycloakAdminService, KeycloakAdminService>();
-        services.AddScoped<IKeycloakAndBffGlobalLogoutService, KeycloakAndBffGlobalLogoutService>();
     }
 }

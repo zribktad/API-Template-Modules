@@ -1,7 +1,10 @@
 using APITemplate.Api.Cache;
 using APITemplate.Api.ExceptionHandling;
 using APITemplate.Api.OpenApi;
+using APITemplate.Api.Security;
+using Asp.Versioning;
 using ErrorOr;
+using Identity.Auth.Security;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.OutputCaching.StackExchangeRedis;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
+using SharedKernel.Application.Context;
 using SharedKernel.Application.Errors;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Application.Options.Infrastructure;
@@ -28,6 +32,70 @@ public static class ApiServiceCollectionExtensions
         IConfiguration configuration
     )
     {
+        AddRequestContext(services);
+        AddApiVersioning(services);
+        AddRequestValidation(services);
+        AddErrorHandling(services, configuration);
+        AddMvcConventions(services);
+
+        ConfigurationOptions? redisConfiguration = null;
+        if (configuration.IsRedisConfigured())
+            redisConfiguration = BuildRedisConfigurationOptions(configuration);
+
+        services.AddRedisInfrastructure(configuration, redisConfiguration);
+        services.AddCaching(configuration, redisConfiguration);
+        services.AddOpenApiDocumentation();
+
+        return services;
+    }
+
+    // Registers IHttpContextAccessor and the single per-request adapter that exposes the
+    // authenticated user's identity and tenant to the application layer.
+    private static void AddRequestContext(IServiceCollection services)
+    {
+        services.AddHttpContextAccessor();
+        services.AddScoped<HttpRequestIdentityProvider>();
+        services.AddScoped<ICurrentRequestUser>(sp =>
+            sp.GetRequiredService<HttpRequestIdentityProvider>()
+        );
+        services.AddScoped<IActorProvider>(sp =>
+            sp.GetRequiredService<HttpRequestIdentityProvider>()
+        );
+        services.AddScoped<ITenantProvider>(sp =>
+            sp.GetRequiredService<HttpRequestIdentityProvider>()
+        );
+    }
+
+    private static void AddApiVersioning(IServiceCollection services)
+    {
+        services
+            .AddApiVersioning(options =>
+            {
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
+            })
+            .AddApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
+    }
+
+    // Registers data-annotation-based validators and the ASP.NET Core validation pipeline.
+    private static void AddRequestValidation(IServiceCollection services)
+    {
+        services.AddSingleton<IValidator, DataAnnotationsValidator>();
+        services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
+        Microsoft.Extensions.DependencyInjection.ValidationServiceCollectionExtensions.AddValidation(
+            services
+        );
+    }
+
+    // Registers RFC 7807 ProblemDetails, the global exception handler, and error metrics.
+    private static void AddErrorHandling(IServiceCollection services, IConfiguration configuration)
+    {
         services
             .AddValidatedOptions<ErrorDocumentationOptions>(
                 configuration,
@@ -38,65 +106,60 @@ public static class ApiServiceCollectionExtensions
                 "ErrorDocumentation:ErrorTypeBaseUri must be an absolute http or https URI when set."
             );
         services.AddProblemDetails();
-        services.AddSingleton<IValidator, DataAnnotationsValidator>();
-        services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
-        Microsoft.Extensions.DependencyInjection.ValidationServiceCollectionExtensions.AddValidation(
-            services
-        );
         services.ConfigureOptions<ProblemDetailsErrorTypeConfigureOptions>();
         services.AddExceptionHandler<ApiExceptionHandler>();
         services.AddSingleton<ApiExceptionMetrics>();
+    }
+
+    // Applies kebab-case URL routing and maps model validation errors to ProblemDetails.
+    private static void AddMvcConventions(IServiceCollection services)
+    {
         services.Configure<MvcOptions>(options =>
         {
             options.Conventions.Add(
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
         });
+
         services.Configure<ApiBehaviorOptions>(options =>
         {
-            options.InvalidModelStateResponseFactory = context =>
-            {
-                List<Error> errors = context
-                    .ModelState.Where(kvp => kvp.Value is { Errors.Count: > 0 })
-                    .SelectMany(kvp =>
-                        kvp.Value!.Errors.Select(error =>
-                        {
-                            Dictionary<string, object> metadata = [];
-                            if (!string.IsNullOrWhiteSpace(kvp.Key))
-                                metadata["propertyName"] = kvp.Key;
-
-                            return Error.Validation(
-                                ErrorCatalog.General.ValidationFailed,
-                                string.IsNullOrWhiteSpace(error.ErrorMessage)
-                                    ? "The request is invalid."
-                                    : error.ErrorMessage,
-                                metadata.Count > 0 ? metadata : null
-                            );
-                        })
-                    )
-                    .ToList();
-
-                if (errors.Count == 0)
-                {
-                    errors.Add(
-                        Error.Validation(
-                            ErrorCatalog.General.ValidationFailed,
-                            "The request is invalid."
-                        )
-                    );
-                }
-
-                ProblemDetails problemDetails = errors.ToProblemDetails(context.HttpContext);
-                return new ObjectResult(problemDetails) { StatusCode = problemDetails.Status };
-            };
+            options.InvalidModelStateResponseFactory = BuildModelStateErrorResponse;
         });
+    }
 
-        ConfigurationOptions? redisConfiguration = null;
-        if (configuration.IsRedisConfigured())
-            redisConfiguration = BuildRedisConfigurationOptions(configuration);
+    private static IActionResult BuildModelStateErrorResponse(ActionContext context)
+    {
+        List<Error> errors = context
+            .ModelState.Where(kvp => kvp.Value is { Errors.Count: > 0 })
+            .SelectMany(kvp =>
+                kvp.Value!.Errors.Select(error =>
+                {
+                    Dictionary<string, object> metadata = [];
+                    if (!string.IsNullOrWhiteSpace(kvp.Key))
+                        metadata["propertyName"] = kvp.Key;
 
-        services.AddRedisInfrastructure(configuration, redisConfiguration);
-        services.AddCaching(configuration, redisConfiguration);
+                    return Error.Validation(
+                        ErrorCatalog.General.ValidationFailed,
+                        string.IsNullOrWhiteSpace(error.ErrorMessage)
+                            ? "The request is invalid."
+                            : error.ErrorMessage,
+                        metadata.Count > 0 ? metadata : null
+                    );
+                })
+            )
+            .ToList();
+
+        if (errors.Count == 0)
+            errors.Add(
+                Error.Validation(ErrorCatalog.General.ValidationFailed, "The request is invalid.")
+            );
+
+        ProblemDetails problemDetails = errors.ToProblemDetails(context.HttpContext);
+        return new ObjectResult(problemDetails) { StatusCode = problemDetails.Status };
+    }
+
+    private static void AddOpenApiDocumentation(this IServiceCollection services)
+    {
         services.AddOpenApi(options =>
         {
             options.AddDocumentTransformer<HealthCheckOpenApiDocumentTransformer>();
@@ -104,8 +167,6 @@ public static class ApiServiceCollectionExtensions
             options.AddDocumentTransformer<ProblemDetailsOpenApiTransformer>();
             options.AddOperationTransformer<AuthorizationResponsesOperationTransformer>();
         });
-
-        return services;
     }
 
     private static IServiceCollection AddRedisInfrastructure(
@@ -139,10 +200,7 @@ public static class ApiServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    ///     StackExchange.Redis connection settings shared by distributed cache, output cache, and
-    ///     <see cref="IConnectionMultiplexer" />.
-    /// </summary>
+    // StackExchange.Redis connection settings shared by distributed cache, output cache, and IConnectionMultiplexer.
     private static ConfigurationOptions BuildRedisConfigurationOptions(IConfiguration configuration)
     {
         RedisOptions redisOptions =

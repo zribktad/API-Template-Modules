@@ -3,6 +3,7 @@ using APITemplate.Api;
 using BackgroundJobs;
 using Chatting;
 using FileStorage;
+using Identity;
 using Identity.Auth.Security;
 using JasperFx;
 using JasperFx.Resources;
@@ -45,10 +46,7 @@ builder.Services.AddModuleHealthChecks(
     HealthCheckModuleRegistry.Modules
 );
 
-// JWT Bearer + authorization shell, then Identity (BFF cookie/OIDC, PostConfigure JwtBearer, policies).
-// Do not call AddIdentityModule before AddApplicationComposition — Bearer OnTokenValidated and schemes
-// would not wire correctly.
-builder.Services.AddApplicationCompositionAndIdentityModule(builder.Configuration);
+builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddObservability(builder.Configuration, builder.Environment);
 builder.Services.AddProductCatalogModule(builder.Configuration);
 builder.Services.AddReviewsModule(builder.Configuration);
