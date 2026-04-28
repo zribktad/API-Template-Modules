@@ -6,13 +6,15 @@ namespace APITemplate.Api.ExceptionHandling;
 
 public sealed class ApiExceptionMetrics : IDisposable
 {
+    public const string MeterName = "APITemplate.Api.ExceptionHandling";
+
     private readonly Meter _meter;
     private readonly Counter<long> _mappedInfrastructureExceptions;
     private readonly Counter<long> _unhandledExceptions;
 
     public ApiExceptionMetrics(IMeterFactory meterFactory)
     {
-        _meter = meterFactory.Create("APITemplate.Api.ExceptionHandling", "1.0.0");
+        _meter = meterFactory.Create(MeterName, "1.0.0");
         _mappedInfrastructureExceptions = _meter.CreateCounter<long>(
             "api_exception_mapped_infrastructure_total"
         );

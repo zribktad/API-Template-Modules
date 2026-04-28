@@ -1,3 +1,4 @@
+using APITemplate.Api.ExceptionHandling;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -52,7 +53,7 @@ public static class ObservabilityServiceCollectionExtensions
             builder
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                .AddMeter("APITemplate.Api.ExceptionHandling");
+                .AddMeter(ApiExceptionMetrics.MeterName);
 
             if (enableConsoleExporter)
                 builder.AddConsoleExporter();

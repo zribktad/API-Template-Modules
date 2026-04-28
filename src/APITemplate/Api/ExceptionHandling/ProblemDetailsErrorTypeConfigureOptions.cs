@@ -55,10 +55,13 @@ internal sealed class ProblemDetailsErrorTypeConfigureOptions
                 _errorDocumentation.Value.ErrorTypeBaseUri,
                 errorCodeToUse
             );
-            // When ErrorTypeBaseUri is set, use our documentation URI (overrides host defaults).
-            // When unset, leave Type unchanged so RFC 9110 defaults can apply.
-            if (typeUri is not null)
-                context.ProblemDetails.Type = typeUri;
+            context.ProblemDetails.Type =
+                typeUri
+                ?? ProblemDetailsErrorTypeUri.BuildFallbackUri(
+                    context.HttpContext.Request.Scheme,
+                    context.HttpContext.Request.Host.ToString(),
+                    errorCodeToUse
+                );
         };
     }
 }

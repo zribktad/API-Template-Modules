@@ -59,6 +59,14 @@ public class ApiExceptionHandlerTests
         ];
         yield return
         [
+            new DbUpdateException("Database write failed"),
+            HttpStatusCode.InternalServerError,
+            "Internal Server Error",
+            "An unexpected error occurred.",
+            ErrorCatalog.General.Unknown,
+        ];
+        yield return
+        [
             new UserAccessDeniedException(UserAccessErrorCodes.NoInvitation, "No invitation"),
             HttpStatusCode.InternalServerError,
             "Internal Server Error",

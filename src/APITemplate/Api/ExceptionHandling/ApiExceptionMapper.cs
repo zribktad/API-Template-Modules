@@ -26,18 +26,6 @@ internal static class ApiExceptionMapper
             return true;
         }
 
-        if (exception is DbUpdateException)
-        {
-            mapped = new MappedApiError(
-                StatusCodes.Status409Conflict,
-                "Conflict",
-                "The request conflicts with the current state of the resource.",
-                ErrorCatalog.General.Conflict,
-                null
-            );
-            return true;
-        }
-
         mapped = default!;
         return false;
     }

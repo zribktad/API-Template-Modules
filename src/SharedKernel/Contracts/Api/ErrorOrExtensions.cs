@@ -99,13 +99,7 @@ public static class ErrorOrExtensions
     {
         ArgumentNullException.ThrowIfNull(errors);
         if (errors.Count == 0)
-            errors =
-            [
-                Error.Unexpected(
-                    SharedKernel.Application.Errors.ErrorCatalog.General.Unknown,
-                    "An unexpected error occurred."
-                ),
-            ];
+            throw new ArgumentException("At least one error is required.", nameof(errors));
 
         Error firstError = errors[0];
         int statusCode = firstError.Type switch
