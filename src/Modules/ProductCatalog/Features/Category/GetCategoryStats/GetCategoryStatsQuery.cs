@@ -15,22 +15,7 @@ public sealed class GetCategoryStatsQueryHandler
         CancellationToken ct
     )
     {
-        ProductCategoryStatsEntity? stats;
-        try
-        {
-            stats = await repository.GetStatsByIdAsync(request.Id, ct);
-        }
-        catch
-        {
-            ProductCatalog.Entities.Category? category = await repository.GetByIdAsync(
-                request.Id,
-                ct
-            );
-            if (category is null)
-                return DomainErrors.Categories.NotFound(request.Id);
-
-            return new ProductCategoryStatsResponse(category.Id, category.Name, 0, 0m, 0);
-        }
+        ProductCategoryStatsEntity? stats = await repository.GetStatsByIdAsync(request.Id, ct);
 
         if (stats is null)
             return DomainErrors.Categories.NotFound(request.Id);

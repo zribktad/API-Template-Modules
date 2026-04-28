@@ -1,5 +1,4 @@
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using SharedKernel.Contracts.Queries.ProductCatalog;
 using Wolverine;
 using ProductReviewEntity = Reviews.Domain.ProductReview;
@@ -78,33 +77,20 @@ public sealed class CreateProductReviewCommandHandler
         if (state.ValidationError is not null)
             return (state.ValidationError.Value, OutgoingMessagesHelper.Empty);
 
-        ProductReviewEntity review;
-        try
-        {
-            review = await unitOfWork.ExecuteInTransactionAsync(
-                async () =>
-                {
-                    ProductReviewEntity entity = ProductReviewEntity.Create(
-                        state.ProductId,
-                        state.UserId,
-                        state.Rating,
-                        state.Comment
-                    );
-                    await reviewRepository.AddAsync(entity, ct);
-                    return entity;
-                },
-                ct
-            );
-        }
-        catch (DbUpdateException)
-        {
-            return (
-                Reviews.Common.Errors.DomainErrors.Reviews.ProductNotFoundForReview(
-                    state.ProductId
-                ),
-                OutgoingMessagesHelper.Empty
-            );
-        }
+        ProductReviewEntity review = await unitOfWork.ExecuteInTransactionAsync(
+            async () =>
+            {
+                ProductReviewEntity entity = ProductReviewEntity.Create(
+                    state.ProductId,
+                    state.UserId,
+                    state.Rating,
+                    state.Comment
+                );
+                await reviewRepository.AddAsync(entity, ct);
+                return entity;
+            },
+            ct
+        );
 
         OutgoingMessages messages = new();
         messages.AddRange(CacheInvalidationCascades.ForReviewChange);

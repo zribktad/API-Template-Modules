@@ -2,22 +2,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace APITemplate.Api.ExceptionHandling;
 
+internal sealed record MappedApiError(
+    int StatusCode,
+    string Title,
+    string Detail,
+    string ErrorCode,
+    IReadOnlyDictionary<string, object>? Metadata
+);
+
 internal static class ApiExceptionMapper
 {
-    public static bool TryMap(
-        Exception exception,
-        out (
-            int StatusCode,
-            string Title,
-            string Detail,
-            string ErrorCode,
-            IReadOnlyDictionary<string, object>? Metadata
-        ) mapped
-    )
+    public static bool TryMap(Exception exception, out MappedApiError mapped)
     {
         if (exception is DbUpdateConcurrencyException)
         {
-            mapped = (
+            mapped = new MappedApiError(
                 StatusCodes.Status409Conflict,
                 "Conflict",
                 "The resource was modified by another request. Please retrieve the latest version and retry.",
@@ -29,7 +28,7 @@ internal static class ApiExceptionMapper
 
         if (exception is DbUpdateException)
         {
-            mapped = (
+            mapped = new MappedApiError(
                 StatusCodes.Status409Conflict,
                 "Conflict",
                 "The request conflicts with the current state of the resource.",
@@ -39,7 +38,7 @@ internal static class ApiExceptionMapper
             return true;
         }
 
-        mapped = default;
+        mapped = default!;
         return false;
     }
 }

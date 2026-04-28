@@ -1,15 +1,18 @@
 using System.Diagnostics.Metrics;
+using Microsoft.Extensions.Diagnostics;
+using SharedKernel.Infrastructure.Observability;
 
 namespace APITemplate.Api.ExceptionHandling;
 
 public sealed class ApiExceptionMetrics : IDisposable
 {
-    private readonly Meter _meter = new("APITemplate.Api.ExceptionHandling", "1.0.0");
+    private readonly Meter _meter;
     private readonly Counter<long> _mappedInfrastructureExceptions;
     private readonly Counter<long> _unhandledExceptions;
 
-    public ApiExceptionMetrics()
+    public ApiExceptionMetrics(IMeterFactory meterFactory)
     {
+        _meter = meterFactory.Create("APITemplate.Api.ExceptionHandling", "1.0.0");
         _mappedInfrastructureExceptions = _meter.CreateCounter<long>(
             "api_exception_mapped_infrastructure_total"
         );
@@ -20,8 +23,8 @@ public sealed class ApiExceptionMetrics : IDisposable
     {
         _mappedInfrastructureExceptions.Add(
             1,
-            new KeyValuePair<string, object?>("status_code", statusCode),
-            new KeyValuePair<string, object?>("error_code", errorCode)
+            new KeyValuePair<string, object?>(TelemetryTagKeys.HttpResponseStatusCode, statusCode),
+            new KeyValuePair<string, object?>(TelemetryTagKeys.ErrorCode, errorCode)
         );
     }
 
@@ -29,8 +32,8 @@ public sealed class ApiExceptionMetrics : IDisposable
     {
         _unhandledExceptions.Add(
             1,
-            new KeyValuePair<string, object?>("status_code", statusCode),
-            new KeyValuePair<string, object?>("error_code", errorCode)
+            new KeyValuePair<string, object?>(TelemetryTagKeys.HttpResponseStatusCode, statusCode),
+            new KeyValuePair<string, object?>(TelemetryTagKeys.ErrorCode, errorCode)
         );
     }
 

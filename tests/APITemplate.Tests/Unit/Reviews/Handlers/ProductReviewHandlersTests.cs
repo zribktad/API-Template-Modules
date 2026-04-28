@@ -243,7 +243,7 @@ public sealed class ProductReviewHandlersTests
     }
 
     [Fact]
-    public async Task CreateHandle_WhenDbUpdateExceptionOccurs_ShouldReturnProductNotFoundError()
+    public async Task CreateHandle_WhenDbUpdateExceptionOccurs_ShouldBubble()
     {
         Guid userId = Guid.NewGuid();
         Guid productId = Guid.NewGuid();
@@ -275,7 +275,8 @@ public sealed class ProductReviewHandlersTests
             );
         state.ShouldNotBeNull();
 
-        (ErrorOr<ProductReviewResponse> result, OutgoingMessages messages) =
+        Func<Task> act = async () =>
+        {
             await CreateProductReviewCommandHandler.HandleAsync(
                 new CreateProductReviewCommand(request),
                 state!,
@@ -283,9 +284,8 @@ public sealed class ProductReviewHandlersTests
                 _unitOfWork.Object,
                 TestContext.Current.CancellationToken
             );
+        };
 
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Type.ShouldBe(ErrorType.NotFound);
-        messages.ShouldBeEmpty();
+        await act.ShouldThrowAsync<DbUpdateException>();
     }
 }

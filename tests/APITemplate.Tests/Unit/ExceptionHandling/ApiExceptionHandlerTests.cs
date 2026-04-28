@@ -1,3 +1,4 @@
+using System.Diagnostics.Metrics;
 using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
@@ -6,6 +7,7 @@ using Identity.Directory.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SharedKernel.Application.Errors;
@@ -77,11 +79,8 @@ public class ApiExceptionHandlerTests
     {
         DefaultHttpContext context = CreateHttpContext();
 
-        ApiExceptionHandler handler = new(
-            _loggerMock.Object,
-            _problemDetailsService,
-            new ApiExceptionMetrics()
-        );
+        using ApiExceptionMetrics metrics = new(new FakeMeterFactory());
+        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService, metrics);
         bool handled = await handler.TryHandleAsync(
             context,
             exception,
@@ -110,11 +109,8 @@ public class ApiExceptionHandlerTests
         DefaultHttpContext context = CreateHttpContext();
         context.Request.Path = "/graphql";
 
-        ApiExceptionHandler handler = new(
-            _loggerMock.Object,
-            _problemDetailsService,
-            new ApiExceptionMetrics()
-        );
+        using ApiExceptionMetrics metrics = new(new FakeMeterFactory());
+        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService, metrics);
         bool handled = await handler.TryHandleAsync(
             context,
             new InvalidOperationException("boom"),
@@ -132,11 +128,8 @@ public class ApiExceptionHandlerTests
         context.RequestAborted = cts.Token;
         cts.Cancel();
 
-        ApiExceptionHandler handler = new(
-            _loggerMock.Object,
-            _problemDetailsService,
-            new ApiExceptionMetrics()
-        );
+        using ApiExceptionMetrics metrics = new(new FakeMeterFactory());
+        ApiExceptionHandler handler = new(_loggerMock.Object, _problemDetailsService, metrics);
         bool handled = await handler.TryHandleAsync(
             context,
             new OperationCanceledException(cts.Token),
@@ -161,5 +154,12 @@ public class ApiExceptionHandlerTests
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         JsonDocument json = await JsonDocument.ParseAsync(context.Response.Body);
         return json.RootElement.Clone();
+    }
+
+    private sealed class FakeMeterFactory : IMeterFactory
+    {
+        public Meter Create(MeterOptions options) => new(options.Name, options.Version);
+
+        public void Dispose() { }
     }
 }

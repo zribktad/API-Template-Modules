@@ -49,7 +49,10 @@ public static class ObservabilityServiceCollectionExtensions
 
         openTelemetryBuilder.WithMetrics(builder =>
         {
-            builder.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation();
+            builder
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddMeter("APITemplate.Api.ExceptionHandling");
 
             if (enableConsoleExporter)
                 builder.AddConsoleExporter();
