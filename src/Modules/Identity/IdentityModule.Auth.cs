@@ -272,12 +272,25 @@ public static partial class IdentityModule
         services
             .AddAuthorizationBuilder()
             // Default policy: any authenticated user on either scheme can access unlocked endpoints.
-            .SetFallbackPolicy(BothSchemesPolicy().Build())
+            .SetFallbackPolicy(
+                new AuthorizationPolicyBuilder()
+                    .AddAuthenticationSchemes(
+                        JwtBearerDefaults.AuthenticationScheme,
+                        AuthConstants.BffSchemes.Cookie
+                    )
+                    .RequireAuthenticatedUser()
+                    .Build()
+            )
             // Requires the Platform.Manage permission claim — granted only to platform-level admins.
             .AddPolicy(
                 AuthConstants.Policies.PlatformAdmin,
                 policy =>
-                    BothSchemesPolicy()
+                    policy
+                        .AddAuthenticationSchemes(
+                            JwtBearerDefaults.AuthenticationScheme,
+                            AuthConstants.BffSchemes.Cookie
+                        )
+                        .RequireAuthenticatedUser()
                         .RequireClaim(
                             AuthConstants.Claims.Permission,
                             SharedKernel.Contracts.Security.Permission.Platform.Manage
@@ -287,7 +300,12 @@ public static partial class IdentityModule
             .AddPolicy(
                 AuthConstants.Policies.TenantAdmin,
                 policy =>
-                    BothSchemesPolicy()
+                    policy
+                        .AddAuthenticationSchemes(
+                            JwtBearerDefaults.AuthenticationScheme,
+                            AuthConstants.BffSchemes.Cookie
+                        )
+                        .RequireAuthenticatedUser()
                         .RequireClaim(
                             AuthConstants.Claims.Permission,
                             SharedKernel.Contracts.Security.Permission.Tenant.Manage,
@@ -295,12 +313,6 @@ public static partial class IdentityModule
                         )
             );
     }
-
-    private static AuthorizationPolicyBuilder BothSchemesPolicy() =>
-        new AuthorizationPolicyBuilder(
-            JwtBearerDefaults.AuthenticationScheme,
-            AuthConstants.BffSchemes.Cookie
-        ).RequireAuthenticatedUser();
 
     /// <summary>
     ///     Registers the named <see cref="System.Net.Http.HttpClient" /> used by
