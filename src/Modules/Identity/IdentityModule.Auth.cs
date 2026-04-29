@@ -26,17 +26,26 @@ public static partial class IdentityModule
     // ── Authentication ────────────────────────────────────────────────────────
 
     /// <summary>
-    ///     Entry point for all authentication registration: resolves configuration, sets up JWT Bearer
-    ///     as the default scheme, then registers BFF cookie/OIDC and webhook schemes.
+    ///     Entry point for all authentication registration: sets up all schemes in a single fluent
+    ///     chain, then configures JWT Bearer, BFF cookie/OIDC, session infrastructure, and policies.
     /// </summary>
     private static void RegisterAuthentication(
         IServiceCollection services,
         IConfiguration configuration
     )
     {
-        AddJwtBearerAuthentication(services);
-        AddBffAuthentication(services);
-        AddKeycloakWebhookScheme(services);
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer()
+            .AddCookie(AuthConstants.BffSchemes.Cookie)
+            .AddOpenIdConnect(AuthConstants.BffSchemes.Oidc, _ => { })
+            .AddScheme<
+                KeycloakWebhookAuthenticationSchemeOptions,
+                KeycloakWebhookAuthenticationHandler
+            >(AuthConstants.WebhookSchemes.KeycloakEvent, _ => { });
+
+        ConfigureJwtBearerOptions(services);
+        ConfigureBffOptions(services);
         AddBffSessionInfrastructure(services, configuration);
         AddBffSessionServices(services);
         AddAuthorizationPolicies(services);
@@ -44,14 +53,12 @@ public static partial class IdentityModule
     }
 
     /// <summary>
-    ///     Registers JWT Bearer as the default authentication scheme and wires the
+    ///     Configures JWT Bearer options and wires the
     ///     <see cref="IdentityTokenValidatedPipeline" /> and challenge handler via
-    ///     <c>PostConfigure</c> so they run after all options are fully configured.
+    ///     <c>PostConfigure</c> so they run after all options are fully settled.
     /// </summary>
-    private static void AddJwtBearerAuthentication(IServiceCollection services)
+    private static void ConfigureJwtBearerOptions(IServiceCollection services)
     {
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-
         services
             .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<KeycloakOptions>, ILoggerFactory>(
@@ -96,18 +103,13 @@ public static partial class IdentityModule
     }
 
     /// <summary>
-    ///     Registers the BFF Cookie and OIDC authentication handlers and the services they depend on.
+    ///     Configures BFF Cookie and OIDC options and the services they depend on.
     ///     The Cookie handler issues an opaque <c>HttpOnly</c> session cookie; the OIDC handler drives
     ///     the Authorization Code flow against Keycloak. <see cref="BffCookieSecurePostConfigure" />
     ///     enforces <c>Secure</c>-only cookies outside of development environments.
     /// </summary>
-    private static void AddBffAuthentication(IServiceCollection services)
+    private static void ConfigureBffOptions(IServiceCollection services)
     {
-        services
-            .AddAuthentication()
-            .AddCookie(AuthConstants.BffSchemes.Cookie)
-            .AddOpenIdConnect(AuthConstants.BffSchemes.Oidc, _ => { });
-
         services
             .AddOptions<CookieAuthenticationOptions>(AuthConstants.BffSchemes.Cookie)
             .Configure<IOptions<BffOptions>>(
@@ -137,20 +139,6 @@ public static partial class IdentityModule
             IPostConfigureOptions<CookieAuthenticationOptions>,
             BffCookieSecurePostConfigure
         >();
-    }
-
-    /// <summary>
-    ///     Registers the custom authentication scheme that validates inbound Keycloak event webhook
-    ///     calls via a shared-secret request header.
-    /// </summary>
-    private static void AddKeycloakWebhookScheme(IServiceCollection services)
-    {
-        services
-            .AddAuthentication()
-            .AddScheme<
-                KeycloakWebhookAuthenticationSchemeOptions,
-                KeycloakWebhookAuthenticationHandler
-            >(AuthConstants.WebhookSchemes.KeycloakEvent, _ => { });
     }
 
     /// <summary>
@@ -199,12 +187,7 @@ public static partial class IdentityModule
                 RedisBffSessionRevocationNotifier
             >();
             // Layers L1 over L2; cache hits skip the store, mutations update or invalidate L1.
-            services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
-                sp.GetRequiredService<PostgresCachedBffSessionStore>(),
-                sp.GetRequiredService<IBffLocalSessionCache>(),
-                sp.GetRequiredService<IBffSessionRevocationNotifier>(),
-                sp.GetRequiredService<ILogger<CachingBffSessionStoreDecorator>>()
-            ));
+            RegisterDecoratedStore<PostgresCachedBffSessionStore>(services);
 
             // Distributed refresh lock prevents concurrent token refreshes across API instances.
             services.AddSingleton<IBffRefreshCoordinator, RedisBffRefreshCoordinator>();
@@ -221,12 +204,7 @@ public static partial class IdentityModule
                 NullBffSessionRevocationNotifier
             >();
             // Keep the same local-cache decorator shape for Redis and non-Redis deployments.
-            services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
-                sp.GetRequiredService<PostgresDistributedCacheBffSessionStore>(),
-                sp.GetRequiredService<IBffLocalSessionCache>(),
-                sp.GetRequiredService<IBffSessionRevocationNotifier>(),
-                sp.GetRequiredService<ILogger<CachingBffSessionStoreDecorator>>()
-            ));
+            RegisterDecoratedStore<PostgresDistributedCacheBffSessionStore>(services);
             // In-process refresh coordination is sufficient only for single-instance deployments.
             services.AddSingleton<IBffRefreshCoordinator, InProcessBffRefreshCoordinator>();
         }
@@ -236,6 +214,17 @@ public static partial class IdentityModule
         services
             .AddOptions<CookieAuthenticationOptions>(AuthConstants.BffSchemes.Cookie)
             .Configure<RedisTicketStore>((opts, store) => opts.SessionStore = store);
+    }
+
+    private static void RegisterDecoratedStore<TL2>(IServiceCollection services)
+        where TL2 : class, IBffSessionStore
+    {
+        services.AddSingleton<IBffSessionStore>(sp => new CachingBffSessionStoreDecorator(
+            sp.GetRequiredService<TL2>(),
+            sp.GetRequiredService<IBffLocalSessionCache>(),
+            sp.GetRequiredService<IBffSessionRevocationNotifier>(),
+            sp.GetRequiredService<ILogger<CachingBffSessionStoreDecorator>>()
+        ));
     }
 
     /// <summary>
@@ -283,25 +272,12 @@ public static partial class IdentityModule
         services
             .AddAuthorizationBuilder()
             // Default policy: any authenticated user on either scheme can access unlocked endpoints.
-            .SetFallbackPolicy(
-                new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(
-                        JwtBearerDefaults.AuthenticationScheme,
-                        AuthConstants.BffSchemes.Cookie
-                    )
-                    .RequireAuthenticatedUser()
-                    .Build()
-            )
+            .SetFallbackPolicy(BothSchemesPolicy().Build())
             // Requires the Platform.Manage permission claim — granted only to platform-level admins.
             .AddPolicy(
                 AuthConstants.Policies.PlatformAdmin,
                 policy =>
-                    policy
-                        .AddAuthenticationSchemes(
-                            JwtBearerDefaults.AuthenticationScheme,
-                            AuthConstants.BffSchemes.Cookie
-                        )
-                        .RequireAuthenticatedUser()
+                    BothSchemesPolicy()
                         .RequireClaim(
                             AuthConstants.Claims.Permission,
                             SharedKernel.Contracts.Security.Permission.Platform.Manage
@@ -311,12 +287,7 @@ public static partial class IdentityModule
             .AddPolicy(
                 AuthConstants.Policies.TenantAdmin,
                 policy =>
-                    policy
-                        .AddAuthenticationSchemes(
-                            JwtBearerDefaults.AuthenticationScheme,
-                            AuthConstants.BffSchemes.Cookie
-                        )
-                        .RequireAuthenticatedUser()
+                    BothSchemesPolicy()
                         .RequireClaim(
                             AuthConstants.Claims.Permission,
                             SharedKernel.Contracts.Security.Permission.Tenant.Manage,
@@ -324,6 +295,12 @@ public static partial class IdentityModule
                         )
             );
     }
+
+    private static AuthorizationPolicyBuilder BothSchemesPolicy() =>
+        new AuthorizationPolicyBuilder(
+            JwtBearerDefaults.AuthenticationScheme,
+            AuthConstants.BffSchemes.Cookie
+        ).RequireAuthenticatedUser();
 
     /// <summary>
     ///     Registers the named <see cref="System.Net.Http.HttpClient" /> used by
