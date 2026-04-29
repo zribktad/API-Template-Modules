@@ -458,7 +458,7 @@ Controllers live in `src/APITemplate/Api/Api/Controllers/V1/`. They dispatch via
 
 ```csharp
 // Api/Controllers/V1/OrdersController.cs
-using APITemplate.Api.Authorization;
+using Identity.Auth.Security;
 using APITemplate.Api.Controllers;
 using APITemplate.Application.Common.Security;
 using Asp.Versioning;
