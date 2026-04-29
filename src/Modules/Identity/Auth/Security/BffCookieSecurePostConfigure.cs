@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Identity.Auth.Security;
 
 /// <summary>
-///     After <see cref="IdentityModule.RegisterBffAuthentication" /> sets cookie defaults, enforce
+///     After <see cref="IdentityModule.AddIdentityModule" /> sets cookie defaults, enforce
 ///     <see cref="CookieSecurePolicy.Always" /> outside Development so session cookies are never
 ///     sent over plaintext HTTP in production deployments.
 /// </summary>

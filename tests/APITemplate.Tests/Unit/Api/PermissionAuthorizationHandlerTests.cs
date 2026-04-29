@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using APITemplate.Api.Authorization;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Authorization;
 using Shouldly;

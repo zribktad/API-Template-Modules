@@ -1,7 +1,6 @@
-using Identity.Auth.Security;
 using Microsoft.AspNetCore.Authorization;
 
-namespace APITemplate.Api.Authorization;
+namespace Identity.Auth.Security;
 
 public sealed class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
 {

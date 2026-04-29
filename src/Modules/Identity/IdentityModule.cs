@@ -1,15 +1,22 @@
+using Identity.Auth.Http;
 using Identity.Auth.Options;
+using Identity.Auth.Security.ExternalIdentityProviders;
+using Identity.Auth.Security.Keycloak;
+using Identity.Auth.Security.Sessions;
 using Identity.Auth.Validation;
+using Identity.Common.Email;
 using Identity.Configuration;
+using Identity.Directory.Domain.Services;
 using Identity.Directory.Options;
 using Identity.Options;
-using Identity.Persistence;
+using Keycloak.AuthServices.Sdk;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.Startup;
 
@@ -23,8 +30,8 @@ public static partial class IdentityModule
     )
     {
         RegisterOptions(services, configuration);
-        RegisterCors(services, configuration);
-        RegisterBffAuthentication(services, configuration);
+        RegisterCors(services);
+        RegisterAuthentication(services, configuration);
         RegisterDbInfrastructure(services, configuration);
         RegisterApplicationServices(services);
         RegisterKeycloakAdmin(services);
@@ -65,28 +72,73 @@ public static partial class IdentityModule
 
     // ── CORS ─────────────────────────────────────────────────────────────────
 
-    private static void RegisterCors(IServiceCollection services, IConfiguration configuration)
+    private static void RegisterCors(IServiceCollection services)
     {
-        string[] corsOrigins = (
-            configuration.SectionFor<CorsOptions>().Get<CorsOptions>() ?? new CorsOptions()
-        )
-            .AllowedOrigins.Where(o => !string.IsNullOrWhiteSpace(o))
-            .Select(o => o.Trim())
-            .ToArray();
-
-        if (corsOrigins.Length > 0)
-        {
-            services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(policy =>
+        services.AddCors();
+        services
+            .AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>()
+            .Configure<IOptions<CorsOptions>>(
+                (aspNetCorsOptions, corsOpts) =>
                 {
-                    policy
-                        .WithOrigins(corsOrigins)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                });
-            });
-        }
+                    string[] origins = corsOpts
+                        .Value.AllowedOrigins.Where(o => !string.IsNullOrWhiteSpace(o))
+                        .Select(o => o.Trim())
+                        .ToArray();
+
+                    // Always add a default policy to avoid runtime failure when app.UseCors() is called.
+                    aspNetCorsOptions.AddDefaultPolicy(policy =>
+                    {
+                        if (origins.Length > 0)
+                        {
+                            policy.WithOrigins(origins);
+                        }
+                        else
+                        {
+                            // If no origins are configured, we still need a policy, but it should be restrictive.
+                            // WithOrigins() with no arguments results in no origins allowed.
+                            policy.WithOrigins([]);
+                        }
+
+                        policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                    });
+                }
+            );
+    }
+
+    // ── Application Services ─────────────────────────────────────────────────
+
+    private static void RegisterApplicationServices(IServiceCollection services)
+    {
+        services.AddScoped<ISecureTokenGenerator, SecureTokenGenerator>();
+        services.AddSingleton<IKeycloakService, KeycloakService>();
+        services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
+        services.AddScoped<IUserUniquenessChecker, UserUniquenessChecker>();
+        services.AddScoped<ITenantUniquenessChecker, TenantUniquenessChecker>();
+    }
+
+    // ── Keycloak Admin ────────────────────────────────────────────────────────
+
+    private static void RegisterKeycloakAdmin(IServiceCollection services)
+    {
+        services
+            .AddOptions<KeycloakAdminClientOptions>()
+            .Configure<IOptions<KeycloakOptions>>(
+                (adminOpts, keycloakOpts) =>
+                {
+                    adminOpts.AuthServerUrl = keycloakOpts.Value.AuthServerUrl;
+                    adminOpts.Realm = keycloakOpts.Value.Realm;
+                }
+            );
+
+        services.AddSingleton<KeycloakAdminTokenProvider>();
+        services.AddTransient<KeycloakAdminTokenHandler>();
+
+        services
+            .AddKeycloakAdminHttpClient(_ => { })
+            .AddHttpMessageHandler<KeycloakAdminTokenHandler>()
+            .AddKeycloakHttpRetry(ResiliencePipelineKeys.KeycloakAdmin);
+
+        services.AddScoped<IKeycloakAdminService, KeycloakAdminService>();
+        services.AddScoped<IKeycloakAndBffGlobalLogoutService, KeycloakAndBffGlobalLogoutService>();
     }
 }

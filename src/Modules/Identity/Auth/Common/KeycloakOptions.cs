@@ -43,6 +43,12 @@ public sealed class KeycloakOptions
     [ConfigurationKeyName("passwordVerification")]
     public KeycloakPasswordVerificationOptions PasswordVerification { get; init; } = new();
 
+    [Description(
+        "When true, the JWT bearer audience claim is validated against the resource identifier."
+    )]
+    [ConfigurationKeyName("verify-token-audience")]
+    public bool VerifyTokenAudience { get; init; } = true;
+
     [Description("Shared secret for inbound Keycloak event webhook calls.")]
     [ConfigurationKeyName("eventWebhook")]
     public KeycloakEventWebhookOptions EventWebhook { get; init; } = new();

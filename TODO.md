@@ -105,6 +105,33 @@
   Cover cleanup jobs at exactly the retention cutoff, just before cutoff, just after cutoff, empty batches, batch size limits, repeat execution, and cleanup when dependent module data is missing.
 
 
+## RFC / HTTP Standards
+
+### High Priority
+
+- [ ] **Implement Rate Limiting (RFC 6585 + IETF draft `ratelimit-headers`)**  
+  `RateLimitPolicies.Fixed = "fixed"` constant exists but `AddRateLimiter()` / `UseRateLimiter()` are never called — rate limiting is not active. Register a fixed window rate limiter in `ApiServiceCollectionExtensions`, add `UseRateLimiter()` to the pipeline, and consider emitting `Retry-After` + `RateLimit-*` response headers.
+
+- [ ] **Add HSTS (RFC 6797)**  
+  `UseHttpsRedirection()` is enabled but `UseHsts()` is missing — the `Strict-Transport-Security` header is never sent. Add `UseHsts()` to `ApplicationBuilderExtensions.UseApiPipeline()` before `UseHttpsRedirection()`. Disable in the Development environment.
+
+### Medium Priority
+
+- [ ] **Add HTTP security response headers (OWASP / W3C)**  
+  Missing: `X-Frame-Options`, `X-Content-Type-Options` (only set on file downloads today), `Content-Security-Policy`, `Referrer-Policy`, `Permissions-Policy`. Consider `NetEscapades.AspNetCore.SecurityHeaders` or `NWebsec` and add as middleware in the pipeline.
+
+- [ ] **Implement ETag / Conditional Requests (RFC 7232)**  
+  No support for `ETag`, `If-None-Match`, or `If-Modified-Since`. Output Cache works server-side but clients cannot validate their cache via conditional requests. Consider `Marvin.Cache.Headers` or a manual implementation for `GET` list and detail endpoints.
+
+### Low Priority
+
+- [ ] **Add `Link` header for pagination (RFC 8288)**  
+  `PagedResponse<T>` exposes `TotalCount`/`PageNumber`/`TotalPages` in the JSON body only. RFC 8288 defines `Link: <url>; rel="next"` headers. Add a helper to `ApiControllerBase` or the Wolverine endpoint pipeline that generates Link headers from `PagedResponse` metadata.
+
+- [ ] **Implement Range Requests for file downloads (RFC 7233)**  
+  `FilesController` streams files without `Range` header support — resumable downloads are not possible. Add `Accept-Ranges: bytes`, process the `Range` request header, and return `206 Partial Content` with `Content-Range`.
+
+
 ## Features
 
 

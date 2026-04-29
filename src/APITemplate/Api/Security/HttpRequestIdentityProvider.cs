@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Identity.Auth.Security;
 using SharedKernel.Application.Context;
@@ -5,117 +6,78 @@ using SharedKernel.Application.Context;
 namespace APITemplate.Api.Security;
 
 /// <summary>
-///     Single per-request source for <see cref="ICurrentRequestUser" /> and <see cref="IActorProvider" /> derived from
-///     <see cref="Microsoft.AspNetCore.Http.HttpContext.User" />.
+///     Single per-request source for <see cref="ICurrentRequestUser" />, <see cref="IActorProvider" />,
+///     and <see cref="ITenantProvider" /> derived from <see cref="Microsoft.AspNetCore.Http.HttpContext.User" />.
+///     All claims are parsed once on first access and cached in <see cref="IdentitySnapshot" />.
 /// </summary>
-public sealed class HttpRequestIdentityProvider : ICurrentRequestUser, IActorProvider
+public sealed class HttpRequestIdentityProvider
+    : ICurrentRequestUser,
+        IActorProvider,
+        ITenantProvider
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private bool _computed;
+    private IdentitySnapshot? _snapshot;
 
     public HttpRequestIdentityProvider(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }
 
-    /// <inheritdoc />
-    public string? OidcSubject
+    public string? OidcSubject => GetSnapshot().OidcSubject;
+    public Guid? ApplicationUserId => GetSnapshot().ApplicationUserId;
+    public string? PreferredUsername => GetSnapshot().PreferredUsername;
+    public bool IsInteractiveUser => GetSnapshot().IsInteractiveUser;
+    public Guid ActorId => GetSnapshot().ActorId;
+    public Guid TenantId => GetSnapshot().TenantId;
+    public bool HasTenant => TenantId != Guid.Empty;
+
+    private IdentitySnapshot GetSnapshot()
     {
-        get
-        {
-            EnsureComputed();
-            return field;
-        }
-        private set;
-    }
-
-    /// <inheritdoc />
-    public Guid? ApplicationUserId
-    {
-        get
-        {
-            EnsureComputed();
-            return field;
-        }
-        private set;
-    }
-
-    /// <inheritdoc />
-    public string? PreferredUsername
-    {
-        get
-        {
-            EnsureComputed();
-            return field;
-        }
-        private set;
-    }
-
-    /// <inheritdoc />
-    public bool IsInteractiveUser
-    {
-        get
-        {
-            EnsureComputed();
-            return field;
-        }
-        private set;
-    } = true;
-
-    /// <inheritdoc cref="IActorProvider.ActorId" />
-    public Guid ActorId
-    {
-        get
-        {
-            EnsureComputed();
-            return field;
-        }
-        private set;
-    }
-
-    private void EnsureComputed()
-    {
-        if (_computed)
-            return;
-
-        _computed = true;
-
+        if (_snapshot.HasValue)
+            return _snapshot.Value;
         ClaimsPrincipal? user = _httpContextAccessor.HttpContext?.User;
-        if (user?.Identity?.IsAuthenticated != true)
-        {
-            ActorId = Guid.Empty;
-            return;
-        }
+        if (user is null || user.Identity?.IsAuthenticated != true)
+            return (_snapshot = new IdentitySnapshot()).Value;
+        return (_snapshot = Compute(user)).Value;
+    }
 
+    private static IdentitySnapshot Compute(ClaimsPrincipal user)
+    {
         string? nameId =
             user.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.NameId);
-        OidcSubject =
+            ?? user.FindFirstValue(JwtRegisteredClaimNames.NameId);
+        string? subject =
             user.FindFirstValue(AuthConstants.Claims.Subject)
-            ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+            ?? user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        string? name = user.FindFirstValue(ClaimTypes.Name);
 
-        PreferredUsername =
-            user.FindFirstValue(AuthConstants.Claims.PreferredUsername)
-            ?? user.FindFirstValue(ClaimTypes.Name);
+        Guid? appUserId =
+            Guid.TryParse(nameId, out Guid g)
+            && (subject is null || !string.Equals(nameId, subject, StringComparison.Ordinal))
+                ? g
+                : null;
 
-        if (KeycloakServiceAccountClaims.IsServiceAccount(user))
-            IsInteractiveUser = false;
-
-        if (Guid.TryParse(nameId, out Guid nameIdGuid))
-        {
-            if (
-                OidcSubject is null
-                || !string.Equals(nameId, OidcSubject, StringComparison.Ordinal)
+        return new IdentitySnapshot(
+            OidcSubject: subject,
+            ApplicationUserId: appUserId,
+            PreferredUsername: user.FindFirstValue(AuthConstants.Claims.PreferredUsername) ?? name,
+            IsInteractiveUser: !KeycloakServiceAccountClaims.IsServiceAccount(user),
+            ActorId: Guid.TryParse(nameId ?? subject, out Guid actor) ? actor : Guid.Empty,
+            TenantId: Guid.TryParse(
+                user.FindFirstValue(AuthConstants.Claims.TenantId),
+                out Guid tid
             )
-                ApplicationUserId = nameIdGuid;
-        }
-
-        // Match legacy HttpActorProvider: NameIdentifier → Subject → Name (no Jwt sub in this chain).
-        string? actorRaw =
-            nameId
-            ?? user.FindFirstValue(AuthConstants.Claims.Subject)
-            ?? user.FindFirstValue(ClaimTypes.Name);
-
-        ActorId = Guid.TryParse(actorRaw, out Guid parsed) ? parsed : Guid.Empty;
+                ? tid
+                : Guid.Empty
+        );
     }
+
+    private readonly record struct IdentitySnapshot(
+        string? OidcSubject = null,
+        Guid? ApplicationUserId = null,
+        string? PreferredUsername = null,
+        bool IsInteractiveUser = true,
+        Guid ActorId = default,
+        Guid TenantId = default
+    );
 }

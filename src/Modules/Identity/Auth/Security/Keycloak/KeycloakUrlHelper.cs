@@ -21,12 +21,6 @@ public static class KeycloakUrlHelper
         return !authorityUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>Returns the OpenID Connect discovery document URL for the given realm.</summary>
-    public static string BuildDiscoveryUrl(string authServerUrl, string realm)
-    {
-        return $"{BuildAuthority(authServerUrl, realm)}/.well-known/openid-configuration";
-    }
-
     /// <summary>Returns the OAuth2 token endpoint URL for the given realm.</summary>
     public static string BuildTokenEndpoint(string authServerUrl, string realm)
     {
