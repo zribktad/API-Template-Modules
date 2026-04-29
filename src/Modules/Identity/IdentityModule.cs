@@ -85,16 +85,22 @@ public static partial class IdentityModule
                         .Select(o => o.Trim())
                         .ToArray();
 
-                    if (origins.Length > 0)
+                    // Always add a default policy to avoid runtime failure when app.UseCors() is called.
+                    aspNetCorsOptions.AddDefaultPolicy(policy =>
                     {
-                        aspNetCorsOptions.AddDefaultPolicy(policy =>
-                            policy
-                                .WithOrigins(origins)
-                                .AllowAnyHeader()
-                                .AllowAnyMethod()
-                                .AllowCredentials()
-                        );
-                    }
+                        if (origins.Length > 0)
+                        {
+                            policy.WithOrigins(origins);
+                        }
+                        else
+                        {
+                            // If no origins are configured, we still need a policy, but it should be restrictive.
+                            // WithOrigins() with no arguments results in no origins allowed.
+                            policy.WithOrigins([]);
+                        }
+
+                        policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                    });
                 }
             );
     }
