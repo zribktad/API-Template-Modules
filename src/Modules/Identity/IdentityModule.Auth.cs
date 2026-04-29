@@ -96,7 +96,7 @@ public static partial class IdentityModule
             {
                 options.Events ??= new JwtBearerEvents();
                 options.Events.OnTokenValidated = IdentityTokenValidatedPipeline.OnTokenValidated;
-                // Returns 403 with a structured ProblemDetails body instead of the default 401 redirect.
+                // Returns 401 with a structured ProblemDetails body instead of the default 401 redirect.
                 options.Events.OnChallenge = JwtBearerAccessDeniedChallenge.OnChallengeAsync;
             }
         );
