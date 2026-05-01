@@ -1,3 +1,5 @@
+using SharedKernel.Infrastructure.Logging;
+
 namespace Identity.Directory.Features.User;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace Identity.Directory.Features.User;
 public sealed record UserResponse(
     Guid Id,
     string Username,
-    string Email,
+    [property: PersonalData] string Email,
     bool IsActive,
     IReadOnlyList<string> Roles,
     ProvisioningStatus ProvisioningStatus,

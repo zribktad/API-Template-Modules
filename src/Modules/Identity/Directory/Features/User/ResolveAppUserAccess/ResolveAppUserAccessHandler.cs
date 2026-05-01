@@ -1,12 +1,13 @@
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
-using TenantInvitationEntity = Identity.Directory.Entities.TenantInvitation;
 using Identity.Directory.Features.TenantInvitation.Specifications;
 using Identity.Directory.Interfaces;
-using Identity.Logging;
 using Identity.Directory.Security;
+using Identity.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SharedKernel.Infrastructure.Logging;
+using TenantInvitationEntity = Identity.Directory.Entities.TenantInvitation;
 
 namespace Identity.Directory.Features.User;
 
@@ -144,7 +145,7 @@ public sealed class ResolveAppUserAccessHandler
         ILogger<ResolveAppUserAccessHandler> logger,
         string code,
         string message,
-        string normalizedEmail
+        [PersonalData] string normalizedEmail
     )
     {
         logger.UserAccessDenied(code, normalizedEmail);
@@ -157,7 +158,7 @@ public sealed class ResolveAppUserAccessHandler
         ILogger<ResolveAppUserAccessHandler> logger,
         TenantInvitationEntity invitation,
         string keycloakUserId,
-        string email,
+        [PersonalData] string email,
         string username,
         CancellationToken ct
     )

@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using SharedKernel.Infrastructure.Logging;
 
 namespace Notifications.Contracts;
 
@@ -32,9 +33,11 @@ public sealed class EmailOptions
     public string SenderName { get; set; } = string.Empty;
 
     [Description("Optional SMTP username used for authenticated delivery.")]
+    [SensitiveData]
     public string? Username { get; set; }
 
     [Description("Optional SMTP password used for authenticated delivery.")]
+    [SensitiveData]
     public string? Password { get; set; }
 
     [Description("Public application base URL used when generating links in email templates.")]

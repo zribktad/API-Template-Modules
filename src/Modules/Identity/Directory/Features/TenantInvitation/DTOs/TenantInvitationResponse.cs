@@ -1,3 +1,5 @@
+using SharedKernel.Infrastructure.Logging;
+
 namespace Identity.Directory.Features.TenantInvitation.DTOs;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace Identity.Directory.Features.TenantInvitation.DTOs;
 /// </summary>
 public sealed record TenantInvitationResponse(
     Guid Id,
-    string Email,
+    [property: PersonalData] string Email,
     InvitationStatus Status,
     DateTime ExpiresAtUtc,
     DateTime CreatedAtUtc
