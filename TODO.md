@@ -117,7 +117,7 @@
 
 ### Medium Priority
 
-- [ ] **Add HTTP security response headers (OWASP / W3C)**  
+- [x] **Add HTTP security response headers (OWASP / W3C)**  
   Missing: `X-Frame-Options`, `X-Content-Type-Options` (only set on file downloads today), `Content-Security-Policy`, `Referrer-Policy`, `Permissions-Policy`. Consider `NetEscapades.AspNetCore.SecurityHeaders` or `NWebsec` and add as middleware in the pipeline.
 
 - [ ] **Implement ETag / Conditional Requests (RFC 7232)**  

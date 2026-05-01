@@ -28,6 +28,7 @@ public static class ApplicationBuilderExtensions
         }
 
         app.UseHttpsRedirection();
+        app.UseSecurityHeadersPolicy();
         app.UseCors();
         // Correlation in Items + Serilog only (no Response) so Challenge runs before response headers.
         app.UseMiddleware<CorrelationContextMiddleware>();
