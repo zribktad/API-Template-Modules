@@ -51,7 +51,7 @@ public static class RateLimitingServiceCollectionExtensions
     /// </summary>
     private static void AddFixedPolicy(RateLimiterOptions limiter, RateLimitPolicyOptions opts)
     {
-        // Simple window-based budget.
+        // Named policy providing a fixed request budget per time window.
         limiter.AddFixedWindowLimiter(
             RateLimitPolicies.Fixed,
             o =>
@@ -70,7 +70,7 @@ public static class RateLimitingServiceCollectionExtensions
     /// </summary>
     private static void AddSlidingPolicy(RateLimiterOptions limiter, RateLimitPolicyOptions opts)
     {
-        // Smoother window-based budget divided into segments.
+        // Named policy with segmented window to prevent traffic spikes at window boundaries.
         limiter.AddSlidingWindowLimiter(
             RateLimitPolicies.Sliding,
             o =>
@@ -91,8 +91,7 @@ public static class RateLimitingServiceCollectionExtensions
     /// </summary>
     private static void AddGlobalLimiter(RateLimiterOptions limiter, RateLimitPolicyOptions opts)
     {
-        // Baseline budget that allows for bursts while maintaining a steady refill.
-        // Partitioned by IActorProvider (authenticated user) or IP address.
+        // Global baseline partitioned by authenticated user ID or remote IP address.
         limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
         {
             IActorProvider actorProvider = ctx.RequestServices.GetRequiredService<IActorProvider>();
@@ -124,7 +123,7 @@ public static class RateLimitingServiceCollectionExtensions
     /// </summary>
     private static void ConfigureOnRejected(RateLimiterOptions limiter, RateLimitingOptions opts)
     {
-        // Builds the 429 response. Runs after the limiter has already rejected the request.
+        // Generates a RFC-compliant 429 response with appropriate RateLimit headers.
         limiter.OnRejected = async (context, _) =>
         {
             HttpResponse response = context.HttpContext.Response;
@@ -143,14 +142,16 @@ public static class RateLimitingServiceCollectionExtensions
                 ?? "global";
 
             response.Headers["RateLimit-Policy"] = policyName;
-            response.Headers["RateLimit-Limit"] = (
-                policyName switch
-                {
-                    RateLimitPolicies.Fixed => opts.Fixed.PermitLimit,
-                    RateLimitPolicies.Sliding => opts.Sliding.PermitLimit,
-                    _ => opts.Global.PermitLimit,
-                }
-            ).ToString(CultureInfo.InvariantCulture);
+            response.Headers["RateLimit-Limit"] = policyName switch
+            {
+                RateLimitPolicies.Fixed => opts.Fixed.PermitLimit.ToString(
+                    CultureInfo.InvariantCulture
+                ),
+                RateLimitPolicies.Sliding => opts.Sliding.PermitLimit.ToString(
+                    CultureInfo.InvariantCulture
+                ),
+                _ => opts.Global.PermitLimit.ToString(CultureInfo.InvariantCulture),
+            };
 
             Error error = Error.Custom(
                 (int)ErrorType.Failure,

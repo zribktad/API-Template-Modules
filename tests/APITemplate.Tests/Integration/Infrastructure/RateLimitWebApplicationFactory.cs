@@ -40,11 +40,6 @@ public class RateLimitWebApplicationFactory : CustomWebApplicationFactory
             // Add extra policies for isolation in tests
             services.Configure<RateLimiterOptions>(limiter =>
             {
-                var opts = services
-                    .BuildServiceProvider()
-                    .GetRequiredService<IOptions<RateLimitingOptions>>()
-                    .Value;
-
                 limiter.AddFixedWindowLimiter(
                     "fixed-test-1",
                     o =>
