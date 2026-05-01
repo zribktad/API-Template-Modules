@@ -58,15 +58,6 @@ public static class RedisServiceCollectionExtensions
         else
         {
             services.AddDistributedMemoryCache();
-
-            // Log a warning if Redis is expected but missing, or just info if it's a known fallback.
-            // Using a temporary service provider to get a logger during DI registration.
-            using ServiceProvider sp = services.BuildServiceProvider();
-            ILoggerFactory loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-            ILogger logger = loggerFactory.CreateLogger(typeof(RedisServiceCollectionExtensions));
-            logger.LogInformation(
-                "Redis ConnectionString is not configured. Falling back to in-memory distributed cache and local Data Protection storage."
-            );
         }
 
         return services;

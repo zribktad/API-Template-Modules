@@ -7,6 +7,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Infrastructure;
 
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 public class RateLimitingIntegrationTests : IntegrationTestBase<RateLimitWebApplicationFactory>
 {
     public RateLimitingIntegrationTests(RateLimitWebApplicationFactory factory)

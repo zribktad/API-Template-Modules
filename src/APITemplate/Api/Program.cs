@@ -54,6 +54,7 @@ builder.Services.AddRedisInfrastructure(builder.Configuration);
 builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddRateLimiting(builder.Configuration);
 builder.Services.AddOpenApiDocumentation();
+builder.Services.AddInfrastructureDiagnostics();
 
 builder.Services.AddWolverineHttp();
 builder.Services.AddModuleHealthChecks(

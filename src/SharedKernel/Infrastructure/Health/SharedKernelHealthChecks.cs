@@ -53,10 +53,12 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
 
     private void AddRedis(IHealthChecksBuilder builder)
     {
-        RedisOptions? redisOptions = _configuration.SectionFor<RedisOptions>().Get<RedisOptions>();
-
-        if (redisOptions is not null && !string.IsNullOrWhiteSpace(redisOptions.ConnectionString))
+        if (_configuration.IsRedisConfigured())
         {
+            RedisOptions redisOptions = _configuration
+                .SectionFor<RedisOptions>()
+                .Get<RedisOptions>()!;
+
             builder.AddRedis(
                 redisOptions.ConnectionString,
                 HealthCheckNames.Redis,

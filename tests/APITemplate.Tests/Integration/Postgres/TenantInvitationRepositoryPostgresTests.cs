@@ -13,6 +13,7 @@ namespace APITemplate.Tests.Integration.Postgres;
 /// <summary>
 ///     Exercises <see cref="TenantInvitationRepository" /> against real PostgreSQL with Ardalis specifications.
 /// </summary>
+[Trait("Category", "Integration")]
 [Trait("Category", "Integration.Postgres")]
 [Trait("Docker", "true")]
 public sealed class TenantInvitationRepositoryPostgresTests
