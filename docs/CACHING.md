@@ -7,7 +7,7 @@ The application uses **ASP.NET Core Output Cache** with an optional **DragonFly*
 - **With DragonFly configured** — all application instances share the same cache, ensuring consistency behind a load balancer.
 - **Without DragonFly** — falls back to in-memory cache with an informational log. Suitable for local development and single-instance deployments.
 
-> **BFF session caching is a separate concern.** Authenticated BFF sessions are cached in a two-tier layout (per-instance L1 `IMemoryCache` + shared L2 Redis) with Redis pub/sub invalidation for cross-instance coherence. That layer is documented in [AUTHENTICATION.md § 3e](AUTHENTICATION.md#3e-storage-architecture-and-redis-cache-keys); this document covers **output caching** for HTTP GET responses only.
+> **BFF session caching is a separate concern.** Authenticated BFF sessions are cached in a two-tier layout (per-instance L1 `IMemoryCache` + shared L2 DragonFly) with DragonFly pub/sub invalidation for cross-instance coherence. That layer is documented in [AUTHENTICATION.md § 3e](AUTHENTICATION.md#3e-storage-architecture-and-redis-cache-keys); this document covers **output caching** for HTTP GET responses only.
 
 ## Architecture
 
@@ -98,11 +98,11 @@ When the `Redis:ConnectionString` setting is **missing or empty**, the applicati
 
 ### Infrastructure Registration
 
-The `AddRedisInfrastructure(configuration)` extension method (in `RedisServiceCollectionExtensions.cs`) centralizes Redis setup:
+The `AddRedisInfrastructure(configuration)` extension method (in `RedisServiceCollectionExtensions.cs`) centralizes DragonFly setup:
 1. **Validates options** at startup.
 2. **Registers `IConnectionMultiplexer`** as a singleton with lazy connection (doesn't block startup).
 3. **Registers Distributed Cache** (`AddStackExchangeRedisCache`).
-4. **Registers Data Protection** to persist XML keys in Redis (key: `DataProtection-Keys`).
+4. **Registers Data Protection** to persist XML keys in DragonFly (key: `DataProtection-Keys`).
 
 ### Cache Policies
 

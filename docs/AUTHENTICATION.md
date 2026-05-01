@@ -497,7 +497,7 @@ sequenceDiagram
 
     SPA->>BFF: GET /api/v1/bff/logout<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;
     BFF->>VK: RedisTicketStore.RemoveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.RevokeAsync(Logout)
-    Note over VK: Session soft-deleted in PostgreSQL<br/>removed from Redis cache<br/>(RevocationReason = Logout)
+    Note over VK: Session soft-deleted in PostgreSQL<br/>removed from DragonFly cache<br/>(RevocationReason = Logout)
     BFF-->>SPA: Clear cookie .APITemplate.Auth
     BFF-->>SPA: 302 → Keycloak end_session_endpoint
     SPA->>KC: End session (SSO invalidated)
