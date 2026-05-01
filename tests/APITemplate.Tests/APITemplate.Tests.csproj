@@ -81,6 +81,9 @@
     <Compile Include="Integration\Infrastructure\CorsTests.cs" />
     <!-- RateLimitingOptions removed in modular arch — test needs rewrite -->
     <!--<Compile Include="Integration\Infrastructure\RateLimitingTests.cs" />-->
+    <Compile Include="Integration\Infrastructure\RateLimitingIntegrationTests.cs" />
+    <Compile Include="Integration\Infrastructure\RateLimitTestController.cs" />
+    <Compile Include="Integration\Infrastructure\RateLimitWebApplicationFactory.cs" />
     <Compile Include="Integration\Infrastructure\ScalarAndOpenApiTests.cs" />
     <Compile Include="Integration\Infrastructure\WolverineNotificationTests.cs" />
     <Compile Include="Integration\IntegrationResponseModels.cs" />

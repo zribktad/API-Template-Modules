@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using ErrorOr;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
+using SharedKernel.Application.Context;
 using SharedKernel.Application.Errors;
 using SharedKernel.Application.Http;
 using SharedKernel.Contracts.Api;
@@ -86,17 +87,24 @@ public static class RateLimitingServiceCollectionExtensions
     /// <summary>
     ///     Configures a global rate limiter using a token bucket algorithm.
     ///     This limiter applies to all requests and allows for short bursts of traffic while maintaining a steady refill rate.
-    ///     Identifies users by their NameIdentifier claim or falls back to Remote IP address.
+    ///     Identifies users by their IActorProvider identity or falls back to Remote IP address.
     /// </summary>
     private static void AddGlobalLimiter(RateLimiterOptions limiter, RateLimitPolicyOptions opts)
     {
         // Baseline budget that allows for bursts while maintaining a steady refill.
-        // Partitioned by authenticated user ID or IP address.
+        // Partitioned by IActorProvider (authenticated user) or IP address.
         limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
-            RateLimitPartition.GetTokenBucketLimiter(
-                partitionKey: ctx.User?.FindFirstValue(ClaimTypes.NameIdentifier)
-                    ?? ctx.Connection.RemoteIpAddress?.ToString()
-                    ?? "unknown",
+        {
+            IActorProvider actorProvider = ctx.RequestServices.GetRequiredService<IActorProvider>();
+            Guid actorId = actorProvider.ActorId;
+
+            string partitionKey =
+                actorId != Guid.Empty
+                    ? actorId.ToString()
+                    : ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            return RateLimitPartition.GetTokenBucketLimiter(
+                partitionKey: partitionKey,
                 factory: _ => new TokenBucketRateLimiterOptions
                 {
                     TokenLimit = opts.PermitLimit,
@@ -106,8 +114,8 @@ public static class RateLimitingServiceCollectionExtensions
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                     QueueLimit = opts.QueueLimit,
                 }
-            )
-        );
+            );
+        });
     }
 
     /// <summary>
@@ -117,7 +125,7 @@ public static class RateLimitingServiceCollectionExtensions
     private static void ConfigureOnRejected(RateLimiterOptions limiter, RateLimitingOptions opts)
     {
         // Builds the 429 response. Runs after the limiter has already rejected the request.
-        limiter.OnRejected = async (context, token) =>
+        limiter.OnRejected = async (context, _) =>
         {
             HttpResponse response = context.HttpContext.Response;
             response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -135,12 +143,14 @@ public static class RateLimitingServiceCollectionExtensions
                 ?? "global";
 
             response.Headers["RateLimit-Policy"] = policyName;
-            response.Headers["RateLimit-Limit"] = policyName switch
-            {
-                RateLimitPolicies.Fixed => opts.Fixed.PermitLimit.ToString(),
-                RateLimitPolicies.Sliding => opts.Sliding.PermitLimit.ToString(),
-                _ => opts.Global.PermitLimit.ToString(),
-            };
+            response.Headers["RateLimit-Limit"] = (
+                policyName switch
+                {
+                    RateLimitPolicies.Fixed => opts.Fixed.PermitLimit,
+                    RateLimitPolicies.Sliding => opts.Sliding.PermitLimit,
+                    _ => opts.Global.PermitLimit,
+                }
+            ).ToString(CultureInfo.InvariantCulture);
 
             Error error = Error.Custom(
                 (int)ErrorType.Failure,
@@ -148,14 +158,15 @@ public static class RateLimitingServiceCollectionExtensions
                 "Too many requests. Please try again later."
             );
 
-            await response.WriteAsJsonAsync(
-                error.ToProblemDetails(context.HttpContext),
-                context
-                    .HttpContext.RequestServices.GetRequiredService<
-                        IOptions<Microsoft.AspNetCore.Http.Json.JsonOptions>
-                    >()
-                    .Value.SerializerOptions,
-                token
+            IProblemDetailsService problemDetailsService =
+                context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
+
+            await problemDetailsService.TryWriteAsync(
+                new ProblemDetailsContext
+                {
+                    HttpContext = context.HttpContext,
+                    ProblemDetails = error.ToProblemDetails(context.HttpContext),
+                }
             );
         };
     }
