@@ -149,7 +149,7 @@ options.Policies.AddMiddleware(
 
 For batch commands (`CreateProductsCommand`, `UpdateProductsCommand`, etc.) items are validated inside the handler using `IBatchRule<TItem>`.
 
-`DataAnnotationsBatchRule<TItem>` is registered once in the composition root (`AddApiFoundation`):
+`DataAnnotationsBatchRule<TItem>` is registered once in the composition root (`Program.cs` via `AddRequestValidation` extension):
 ```csharp
 services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
 ```
@@ -290,7 +290,7 @@ services.AddValidation();
 
 | Component | Uses |
 |-----------|------|
-| `services.AddValidation()` registration | Active (`ApiServiceCollectionExtensions.cs`) |
+| `services.AddValidation()` registration | Active (`Program.cs` via `ValidationServiceCollectionExtensions.cs`) |
 | `[ValidatableType]` on DTOs | **Pilot only** — `CreateUserRequest` |
 | MVC request validation | `ModelState` + `IValidator` (unchanged) |
 | Wolverine middleware validation | `IValidator` (unchanged) |
@@ -383,7 +383,7 @@ public void InvalidName_FailsValidation(string? name)
 | `src/SharedKernel/Application/Validation/CaseInsensitiveAllowedValuesAttribute.cs` | Allowed-values attribute (null-safe, case-insensitive) |
 | `src/SharedKernel/Application/Validation/NotEmptyAttribute.cs` | Non-empty string/collection attribute |
 | `src/SharedKernel/Application/Errors/ErrorCatalog.cs` | Error codes (`GEN-0400` for validation) |
-| `src/APITemplate/Api/Extensions/ApiServiceCollectionExtensions.cs` | Registers `IBatchRule<>` → `DataAnnotationsBatchRule<>` |
+| `src/APITemplate/Api/Extensions/ValidationServiceCollectionExtensions.cs` | Registers `IBatchRule<>` → `DataAnnotationsBatchRule<>` |
 | `src/APITemplate/Api/Extensions/WolverineHandlerChainExtensions.cs` | `ShouldApplyDataAnnotationsValidation` filter |
 | `src/APITemplate/Api/Extensions/WolverineTypeExtensions.cs` | `IsErrorOrReturnType` helper |
 | `src/APITemplate/Api/Program.cs` | Wolverine middleware policy registration |

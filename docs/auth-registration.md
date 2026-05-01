@@ -6,7 +6,18 @@ This document is the **maintainer index** for where authentication and related m
 
 The API host calls, in order:
 
-1. **`AddApiFoundation`** — output cache policies, Redis/in-memory cache, Data Protection (when Redis is configured), OpenAPI, etc. ([`ApiServiceCollectionExtensions.cs`](../src/APITemplate/Api/Extensions/ApiServiceCollectionExtensions.cs))
+1. **API Foundation Registrations** — individual components registered in `Program.cs` via extensions:
+   - `services.AddRequestContext()`
+   - `services.AddApiVersioningRegistration()`
+   - `services.AddRequestValidation()`
+   - `services.AddErrorHandling(configuration)`
+   - `services.AddMvcConventions()`
+   - `services.AddRedisInfrastructure(configuration, redisConfiguration)`
+   - `services.AddCaching(configuration, redisConfiguration)`
+   - `services.AddRateLimiting(configuration)`
+   - `services.AddOpenApiDocumentation()`
+   
+   These provide output cache policies, Redis/in-memory cache, Data Protection, OpenAPI, etc. (Extracted from old `ApiServiceCollectionExtensions.cs` into individual files in `src/APITemplate/Api/Extensions/`)
 2. **`AddModuleHealthChecks`**
 3. **`AddApplicationCompositionAndIdentityModule`** (or equivalently `AddApplicationComposition` then `AddIdentityModule`) — see below
 4. **`AddObservability`**
