@@ -1,9 +1,11 @@
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.DTOs;
+using SharedKernel.Application.Errors;
 
 namespace SharedKernel.Contracts.Api;
 
@@ -102,25 +104,20 @@ public static class ErrorOrExtensions
             throw new ArgumentException("At least one error is required.", nameof(errors));
 
         Error firstError = errors[0];
-        int statusCode = firstError.Type switch
+
+        int statusCode = firstError switch
         {
-            ErrorType.Validation => StatusCodes.Status400BadRequest,
-            ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
-            ErrorType.Forbidden => StatusCodes.Status403Forbidden,
-            ErrorType.NotFound => StatusCodes.Status404NotFound,
-            ErrorType.Conflict => StatusCodes.Status409Conflict,
+            { Code: ErrorCatalog.General.RateLimitExceeded } =>
+                StatusCodes.Status429TooManyRequests,
+            { Type: ErrorType.Validation } => StatusCodes.Status400BadRequest,
+            { Type: ErrorType.Unauthorized } => StatusCodes.Status401Unauthorized,
+            { Type: ErrorType.Forbidden } => StatusCodes.Status403Forbidden,
+            { Type: ErrorType.NotFound } => StatusCodes.Status404NotFound,
+            { Type: ErrorType.Conflict } => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError,
         };
 
-        string title = firstError.Type switch
-        {
-            ErrorType.Validation => "Bad Request",
-            ErrorType.Unauthorized => "Unauthorized",
-            ErrorType.Forbidden => "Forbidden",
-            ErrorType.NotFound => "Not Found",
-            ErrorType.Conflict => "Conflict",
-            _ => "Internal Server Error",
-        };
+        string title = ReasonPhrases.GetReasonPhrase(statusCode);
 
         string detail =
             errors.Count > 1 && firstError.Type == ErrorType.Validation
