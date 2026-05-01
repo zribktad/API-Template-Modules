@@ -44,12 +44,7 @@ builder.Host.UseSerilog(
 );
 
 builder.Services.AddRequestContext();
-builder.Services.AddHsts(options =>
-{
-    options.Preload = true;
-    options.IncludeSubDomains = true;
-    options.MaxAge = TimeSpan.FromDays(365);
-});
+builder.Services.AddHstsRegistration(builder.Configuration);
 builder.Services.AddApiVersioningRegistration();
 builder.Services.AddRequestValidation();
 builder.Services.AddErrorHandling(builder.Configuration);

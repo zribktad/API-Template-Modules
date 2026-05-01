@@ -14,7 +14,7 @@ namespace APITemplate.Tests.Integration.Infrastructure;
 [Trait("Category", "Integration")]
 [Trait("Docker", "true")]
 [Collection(IntegrationCollectionNames.HttpRead)]
-public sealed class HstsIntegrationTests : IClassFixture<CustomWebApplicationFactory>
+public sealed class HstsIntegrationTests
 {
     private readonly CustomWebApplicationFactory _factory;
 

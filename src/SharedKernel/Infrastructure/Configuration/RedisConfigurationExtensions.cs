@@ -35,6 +35,13 @@ public static class RedisConfigurationExtensions
         RedisOptions redisOptions =
             configuration.SectionFor<RedisOptions>().Get<RedisOptions>() ?? new RedisOptions();
 
+        if (string.IsNullOrWhiteSpace(redisOptions.ConnectionString))
+        {
+            // Return a default configuration to avoid null-refs,
+            // but effectively it won't be used for connection if IsRedisConfigured() is used as a guard.
+            return new ConfigurationOptions { AbortOnConnectFail = false };
+        }
+
         ConfigurationOptions redisConfig = ConfigurationOptions.Parse(
             redisOptions.ConnectionString
         );

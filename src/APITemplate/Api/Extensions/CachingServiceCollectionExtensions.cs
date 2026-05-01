@@ -1,4 +1,5 @@
 using APITemplate.Api.Cache;
+using Microsoft.AspNetCore.OutputCaching.StackExchangeRedis;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.OutputCache;
@@ -30,13 +31,17 @@ public static class CachingServiceCollectionExtensions
 
         if (configuration.IsRedisConfigured())
         {
-            ConfigurationOptions redisConfiguration =
-                configuration.BuildRedisConfigurationOptions();
-            services.AddStackExchangeRedisOutputCache(options =>
-            {
-                options.ConfigurationOptions = redisConfiguration;
-                options.InstanceName = RedisInstanceNames.OutputCache;
-            });
+            services
+                .AddOptions<RedisOutputCacheOptions>()
+                .Configure<ConfigurationOptions>(
+                    (options, redisConfig) =>
+                    {
+                        options.ConfigurationOptions = redisConfig;
+                        options.InstanceName = RedisInstanceNames.OutputCache;
+                    }
+                );
+
+            services.AddStackExchangeRedisOutputCache(_ => { });
         }
 
         return services;

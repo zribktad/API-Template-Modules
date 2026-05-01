@@ -23,12 +23,12 @@ The API host calls, in order:
 4. **`AddObservability`**
 5. Other feature modules (ProductCatalog, Reviews, …)
 
-**Why `AddApplicationComposition` must run before `AddIdentityModule`**
+## Identity and Authentication Registration
 
-- `AddApplicationComposition` registers the default authentication scheme **JWT Bearer** and calls `AddAuthorization()`.
-- `AddIdentityModule` registers **Cookie** and **OpenID Connect** schemes, `PostConfigure<JwtBearerOptions>` (wires `IdentityTokenValidatedPipeline` and challenge behavior), BFF session services, and authorization policies (fallback + roles).
+- `AddIdentityModule` registers the default authentication scheme **JWT Bearer** and calls `AddAuthorization()`.
+- It also registers **Cookie** and **OpenID Connect** schemes, `PostConfigure<JwtBearerOptions>` (wires `IdentityTokenValidatedPipeline` and challenge behavior), BFF session services, and authorization policies (fallback + roles).
 
-If Identity ran first, Bearer registration and `PostConfigure<JwtBearerOptions>` would not line up with the intended pipeline.
+The registration of the default scheme and authorization must happen before other modules can contribute their specific authorization requirements.
 
 ## HTTP middleware order
 
@@ -40,7 +40,7 @@ CSRF runs after authentication so cookie-authenticated requests can be validated
 
 | Area | Primary location | Notes |
 | --- | --- | --- |
-| JWT Bearer defaults + `AddAuthorization()` shell | [`ApplicationCompositionServiceCollectionExtensions.cs`](../src/APITemplate/Api/Extensions/ApplicationCompositionServiceCollectionExtensions.cs) | Authority/audience; `OnTokenValidated` attached in Identity via `PostConfigure` |
+| JWT Bearer defaults + `AddAuthorization()` shell | [`IdentityModule.Auth.cs`](../src/Modules/Identity/IdentityModule.Auth.cs) | Authority/audience; `OnTokenValidated` attached via `PostConfigure` |
 | Cookie + OIDC BFF, session store, refresh coordinator, policies, `PostConfigure<JwtBearerOptions>` | [`IdentityModule.Auth.cs`](../src/Modules/Identity/IdentityModule.Auth.cs) | Redis vs in-memory BFF store follows `IsRedisConfigured()` |
 | Post-login token validation (claims, tenant, user access) | [`IdentityTokenValidatedPipeline.cs`](../src/Modules/Identity/Auth/Security/IdentityTokenValidatedPipeline.cs) | JWT Bearer + OIDC `OnTokenValidated` |
 | CSRF for cookie auth | [`CsrfValidationMiddleware.cs`](../src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs) | After `UseAuthentication` |
