@@ -1,5 +1,5 @@
 using APITemplate.Api.Cache;
-using SharedKernel.Application.Http;
+using Microsoft.AspNetCore.OutputCaching.StackExchangeRedis;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Infrastructure.Configuration;
 using SharedKernel.Infrastructure.OutputCache;
@@ -17,12 +17,10 @@ public static class CachingServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The IServiceCollection to add services to.</param>
     /// <param name="configuration">The application configuration.</param>
-    /// <param name="redisConfiguration">The parsed Redis configuration options, if available.</param>
     /// <returns>The updated IServiceCollection.</returns>
     public static IServiceCollection AddCaching(
         this IServiceCollection services,
-        IConfiguration configuration,
-        ConfigurationOptions? redisConfiguration
+        IConfiguration configuration
     )
     {
         services.AddValidatedOptions<CachingOptions>(configuration);
@@ -31,13 +29,19 @@ public static class CachingServiceCollectionExtensions
 
         services.AddOutputCache(options => options.AddBasePolicy(builder => builder.NoCache()));
 
-        if (redisConfiguration is not null)
+        if (configuration.IsRedisConfigured())
         {
-            services.AddStackExchangeRedisOutputCache(options =>
-            {
-                options.ConfigurationOptions = redisConfiguration;
-                options.InstanceName = RedisInstanceNames.OutputCache;
-            });
+            services
+                .AddOptions<RedisOutputCacheOptions>()
+                .Configure<ConfigurationOptions>(
+                    (options, redisConfig) =>
+                    {
+                        options.ConfigurationOptions = redisConfig;
+                        options.InstanceName = RedisInstanceNames.OutputCache;
+                    }
+                );
+
+            services.AddStackExchangeRedisOutputCache(_ => { });
         }
 
         return services;

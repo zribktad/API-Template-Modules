@@ -21,6 +21,12 @@ public static class ApplicationBuilderExtensions
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
         app.UseExceptionHandler();
+
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseHsts();
+        }
+
         app.UseHttpsRedirection();
         app.UseCors();
         // Correlation in Items + Serilog only (no Response) so Challenge runs before response headers.

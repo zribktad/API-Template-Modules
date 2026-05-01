@@ -23,6 +23,7 @@ using Xunit;
 namespace APITemplate.Tests.Integration.Postgres;
 
 [Trait("Category", "Integration")]
+[Trait("Category", "Integration.Postgres")]
 [Trait("Docker", "true")]
 public sealed class BffSessionServiceE2ETests
     : IClassFixture<SharedPostgresContainer>,

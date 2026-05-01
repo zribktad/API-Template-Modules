@@ -5,6 +5,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Auth;
 
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 [Collection(IntegrationCollectionNames.HttpRead)]
 public class UnauthorizedAccessTests
 {

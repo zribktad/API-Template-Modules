@@ -109,10 +109,10 @@
 
 ### High Priority
 
-- [ ] **Implement Rate Limiting (RFC 6585 + IETF draft `ratelimit-headers`)**  
+- [x] **Implement Rate Limiting (RFC 6585 + IETF draft `ratelimit-headers`)**  
   `RateLimitPolicies.Fixed = "fixed"` constant exists but `AddRateLimiter()` / `UseRateLimiter()` are never called — rate limiting is not active. Register a fixed window rate limiter in `ApiServiceCollectionExtensions`, add `UseRateLimiter()` to the pipeline, and consider emitting `Retry-After` + `RateLimit-*` response headers.
 
-- [ ] **Add HSTS (RFC 6797)**  
+- [x] **Add HSTS (RFC 6797)**  
   `UseHttpsRedirection()` is enabled but `UseHsts()` is missing — the `Strict-Transport-Security` header is never sent. Add `UseHsts()` to `ApplicationBuilderExtensions.UseApiPipeline()` before `UseHttpsRedirection()`. Disable in the Development environment.
 
 ### Medium Priority

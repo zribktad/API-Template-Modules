@@ -516,7 +516,7 @@ curl -X POST -H "Authorization: Bearer <token>" \
 | Api | `Filters/IdempotentAttribute.cs` | Marker attribute (`[AttributeUsage(Method)]`) |
 | Api | `Filters/IdempotencyActionFilter.cs` | `IAsyncActionFilter` — checks key, replays or caches response |
 | Application | `Common/Contracts/IIdempotencyStore.cs` | Interface for key-value cache |
-| Infrastructure | `Idempotency/DistributedCacheIdempotencyStore.cs` | Implementation backed by `IConnectionMultiplexer`/Redis (DragonFly in prod, in-memory fallback) |
+| Infrastructure | `Idempotency/DistributedCacheIdempotencyStore.cs` | Implementation backed by `IConnectionMultiplexer`/DragonFly (in prod, in-memory fallback) |
 
 ### How to apply to your own endpoints
 
@@ -533,7 +533,7 @@ public async Task<ActionResult<OrderResponse>> CreateOrder(CreateOrderRequest re
 
 ### Key implementation details
 - Cross-cutting concern implemented as a global `IAsyncActionFilter` — works on any endpoint marked with `[Idempotent]`
-- Storage uses `IConnectionMultiplexer`/Redis (DragonFly in production, in-memory fallback) — no DB table needed
+- Storage uses `IConnectionMultiplexer`/DragonFly (in production, in-memory fallback) — no DB table needed
 - Only 2xx responses are cached — error responses can be retried
 - Concurrent requests with the same key are serialized via distributed locking
 - Cache key format: `idempotency:{key}`

@@ -26,7 +26,7 @@ graph TB
     subgraph APP[ASP.NET Core API]
         BFF[BffController<br/>/api/v1/bff/login<br/>/api/v1/bff/login/{idpHint}<br/>/api/v1/bff/external-providers<br/>/api/v1/bff/logout<br/>/api/v1/bff/user<br/>/api/v1/bff/csrf]
         JWT_VAL[JwtBearer Middleware<br/>validates Bearer token]
-        COOKIE_VAL[Cookie Middleware<br/>L1 in-process cache → Redis → PostgreSQL]
+        COOKIE_VAL[Cookie Middleware<br/>L1 in-process cache → DragonFly → PostgreSQL]
         REFRESH[CookieSessionRefresher<br/>loads session, delegates to<br/>BffTokenRefreshService]
         CSRF[CsrfValidationMiddleware<br/>X-CSRF token required]
         TENANT[IdentityTokenValidatedPipeline<br/>validates tenant_id claim]
@@ -39,11 +39,11 @@ graph TB
     end
 
     subgraph LOCAL[Per-Instance In-Process Cache]
-        L1[BffLocalSessionCache<br/>IMemoryCache, 10s TTL<br/>invalidated via Redis pub/sub]
+        L1[BffLocalSessionCache<br/>IMemoryCache, 10s TTL<br/>invalidated via DragonFly pub/sub]
     end
 
-    subgraph SESSION[DragonFly / Redis]
-        CACHE[Redis Cache<br/>bff:session:GUID → BffSessionRecord<br/>read-through cache, 10 min TTL]
+    subgraph SESSION[DragonFly]
+        CACHE[DragonFly Cache<br/>bff:session:GUID → BffSessionRecord<br/>read-through cache, 10 min TTL]
         LOCK[Refresh Coordinator<br/>bff:session:GUID:refresh:lock<br/>bff:session:GUID:refresh:result]
         REVOKE[Revocation Channel<br/>bff:session:revocations<br/>pub/sub broadcast]
         DP[DataProtection Keys<br/>DataProtection:Keys]
@@ -78,7 +78,7 @@ graph TB
 | **Scalar OAuth2**      | Scalar UI (dev tool)           | Yes (in Scalar memory only)                                      |
 | **JWT Bearer**         | Mobile apps, Postman, curl     | Yes (client manages it)                                          |
 | **Client Credentials** | Microservices, background jobs | N/A (machine-to-machine)                                         |
-| **BFF Cookie**         | SPA frontend (browser)         | **No** — httpOnly cookie, tokens in PostgreSQL (L2 Redis cache + L1 per-instance cache) |
+| **BFF Cookie**         | SPA frontend (browser)         | **No** — httpOnly cookie, tokens in PostgreSQL (L2 DragonFly cache + L1 per-instance cache) |
 
 ---
 
@@ -373,7 +373,7 @@ sequenceDiagram
     participant BFF as BffController
     participant OIDC as OIDC Middleware (BffOidc)
     participant KC as Keycloak
-    participant VK as DragonFly
+    participant DF as DragonFly
 
     SPA->>BFF: GET /api/v1/bff/login?returnUrl=/dashboard
     BFF-->>SPA: 302 → Keycloak login page (Challenge BffOidc)
@@ -383,12 +383,12 @@ sequenceDiagram
     KC-->>OIDC: access_token + refresh_token + id_token
     OIDC->>OIDC: IdentityTokenValidatedPipeline.OnTokenValidated<br/>maps claims, validates tenant_id
     OIDC->>OIDC: RedisTicketStore.StoreAsync<br/>→ BffSessionService.CreateSessionAsync
-    Note over VK: BffSessionRecord created:<br/>tokens encrypted via IDataProtector<br/>PostgreSQL = primary, Redis = cache
-    OIDC->>VK: Store BffPersistedSession (PostgreSQL)<br/>+ Redis cache (TTL = CacheTtlMinutes)
+    Note over DF: BffSessionRecord created:<br/>tokens encrypted via IDataProtector<br/>PostgreSQL = primary, DragonFly = cache
+    OIDC->>DF: Store BffPersistedSession (PostgreSQL)<br/>+ DragonFly cache (TTL = CacheTtlMinutes)
     OIDC-->>SPA: Set-Cookie: .APITemplate.Auth=&lt;GUID&gt;<br/>HttpOnly, SameSite=Lax, Secure<br/>302 → /dashboard
 ```
 
-**Session record contents** — the cookie carries only the opaque `SessionId` (GUID). The server-side `BffPersistedSession` in PostgreSQL (cached in Redis) contains:
+**Session record contents** — the cookie carries only the opaque `SessionId` (GUID). The server-side `BffPersistedSession` in PostgreSQL (cached in DragonFly) contains:
 
 | Field                                                 | Description                                                                |
 | ----------------------------------------------------- | -------------------------------------------------------------------------- |
@@ -497,7 +497,7 @@ sequenceDiagram
 
     SPA->>BFF: GET /api/v1/bff/logout<br/>Cookie: .APITemplate.Auth=&lt;GUID&gt;
     BFF->>VK: RedisTicketStore.RemoveAsync(&lt;GUID&gt;)<br/>→ BffSessionService.RevokeAsync(Logout)
-    Note over VK: Session soft-deleted in PostgreSQL<br/>removed from Redis cache<br/>(RevocationReason = Logout)
+    Note over VK: Session soft-deleted in PostgreSQL<br/>removed from DragonFly cache<br/>(RevocationReason = Logout)
     BFF-->>SPA: Clear cookie .APITemplate.Auth
     BFF-->>SPA: 302 → Keycloak end_session_endpoint
     SPA->>KC: End session (SSO invalidated)

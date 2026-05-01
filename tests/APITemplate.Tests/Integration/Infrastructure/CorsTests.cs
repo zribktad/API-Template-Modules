@@ -3,6 +3,8 @@ using Xunit;
 
 namespace APITemplate.Tests.Integration.Infrastructure;
 
+[Trait("Category", "Integration")]
+[Trait("Docker", "true")]
 [Collection(IntegrationCollectionNames.HttpRead)]
 public class CorsTests
 {

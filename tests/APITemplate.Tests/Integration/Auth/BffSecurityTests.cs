@@ -17,6 +17,7 @@ using Xunit;
 namespace APITemplate.Tests.Integration.Auth;
 
 [Trait("Category", "Integration")]
+[Trait("Category", "Integration.Docker")]
 [Trait("Docker", "true")]
 public sealed class BffSecurityTests : IClassFixture<BffSecurityWebApplicationFactory>
 {

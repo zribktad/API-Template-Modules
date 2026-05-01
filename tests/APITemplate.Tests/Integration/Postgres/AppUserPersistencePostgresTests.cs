@@ -15,6 +15,7 @@ namespace APITemplate.Tests.Integration.Postgres;
 ///     round-trip correctly and unique indexes must be enforced at the database level.
 /// </summary>
 [Trait("Category", "Integration")]
+[Trait("Category", "Integration.Postgres")]
 [Trait("Docker", "true")]
 public sealed class AppUserPersistencePostgresTests
     : IClassFixture<SharedPostgresContainer>,

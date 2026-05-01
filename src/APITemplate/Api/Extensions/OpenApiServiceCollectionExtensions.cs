@@ -1,6 +1,4 @@
 using APITemplate.Api.OpenApi;
-using Identity.Auth.Security;
-using SharedKernel.Application.Http;
 
 namespace APITemplate.Api.Extensions;
 
