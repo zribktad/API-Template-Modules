@@ -25,6 +25,8 @@ artifacts/
 # .NET
 *.orig
 
+# Agents
+.claude/settings.local.json
 
 # Logs
 *.log
@@ -56,4 +58,5 @@ publish/
 
 # Git worktrees
 .worktrees/
+
 
