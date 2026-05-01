@@ -28,7 +28,9 @@ public sealed class ApiBehaviorOptionsValidationTests
             )
             .Build();
 
-        services.AddApiFoundation(configuration);
+        services.AddRequestContext();
+        services.AddErrorHandling(configuration);
+        services.AddMvcConventions();
         using ServiceProvider provider = services.BuildServiceProvider();
 
         ApiBehaviorOptions options = provider

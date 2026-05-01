@@ -244,7 +244,7 @@ if (context.HasFailures)
     return context.ToFailureResponse();
 ```
 
-`IBatchRule<T>` is registered once in the composition root (`AddApiFoundation`):
+`IBatchRule<T>` is registered once in the composition root (`Program.cs` via `AddRequestValidation` extension):
 ```csharp
 services.AddScoped(typeof(IBatchRule<>), typeof(DataAnnotationsBatchRule<>));
 ```

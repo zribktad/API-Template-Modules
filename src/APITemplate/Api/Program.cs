@@ -1,5 +1,8 @@
 using System.Reflection;
 using APITemplate.Api;
+using APITemplate.Api.Extensions;
+using APITemplate.Api.Security;
+using Asp.Versioning;
 using BackgroundJobs;
 using Chatting;
 using FileStorage;
@@ -12,7 +15,11 @@ using Notifications;
 using ProductCatalog;
 using Reviews;
 using Serilog;
+using SharedKernel.Application.Context;
+using SharedKernel.Application.Http;
 using SharedKernel.Infrastructure.Health;
+using SharedKernel.Infrastructure.OutputCache;
+using StackExchange.Redis;
 using Webhooks;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
@@ -38,7 +45,23 @@ builder.Host.UseSerilog(
     }
 );
 
-builder.Services.AddApiFoundation(builder.Configuration);
+builder.Services.AddRequestContext();
+builder.Services.AddApiVersioningRegistration();
+builder.Services.AddRequestValidation();
+builder.Services.AddErrorHandling(builder.Configuration);
+builder.Services.AddMvcConventions();
+
+ConfigurationOptions? redisConfiguration = null;
+if (builder.Configuration.IsRedisConfigured())
+    redisConfiguration = RedisServiceCollectionExtensions.BuildRedisConfigurationOptions(
+        builder.Configuration
+    );
+
+builder.Services.AddRedisInfrastructure(builder.Configuration, redisConfiguration);
+builder.Services.AddCaching(builder.Configuration, redisConfiguration);
+builder.Services.AddRateLimiting(builder.Configuration);
+builder.Services.AddOpenApiDocumentation();
+
 builder.Services.AddWolverineHttp();
 builder.Services.AddModuleHealthChecks(
     builder.Configuration,
