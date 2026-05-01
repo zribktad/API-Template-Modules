@@ -98,8 +98,10 @@ public class RateLimitingIntegrationTests : IntegrationTestBase<RateLimitWebAppl
 
         var rejectedResponse = await client.GetAsync(Fixed1Path, Ct);
         rejectedResponse.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
-        rejectedResponse.Headers.Contains("RateLimit-Policy").ShouldBeTrue();
-        rejectedResponse.Headers.GetValues("RateLimit-Policy").ShouldContain("fixed-test-1");
+        rejectedResponse.Headers.Contains(RateLimitConstants.Headers.Policy).ShouldBeTrue();
+        rejectedResponse
+            .Headers.GetValues(RateLimitConstants.Headers.Policy)
+            .ShouldContain(RateLimitConstants.Policies.FixedTest1);
     }
 
     [Fact]
@@ -113,16 +115,18 @@ public class RateLimitingIntegrationTests : IntegrationTestBase<RateLimitWebAppl
 
         var rejectedResponse = await client.GetAsync(Sliding1Path, Ct);
         rejectedResponse.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
-        rejectedResponse.Headers.Contains("RateLimit-Policy").ShouldBeTrue();
-        rejectedResponse.Headers.GetValues("RateLimit-Policy").ShouldContain("sliding-test-1");
+        rejectedResponse.Headers.Contains(RateLimitConstants.Headers.Policy).ShouldBeTrue();
+        rejectedResponse
+            .Headers.GetValues(RateLimitConstants.Headers.Policy)
+            .ShouldContain(RateLimitConstants.Policies.SlidingTest1);
     }
 
     [Fact]
-    public async Task OnRejected_Should_IncludeStandardHeaders()
+    public async Task OnRejected_Should_IncludeCorrectHeaderValues()
     {
         // Arrange
-        using var client = CreateClientWithIp("80.0.0.8");
-        const string path = Fixed2Path;
+        using var client = CreateClientWithIp("80.0.0.10");
+        const string path = Fixed1Path; // Fixed policy limit is 2 in RateLimitWebApplicationFactory
 
         // Act
         await ConsumeLimitAsync(client, path, 2);
@@ -130,9 +134,19 @@ public class RateLimitingIntegrationTests : IntegrationTestBase<RateLimitWebAppl
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
-        response.Headers.Contains("RateLimit-Policy").ShouldBeTrue();
-        response.Headers.Contains("RateLimit-Limit").ShouldBeTrue();
+
+        // Policy header
+        response
+            .Headers.GetValues(RateLimitConstants.Headers.Policy)
+            .ShouldContain(RateLimitConstants.Policies.FixedTest1);
+
+        // Limit header (should match configured limit of 2)
+        response.Headers.GetValues(RateLimitConstants.Headers.Limit).ShouldContain("2");
+
+        // Retry-After header
         response.Headers.RetryAfter.ShouldNotBeNull();
+        response.Headers.RetryAfter.Delta.HasValue.ShouldBeTrue();
+        response.Headers.RetryAfter.Delta.Value.ShouldBeGreaterThan(TimeSpan.Zero);
     }
 
     [Fact]
@@ -147,7 +161,9 @@ public class RateLimitingIntegrationTests : IntegrationTestBase<RateLimitWebAppl
 
         var response = await client.GetAsync(path, Ct);
         response.StatusCode.ShouldBe(HttpStatusCode.TooManyRequests);
-        response.Headers.GetValues("RateLimit-Policy").ShouldContain("global");
+        response
+            .Headers.GetValues(RateLimitConstants.Headers.Policy)
+            .ShouldContain(RateLimitConstants.GlobalPolicy);
     }
 
     private async Task ConsumeLimitAsync(HttpClient client, string path, int limit)
@@ -165,7 +181,7 @@ public class RateLimitingIntegrationTests : IntegrationTestBase<RateLimitWebAppl
     private HttpClient CreateClientWithIp(string ip)
     {
         var client = Factory.CreateClient();
-        client.DefaultRequestHeaders.Add("X-Test-IP", ip);
+        client.DefaultRequestHeaders.Add(RateLimitWebApplicationFactory.TestIpHeader, ip);
         return client;
     }
 }

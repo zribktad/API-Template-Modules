@@ -40,7 +40,7 @@ public sealed class RateLimitPolicyOptions
     public int SegmentsPerWindow { get; init; } = 4;
 
     // --- Specific to Token Bucket ---
-    // How many tokens are added every WindowMinutes. Defaults to PermitLimit (full refill).
+    // How many tokens are added every WindowMinutes. Defaults to 1000.
     [Range(1, int.MaxValue)]
     public int TokensPerPeriod { get; init; } = 1000;
 }

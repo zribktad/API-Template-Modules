@@ -17,14 +17,14 @@ public class RateLimitTestController : ControllerBase
     public IActionResult GetNoPolicy2() => Ok("Global 2");
 
     [HttpGet("fixed-1")]
-    [EnableRateLimiting("fixed-test-1")]
+    [EnableRateLimiting(RateLimitConstants.Policies.FixedTest1)]
     public IActionResult GetFixed1() => Ok("Fixed 1");
 
     [HttpGet("fixed-2")]
-    [EnableRateLimiting("fixed-test-2")]
+    [EnableRateLimiting(RateLimitConstants.Policies.FixedTest2)]
     public IActionResult GetFixed2() => Ok("Fixed 2");
 
     [HttpGet("sliding-1")]
-    [EnableRateLimiting("sliding-test-1")]
+    [EnableRateLimiting(RateLimitConstants.Policies.SlidingTest1)]
     public IActionResult GetSliding1() => Ok("Sliding 1");
 }

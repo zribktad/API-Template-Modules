@@ -1,9 +1,8 @@
 using System.Globalization;
-using System.Security.Claims;
 using System.Threading.RateLimiting;
 using ErrorOr;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Errors;
 using SharedKernel.Application.Http;
@@ -36,8 +35,8 @@ public static class RateLimitingServiceCollectionExtensions
 
         services.AddRateLimiter(limiter =>
         {
-            AddFixedPolicy(limiter, opts.Fixed);
-            AddSlidingPolicy(limiter, opts.Sliding);
+            AddPartitionedFixedPolicy(limiter, opts.Fixed);
+            AddPartitionedSlidingPolicy(limiter, opts.Sliding);
             AddGlobalLimiter(limiter, opts.Global);
             ConfigureOnRejected(limiter, opts);
         });
@@ -46,41 +45,55 @@ public static class RateLimitingServiceCollectionExtensions
     }
 
     /// <summary>
-    ///     Adds a named rate limiting policy using a fixed window algorithm.
+    ///     Adds a partitioned named rate limiting policy using a fixed window algorithm.
     ///     Requests are limited within a fixed time segment (e.g., 100 requests per minute).
     /// </summary>
-    private static void AddFixedPolicy(RateLimiterOptions limiter, RateLimitPolicyOptions opts)
+    private static void AddPartitionedFixedPolicy(
+        RateLimiterOptions limiter,
+        RateLimitPolicyOptions opts
+    )
     {
-        // Named policy providing a fixed request budget per time window.
-        limiter.AddFixedWindowLimiter(
+        // Named policy providing a fixed request budget per time window, partitioned by user.
+        limiter.AddPolicy(
             RateLimitPolicies.Fixed,
-            o =>
-            {
-                o.PermitLimit = opts.PermitLimit;
-                o.Window = TimeSpan.FromMinutes(opts.WindowMinutes);
-                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                o.QueueLimit = opts.QueueLimit;
-            }
+            ctx =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: GetPartitionKey(ctx),
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = opts.PermitLimit,
+                        Window = TimeSpan.FromMinutes(opts.WindowMinutes),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = opts.QueueLimit,
+                    }
+                )
         );
     }
 
     /// <summary>
-    ///     Adds a named rate limiting policy using a sliding window algorithm.
+    ///     Adds a partitioned named rate limiting policy using a sliding window algorithm.
     ///     Provides a smoother experience by dividing the window into segments and releasing permits gradually.
     /// </summary>
-    private static void AddSlidingPolicy(RateLimiterOptions limiter, RateLimitPolicyOptions opts)
+    private static void AddPartitionedSlidingPolicy(
+        RateLimiterOptions limiter,
+        RateLimitPolicyOptions opts
+    )
     {
-        // Named policy with segmented window to prevent traffic spikes at window boundaries.
-        limiter.AddSlidingWindowLimiter(
+        // Named policy with segmented window to prevent traffic spikes at window boundaries, partitioned by user.
+        limiter.AddPolicy(
             RateLimitPolicies.Sliding,
-            o =>
-            {
-                o.PermitLimit = opts.PermitLimit;
-                o.Window = TimeSpan.FromMinutes(opts.WindowMinutes);
-                o.SegmentsPerWindow = opts.SegmentsPerWindow;
-                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                o.QueueLimit = opts.QueueLimit;
-            }
+            ctx =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: GetPartitionKey(ctx),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        PermitLimit = opts.PermitLimit,
+                        Window = TimeSpan.FromMinutes(opts.WindowMinutes),
+                        SegmentsPerWindow = opts.SegmentsPerWindow,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = opts.QueueLimit,
+                    }
+                )
         );
     }
 
@@ -93,17 +106,8 @@ public static class RateLimitingServiceCollectionExtensions
     {
         // Global baseline partitioned by authenticated user ID or remote IP address.
         limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
-        {
-            IActorProvider actorProvider = ctx.RequestServices.GetRequiredService<IActorProvider>();
-            Guid actorId = actorProvider.ActorId;
-
-            string partitionKey =
-                actorId != Guid.Empty
-                    ? actorId.ToString()
-                    : ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-
-            return RateLimitPartition.GetTokenBucketLimiter(
-                partitionKey: partitionKey,
+            RateLimitPartition.GetTokenBucketLimiter(
+                partitionKey: GetPartitionKey(ctx),
                 factory: _ => new TokenBucketRateLimiterOptions
                 {
                     TokenLimit = opts.PermitLimit,
@@ -113,8 +117,21 @@ public static class RateLimitingServiceCollectionExtensions
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                     QueueLimit = opts.QueueLimit,
                 }
-            );
-        });
+            )
+        );
+    }
+
+    /// <summary>
+    ///     Extracts a partition key from the HttpContext based on user identity or remote IP address.
+    /// </summary>
+    private static string GetPartitionKey(HttpContext ctx)
+    {
+        IActorProvider actorProvider = ctx.RequestServices.GetRequiredService<IActorProvider>();
+        Guid actorId = actorProvider.ActorId;
+
+        return actorId != Guid.Empty
+            ? actorId.ToString()
+            : ctx.Connection.RemoteIpAddress?.ToString() ?? RateLimitConstants.FallbackPartitionKey;
     }
 
     /// <summary>
@@ -130,19 +147,22 @@ public static class RateLimitingServiceCollectionExtensions
             response.StatusCode = StatusCodes.Status429TooManyRequests;
 
             if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out TimeSpan retryAfter))
-                response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString(
+            {
+                response.Headers[HeaderNames.RetryAfter] = ((int)retryAfter.TotalSeconds).ToString(
                     NumberFormatInfo.InvariantInfo
                 );
+            }
 
             string policyName =
                 context
                     .HttpContext.GetEndpoint()
                     ?.Metadata.GetMetadata<EnableRateLimitingAttribute>()
                     ?.PolicyName
-                ?? "global";
+                ?? RateLimitConstants.GlobalPolicy;
 
-            response.Headers["RateLimit-Policy"] = policyName;
-            response.Headers["RateLimit-Limit"] = policyName switch
+            response.Headers[RateLimitConstants.Headers.Policy] = policyName;
+
+            string limit = policyName switch
             {
                 RateLimitPolicies.Fixed => opts.Fixed.PermitLimit.ToString(
                     CultureInfo.InvariantCulture
@@ -153,8 +173,9 @@ public static class RateLimitingServiceCollectionExtensions
                 _ => opts.Global.PermitLimit.ToString(CultureInfo.InvariantCulture),
             };
 
-            Error error = Error.Custom(
-                (int)ErrorType.Failure,
+            response.Headers[RateLimitConstants.Headers.Limit] = limit;
+
+            Error error = Error.Failure(
                 ErrorCatalog.General.RateLimitExceeded,
                 "Too many requests. Please try again later."
             );
