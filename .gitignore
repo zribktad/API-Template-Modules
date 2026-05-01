@@ -25,13 +25,6 @@ artifacts/
 # .NET
 *.orig
 
-# Agent files
-.claude/**/*local*
-.cursor/**
-docs/superpowers/**
-**/obj-codex/**
-CLAUDE.md
-AGENTS.md
 
 # Logs
 *.log
