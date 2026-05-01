@@ -121,7 +121,6 @@ public sealed class FilesController(IMessageBus bus) : ApiControllerBase
 
         try
         {
-            Response.Headers["X-Content-Type-Options"] = "nosniff";
             return File(
                 result.Value.FileStream,
                 result.Value.ContentType,
