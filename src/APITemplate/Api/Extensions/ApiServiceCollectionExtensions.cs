@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using SharedKernel.Application.Batch;
 using SharedKernel.Application.Batch.Rules;
 using SharedKernel.Application.Context;
+using SharedKernel.Application.Http;
 using SharedKernel.Application.Options.Http;
 using SharedKernel.Application.Validation;
 using SharedKernel.Contracts.Api;
@@ -39,6 +40,7 @@ public static class ApiServiceCollectionExtensions
 
         services.AddRedisInfrastructure(configuration, redisConfiguration);
         services.AddCaching(configuration, redisConfiguration);
+        services.AddRateLimiting(configuration);
         AddOpenApiDocumentation(services);
 
         return services;

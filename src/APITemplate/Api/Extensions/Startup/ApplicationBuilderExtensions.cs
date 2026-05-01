@@ -28,6 +28,9 @@ public static class ApplicationBuilderExtensions
         app.UseAuthentication();
         app.UseMiddleware<CsrfValidationMiddleware>();
         app.UseAuthorization();
+        // After UseAuthorization so the GlobalLimiter can read context.User for per-user partitioning.
+        // Before RequestContextMiddleware and OutputCache so rejected requests never reach the cache layer.
+        app.UseRateLimiter();
         // Response headers, tenant Serilog, metrics — after Challenge/Forbid can set status.
         app.UseMiddleware<RequestContextMiddleware>();
         app.UseSerilogRequestLogging(options =>

@@ -15,6 +15,7 @@ public static class ErrorCatalog
         public const string NotFound = "GEN-0404";
         public const string Conflict = "GEN-0409";
         public const string ConcurrencyConflict = "GEN-0409-CONCURRENCY";
+        public const string RateLimitExceeded = "GEN-0429";
     }
 
     /// <summary>Generic authentication and authorisation error codes.</summary>
