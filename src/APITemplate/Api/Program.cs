@@ -18,8 +18,6 @@ using Serilog;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Http;
 using SharedKernel.Infrastructure.Health;
-using SharedKernel.Infrastructure.OutputCache;
-using StackExchange.Redis;
 using Webhooks;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
@@ -46,19 +44,19 @@ builder.Host.UseSerilog(
 );
 
 builder.Services.AddRequestContext();
+builder.Services.AddHsts(options =>
+{
+    options.Preload = true;
+    options.IncludeSubDomains = true;
+    options.MaxAge = TimeSpan.FromDays(365);
+});
 builder.Services.AddApiVersioningRegistration();
 builder.Services.AddRequestValidation();
 builder.Services.AddErrorHandling(builder.Configuration);
 builder.Services.AddMvcConventions();
 
-ConfigurationOptions? redisConfiguration = null;
-if (builder.Configuration.IsRedisConfigured())
-    redisConfiguration = RedisServiceCollectionExtensions.BuildRedisConfigurationOptions(
-        builder.Configuration
-    );
-
-builder.Services.AddRedisInfrastructure(builder.Configuration, redisConfiguration);
-builder.Services.AddCaching(builder.Configuration, redisConfiguration);
+builder.Services.AddRedisInfrastructure(builder.Configuration);
+builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddRateLimiting(builder.Configuration);
 builder.Services.AddOpenApiDocumentation();
 

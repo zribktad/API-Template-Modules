@@ -84,6 +84,7 @@
     <Compile Include="Integration\Infrastructure\RateLimitingIntegrationTests.cs" />
     <Compile Include="Integration\Infrastructure\RateLimitTestController.cs" />
     <Compile Include="Integration\Infrastructure\RateLimitWebApplicationFactory.cs" />
+    <Compile Include="Integration\Infrastructure\HstsIntegrationTests.cs" />
     <Compile Include="Integration\Infrastructure\ScalarAndOpenApiTests.cs" />
     <Compile Include="Integration\Infrastructure\WolverineNotificationTests.cs" />
     <Compile Include="Integration\IntegrationResponseModels.cs" />

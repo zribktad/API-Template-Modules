@@ -12,14 +12,14 @@ The API host calls, in order:
    - `services.AddRequestValidation()`
    - `services.AddErrorHandling(configuration)`
    - `services.AddMvcConventions()`
-   - `services.AddRedisInfrastructure(configuration, redisConfiguration)`
-   - `services.AddCaching(configuration, redisConfiguration)`
+   - `services.AddRedisInfrastructure(configuration)`
+   - `services.AddCaching(configuration)`
    - `services.AddRateLimiting(configuration)`
    - `services.AddOpenApiDocumentation()`
    
    These provide output cache policies, Redis/in-memory cache, Data Protection, OpenAPI, etc. (Extracted from old `ApiServiceCollectionExtensions.cs` into individual files in `src/APITemplate/Api/Extensions/`)
 2. **`AddModuleHealthChecks`**
-3. **`AddApplicationCompositionAndIdentityModule`** (or equivalently `AddApplicationComposition` then `AddIdentityModule`) — see below
+3. **`AddIdentityModule`** — see below
 4. **`AddObservability`**
 5. Other feature modules (ProductCatalog, Reviews, …)
 

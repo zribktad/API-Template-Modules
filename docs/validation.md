@@ -204,7 +204,7 @@ These errors flow through the same `ErrorOr` → ProblemDetails pipeline as vali
 `src/SharedKernel/Application/Validation/DataAnnotationsValidator.cs`
 
 Single shared implementation of "run Data Annotations on a CLR object," exposed via the
-`IValidator` abstraction and registered as a singleton in `AddApiFoundation`. Used by:
+`IValidator` abstraction and registered as a singleton in `Program.cs` via `AddRequestValidation`. Used by:
 - **Surface A** — MVC uses it internally for property-level validation.
 - **Surface B** — `DataAnnotationsValidationMiddleware` receives `IValidator` as a Wolverine-resolved parameter and calls it on Wolverine messages.
 - **Surface C** — `DataAnnotationsBatchRule<TItem>` constructor-injects `IValidator` and calls it per batch item.
