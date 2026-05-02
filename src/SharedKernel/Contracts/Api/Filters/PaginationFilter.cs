@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -23,7 +24,10 @@ public class PaginationFilter : IAsyncResultFilter, IEndpointFilter
     {
         if (context.Result is ObjectResult { Value: IPagedResponse pagedResponse })
         {
-            PaginationHeaderHelper.AppendLinkHeader(context.HttpContext.Response, pagedResponse);
+            PaginationHeaderHelper.AppendPaginationHeaders(
+                context.HttpContext.Response,
+                pagedResponse
+            );
         }
 
         await next();
@@ -35,11 +39,21 @@ public class PaginationFilter : IAsyncResultFilter, IEndpointFilter
         EndpointFilterDelegate next
     )
     {
-        var result = await next(context);
+        object? result = await next(context);
 
-        if (result is IValueHttpResult { Value: IPagedResponse pagedResponse })
+        if (result is IPagedResponse directResponse)
         {
-            PaginationHeaderHelper.AppendLinkHeader(context.HttpContext.Response, pagedResponse);
+            PaginationHeaderHelper.AppendPaginationHeaders(
+                context.HttpContext.Response,
+                directResponse
+            );
+        }
+        else if (result is IValueHttpResult { Value: IPagedResponse wrappedResponse })
+        {
+            PaginationHeaderHelper.AppendPaginationHeaders(
+                context.HttpContext.Response,
+                wrappedResponse
+            );
         }
 
         return result;

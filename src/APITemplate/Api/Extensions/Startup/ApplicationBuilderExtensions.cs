@@ -98,7 +98,7 @@ public static class ApplicationBuilderExtensions
         }
 
         app.MapControllers();
-        var wolverineGroup = app.MapGroup("");
+        RouteGroupBuilder wolverineGroup = app.MapGroup("");
         wolverineGroup.AddEndpointFilter<SharedKernel.Contracts.Api.Filters.PaginationFilter>();
         wolverineGroup.MapWolverineEndpoints(opts =>
         {

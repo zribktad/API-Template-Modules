@@ -22,7 +22,6 @@
     <PackageReference Include="StackExchange.Redis" />
     <PackageReference Include="WolverineFx" />
     <PackageReference Include="WolverineFx.EntityFrameworkCore" />
-    <PackageReference Include="WolverineFx.Http" />
   </ItemGroup>
 
 </Project>

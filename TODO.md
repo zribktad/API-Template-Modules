@@ -120,7 +120,7 @@
 - [x] **Add HTTP security response headers (OWASP / W3C)**  
   Missing: `X-Frame-Options`, `X-Content-Type-Options` (only set on file downloads today), `Content-Security-Policy`, `Referrer-Policy`, `Permissions-Policy`. Consider `NetEscapades.AspNetCore.SecurityHeaders` or `NWebsec` and add as middleware in the pipeline.
 
-- [ ] **Implement ETag / Conditional Requests (RFC 7232)**  - No needed
+- [ ] **Implement ETag / Conditional Requests (RFC 7232)**  - Not needed
   No support for `ETag`, `If-None-Match`, or `If-Modified-Since`. Output Cache works server-side but clients cannot validate their cache via conditional requests. Consider `Marvin.Cache.Headers` or a manual implementation for `GET` list and detail endpoints.
 
 ### Low Priority
