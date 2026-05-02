@@ -17,6 +17,7 @@ using Polly.Registry;
 using Polly.Retry;
 using SharedKernel.Application.Resilience;
 using SharedKernel.Contracts.Commands.FileStorage;
+using SharedKernel.Infrastructure.Ids;
 using SharedKernel.Infrastructure.Persistence.DesignTime;
 using Shouldly;
 using Xunit;
@@ -65,6 +66,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         _blobStore = new LocalBlobStore(
             Options.Create(_options),
             new FileStorageDeletePipelineProvider(registry),
+            new GuidIdGenerator(),
             NullLogger<LocalBlobStore>.Instance
         );
         _factory = new StubBlobStoreFactory(_blobStore);

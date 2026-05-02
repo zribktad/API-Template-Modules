@@ -49,8 +49,8 @@ public sealed class FileUploadSaga : Saga
     public string StagingPath { get; set; } = string.Empty;
     public string BackendKey { get; set; } = string.Empty;
     public FileUploadStatus Status { get; set; }
-    public DateTime CreatedAtUtc { get; set; }
-    public DateTime CommitDeadlineUtc { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public DateTimeOffset CommitDeadlineUtc { get; set; }
     public Guid? StoredFileId { get; set; }
 
     /// <summary>
@@ -64,12 +64,12 @@ public sealed class FileUploadSaga : Saga
         TimeProvider timeProvider
     )
     {
-        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+        DateTimeOffset now = timeProvider.GetUtcNow();
         int ttlMinutes = options.Value.StagingTtlMinutes;
 
         return new FileUploadSaga
         {
-            Id = command.UploadToken,
+            Id = command.Id,
             TenantId = command.TenantId,
             Sha256 = command.Sha256,
             SizeBytes = command.SizeBytes,
@@ -93,7 +93,7 @@ public sealed class FileUploadSaga : Saga
         if (Status == FileUploadStatus.Committed && StoredFileId.HasValue)
         {
             logger.LogInformation(
-                "CommitUploadCommand redelivered for already-committed saga {UploadToken}",
+                "CommitUploadCommand redelivered for already-committed saga {Id}",
                 Id
             );
             StoredFile? existing = await dbContext
@@ -112,7 +112,7 @@ public sealed class FileUploadSaga : Saga
                     existing.ContentType,
                     existing.SizeBytes,
                     existing.Description,
-                    existing.Audit.CreatedAtUtc
+                    DateTime.SpecifyKind(existing.Audit.CreatedAtUtc, DateTimeKind.Utc)
                 ),
                 null
             );
@@ -121,7 +121,7 @@ public sealed class FileUploadSaga : Saga
         if (Status != FileUploadStatus.Staged)
         {
             logger.LogWarning(
-                "CommitUploadCommand received for saga {UploadToken} in terminal status {Status}; ignoring",
+                "CommitUploadCommand received for saga {Id} in terminal status {Status}; ignoring",
                 Id,
                 Status
             );
@@ -129,7 +129,13 @@ public sealed class FileUploadSaga : Saga
         }
 
         IBlobStore store = blobStoreFactory.Get(BackendKey);
-        ErrorOr<string> promoted = await store.PromoteToCommittedAsync(TenantId, Sha256, SizeBytes, StagingPath, ct);
+        ErrorOr<string> promoted = await store.PromoteToCommittedAsync(
+            TenantId,
+            Sha256,
+            SizeBytes,
+            StagingPath,
+            ct
+        );
         if (promoted.IsError)
             return (promoted.Errors, null);
 
@@ -147,7 +153,8 @@ public sealed class FileUploadSaga : Saga
 
         StoredFileId = entity.Id;
         Status = FileUploadStatus.Committed;
-        MarkCompleted();
+        // DO NOT call MarkCompleted() here. We keep the saga row until the scheduled TimeoutUploadCommand
+        // arrives, providing an idempotency window for redelivered CommitUploadCommand messages.
 
         UploadCommittedReply reply = new(
             entity.Id,
@@ -155,7 +162,7 @@ public sealed class FileUploadSaga : Saga
             entity.ContentType,
             entity.SizeBytes,
             entity.Description,
-            entity.Audit.CreatedAtUtc
+            DateTime.SpecifyKind(entity.Audit.CreatedAtUtc, DateTimeKind.Utc)
         );
 
         StoredFileCreatedNotification notification = new(
@@ -179,13 +186,20 @@ public sealed class FileUploadSaga : Saga
     )
     {
         if (Status == FileUploadStatus.Committed)
+        {
+            // Clean up the saga row now that the idempotency window has closed.
+            MarkCompleted();
             return;
+        }
 
         if (Status != FileUploadStatus.Staged)
+        {
+            MarkCompleted();
             return;
+        }
 
         logger.LogInformation(
-            "Upload saga {UploadToken} timed out without commit; deleting staging payload at {StagingPath}",
+            "Upload saga {Id} timed out without commit; deleting staging payload at {StagingPath}",
             Id,
             StagingPath
         );

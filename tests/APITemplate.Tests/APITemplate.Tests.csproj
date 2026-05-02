@@ -78,6 +78,7 @@
     <Compile Include="Integration\Features\ProductReviewApiIntegrationTests.cs" />
     <Compile Include="Integration\Features\ProductDataApiIntegrationTests.cs" />
     <Compile Include="Integration\Features\HighPriorityEdgeCaseIntegrationTests.cs" />
+    <Compile Include="Integration\Features\FileStorageApiIntegrationTests.cs" />
     <Compile Include="Integration\Infrastructure\CorsTests.cs" />
     <!-- RateLimitingOptions removed in modular arch — test needs rewrite -->
     <!--<Compile Include="Integration\Infrastructure\RateLimitingTests.cs" />-->

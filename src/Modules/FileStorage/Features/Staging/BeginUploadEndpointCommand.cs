@@ -2,6 +2,7 @@ using FileStorage.Domain.Sagas;
 using FileStorage.Domain.Storage;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.Context;
+using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace FileStorage.Features.Staging;
@@ -31,6 +32,7 @@ public sealed class BeginUploadEndpointCommandHandler
         IBlobStoreFactory blobStoreFactory,
         IOptions<FileStorageOptions> options,
         ITenantProvider tenantProvider,
+        IIdGenerator idGenerator,
         IMessageBus bus,
         CancellationToken ct
     )
@@ -51,12 +53,15 @@ public sealed class BeginUploadEndpointCommandHandler
             return DomainErrors.Files.FileTooLarge(opts.MaxFileSizeBytes);
 
         IBlobStore store = blobStoreFactory.Get(opts.BackendKey);
-        ErrorOr<StagingResult> stagingResult = await store.WriteStagingAsync(request.FileStream, ct);
+        ErrorOr<StagingResult> stagingResult = await store.WriteStagingAsync(
+            request.FileStream,
+            ct
+        );
         if (stagingResult.IsError)
             return stagingResult.Errors;
 
         StagingResult staging = stagingResult.Value;
-        string uploadToken = Guid.NewGuid().ToString("N");
+        string uploadToken = idGenerator.NewId().ToString("N");
 
         BeginUploadCommand sagaStart = new(
             uploadToken,

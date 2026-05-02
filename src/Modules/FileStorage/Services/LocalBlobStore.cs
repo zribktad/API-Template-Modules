@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
 using SharedKernel.Application.Errors;
+using SharedKernel.Domain.Interfaces;
 using FS = FileStorage.Domain.ErrorCatalog;
 using FSDomain = FileStorage.Domain.DomainErrors;
 
@@ -23,16 +24,19 @@ internal sealed class LocalBlobStore : IBlobStore
 
     private readonly FileStorageOptions _options;
     private readonly IFileStorageDeletePipelineProvider _deletePipelineProvider;
+    private readonly IIdGenerator _idGenerator;
     private readonly ILogger<LocalBlobStore> _logger;
 
     public LocalBlobStore(
         IOptions<FileStorageOptions> options,
         IFileStorageDeletePipelineProvider deletePipelineProvider,
+        IIdGenerator idGenerator,
         ILogger<LocalBlobStore> logger
     )
     {
         _options = options.Value;
         _deletePipelineProvider = deletePipelineProvider;
+        _idGenerator = idGenerator;
         _logger = logger;
     }
 
@@ -43,7 +47,7 @@ internal sealed class LocalBlobStore : IBlobStore
     {
         string stagingDir = _options.ResolveStagingPath();
         Directory.CreateDirectory(stagingDir);
-        string stagingPath = Path.Combine(stagingDir, Guid.NewGuid().ToString("N"));
+        string stagingPath = Path.Combine(stagingDir, _idGenerator.NewId().ToString("N"));
 
         ErrorOr<Success> pathCheck = CheckPathWithin(stagingDir, stagingPath);
         if (pathCheck.IsError)

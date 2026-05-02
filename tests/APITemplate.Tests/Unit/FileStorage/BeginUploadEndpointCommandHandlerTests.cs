@@ -8,6 +8,7 @@ using FileStorage.Features.Staging;
 using Microsoft.Extensions.Options;
 using Moq;
 using SharedKernel.Application.Context;
+using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;
@@ -20,6 +21,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
     private readonly Mock<IBlobStoreFactory> _factory = new();
     private readonly Mock<IBlobStore> _store = new();
     private readonly Mock<ITenantProvider> _tenantProvider = new();
+    private readonly Mock<IIdGenerator> _idGenerator = new();
     private readonly Mock<IMessageBus> _bus = new();
     private readonly FileStorageOptions _options = new()
     {
@@ -54,6 +56,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
             _factory.Object,
             Options.Create(_options),
             _tenantProvider.Object,
+            _idGenerator.Object,
             _bus.Object,
             CancellationToken.None
         );
@@ -81,6 +84,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
             _factory.Object,
             Options.Create(_options),
             _tenantProvider.Object,
+            _idGenerator.Object,
             _bus.Object,
             CancellationToken.None
         );
@@ -108,6 +112,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
             _factory.Object,
             Options.Create(_options),
             _tenantProvider.Object,
+            _idGenerator.Object,
             _bus.Object,
             CancellationToken.None
         );
@@ -128,6 +133,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
             _factory.Object,
             Options.Create(_options),
             _tenantProvider.Object,
+            _idGenerator.Object,
             _bus.Object,
             CancellationToken.None
         );
@@ -152,6 +158,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
             _factory.Object,
             Options.Create(_options),
             _tenantProvider.Object,
+            _idGenerator.Object,
             _bus.Object,
             CancellationToken.None
         );
@@ -183,6 +190,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
             _factory.Object,
             Options.Create(_options),
             _tenantProvider.Object,
+            _idGenerator.Object,
             _bus.Object,
             CancellationToken.None
         );
@@ -206,6 +214,7 @@ public sealed class BeginUploadEndpointCommandHandlerTests
             _factory.Object,
             Options.Create(_options),
             _tenantProvider.Object,
+            _idGenerator.Object,
             _bus.Object,
             CancellationToken.None
         );

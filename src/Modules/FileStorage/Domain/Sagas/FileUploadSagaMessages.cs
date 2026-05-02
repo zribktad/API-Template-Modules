@@ -2,7 +2,7 @@ namespace FileStorage.Domain.Sagas;
 
 /// <summary>Kicks off the <see cref="FileUploadSaga" /> after bytes land in the staging area.</summary>
 public sealed record BeginUploadCommand(
-    string UploadToken,
+    string Id,
     Guid TenantId,
     string Sha256,
     long SizeBytes,
@@ -12,14 +12,10 @@ public sealed record BeginUploadCommand(
 );
 
 /// <summary>Finalises a staged upload: promotes the blob and inserts the <see cref="StoredFile" /> row.</summary>
-public sealed record CommitUploadCommand(
-    string UploadToken,
-    string ContentType,
-    string? Description
-);
+public sealed record CommitUploadCommand(string Id, string ContentType, string? Description);
 
 /// <summary>Scheduled timeout message; fires after the configured staging TTL if no commit arrived.</summary>
-public sealed record TimeoutUploadCommand(string UploadToken);
+public sealed record TimeoutUploadCommand(string Id);
 
 /// <summary>
 ///     Cascading message emitted by the delete flow — triggers a refcount check and blob removal when
@@ -48,5 +44,5 @@ public sealed record UploadCommittedReply(
     string ContentType,
     long SizeBytes,
     string? Description,
-    DateTime CreatedAtUtc
+    DateTimeOffset CreatedAtUtc
 );
