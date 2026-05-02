@@ -9,7 +9,7 @@ namespace ProductCatalog.GraphQL.Queries;
 
 /// <summary>
 ///     Hot Chocolate root query type that exposes product list and single-product lookups,
-///     serving as the extension base for <see cref="CategoryQueries" /> and <see cref="ProductReviewQueries" />.
+///     serving as the extension base for <see cref="CategoryQueries" />.
 /// </summary>
 [Authorize]
 public class ProductQueries

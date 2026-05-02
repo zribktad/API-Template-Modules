@@ -1,5 +1,6 @@
 using Reviews;
 using Reviews.Common.Events;
+using SharedKernel.Contracts.Events;
 using Shouldly;
 using Xunit;
 

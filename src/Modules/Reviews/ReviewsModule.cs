@@ -5,6 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Reviews.Configuration;
+using Reviews.GraphQL.Mutations;
+using Reviews.GraphQL.Queries;
+using Reviews.GraphQL.Types;
 using Reviews.Persistence;
 using SharedKernel.Infrastructure.Startup;
 
@@ -18,6 +21,12 @@ public static class ReviewsModule
     )
     {
         services.AddReviewsRuntimeBridge(configuration);
+
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<ProductReviewQueries>()
+            .AddTypeExtension<ProductReviewMutations>()
+            .AddType<ProductReviewType>();
 
         services.AddSingleton<IDatabaseStartupContributor, ReviewsDatabaseStartupContributor>();
         services.AddSingleton<

@@ -1,9 +1,7 @@
 using ErrorOr;
+using SharedKernel.Contracts.Queries.Reviews;
 
 namespace Reviews.Features;
-
-/// <summary>Returns reviews grouped by product id for a batch of product identifiers.</summary>
-public sealed record GetProductReviewsByProductIdsQuery(IReadOnlyCollection<Guid> ProductIds);
 
 /// <summary>Handles <see cref="GetProductReviewsByProductIdsQuery" />.</summary>
 public sealed class GetProductReviewsByProductIdsQueryHandler

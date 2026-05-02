@@ -1,17 +1,17 @@
 using ErrorOr;
 using HotChocolate.Authorization;
 using SharedKernel.Application.Validation;
+using SharedKernel.Contracts.Queries.Reviews;
 using Wolverine;
 
-namespace ProductCatalog.GraphQL.Queries;
+namespace Reviews.GraphQL.Queries;
 
 /// <summary>
-///     Hot Chocolate query type extension that adds product-review queries to the
-///     <see cref="ProductQueries" /> root, supporting filtered list, single-item, and
-///     per-product lookup operations.
+///     Hot Chocolate query type that exposes product-review queries, supporting filtered list,
+///     single-item, and per-product lookup operations.
 /// </summary>
 [Authorize]
-[ExtendObjectType(typeof(ProductQueries))]
+[QueryType]
 public class ProductReviewQueries
 {
     /// <summary>

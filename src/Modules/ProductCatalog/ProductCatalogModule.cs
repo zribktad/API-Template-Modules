@@ -105,11 +105,8 @@ public static class ProductCatalogModule
             .AddGraphQLServer()
             .AddQueryType<ProductQueries>()
             .AddTypeExtension<CategoryQueries>()
-            .AddTypeExtension<ProductReviewQueries>()
             .AddMutationType<ProductMutations>()
-            .AddTypeExtension<ProductReviewMutations>()
             .AddType<ProductType>()
-            .AddType<ProductReviewType>()
             .AddDataLoader<ProductReviewsByProductDataLoader>()
             .AddAuthorization()
             .ModifyPagingOptions(options =>

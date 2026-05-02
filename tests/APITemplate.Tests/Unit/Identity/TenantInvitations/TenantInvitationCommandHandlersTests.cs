@@ -14,7 +14,7 @@ using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;
-using CacheTags = Identity.Events.CacheTags;
+using CacheTags = SharedKernel.Contracts.Events.CacheTags;
 
 namespace APITemplate.Tests.Unit.Identity.TenantInvitations;
 

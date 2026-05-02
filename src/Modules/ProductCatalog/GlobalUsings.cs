@@ -12,8 +12,6 @@ global using ProductCatalog.Features.Shared.Routing;
 // ── API / Presentation ────────────────────────────────────────────────────────
 global using ProductCatalog.GraphQL.Models;
 global using ProductCatalog.Interfaces;
-global using Reviews.Domain;
-global using Reviews.Features;
 global using SharedKernel.Application.Batch;
 global using SharedKernel.Application.Batch.Rules;
 global using SharedKernel.Application.Context;
@@ -29,6 +27,7 @@ global using SharedKernel.Application.Sorting;
 global using SharedKernel.Application.Validation;
 global using SharedKernel.Contracts.Api;
 global using SharedKernel.Contracts.Events;
+global using SharedKernel.Contracts.Queries.Reviews;
 global using SharedKernel.Contracts.Security;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities;

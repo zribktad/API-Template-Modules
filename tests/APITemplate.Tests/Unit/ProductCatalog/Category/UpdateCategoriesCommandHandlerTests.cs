@@ -10,7 +10,7 @@ using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;
-using CacheTags = global::ProductCatalog.Common.Events.CacheTags;
+using CacheTags = global::SharedKernel.Contracts.Events.CacheTags;
 
 namespace APITemplate.Tests.Unit.ProductCatalog;
 

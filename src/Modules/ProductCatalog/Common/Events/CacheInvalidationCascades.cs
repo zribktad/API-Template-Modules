@@ -1,3 +1,5 @@
+using SharedKernel.Contracts.Events;
+
 namespace ProductCatalog.Common.Events;
 
 public static class CacheInvalidationCascades

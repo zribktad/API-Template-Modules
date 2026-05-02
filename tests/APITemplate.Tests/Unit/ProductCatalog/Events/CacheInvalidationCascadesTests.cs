@@ -1,5 +1,6 @@
 using ProductCatalog;
 using ProductCatalog.Common.Events;
+using SharedKernel.Contracts.Events;
 using Shouldly;
 using Xunit;
 

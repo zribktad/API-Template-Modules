@@ -9,6 +9,7 @@ using ProductCatalog.Features.Category.Shared;
 using ProductCatalog.Interfaces;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.DTOs;
+using SharedKernel.Contracts.Events;
 using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;

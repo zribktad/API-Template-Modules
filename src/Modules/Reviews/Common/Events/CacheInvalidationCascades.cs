@@ -1,3 +1,5 @@
+using SharedKernel.Contracts.Events;
+
 namespace Reviews.Common.Events;
 
 public static class CacheInvalidationCascades

@@ -1,4 +1,6 @@
-namespace ProductCatalog.GraphQL.Models;
+using SharedKernel.Contracts.Queries.Reviews;
+
+namespace Reviews.GraphQL.Models;
 
 /// <summary>
 ///     GraphQL return type that wraps a paginated product-review result set, implementing

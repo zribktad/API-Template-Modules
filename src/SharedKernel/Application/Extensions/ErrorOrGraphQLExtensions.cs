@@ -2,8 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using ErrorOr;
 using SharedKernel.Application.Validation;
 using SharedKernelErrorCatalog = SharedKernel.Application.Errors.ErrorCatalog;
+using HotChocolate;
 
-namespace ProductCatalog.GraphQL;
+namespace SharedKernel.Application.Extensions;
 
 /// <summary>
 ///     Extension methods that convert <see cref="ErrorOr{T}" /> results to GraphQL-compatible

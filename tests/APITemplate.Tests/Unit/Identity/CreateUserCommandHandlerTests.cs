@@ -10,7 +10,7 @@ using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;
 using Xunit;
-using CacheTags = Identity.Events.CacheTags;
+using CacheTags = SharedKernel.Contracts.Events.CacheTags;
 using CreateUserCommand = Identity.Directory.Features.User.CreateUserCommand;
 using CreateUserCommandHandler = Identity.Directory.Features.User.CreateUserCommandHandler;
 using CreateUserRequest = Identity.Directory.Features.User.CreateUserRequest;

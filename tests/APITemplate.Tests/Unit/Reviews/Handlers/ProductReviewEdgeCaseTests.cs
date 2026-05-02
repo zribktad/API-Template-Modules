@@ -2,6 +2,7 @@ using ErrorOr;
 using Moq;
 using Reviews.Domain;
 using Reviews.Features;
+using SharedKernel.Contracts.Queries.Reviews;
 using Shouldly;
 using Xunit;
 

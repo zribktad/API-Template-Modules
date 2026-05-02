@@ -1,4 +1,6 @@
-namespace ProductCatalog.GraphQL.Types;
+using SharedKernel.Contracts.Queries.Reviews;
+
+namespace Reviews.GraphQL.Types;
 
 /// <summary>
 ///     Hot Chocolate object type that maps <see cref="ProductReviewResponse" /> to the GraphQL schema,

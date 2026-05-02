@@ -1,16 +1,17 @@
 using ErrorOr;
 using HotChocolate.Authorization;
 using SharedKernel.Application.Validation;
+using SharedKernel.Contracts.Queries.Reviews;
 using Wolverine;
 
-namespace ProductCatalog.GraphQL.Mutations;
+namespace Reviews.GraphQL.Mutations;
 
 /// <summary>
-///     Hot Chocolate mutation type extension that adds product-review write operations
-///     (create and delete) to the <see cref="ProductMutations" /> root type.
+///     Hot Chocolate mutation type that exposes product-review write operations
+///     (create and delete).
 /// </summary>
 [Authorize]
-[ExtendObjectType(typeof(ProductMutations))]
+[MutationType]
 public class ProductReviewMutations
 {
     /// <summary>Creates a new product review and returns the persisted review.</summary>

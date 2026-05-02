@@ -7,12 +7,13 @@ using Reviews.Domain;
 using Reviews.Features;
 using SharedKernel.Application.Context;
 using SharedKernel.Contracts.Queries.ProductCatalog;
+using SharedKernel.Contracts.Queries.Reviews;
 using SharedKernel.Domain.Common;
 using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;
-using CacheTags = Reviews.Common.Events.CacheTags;
+using CacheTags = SharedKernel.Contracts.Events.CacheTags;
 
 namespace APITemplate.Tests.Unit.Reviews.Handlers;
 
