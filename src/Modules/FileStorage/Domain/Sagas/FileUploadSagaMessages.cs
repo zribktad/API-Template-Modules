@@ -1,5 +1,3 @@
-using Wolverine;
-
 namespace FileStorage.Domain.Sagas;
 
 /// <summary>Kicks off the <see cref="FileUploadSaga" /> after bytes land in the staging area.</summary>
@@ -46,5 +44,5 @@ public sealed record UploadCommittedReply(
     string ContentType,
     long SizeBytes,
     string? Description,
-    DateTime CreatedAtUtc
+    DateTimeOffset CreatedAtUtc
 );

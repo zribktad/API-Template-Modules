@@ -11,5 +11,5 @@ public sealed record FileUploadResponse(
     string ContentType,
     long SizeBytes,
     string? Description,
-    DateTime CreatedAtUtc
+    DateTimeOffset CreatedAtUtc
 ) : IHasId;

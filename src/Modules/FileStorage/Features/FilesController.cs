@@ -4,7 +4,6 @@ using FileStorage.Features.Delete;
 using FileStorage.Features.Download;
 using FileStorage.Features.Staging;
 using FileStorage.Features.Upload;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Wolverine;

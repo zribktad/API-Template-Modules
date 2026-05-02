@@ -5,5 +5,5 @@ public sealed record FileDownloadResult(
     string ContentType,
     string FileName,
     string Sha256,
-    DateTime CreatedAtUtc
+    DateTimeOffset CreatedAtUtc
 );

@@ -32,7 +32,7 @@ public sealed class DownloadFileQueryHandler
             entity.ContentType,
             entity.OriginalFileName,
             entity.Sha256,
-            entity.Audit.CreatedAtUtc
+            DateTime.SpecifyKind(entity.Audit.CreatedAtUtc, DateTimeKind.Utc)
         );
     }
 }
