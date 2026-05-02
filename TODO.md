@@ -17,7 +17,7 @@
 
 #### Medium Priority
 
-- [ ] **Add FileStorage HTTP integration coverage**  
+- [x] **Add FileStorage HTTP integration coverage**  
   Unit coverage exists for the core upload/saga pieces. Add API-level tests for begin upload, commit upload, download, delete, invalid extension/content-type rejection, and missing file behavior.
 
 - [ ] **Add cache invalidation/output-cache integration coverage**  
@@ -43,7 +43,7 @@
 
 #### Medium Priority
 
-- [ ] **Add FileStorage smoke test**  
+- [x] **Add FileStorage smoke test**  
   Add one minimal begin-upload/commit/download smoke path using the configured local blob store to catch broken storage registration and endpoint wiring.
 
 - [ ] **Add Identity invitation smoke test**  
@@ -120,7 +120,7 @@
 - [x] **Add HTTP security response headers (OWASP / W3C)**  
   Missing: `X-Frame-Options`, `X-Content-Type-Options` (only set on file downloads today), `Content-Security-Policy`, `Referrer-Policy`, `Permissions-Policy`. Consider `NetEscapades.AspNetCore.SecurityHeaders` or `NWebsec` and add as middleware in the pipeline.
 
-- [ ] **Implement ETag / Conditional Requests (RFC 7232)**  - Not needed
+- [x] **Implement ETag / Conditional Requests (RFC 7232)**  - Done for FileStorage (If-Range/ETag)
   No support for `ETag`, `If-None-Match`, or `If-Modified-Since`. Output Cache works server-side but clients cannot validate their cache via conditional requests. Consider `Marvin.Cache.Headers` or a manual implementation for `GET` list and detail endpoints.
 
 ### Low Priority
@@ -128,7 +128,7 @@
 - [x] **Add `Link` header for pagination (RFC 8288)**  
   `PagedResponse<T>` exposes `TotalCount`/`PageNumber`/`TotalPages` in the JSON body only. RFC 8288 defines `Link: <url>; rel="next"` headers. Add a helper to `ApiControllerBase` or the Wolverine endpoint pipeline that generates Link headers from `PagedResponse` metadata.
 
-- [ ] **Implement Range Requests for file downloads (RFC 7233)**  
+- [x] **Implement Range Requests for file downloads (RFC 7233)**  
   `FilesController` streams files without `Range` header support — resumable downloads are not possible. Add `Accept-Ranges: bytes`, process the `Range` request header, and return `206 Partial Content` with `Content-Range`.
 
 
