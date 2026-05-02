@@ -98,7 +98,9 @@ public static class ApplicationBuilderExtensions
         }
 
         app.MapControllers();
-        app.MapWolverineEndpoints(opts =>
+        RouteGroupBuilder wolverineGroup = app.MapGroup("");
+        wolverineGroup.AddEndpointFilter<SharedKernel.Contracts.Api.Filters.PaginationFilter>();
+        wolverineGroup.MapWolverineEndpoints(opts =>
         {
             opts.UseDataAnnotationsValidationProblemDetailMiddleware();
         });
