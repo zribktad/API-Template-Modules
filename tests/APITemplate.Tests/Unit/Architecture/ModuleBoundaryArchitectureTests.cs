@@ -90,7 +90,7 @@ public sealed class ModuleBoundaryArchitectureTests
     }
 
     [Fact]
-    public void ModuleProjectReferences_ShouldOnlyContainNoCrossModuleReferences()
+    public void ModuleProjectReferences_ShouldContainNoCrossModuleReferences()
     {
         string repoRoot = GetRepoRoot();
         List<string> interModuleReferences = GetInterModuleProjectReferences(repoRoot);

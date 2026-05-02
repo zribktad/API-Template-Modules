@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Notifications;
 using ProductCatalog;
+using Reviews;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -105,6 +106,7 @@ public static class ApplicationBuilderExtensions
             opts.UseDataAnnotationsValidationProblemDetailMiddleware();
         });
         app.MapProductCatalogEndpoints();
+        app.MapReviewsEndpoints();
         app.MapFileStorageEndpoints();
         app.MapChattingEndpoints();
         app.MapNotificationsEndpoints();

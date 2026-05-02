@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using ProductCatalog;
 using Reviews;
 using SharedKernel.Application.DTOs;
-using SharedKernel.Application.Search;
 
 namespace APITemplate.Api.Extensions;
 

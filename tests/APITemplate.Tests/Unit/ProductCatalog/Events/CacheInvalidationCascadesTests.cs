@@ -22,7 +22,10 @@ public sealed class CacheInvalidationCascadesTests
     {
         CacheInvalidationCascades
             .ForProductDeletion.Select(x => x.CacheTag)
-            .ShouldBe([CacheTags.Products, CacheTags.Categories, "Reviews"], ignoreOrder: true);
+            .ShouldBe(
+                [CacheTags.Products, CacheTags.Categories, CrossModuleCacheTags.Reviews],
+                ignoreOrder: true
+            );
     }
 
     [Fact]
