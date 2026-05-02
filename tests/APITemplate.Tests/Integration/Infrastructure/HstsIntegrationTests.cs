@@ -53,7 +53,7 @@ public sealed class HstsIntegrationTests
         var client = testFactory.CreateClient(
             new WebApplicationFactoryClientOptions
             {
-                BaseAddress = new Uri("https://localhost"),
+                BaseAddress = new Uri("https://api.example.com"),
                 AllowAutoRedirect = false,
             }
         );
@@ -75,6 +75,7 @@ public sealed class HstsIntegrationTests
                     (context, nextMiddleware) =>
                     {
                         context.Connection.RemoteIpAddress = IPAddress.Parse("1.1.1.1");
+                        context.Request.Scheme = "https"; // Ensure IsHttps is true
                         return nextMiddleware();
                     }
                 );

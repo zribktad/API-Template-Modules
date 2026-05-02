@@ -22,13 +22,8 @@ public static class ApplicationBuilderExtensions
     {
         app.UseExceptionHandler();
 
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseHsts();
-        }
-
-        app.UseHttpsRedirection();
         app.UseSecurityHeadersPolicy();
+        app.UseHttpsRedirection();
         app.UseCors();
         // Correlation in Items + Serilog only (no Response) so Challenge runs before response headers.
         app.UseMiddleware<CorrelationContextMiddleware>();
