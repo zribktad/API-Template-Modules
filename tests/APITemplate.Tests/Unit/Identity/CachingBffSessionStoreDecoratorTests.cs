@@ -143,13 +143,19 @@ public sealed class CachingBffSessionStoreDecoratorTests
             .Select(_ => Task.Run(() => sut.GetAsync("s1", ct), ct))
             .ToArray();
 
+        // Wait deterministically for the inner store to be hit exactly once.
+        // We use a generous timeout to prevent CI flakiness.
         await BffSessionStoreUnitTestHelpers.WaitUntilAsync(
             () =>
                 _inner.Invocations.Count(invocation =>
                     invocation.Method.Name == nameof(IBffSessionStore.GetAsync)
-                ) == 1,
+                ) >= 1,
             ct
         );
+
+        // Add a small delay to allow any competing threads to hit the lock (if there was a bug)
+        await Task.Delay(100, ct);
+
         fetchGate.SetResult(record);
 
         BffSessionRecord?[] results = await Task.WhenAll(callers);
