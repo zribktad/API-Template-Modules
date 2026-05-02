@@ -12,6 +12,7 @@ namespace ProductCatalog.GraphQL.Queries;
 ///     serving as the extension base for <see cref="CategoryQueries" />.
 /// </summary>
 [Authorize]
+[ExtendObjectType(HotChocolate.Types.OperationTypeNames.Query)]
 public class ProductQueries
 {
     /// <summary>

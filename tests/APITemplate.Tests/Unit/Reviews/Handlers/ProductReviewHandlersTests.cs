@@ -7,6 +7,7 @@ using Reviews.Common.Events;
 using Reviews.Domain;
 using Reviews.Features;
 using SharedKernel.Application.Context;
+using SharedKernel.Contracts.Events;
 using SharedKernel.Contracts.Queries.ProductCatalog;
 using SharedKernel.Contracts.Queries.Reviews;
 using SharedKernel.Domain.Common;
@@ -105,7 +106,7 @@ public sealed class ProductReviewHandlersTests
             );
 
         result.IsError.ShouldBeFalse();
-        messages.ShouldContainCacheTags([CacheTags.Reviews, "Categories"]);
+        messages.ShouldContainCacheTags([CacheTags.Reviews, CrossModuleCacheTags.Categories]);
     }
 
     [Fact]

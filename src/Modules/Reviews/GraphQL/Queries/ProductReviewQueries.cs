@@ -11,7 +11,7 @@ namespace Reviews.GraphQL.Queries;
 ///     single-item, and per-product lookup operations.
 /// </summary>
 [Authorize]
-[ExtendObjectType("Query")]
+[ExtendObjectType(HotChocolate.Types.OperationTypeNames.Query)]
 public class ProductReviewQueries
 {
     /// <summary>
@@ -52,10 +52,12 @@ public class ProductReviewQueries
         int pageNumber,
         int pageSize,
         [Service] IMessageBus bus,
+        [Service] IValidator validator,
         CancellationToken ct
     )
     {
         ProductReviewFilter filter = new(productId, PageNumber: pageNumber, PageSize: pageSize);
+        validator.ValidateForGraphQL(filter);
         ErrorOr<PagedResponse<ProductReviewResponse>> result = await bus.InvokeAsync<
             ErrorOr<PagedResponse<ProductReviewResponse>>
         >(new GetProductReviewsQuery(filter), ct);

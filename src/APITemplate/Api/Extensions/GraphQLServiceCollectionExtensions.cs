@@ -13,8 +13,8 @@ public static class GraphQLServiceCollectionExtensions
     {
         services
             .AddGraphQLServer()
-            .AddQueryType(d => d.Name("Query"))
-            .AddMutationType(d => d.Name("Mutation"))
+            .AddQueryType(d => d.Name(HotChocolate.Types.OperationTypeNames.Query))
+            .AddMutationType(d => d.Name(HotChocolate.Types.OperationTypeNames.Mutation))
             .AddProductCatalogGraphQL()
             .AddReviewsGraphQL()
             .AddAuthorization()

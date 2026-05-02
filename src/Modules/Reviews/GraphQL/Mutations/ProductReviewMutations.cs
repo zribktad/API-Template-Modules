@@ -11,7 +11,7 @@ namespace Reviews.GraphQL.Mutations;
 ///     (create and delete).
 /// </summary>
 [Authorize]
-[ExtendObjectType("Mutation")]
+[ExtendObjectType(HotChocolate.Types.OperationTypeNames.Mutation)]
 public class ProductReviewMutations
 {
     /// <summary>Creates a new product review and returns the persisted review.</summary>
