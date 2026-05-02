@@ -74,7 +74,7 @@ public sealed class FilesController(IMessageBus bus) : ApiControllerBase
             ),
             ct
         );
-        return result.IsError ? result.ToActionResult(this) : Ok(result.Value);
+        return result.ToActionResult(this);
     }
 
     /// <summary>
@@ -155,6 +155,6 @@ public sealed class FilesController(IMessageBus bus) : ApiControllerBase
             new DeleteFileCommand(id),
             ct
         );
-        return result.IsError ? result.ToErrorResult(this) : NoContent();
+        return result.ToNoContentResult(this);
     }
 }
