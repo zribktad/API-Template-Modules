@@ -1,3 +1,5 @@
+using SharedKernel.Infrastructure.Logging;
+
 namespace Identity.Auth.Features.Bff.DTOs;
 
 /// <summary>
@@ -7,7 +9,7 @@ namespace Identity.Auth.Features.Bff.DTOs;
 public sealed record BffUserResponse(
     string? UserId,
     string? Username,
-    string? Email,
+    [property: PersonalData] string? Email,
     string? TenantId,
     string[] Roles
 );

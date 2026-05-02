@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using ErrorOr;
+using SharedKernel.Infrastructure.Logging;
 
 namespace Identity.Directory.Entities;
 
@@ -15,6 +16,7 @@ public sealed class TenantInvitation : IAuditableTenantEntity, IHasId
     internal string DbNormalizedEmail { get; private set; } = null!;
 
     [NotMapped]
+    [PersonalData]
     public NormalizedString Email
     {
         get => new NormalizedString(DbEmail);

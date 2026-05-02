@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using SharedKernel.Infrastructure.Logging;
 
 namespace Identity.Directory.Entities;
 
@@ -18,6 +19,7 @@ public sealed class AppUser : IAuditableTenantEntity, IHasId
     internal string DbNormalizedUsername { get; private set; } = null!;
 
     [NotMapped]
+    [PersonalData]
     public NormalizedString Email
     {
         get => new NormalizedString(DbEmail);

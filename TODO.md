@@ -113,11 +113,11 @@
   `RateLimitPolicies.Fixed = "fixed"` constant exists but `AddRateLimiter()` / `UseRateLimiter()` are never called — rate limiting is not active. Register a fixed window rate limiter in `ApiServiceCollectionExtensions`, add `UseRateLimiter()` to the pipeline, and consider emitting `Retry-After` + `RateLimit-*` response headers.
 
 - [x] **Add HSTS (RFC 6797)**  
-  `UseHttpsRedirection()` is enabled but `UseHsts()` is missing — the `Strict-Transport-Security` header is never sent. Add `UseHsts()` to `ApplicationBuilderExtensions.UseApiPipeline()` before `UseHttpsRedirection()`. Disable in the Development environment.
+  Implemented via `NetEscapades.AspNetCore.SecurityHeaders` alongside other security policies. Configuration is driven by `appsettings.json` (MaxAgeDays, IncludeSubDomains, Preload) and active in non-Development environments.
 
 ### Medium Priority
 
-- [ ] **Add HTTP security response headers (OWASP / W3C)**  
+- [x] **Add HTTP security response headers (OWASP / W3C)**  
   Missing: `X-Frame-Options`, `X-Content-Type-Options` (only set on file downloads today), `Content-Security-Policy`, `Referrer-Policy`, `Permissions-Policy`. Consider `NetEscapades.AspNetCore.SecurityHeaders` or `NWebsec` and add as middleware in the pipeline.
 
 - [ ] **Implement ETag / Conditional Requests (RFC 7232)**  
