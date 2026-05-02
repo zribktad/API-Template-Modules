@@ -25,6 +25,7 @@ public static class MvcConventionsServiceCollectionExtensions
             options.Conventions.Add(
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
+            options.Filters.Add<SharedKernel.Contracts.Api.Filters.PaginationFilter>();
         });
 
         services.Configure<ApiBehaviorOptions>(options =>

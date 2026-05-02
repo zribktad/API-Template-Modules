@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SharedKernel.Application.DTOs;
 using SharedKernel.Application.Errors;
+using SharedKernel.Domain.Common;
 
 namespace SharedKernel.Contracts.Api;
 

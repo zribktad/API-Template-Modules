@@ -6,6 +6,7 @@ namespace SharedKernel.Domain.Common;
 /// </summary>
 /// <typeparam name="T">The type of items in the page.</typeparam>
 public record PagedResponse<T>(IEnumerable<T> Items, int TotalCount, int PageNumber, int PageSize)
+    : IPagedResponse
 {
     /// <summary>Total number of pages derived from <see cref="TotalCount" /> and <see cref="PageSize" />.</summary>
     public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
