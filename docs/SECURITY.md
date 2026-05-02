@@ -50,6 +50,12 @@ The application is built with a multi-tenant architecture, ensuring strict data 
 ### HTTPS & HSTS
 - **Strict HTTPS:** All traffic is redirected to HTTPS via `app.UseHttpsRedirection()`.
 - **HSTS:** Enabled in production to prevent protocol downgrade attacks (SSL Stripping).
+  HSTS (HTTP Strict Transport Security) is a response header that tells the browser: "Always use HTTPS to connect to this domain. Never try HTTP again." It protects against Man-in-the-Middle (MitM) attacks where an attacker might try to intercept the initial unsecured HTTP request.
+
+  The behavior is controlled in `appsettings.json` under the `"Hsts"` section:
+  - **`MaxAgeDays`:** How long (in days) the browser remembers this rule. Default is 365 days. This protects the exact domain the API is running on.
+  - **`IncludeSubDomains`:** If true, tells the browser that *all* subdomains (e.g., `dev.api...`) must also use HTTPS. Use with caution if you have legacy HTTP subdomains.
+  - **`Preload`:** The strictest setting. If true, adds the `preload` directive. If you register your domain at *hstspreload.org*, major browsers (Chrome, Safari, Firefox) will hardcode your domain as HTTPS-only. This protects users even on their very first visit, but it is very difficult to undo.
 - **TLS:** Only secure TLS versions are supported by the hosting environment.
 
 ### Security Response Headers
