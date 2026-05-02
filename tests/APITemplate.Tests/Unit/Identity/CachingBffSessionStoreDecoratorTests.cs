@@ -123,6 +123,8 @@ public sealed class CachingBffSessionStoreDecoratorTests
         _inner.Verify(i => i.GetAsync("s1", CancellationToken.None), Times.Exactly(2));
     }
 
+    delegate bool TryGetDelegate(string sessionId, out BffSessionRecord? session);
+
     [Fact]
     public async Task GetAsync_ConcurrentCallers_InnerCalledOnce()
     {
@@ -131,8 +133,23 @@ public sealed class CachingBffSessionStoreDecoratorTests
             TaskCreationOptions.RunContinuationsAsynchronously
         );
         BffSessionRecord record = BffSessionStoreUnitTestHelpers.CreateSampleSession("s1");
-        BffSessionRecord? outRecord = null;
-        _localCache.Setup(c => c.TryGet("s1", out outRecord)).Returns(false);
+
+        BffSessionRecord? cachedRecord = null;
+        _localCache
+            .Setup(c => c.TryGet("s1", out It.Ref<BffSessionRecord?>.IsAny))
+            .Returns(
+                new TryGetDelegate(
+                    (string key, out BffSessionRecord? val) =>
+                    {
+                        val = cachedRecord;
+                        return cachedRecord != null;
+                    }
+                )
+            );
+        _localCache
+            .Setup(c => c.Set("s1", It.IsAny<BffSessionRecord>()))
+            .Callback<string, BffSessionRecord>((key, val) => cachedRecord = val);
+
         _localCache.SetupGet(c => c.Generation).Returns(1);
         _inner.Setup(i => i.GetAsync("s1", It.IsAny<CancellationToken>())).Returns(fetchGate.Task);
 
