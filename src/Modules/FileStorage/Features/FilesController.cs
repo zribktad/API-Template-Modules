@@ -4,7 +4,9 @@ using FileStorage.Features.Delete;
 using FileStorage.Features.Download;
 using FileStorage.Features.Staging;
 using FileStorage.Features.Upload;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using Wolverine;
 
 namespace FileStorage.Features;
@@ -121,12 +123,17 @@ public sealed class FilesController(IMessageBus bus) : ApiControllerBase
 
         try
         {
-            return File(
+            FileStreamResult fileResult = File(
                 result.Value.FileStream,
                 result.Value.ContentType,
                 result.Value.FileName,
-                enableRangeProcessing: false
+                enableRangeProcessing: true
             );
+
+            fileResult.EntityTag = EntityTagHeaderValue.Parse($"\"{result.Value.Sha256}\"");
+            fileResult.LastModified = result.Value.CreatedAtUtc;
+
+            return fileResult;
         }
         catch
         {

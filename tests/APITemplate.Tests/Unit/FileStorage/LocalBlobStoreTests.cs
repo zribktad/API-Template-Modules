@@ -12,6 +12,7 @@ using Polly.Registry;
 using Polly.Retry;
 using SharedKernel.Application.Errors;
 using SharedKernel.Application.Resilience;
+using SharedKernel.Infrastructure.Ids;
 using Shouldly;
 using Xunit;
 using FS = FileStorage.Domain.ErrorCatalog;
@@ -53,6 +54,7 @@ public sealed class LocalBlobStoreTests : IDisposable
         return new LocalBlobStore(
             Options.Create(_options),
             deleteProvider,
+            new GuidIdGenerator(),
             NullLogger<LocalBlobStore>.Instance
         );
     }

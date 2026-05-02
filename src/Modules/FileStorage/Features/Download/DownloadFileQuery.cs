@@ -1,10 +1,9 @@
+using FileStorage.Contracts;
 using FileStorage.Domain.Storage;
 
 namespace FileStorage.Features.Download;
 
 public sealed record DownloadFileQuery(DownloadFileRequest Request);
-
-public sealed record FileDownloadResult(Stream FileStream, string ContentType, string FileName);
 
 public sealed class DownloadFileQueryHandler
 {
@@ -31,7 +30,9 @@ public sealed class DownloadFileQueryHandler
         return new FileDownloadResult(
             openResult.Value,
             entity.ContentType,
-            entity.OriginalFileName
+            entity.OriginalFileName,
+            entity.Sha256,
+            entity.Audit.CreatedAtUtc
         );
     }
 }

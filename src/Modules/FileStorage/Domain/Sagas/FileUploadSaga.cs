@@ -69,7 +69,7 @@ public sealed class FileUploadSaga : Saga
 
         return new FileUploadSaga
         {
-            Id = command.UploadToken,
+            Id = command.Id,
             TenantId = command.TenantId,
             Sha256 = command.Sha256,
             SizeBytes = command.SizeBytes,
@@ -93,7 +93,7 @@ public sealed class FileUploadSaga : Saga
         if (Status == FileUploadStatus.Committed && StoredFileId.HasValue)
         {
             logger.LogInformation(
-                "CommitUploadCommand redelivered for already-committed saga {UploadToken}",
+                "CommitUploadCommand redelivered for already-committed saga {Id}",
                 Id
             );
             StoredFile? existing = await dbContext
@@ -121,7 +121,7 @@ public sealed class FileUploadSaga : Saga
         if (Status != FileUploadStatus.Staged)
         {
             logger.LogWarning(
-                "CommitUploadCommand received for saga {UploadToken} in terminal status {Status}; ignoring",
+                "CommitUploadCommand received for saga {Id} in terminal status {Status}; ignoring",
                 Id,
                 Status
             );
@@ -129,7 +129,13 @@ public sealed class FileUploadSaga : Saga
         }
 
         IBlobStore store = blobStoreFactory.Get(BackendKey);
-        ErrorOr<string> promoted = await store.PromoteToCommittedAsync(TenantId, Sha256, SizeBytes, StagingPath, ct);
+        ErrorOr<string> promoted = await store.PromoteToCommittedAsync(
+            TenantId,
+            Sha256,
+            SizeBytes,
+            StagingPath,
+            ct
+        );
         if (promoted.IsError)
             return (promoted.Errors, null);
 
@@ -185,7 +191,7 @@ public sealed class FileUploadSaga : Saga
             return;
 
         logger.LogInformation(
-            "Upload saga {UploadToken} timed out without commit; deleting staging payload at {StagingPath}",
+            "Upload saga {Id} timed out without commit; deleting staging payload at {StagingPath}",
             Id,
             StagingPath
         );
