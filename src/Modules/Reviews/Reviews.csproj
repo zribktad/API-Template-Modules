@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\SharedKernel.GraphQL\SharedKernel.GraphQL.csproj" />
   </ItemGroup>
 
   <ItemGroup>

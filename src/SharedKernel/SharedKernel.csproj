@@ -20,7 +20,6 @@
     <PackageReference Include="MongoDB.Bson" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="StackExchange.Redis" />
-    <PackageReference Include="HotChocolate.AspNetCore" />
     <PackageReference Include="WolverineFx" />
     <PackageReference Include="WolverineFx.EntityFrameworkCore" />
   </ItemGroup>

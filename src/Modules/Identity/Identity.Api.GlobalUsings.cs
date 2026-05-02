@@ -1,4 +1,5 @@
 global using Identity.Auth.Security;
+global using Identity.Common.Events;
 global using Identity.Directory.Features.Tenant;
 global using Identity.Directory.Features.Tenant.DTOs;
 global using Identity.Directory.Features.TenantInvitation;

@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
@@ -22,12 +23,6 @@ public static class ReviewsModule
     {
         services.AddReviewsRuntimeBridge(configuration);
 
-        services
-            .AddGraphQLServer()
-            .AddTypeExtension<ProductReviewQueries>()
-            .AddTypeExtension<ProductReviewMutations>()
-            .AddType<ProductReviewType>();
-
         services.AddSingleton<IDatabaseStartupContributor, ReviewsDatabaseStartupContributor>();
         services.AddSingleton<
             IConfigureOptions<OutputCacheOptions>,
@@ -35,6 +30,14 @@ public static class ReviewsModule
         >();
 
         return services;
+    }
+
+    public static IRequestExecutorBuilder AddReviewsGraphQL(this IRequestExecutorBuilder builder)
+    {
+        return builder
+            .AddTypeExtension<ProductReviewQueries>()
+            .AddTypeExtension<ProductReviewMutations>()
+            .AddType<ProductReviewType>();
     }
 
     public static IEndpointRouteBuilder MapReviewsEndpoints(this IEndpointRouteBuilder endpoints)

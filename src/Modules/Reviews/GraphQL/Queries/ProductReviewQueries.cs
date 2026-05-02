@@ -11,7 +11,7 @@ namespace Reviews.GraphQL.Queries;
 ///     single-item, and per-product lookup operations.
 /// </summary>
 [Authorize]
-[QueryType]
+[ExtendObjectType("Query")]
 public class ProductReviewQueries
 {
     /// <summary>

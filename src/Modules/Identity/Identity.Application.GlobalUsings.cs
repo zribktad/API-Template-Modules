@@ -1,5 +1,6 @@
 global using System.Reflection;
 global using Identity.Auth.Entities;
+global using Identity.Common.Events;
 global using Identity.Directory.Entities;
 global using Identity.Directory.Enums;
 global using Identity.Directory.Interfaces;

@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Configuration;
 using Kot.MongoDB.Migrations;
 using Kot.MongoDB.Migrations.DI;
 using Microsoft.AspNetCore.Builder;
@@ -101,22 +102,6 @@ public static class ProductCatalogModule
 
         services.AddControllers().AddApplicationPart(typeof(ProductCatalogModule).Assembly);
 
-        services
-            .AddGraphQLServer()
-            .AddQueryType<ProductQueries>()
-            .AddTypeExtension<CategoryQueries>()
-            .AddMutationType<ProductMutations>()
-            .AddType<ProductType>()
-            .AddDataLoader<ProductReviewsByProductDataLoader>()
-            .AddAuthorization()
-            .ModifyPagingOptions(options =>
-            {
-                options.MaxPageSize = PaginationFilter.MaxPageSize;
-                options.DefaultPageSize = PaginationFilter.DefaultPageSize;
-                options.IncludeTotalCount = true;
-            })
-            .AddMaxExecutionDepthRule(5);
-
         services.AddSingleton<
             IDatabaseStartupContributor,
             ProductCatalogDatabaseStartupContributor
@@ -127,6 +112,18 @@ public static class ProductCatalogModule
         >();
 
         return services;
+    }
+
+    public static IRequestExecutorBuilder AddProductCatalogGraphQL(
+        this IRequestExecutorBuilder builder
+    )
+    {
+        return builder
+            .AddTypeExtension<ProductQueries>()
+            .AddTypeExtension<CategoryQueries>()
+            .AddTypeExtension<ProductMutations>()
+            .AddType<ProductType>()
+            .AddDataLoader<ProductReviewsByProductDataLoader>();
     }
 
     public static IEndpointRouteBuilder MapProductCatalogEndpoints(

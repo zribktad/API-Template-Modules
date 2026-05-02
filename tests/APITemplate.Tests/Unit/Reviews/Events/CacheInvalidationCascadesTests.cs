@@ -14,6 +14,6 @@ public sealed class CacheInvalidationCascadesTests
     {
         CacheInvalidationCascades
             .ForReviewChange.Select(x => x.CacheTag)
-            .ShouldBe([CacheTags.Reviews, CacheTags.Categories], ignoreOrder: true);
+            .ShouldBe([CacheTags.Reviews, "Categories"], ignoreOrder: true);
     }
 }

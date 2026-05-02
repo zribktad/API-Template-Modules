@@ -3,6 +3,7 @@ using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Reviews;
+using Reviews.Common.Events;
 using Reviews.Domain;
 using Reviews.Features;
 using SharedKernel.Application.Context;
@@ -13,7 +14,6 @@ using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;
-using CacheTags = SharedKernel.Contracts.Events.CacheTags;
 
 namespace APITemplate.Tests.Unit.Reviews.Handlers;
 
@@ -105,7 +105,7 @@ public sealed class ProductReviewHandlersTests
             );
 
         result.IsError.ShouldBeFalse();
-        messages.ShouldContainCacheTags([CacheTags.Reviews, CacheTags.Categories]);
+        messages.ShouldContainCacheTags([CacheTags.Reviews, "Categories"]);
     }
 
     [Fact]

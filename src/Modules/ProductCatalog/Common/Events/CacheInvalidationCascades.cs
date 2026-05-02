@@ -14,7 +14,7 @@ public static class CacheInvalidationCascades
     [
         new(CacheTags.Products),
         new(CacheTags.Categories),
-        new(CacheTags.Reviews),
+        new("Reviews"),
     ];
 
     public static readonly IReadOnlyList<CacheInvalidationNotification> ForCategoryDeletion =

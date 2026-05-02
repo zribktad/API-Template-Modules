@@ -18,4 +18,5 @@ global using SharedKernel.Contracts.Security;
 global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities.Contracts;
 global using SharedKernel.Domain.Interfaces;
+global using SharedKernel.GraphQL.Extensions;
 global using Error = ErrorOr.Error;

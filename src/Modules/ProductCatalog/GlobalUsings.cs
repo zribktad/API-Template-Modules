@@ -33,6 +33,7 @@ global using SharedKernel.Domain.Common;
 global using SharedKernel.Domain.Entities;
 global using SharedKernel.Domain.Entities.Contracts;
 global using SharedKernel.Domain.Interfaces;
+global using SharedKernel.GraphQL.Extensions;
 global using SharedKernel.Infrastructure.Configurations;
 global using SharedKernel.Infrastructure.Persistence;
 global using SharedKernel.Infrastructure.Repositories;

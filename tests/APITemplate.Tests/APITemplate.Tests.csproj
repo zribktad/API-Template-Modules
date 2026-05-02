@@ -102,5 +102,6 @@
     <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.csproj" />
     <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\SharedKernel.GraphQL\SharedKernel.GraphQL.csproj" />
   </ItemGroup>
 </Project>

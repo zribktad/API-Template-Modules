@@ -4,7 +4,7 @@ using SharedKernel.Application.Validation;
 using SharedKernelErrorCatalog = SharedKernel.Application.Errors.ErrorCatalog;
 using HotChocolate;
 
-namespace SharedKernel.Application.Extensions;
+namespace SharedKernel.GraphQL.Extensions;
 
 /// <summary>
 ///     Extension methods that convert <see cref="ErrorOr{T}" /> results to GraphQL-compatible

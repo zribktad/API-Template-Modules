@@ -242,11 +242,7 @@ public sealed class DeleteProductsCommandHandlerTests
                 ct
             );
 
-        messages.ShouldContainCacheTags([
-            CacheTags.Products,
-            CacheTags.Categories,
-            CacheTags.Reviews,
-        ]);
+        messages.ShouldContainCacheTags([CacheTags.Products, CacheTags.Categories, "Reviews"]);
     }
 
     [Fact]
