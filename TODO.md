@@ -125,7 +125,7 @@
 
 ### Low Priority
 
-- [ ] **Add `Link` header for pagination (RFC 8288)**  
+- [x] **Add `Link` header for pagination (RFC 8288)**  
   `PagedResponse<T>` exposes `TotalCount`/`PageNumber`/`TotalPages` in the JSON body only. RFC 8288 defines `Link: <url>; rel="next"` headers. Add a helper to `ApiControllerBase` or the Wolverine endpoint pipeline that generates Link headers from `PagedResponse` metadata.
 
 - [ ] **Implement Range Requests for file downloads (RFC 7233)**  
