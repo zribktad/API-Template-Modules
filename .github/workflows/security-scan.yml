@@ -1,0 +1,48 @@
+name: On-Demand Security Scan
+
+on:
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  security:
+    name: Security (SBOM & Trivy)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Generate SBOM
+        run: |
+          dotnet tool install --global CycloneDX --version 6.2.0
+          dotnet cyclonedx APITemplate.slnx -o sbom/ -f json
+        shell: bash
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom/
+          retention-days: 7
+
+      - name: Build Docker image
+        run: docker build -t apitemplate-api:local -f src/APITemplate/Api/Dockerfile .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'apitemplate-api:local'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'

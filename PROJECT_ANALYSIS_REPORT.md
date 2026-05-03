@@ -27,7 +27,6 @@
 - chýba **`Microsoft.VisualStudio.Threading.Analyzers`** + `<EnforceCodeStyleInBuild>`,
 - Dockerfile **beží ako root** (CIS Docker 4.1),
 - žiadny **SBOM/Trivy** (EU CRA 2027 risk),
-- žiadne **SLO / burn-rate alerty**, default 100% trace sampling,
 - per-tenant **log redaction nie je verifikovaná testami** (GDPR risk),
 - chýba **DR runbook**, **secrets rotation policy**, **pool sizing** + **statement_timeout**,
 - Dragonfly **bez eviction policy** + DataProtection v rovnakom DB (riziko invalid sessions),

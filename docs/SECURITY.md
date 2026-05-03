@@ -103,7 +103,27 @@ Configured globally in `SecurityHeadersExtensions.cs`:
 ### Vulnerability Scanning
 - **NuGet Audit:** The project uses centralized package management (`Directory.Packages.props`) and enables NuGet Audit to catch vulnerable dependencies during build.
 - **Static Analysis:** Tools like **Qodana** and GitHub **CodeQL** are used to scan the codebase for security flaws and code quality issues.
+- **On-Demand Security Scan:** A dedicated workflow (`security-scan.yml`) provides deep container and dependency analysis (see Section 8).
 
 ### Secret Management
 - **Environment Variables:** Secrets (API keys, DB strings) are never stored in the repository. They are injected via environment variables or Docker secrets.
 - **Development Secrets:** `appsettings.Development.json` is used for local dev only; production secrets are managed in secure vaults (e.g., Azure Key Vault, HashiCorp Vault) during deployment.
+
+---
+
+## 8. Software Supply Chain Security (EU CRA 2027)
+
+To align with the upcoming **EU Cyber Resilience Act (CRA)** requirements (enforced from 2027), the project implements proactive software supply chain security measures. These measures ensure transparency and minimize the risk of inheriting vulnerabilities from third-party components.
+
+### Software Bill of Materials (SBOM)
+- **Standard:** We use the **CycloneDX** standard to generate a machine-readable inventory of all software components, dependencies, and metadata.
+- **Automation:** The `On-Demand Security Scan` workflow automatically generates a `bom.json` file for the entire solution.
+- **Compliance:** This allows for rapid impact analysis when a new high-profile vulnerability (like Log4j) is discovered in a common library.
+
+### Container Security (Trivy)
+- **Scanning:** Every time the security scan is triggered, the project's Docker images are built and scanned using **Aqua Trivy**.
+- **Scope:** The scan checks both the base OS layers and the application dependencies for known **CVEs (Common Vulnerabilities and Exposures)**.
+- **Gatekeeping:** The scanner is configured with a strict "Fail-Fast" policy: if any **CRITICAL** severity vulnerability is detected, the workflow fails, preventing the deployment of insecure artifacts.
+
+### Rationale
+These tools move security "to the left" of the development cycle. By documenting every piece of code we ship (SBOM) and rigorously testing our final deployment units (Docker) against global vulnerability databases, we ensure that the application is not only secure by design but also secure by assembly.

@@ -136,6 +136,51 @@ Project-specific telemetry helpers are isolated under:
 
 This keeps controllers, services, filters, auth handlers, and startup code readable.
 
+## Sampling Strategy
+
+To balance observability depth with storage costs, the project uses **Tail-based Sampling** implemented in Grafana Alloy.
+
+Unlike head-based sampling (which decides at the start of a request), tail-based sampling waits for the entire trace to finish before deciding whether to keep it.
+
+### Sampling Rules
+
+| Trace Category | Sampling Rate | Rationale |
+|----------------|---------------|-----------|
+| **Errors**     | 100%          | Every failed request is critical for debugging. |
+| **Successes**  | 5%            | A representative sample is enough for latency analysis. |
+
+This strategy ensures that 100% of "interesting" traces (errors) are captured while reducing the volume of "boring" successful traces by 95%.
+
+### Configuration
+
+The logic is defined in `infrastructure/observability/alloy/config.alloy` using the `otelcol.processor.tail_sampling` component.
+
+## SLO & Alerting
+
+The project follows SRE best practices by using **Service Level Objectives (SLO)** and **Multi-window Burn-rate Alerts**.
+
+### Availability SLO (99.9%)
+
+- **Target:** 99.9% of requests must return a non-5xx status code.
+- **Alerting:** Triggers when the "Error Budget" is being consumed too fast.
+  - **Critical:** Burn rate > 14.4x (2% budget consumed in 1h).
+  - **Warning:** Burn rate > 6x (5% budget consumed in 6h).
+
+### Latency SLO (99%)
+
+- **Target:** 99% of requests must complete within **500ms**.
+- **Alerting:** Triggers when the "Error Budget" is being consumed too fast.
+  - **Critical:** Burn rate > 14.4x (2% budget consumed in 1h).
+  - **Warning:** Burn rate > 6x (5% budget consumed in 6h).
+
+### Infrastructure Alerts
+
+In addition to SLOs, we monitor basic health:
+- **Telemetry Missing:** Alert if Prometheus stops receiving metrics from the API.
+- **Backend Degraded:** Alert if health checks for PostgreSQL, MongoDB, or DragonFly fail.
+
+Relevant rules: [apitemplate-alerts.yml](../infrastructure/observability/prometheus/rules/apitemplate-alerts.yml).
+
 ## What Is Running
 
 ### Application-side telemetry

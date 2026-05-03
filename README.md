@@ -1238,6 +1238,10 @@ MongoDB stores a `_t` discriminator field automatically, enabling polymorphic qu
 4. **Publish Container:** `docker build -t apitemplate-image:1.0 -f src/APITemplate/Api/Dockerfile .`
 5. **Push Registry:** `docker push <registry>/apitemplate-image:1.0`
 
+### Security Workflows
+- **CodeQL:** Automated static analysis for C# vulnerabilities.
+- **On-Demand Security Scan:** A manual workflow (`workflow_dispatch`) that builds the Docker image and runs a **Trivy** scan for critical vulnerabilities, while also generating a **CycloneDX SBOM** for compliance with the EU Cyber Resilience Act (CRA) 2027.
+
 Because the application encompasses the database (natively via DI) and HTTP context fully self-contained using containerization, it scales efficiently behind Kubernetes Ingress (Nginx) or any App Service / Container Apps equivalent, maintaining state natively using PostgreSQL and MongoDB.
 
 ---
