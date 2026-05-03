@@ -1,6 +1,5 @@
 using Identity.Persistence;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Options;
 using SharedKernel.Infrastructure.Configuration;
 using StackExchange.Redis;
 
@@ -50,7 +49,7 @@ public static class RedisServiceCollectionExtensions
         }
         else
         {
-            // Fallback to in-memory cache if Redis is not online.
+            // Fallback to in-memory cache if Redis is not configured.
             services.AddDistributedMemoryCache();
         }
 

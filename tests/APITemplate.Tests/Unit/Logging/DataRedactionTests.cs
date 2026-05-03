@@ -109,7 +109,7 @@ public partial class DataRedactionTests
             .AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
-                    ["Redaction:HmacKey"] = "dGhpcyBpcyBhIHZlcnkgc2VjcmV0IGhtYWMga2V5IDEyMzQ1Njc4", // 32 bytes base64
+                    ["Redaction:HmacKey"] = "dGhpcyBpcyBhIHZlcnkgc2VjcmV0IGhtYWMga2V5IDMyYg==", // 32 bytes base64
                     ["Redaction:KeyId"] = "1",
                 }
             )
