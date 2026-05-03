@@ -23,9 +23,10 @@ jobs:
 
       - name: Generate SBOM
         run: |
-          dotnet tool install cyclonedx --version 6.2.0 --tool-path ./tools
+          dotnet tool install --global CycloneDX
+          dotnet restore APITemplate.slnx
           mkdir -p sbom
-          ./tools/dotnet-CycloneDX src/APITemplate/Api/APITemplate.csproj -o sbom/ -f json
+          dotnet cyclonedx APITemplate.slnx -o sbom/ -f json
         shell: bash
 
       - name: Upload SBOM
