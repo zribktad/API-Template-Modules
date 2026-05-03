@@ -26,6 +26,7 @@ public static class GraphQLServiceCollectionExtensions
                 options.IncludeTotalCount = true;
             })
             .AddMaxExecutionDepthRule(GraphQLConstants.MaxExecutionDepth) // Prevent deeply nested query DoS
+            .AddCostAnalyzer() // Enable cost analysis
             .ModifyCostOptions(options =>
             {
                 options.MaxFieldCost = GraphQLConstants.MaxFieldCost; // Prevent high-complexity query DoS

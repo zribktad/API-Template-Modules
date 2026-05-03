@@ -80,13 +80,13 @@ public sealed class GraphQLSecurityIntegrationTests
         // Construct a query with very high cost (> 1000)
         // We use aliases to repeat a field many times to bloat the complexity cost.
         // We keep the total field count below 2048 to avoid the parser limit.
+        // Each repeated fragment has depth 4 (categories -> page -> items -> id),
+        // which is below the MaxExecutionDepth limit of 5.
         StringBuilder queryBuilder = new();
         queryBuilder.AppendLine("query {");
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 300; i++)
         {
-            queryBuilder.AppendLine(
-                $"  c{i}: categories {{ page {{ items {{ products {{ page {{ totalCount }} }} }} }} }}"
-            );
+            queryBuilder.AppendLine($"  c{i}: categories {{ page {{ items {{ id }} }} }}");
         }
         queryBuilder.AppendLine("}");
 
