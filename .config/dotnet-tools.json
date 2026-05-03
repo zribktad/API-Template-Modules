@@ -31,12 +31,6 @@
       "commands": [
         "dotnet-stryker"
       ]
-    },
-    "cyclonedx": {
-      "version": "6.2.0",
-      "commands": [
-        "dotnet-CycloneDX"
-      ]
     }
   }
 }
