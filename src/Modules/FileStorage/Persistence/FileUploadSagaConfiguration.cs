@@ -1,6 +1,7 @@
 using FileStorage.Domain.Sagas;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SharedKernel.Infrastructure.Configurations;
 
 namespace FileStorage.Persistence;
 
@@ -29,5 +30,7 @@ internal sealed class FileUploadSagaConfiguration : IEntityTypeConfiguration<Fil
 
         builder.HasIndex(x => x.Status);
         builder.HasIndex(x => x.CommitDeadlineUtc);
+
+        builder.ConfigurePostgresXminConcurrency();
     }
 }

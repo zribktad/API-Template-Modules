@@ -1,4 +1,5 @@
 using MongoDB.Bson.Serialization.Attributes;
+using SharedKernel.Domain.Common;
 
 namespace ProductCatalog.Entities.ProductData;
 
@@ -11,6 +12,8 @@ namespace ProductCatalog.Entities.ProductData;
 [BsonKnownTypes(typeof(ImageProductData), typeof(VideoProductData))]
 public abstract class ProductData : IHasId
 {
+    public const string CollectionName = "product_data";
+
     public Guid TenantId { get; set; }
 
     public string Title { get; set; } = string.Empty;

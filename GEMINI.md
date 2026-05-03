@@ -74,6 +74,7 @@ Each module follows a consistent internal organization:
 - **Soft Delete:** Entities implementing `ISoftDeletable` are automatically filtered and soft-deleted.
 - **Multi-Tenancy:** Entities implementing `ITenantEntity` are automatically isolated via `TenantId` global query filters.
 - **Auditing:** `AuditInfo` is stamped automatically on all `IAuditableEntity` types.
+- **Optimistic Concurrency:** PostgreSQL `xmin` system column is used as the concurrency token — no extra `RowVersion` column. `ConfigurePostgresXminConcurrency()` from `SharedKernel.Infrastructure.Configurations` registers it as an EF shadow property. All entities using `ConfigureTenantAuditable<T>()` get it automatically. Entities that don't (e.g. `FailedEmail`, `CustomRole`, `FileUploadSaga`) must call it explicitly. `DbUpdateConcurrencyException` → HTTP 409.
 
 ### 4. Error Handling
 - Prefer **Result Pattern** (`ErrorOr<T>`) over throwing business exceptions for control flow.
@@ -118,6 +119,7 @@ Before creating a new utility or service, check `SharedKernel` or existing modul
   - `IUnitOfWork<TContext>`: Use for multi-repository transactions.
   - `IRepository<T>`: Base repository with specification support.
   - `ISoftDeleteCleanupStrategy`: Implement for automatic background cleanup of soft-deleted records.
+  - `ConfigurePostgresXminConcurrency()` (`SharedKernel.Infrastructure.Configurations`): Call on any `EntityTypeBuilder<T>` to enable PostgreSQL `xmin`-based optimistic concurrency. Automatically included via `ConfigureTenantAuditable<T>()` — call manually only for entities that skip that helper.
 - **Time & Resilience:**
   - `TimeProvider`: **ALWAYS** use `TimeProvider` instead of `DateTime.UtcNow` to ensure testability via `FakeTimeProvider`.
   - `ResiliencePipelineProvider`: Access pre-configured Polly strategies (retry, circuit breaker).

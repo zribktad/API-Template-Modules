@@ -42,7 +42,6 @@ public class ProductReviewMutations
             new DeleteProductReviewCommand(id),
             ct
         );
-        _ = result.ToGraphQLResult();
-        return true;
+        return result.ToGraphQLResult() == Result.Success;
     }
 }

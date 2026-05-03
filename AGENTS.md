@@ -63,6 +63,7 @@ docs/                                     # 16 how-to guides (REST, GraphQL, mig
 | `ValidationBehavior<T>` | class | `SharedKernel/Application/Validation/` | Wolverine FluentValidation middleware |
 | `ICurrentUserContext` | interface | `SharedKernel/Application/Context/` | Resolves user ID + tenant ID from HTTP |
 | `ApiControllerBase` | class | `SharedKernel/Contracts/Api/` | Base controller for all modules |
+| `ConfigurePostgresXminConcurrency()` | extension method | `SharedKernel/Infrastructure/Configurations/PostgresOptimisticConcurrencyExtensions.cs` | Registers PostgreSQL `xmin` as EF optimistic-concurrency shadow property. Auto-applied by `ConfigureTenantAuditable<T>()`. Call manually on entities that skip that helper. |
 
 ## CONVENTIONS
 - **Explicit types everywhere** — `var` discouraged (`.editorconfig` warning). Never `var int x = 5`.
@@ -82,6 +83,7 @@ docs/                                     # 16 how-to guides (REST, GraphQL, mig
 - **NEVER** use string concatenation in `FromSql()` — always interpolated strings for parameterization.
 - **NEVER** bypass `IUnitOfWork` for transactional writes — all commits go through it.
 - **NEVER** add cross-module project references — modules communicate via Wolverine message bus.
+- **NEVER** add a custom `RowVersion` / `byte[]` concurrency column — PostgreSQL `xmin` via `ConfigurePostgresXminConcurrency()` is the project standard.
 - **ProductCatalog→Reviews**: the one direct module reference. Do not add more.
 
 ## UNIQUE STYLES

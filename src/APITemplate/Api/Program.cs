@@ -18,6 +18,7 @@ using Serilog;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Http;
 using SharedKernel.Infrastructure.Health;
+using SharedKernel.Infrastructure.Persistence;
 using Webhooks;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
@@ -49,6 +50,8 @@ builder.Host.UseSerilog(
 
 #region Service Registration
 
+MongoSerializationConfiguration.Configure();
+
 builder.Services.AddRequestContext();
 builder.Services.AddHstsRegistration(builder.Configuration);
 builder.Services.AddApiVersioningRegistration();
@@ -61,7 +64,7 @@ builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddRateLimiting(builder.Configuration);
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddInfrastructureDiagnostics();
-builder.Services.AddGraphQLRegistration();
+builder.Services.AddGraphQLRegistration(builder.Environment);
 
 builder.Services.AddWolverineHttp();
 builder.Services.AddModuleHealthChecks(

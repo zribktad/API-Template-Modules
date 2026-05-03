@@ -14,9 +14,10 @@ public sealed record CategoryFilter(
         CategorySortFields.CreatedAtToken,
         ErrorMessage = "SortBy must be one of: Name, CreatedAt."
     )]
-    string? SortBy = null,
-    [SortDirection]
-    string? SortDirection = null,
-    int PageNumber = 1,
-    int PageSize = PaginationFilter.DefaultPageSize
+        string? SortBy = null,
+    [SortDirection] string? SortDirection = null,
+    [Range(1, int.MaxValue, ErrorMessage = PaginationFilter.PageNumberErrorMessage)]
+        int PageNumber = 1,
+    [Range(1, PaginationFilter.MaxPageSize, ErrorMessage = PaginationFilter.PageSizeErrorMessage)]
+        int PageSize = PaginationFilter.DefaultPageSize
 ) : PaginationFilter(PageNumber, PageSize), ISortableFilter;

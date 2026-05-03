@@ -1,5 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 
 namespace SharedKernel.Infrastructure.Persistence;
@@ -10,8 +11,26 @@ namespace SharedKernel.Infrastructure.Persistence;
 /// </summary>
 public static class MongoSerializationConfiguration
 {
+    private static bool _isConfigured;
+    private static readonly object _lock = new();
+
     public static void Configure()
     {
-        BsonSerializer.TryRegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+        if (_isConfigured)
+        {
+            return;
+        }
+
+        lock (_lock)
+        {
+            if (_isConfigured)
+            {
+                return;
+            }
+
+            BsonSerializer.TryRegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+
+            _isConfigured = true;
+        }
     }
 }

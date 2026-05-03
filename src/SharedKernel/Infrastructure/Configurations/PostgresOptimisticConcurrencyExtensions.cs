@@ -17,6 +17,6 @@ public static class PostgresOptimisticConcurrencyExtensions
             .Property<uint>("xmin")
             .HasColumnType("xid")
             .ValueGeneratedOnAddOrUpdate()
-            .IsConcurrencyToken();
+            .IsRowVersion();
     }
 }
