@@ -6,6 +6,30 @@ A scalable, clean, and modern template designed to jumpstart **.NET 10** Web API
 
 ---
 
+## 📑 Table of Contents
+- [📚 How-To Guides](#-how-to-guides)
+- [🚀 Key Features](#-key-features)
+- [🏗 Architecture Overview](#-architecture-overview)
+- [📦 Module Overview](#-module-overview)
+- [📐 Module Internal Structure](#-module-internal-structure)
+- [🔗 Module Communication](#-module-communication)
+- [🗂 SharedKernel](#-sharedkernel)
+- [📦 Domain Class Diagram](#-domain-class-diagram)
+- [🛠 Technology Stack](#-technology-stack)
+- [📂 Project Structure](#-project-structure)
+- [🌐 REST API Reference](#-rest-api-reference)
+- [⚙️ Configuration Reference](#️-configuration-reference)
+- [🔐 Authentication](#-authentication)
+- [⚡ GraphQL API](#-graphql-api)
+- [🏆 Design Patterns & Best Practices](#-design-patterns--best-practices)
+- [🗄 Stored Procedure Pattern (EF Core + PostgreSQL)](#-stored-procedure-pattern-ef-core--postgresql)
+- [🍃 MongoDB Polymorphic Pattern (ProductData)](#-mongodb-polymorphic-pattern-productdata)
+- [🚀 CI/CD & Deployments](#-cicd--deployments)
+- [🧪 Testing](#-testing)
+- [🏃 Getting Started](#-getting-started)
+
+---
+
 ## 📚 How-To Guides
 
 Step-by-step guides for the most common workflows in this project:

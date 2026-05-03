@@ -75,8 +75,42 @@ plugins:
 
 nav:
   - Home: index.md
-  - Guides:
-      - rest-endpoint.md
-      - graphql-endpoint.md
-      - testing.md
-      - validation.md
+  - 📚 Guides:
+    - Architecture & Patterns:
+        - CQRS & Messaging: cqrs-architecture.md
+        - Result Pattern: result-pattern.md
+        - Specifications: specifications.md
+        - Wolverine Messages: wolverine-message-handling.md
+        - Product Catalog Decoupling: architecture/product-catalog-reviews-decoupling.md
+    - Endpoints:
+        - REST Endpoint: rest-endpoint.md
+        - GraphQL Endpoint: graphql-endpoint.md
+        - GraphQL Guide: graphql-implementation-guide.md
+        - How To Create Endpoint: how-to-create-endpoint.md
+        - Endpoint Showcase: endpoint-showcase.md
+        - Scalar & UI: scalar-and-graphql-ui.md
+    - Databases & Migrations:
+        - EF Migration: ef-migration.md
+        - MongoDB Migration: mongodb-migration.md
+        - MongoDB Polymorphism: mongodb-polymorphism.md
+        - Stored Procedures: stored-procedures.md
+        - Transactions: transactions.md
+    - Security & Auth:
+        - Authentication: AUTHENTICATION.md
+        - Auth Registration: auth-registration.md
+        - Keycloak Workflow: keycloak-auth-workflow.md
+        - Security Guidelines: SECURITY.md
+        - Rate Limiting: RATE_LIMITING.md
+    - Testing:
+        - Testing Guide: testing.md
+        - Fast Unit Audit: testing-fast-unit-audit.md
+    - Infrastructure & Operations:
+        - Caching: CACHING.md
+        - Observability: observability.md
+        - Mailing: mailing.md
+        - File Upload Saga: file-upload-saga.md
+        - Git Hooks: GIT_HOOKS.md
+    - Refactoring & Code Quality:
+        - Code Review: code-review.md
+        - Validation: validation.md
+        - Remaining Refactoring: remaining-refactoring.md
