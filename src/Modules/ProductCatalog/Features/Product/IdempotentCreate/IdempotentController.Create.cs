@@ -1,6 +1,6 @@
+using BuildingBlocks.Web.Api.Filters.Idempotency;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Contracts.Api.Filters.Idempotency;
 
 namespace ProductCatalog.Features.Product.IdempotentCreate;
 

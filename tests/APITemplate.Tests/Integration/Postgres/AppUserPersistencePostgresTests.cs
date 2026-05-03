@@ -1,9 +1,9 @@
 using APITemplate.Tests.Unit.Helpers;
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
 using Identity.Directory.Entities;
 using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using Xunit;
 

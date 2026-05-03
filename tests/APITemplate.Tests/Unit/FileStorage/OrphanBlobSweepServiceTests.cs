@@ -1,3 +1,4 @@
+using BuildingBlocks.Infrastructure.EFCore.Persistence.DesignTime;
 using FileStorage.Contracts;
 using FileStorage.Domain;
 using FileStorage.Persistence;
@@ -5,7 +6,6 @@ using FileStorage.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using SharedKernel.Infrastructure.Persistence.DesignTime;
 using Shouldly;
 using Xunit;
 

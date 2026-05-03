@@ -1,7 +1,7 @@
+using BuildingBlocks.Infrastructure.EFCore.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Notifications.Domain;
-using SharedKernel.Infrastructure.Configurations;
 
 namespace Notifications.Persistence;
 

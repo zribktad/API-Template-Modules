@@ -4,6 +4,16 @@
         <Project Path="src/SharedKernel/SharedKernel.csproj"/>
         <Project Path="src/SharedKernel.GraphQL/SharedKernel.GraphQL.csproj"/>
     </Folder>
+    <Folder Name="/src/BuildingBlocks/">
+        <Project Path="src/BuildingBlocks/BuildingBlocks.Application/BuildingBlocks.Application.csproj" />
+        <Project Path="src/BuildingBlocks/BuildingBlocks.Domain/BuildingBlocks.Domain.csproj" />
+        <Project Path="src/BuildingBlocks/BuildingBlocks.Infrastructure.EFCore/BuildingBlocks.Infrastructure.EFCore.csproj" />
+        <Project Path="src/BuildingBlocks/BuildingBlocks.Infrastructure.Mongo/BuildingBlocks.Infrastructure.Mongo.csproj" />
+        <Project Path="src/BuildingBlocks/BuildingBlocks.Infrastructure.Redis/BuildingBlocks.Infrastructure.Redis.csproj" />
+        <Project Path="src/BuildingBlocks/BuildingBlocks.Messaging/BuildingBlocks.Messaging.csproj" />
+        <Project Path="src/BuildingBlocks/BuildingBlocks.Security/BuildingBlocks.Security.csproj" />
+        <Project Path="src/BuildingBlocks/BuildingBlocks.Web/BuildingBlocks.Web.csproj" />
+    </Folder>
     <Folder Name="/src/Modules/">
         <Project Path="src/Modules/BackgroundJobs/BackgroundJobs.csproj"/>
         <Project Path="src/Modules/Chatting/Chatting.csproj"/>

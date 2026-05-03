@@ -1,10 +1,10 @@
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Domain.Options;
 using Moq;
 using ProductCatalog;
 using ProductCatalog.Features.TenantCascadeDelete;
 using ProductCatalog.Interfaces;
 using SharedKernel.Contracts.Events;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Domain.Options;
 using Shouldly;
 using Wolverine;
 using Xunit;

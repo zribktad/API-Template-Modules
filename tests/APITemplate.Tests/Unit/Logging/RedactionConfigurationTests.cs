@@ -1,5 +1,5 @@
-using SharedKernel.Application.Options.Security;
-using SharedKernel.Infrastructure.Logging;
+using BuildingBlocks.Application.Options.Security;
+using BuildingBlocks.Web.Logging;
 using Shouldly;
 using Xunit;
 

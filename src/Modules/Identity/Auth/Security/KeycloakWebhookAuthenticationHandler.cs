@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
+using BuildingBlocks.Web.Api;
 using ErrorOr;
 using Identity.Auth.Options;
 using Identity.Errors;
@@ -12,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using SharedKernel.Contracts.Api;
 
 namespace Identity.Auth.Security;
 

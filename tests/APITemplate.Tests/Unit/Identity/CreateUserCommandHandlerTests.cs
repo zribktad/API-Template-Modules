@@ -15,7 +15,7 @@ using CreateUserCommand = Identity.Directory.Features.User.CreateUserCommand;
 using CreateUserCommandHandler = Identity.Directory.Features.User.CreateUserCommandHandler;
 using CreateUserRequest = Identity.Directory.Features.User.CreateUserRequest;
 using ErrorCatalog = Identity.Errors.ErrorCatalog;
-using IdentityUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
+using IdentityUnitOfWork = BuildingBlocks.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
 using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 using UserResponse = Identity.Directory.Features.User.UserResponse;
 

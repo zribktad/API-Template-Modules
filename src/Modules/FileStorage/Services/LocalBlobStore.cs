@@ -1,12 +1,12 @@
 using System.Buffers;
 using System.Security.Cryptography;
+using BuildingBlocks.Application.Errors;
+using BuildingBlocks.Domain.Interfaces;
 using FileStorage.Domain.Services;
 using FileStorage.Domain.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
-using SharedKernel.Application.Errors;
-using SharedKernel.Domain.Interfaces;
 using FS = FileStorage.Domain.ErrorCatalog;
 using FSDomain = FileStorage.Domain.DomainErrors;
 

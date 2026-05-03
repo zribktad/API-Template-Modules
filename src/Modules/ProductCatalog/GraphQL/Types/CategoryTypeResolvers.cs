@@ -1,10 +1,10 @@
+using BuildingBlocks.Application.Validation;
 using ErrorOr;
 using ProductCatalog.Features.Category.Shared;
 using ProductCatalog.Features.Product.GetProducts;
 using ProductCatalog.Features.Product.Shared;
 using ProductCatalog.GraphQL.Models;
 using ProductCatalog.GraphQL.Queries;
-using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Types;

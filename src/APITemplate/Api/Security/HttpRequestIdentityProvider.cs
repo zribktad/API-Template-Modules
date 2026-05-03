@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using BuildingBlocks.Application.Context;
 using Identity.Auth.Security;
-using SharedKernel.Application.Context;
 
 namespace APITemplate.Api.Security;
 

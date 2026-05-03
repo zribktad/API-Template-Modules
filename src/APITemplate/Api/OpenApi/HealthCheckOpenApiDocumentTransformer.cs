@@ -1,6 +1,6 @@
+using BuildingBlocks.Web.Health;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
-using SharedKernel.Infrastructure.Health;
 
 namespace APITemplate.Api.OpenApi;
 

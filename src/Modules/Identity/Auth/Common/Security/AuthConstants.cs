@@ -1,4 +1,4 @@
-using SharedKernel.Contracts.Security;
+using BuildingBlocks.Security;
 
 namespace Identity.Auth.Security;
 

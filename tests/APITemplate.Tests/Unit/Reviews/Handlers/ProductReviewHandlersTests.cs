@@ -1,4 +1,7 @@
 using APITemplate.Tests.Unit.Infrastructure;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Domain.Common;
+using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -6,12 +9,9 @@ using Reviews;
 using Reviews.Common.Events;
 using Reviews.Domain;
 using Reviews.Features;
-using SharedKernel.Application.Context;
 using SharedKernel.Contracts.Events;
 using SharedKernel.Contracts.Queries.ProductCatalog;
 using SharedKernel.Contracts.Queries.Reviews;
-using SharedKernel.Domain.Common;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;
@@ -73,7 +73,7 @@ public sealed class ProductReviewHandlersTests
             .ReturnsAsync(
                 (ProductReview review, CancellationToken _) =>
                 {
-                    review.Audit = new SharedKernel.Domain.Entities.AuditInfo
+                    review.Audit = new BuildingBlocks.Domain.Entities.AuditInfo
                     {
                         CreatedAtUtc = DateTime.UtcNow,
                     };

@@ -1,3 +1,6 @@
+using BuildingBlocks.Application.Options.Infrastructure;
+using BuildingBlocks.Application.Startup;
+using BuildingBlocks.Infrastructure.EFCore.Startup;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -9,8 +12,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using SharedKernel.Application.Options.Infrastructure;
-using SharedKernel.Application.Startup;
 using StackExchange.Redis;
 
 namespace APITemplate.Tests.Integration.Helpers;

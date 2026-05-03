@@ -1,7 +1,7 @@
 using BackgroundJobs.Options;
 using BackgroundJobs.TickerQ.RecurringJobRegistrations;
+using BuildingBlocks.Application.BackgroundJobs;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.BackgroundJobs;
 using Shouldly;
 using Xunit;
 

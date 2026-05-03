@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Validation;
 using ProductCatalog.Features.Product.Shared;
-using SharedKernel.Application.Validation;
 
 namespace ProductCatalog.Features.Product.GetProducts;
 

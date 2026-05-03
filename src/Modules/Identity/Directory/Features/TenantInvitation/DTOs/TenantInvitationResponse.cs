@@ -1,4 +1,4 @@
-using SharedKernel.Infrastructure.Logging;
+using BuildingBlocks.Web.Logging;
 
 namespace Identity.Directory.Features.TenantInvitation.DTOs;
 

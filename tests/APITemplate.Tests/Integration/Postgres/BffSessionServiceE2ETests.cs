@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using APITemplate.Tests.Unit.Helpers;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
 using Identity.Auth.Entities;
 using Identity.Auth.Options;
 using Identity.Auth.Security;
@@ -15,8 +17,6 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Context;
-using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using Xunit;
 

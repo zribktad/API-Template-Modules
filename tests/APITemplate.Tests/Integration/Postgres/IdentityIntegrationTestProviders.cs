@@ -1,4 +1,4 @@
-using SharedKernel.Application.Context;
+using BuildingBlocks.Application.Context;
 
 namespace APITemplate.Tests.Integration.Postgres;
 

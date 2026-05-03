@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using APITemplate.Tests.Integration.Helpers;
+using BuildingBlocks.Security;
 using Identity.Directory.Entities;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 

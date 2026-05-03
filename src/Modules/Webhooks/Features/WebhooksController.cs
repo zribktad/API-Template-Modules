@@ -1,7 +1,7 @@
 using Asp.Versioning;
+using BuildingBlocks.Web.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Contracts.Api;
 using Webhooks.Contracts;
 using Webhooks.Security;
 

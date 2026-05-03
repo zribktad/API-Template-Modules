@@ -1,5 +1,5 @@
+using BuildingBlocks.Domain.Interfaces;
 using Notifications.Domain;
-using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.StoredProcedures;
 

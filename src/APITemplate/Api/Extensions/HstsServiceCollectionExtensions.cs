@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Options.Http;
-using SharedKernel.Infrastructure.Configuration;
 
 namespace APITemplate.Api.Extensions;
 

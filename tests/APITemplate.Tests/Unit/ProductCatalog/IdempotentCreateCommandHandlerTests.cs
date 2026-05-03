@@ -1,10 +1,10 @@
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Domain.Options;
 using ErrorOr;
 using Moq;
 using ProductCatalog;
 using ProductCatalog.Features.Product.IdempotentCreate;
 using ProductCatalog.Interfaces;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Domain.Options;
 using Shouldly;
 using Xunit;
 using ProductEntity = ProductCatalog.Entities.Product;

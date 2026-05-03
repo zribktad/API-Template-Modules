@@ -27,6 +27,7 @@ artifacts/
 
 # Agents
 .claude/settings.local.json
+*.skill
 
 # Logs
 *.log
@@ -63,3 +64,4 @@ publish/
 
 # MkDocs site output
 docs/site/
+

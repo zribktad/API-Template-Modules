@@ -1,16 +1,16 @@
+using BuildingBlocks.Application.Errors;
 using ErrorOr;
 using Identity.Auth.Entities;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
 using Microsoft.Extensions.Logging;
 using Moq;
-using SharedKernel.Application.Errors;
 using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;
 using Xunit;
 using IKeycloakAdminService = Identity.Auth.Security.IKeycloakAdminService;
-using IUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
+using IUnitOfWork = BuildingBlocks.Domain.Interfaces.IUnitOfWork<Identity.IdentityDbMarker>;
 using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 
 namespace APITemplate.Tests.Unit.Identity;

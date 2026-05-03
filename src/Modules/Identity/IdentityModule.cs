@@ -1,3 +1,6 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Infrastructure.EFCore.Startup;
 using Identity.Auth.Http;
 using Identity.Auth.Options;
 using Identity.Auth.Security.ExternalIdentityProviders;
@@ -16,9 +19,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Resilience;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.Startup;
 
 namespace Identity;
 

@@ -1,4 +1,7 @@
 using APITemplate.Tests.Unit.Infrastructure;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Application.DTOs;
+using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using Moq;
 using ProductCatalog;
@@ -7,10 +10,7 @@ using ProductCatalog.Entities;
 using ProductCatalog.Features.Category.DeleteCategories;
 using ProductCatalog.Features.Category.Shared;
 using ProductCatalog.Interfaces;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.DTOs;
 using SharedKernel.Contracts.Events;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;

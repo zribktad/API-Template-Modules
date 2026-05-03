@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.DTOs;
 using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Entities;
@@ -5,7 +6,6 @@ using ProductCatalog.Entities.ProductData;
 using ProductCatalog.Features.Category.Shared;
 using ProductCatalog.Features.Product.CreateProducts;
 using ProductCatalog.Interfaces;
-using SharedKernel.Application.DTOs;
 using Shouldly;
 using Xunit;
 

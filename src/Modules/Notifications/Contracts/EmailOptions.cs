@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Infrastructure.Logging;
+using BuildingBlocks.Web.Logging;
 
 namespace Notifications.Contracts;
 

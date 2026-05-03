@@ -1,11 +1,11 @@
 using Asp.Versioning;
+using BuildingBlocks.Web.Api;
 using ErrorOr;
 using Identity.Auth.Security;
 using Identity.Directory.Features.Account;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Contracts.Api;
 using Wolverine;
 
 namespace Identity.Directory.Controllers.V1;

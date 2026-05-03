@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Errors;
 using ErrorOr;
 using HotChocolate;
 using ProductCatalog.GraphQL;
-using SharedKernel.Application.Errors;
 using SharedKernel.GraphQL.Extensions;
 using Shouldly;
 using Xunit;

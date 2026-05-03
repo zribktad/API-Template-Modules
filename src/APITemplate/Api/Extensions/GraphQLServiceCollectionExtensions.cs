@@ -1,3 +1,5 @@
+using BuildingBlocks.Application.Constants;
+using BuildingBlocks.Application.DTOs;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -5,8 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ProductCatalog;
 using Reviews;
-using SharedKernel.Application.Constants;
-using SharedKernel.Application.DTOs;
 
 namespace APITemplate.Api.Extensions;
 

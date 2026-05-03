@@ -1,6 +1,6 @@
 using APITemplate.Api.Middleware;
+using BuildingBlocks.Application.Http;
 using Microsoft.AspNetCore.Http;
-using SharedKernel.Application.Http;
 using Shouldly;
 using Xunit;
 

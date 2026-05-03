@@ -1,9 +1,9 @@
+using BuildingBlocks.Application.Errors;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Notifications.Contracts;
 using Notifications.Handlers;
 using Polly;
-using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
 

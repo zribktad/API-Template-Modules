@@ -1,8 +1,8 @@
+using BuildingBlocks.Application.Validation;
 using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Product.CreateProducts;
 using ProductCatalog.Features.Product.DeleteProducts;
-using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Mutations;

@@ -1,5 +1,5 @@
+using BuildingBlocks.Application.Http;
 using Serilog.Context;
-using SharedKernel.Application.Http;
 
 namespace APITemplate.Api.Middleware;
 

@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using SharedKernel.Application.Http;
 
 namespace APITemplate.Tests.Integration.Infrastructure;
 

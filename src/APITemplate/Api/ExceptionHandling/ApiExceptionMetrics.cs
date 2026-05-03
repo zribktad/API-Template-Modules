@@ -1,6 +1,6 @@
 using System.Diagnostics.Metrics;
+using BuildingBlocks.Web.Observability;
 using Microsoft.Extensions.Diagnostics;
-using SharedKernel.Infrastructure.Observability;
 
 namespace APITemplate.Api.ExceptionHandling;
 

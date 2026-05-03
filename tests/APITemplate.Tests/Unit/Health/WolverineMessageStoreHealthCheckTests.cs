@@ -1,7 +1,7 @@
+using BuildingBlocks.Web.Health;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Moq;
-using SharedKernel.Infrastructure.Health;
 using Shouldly;
 using Wolverine.Logging;
 using Wolverine.Persistence.Durability;

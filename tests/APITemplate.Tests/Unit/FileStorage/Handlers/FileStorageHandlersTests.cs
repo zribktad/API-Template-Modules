@@ -1,3 +1,4 @@
+using BuildingBlocks.Infrastructure.EFCore.Persistence.DesignTime;
 using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain;
@@ -10,7 +11,6 @@ using FileStorage.Features.Upload;
 using FileStorage.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using SharedKernel.Infrastructure.Persistence.DesignTime;
 using Shouldly;
 using Wolverine;
 using Xunit;

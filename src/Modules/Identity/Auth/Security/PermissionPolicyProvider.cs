@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
+using BuildingBlocks.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using SharedKernel.Contracts.Security;
 
 namespace Identity.Auth.Security;
 
@@ -36,8 +36,7 @@ public sealed class PermissionPolicyProvider : IAuthorizationPolicyProvider
         return Task.FromResult<AuthorizationPolicy?>(policy);
     }
 
-    public Task<AuthorizationPolicy> GetDefaultPolicyAsync() =>
-        _fallback.GetDefaultPolicyAsync();
+    public Task<AuthorizationPolicy> GetDefaultPolicyAsync() => _fallback.GetDefaultPolicyAsync();
 
     public Task<AuthorizationPolicy?> GetFallbackPolicyAsync() =>
         _fallback.GetFallbackPolicyAsync();

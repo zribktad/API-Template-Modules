@@ -1,5 +1,5 @@
+using BuildingBlocks.Domain.Common;
 using MongoDB.Bson.Serialization.Attributes;
-using SharedKernel.Domain.Common;
 
 namespace ProductCatalog.Entities.ProductData;
 

@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using BuildingBlocks.Application.Errors;
 using Fluid;
 using Notifications.Contracts;
-using SharedKernel.Application.Errors;
 using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace Notifications.Services;

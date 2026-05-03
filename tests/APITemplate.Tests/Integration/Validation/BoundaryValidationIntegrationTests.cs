@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using BuildingBlocks.Security;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 

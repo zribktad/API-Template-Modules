@@ -1,6 +1,6 @@
+using BuildingBlocks.Application.Validation;
 using ErrorOr;
 using ProductCatalog.ValueObjects;
-using SharedKernel.Application.Validation;
 using SystemTextJsonPatch;
 using Wolverine;
 using IProductRepository = ProductCatalog.Interfaces.IProductRepository;

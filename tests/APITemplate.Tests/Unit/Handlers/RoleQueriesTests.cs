@@ -1,4 +1,7 @@
 using System.Security.Claims;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Security;
 using global::Identity.Auth.Security;
 using global::Identity.Directory.Entities;
 using global::Identity.Directory.Features.Role.GetPermissions;
@@ -7,9 +10,6 @@ using global::Identity.Directory.Features.Role.Shared;
 using global::Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using SharedKernel.Application.Context;
-using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Xunit;
 

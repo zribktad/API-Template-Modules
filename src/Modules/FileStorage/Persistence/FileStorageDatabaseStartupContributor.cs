@@ -1,6 +1,6 @@
+using BuildingBlocks.Infrastructure.EFCore.Startup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Infrastructure.Startup;
 
 namespace FileStorage.Persistence;
 

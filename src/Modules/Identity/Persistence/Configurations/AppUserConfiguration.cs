@@ -1,6 +1,6 @@
+using BuildingBlocks.Infrastructure.EFCore.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SharedKernel.Infrastructure.Configurations;
 
 namespace Identity.Persistence.Configurations;
 

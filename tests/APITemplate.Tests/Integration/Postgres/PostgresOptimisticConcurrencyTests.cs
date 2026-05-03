@@ -1,4 +1,5 @@
 using APITemplate.Tests.Unit.Helpers;
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
 using FileStorage.Domain.Sagas;
 using FileStorage.Persistence;
 using Identity.Directory.Entities;
@@ -6,7 +7,6 @@ using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using Xunit;
 

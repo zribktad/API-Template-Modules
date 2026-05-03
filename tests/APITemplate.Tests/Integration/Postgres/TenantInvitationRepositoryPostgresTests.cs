@@ -1,10 +1,10 @@
 using APITemplate.Tests.Unit.Helpers;
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Repositories;
 using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using Xunit;
 

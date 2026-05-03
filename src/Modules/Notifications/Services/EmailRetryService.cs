@@ -1,11 +1,11 @@
+using BuildingBlocks.Application.Errors;
+using BuildingBlocks.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
 using Notifications.Domain;
 using Notifications.Logging;
 using Polly;
-using SharedKernel.Application.Errors;
-using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.Services;
 

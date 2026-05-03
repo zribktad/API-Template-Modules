@@ -1,8 +1,8 @@
+using BuildingBlocks.Application.Errors;
 using Microsoft.Extensions.Options;
 using Moq;
 using Notifications.Contracts;
 using Notifications.Features;
-using SharedKernel.Application.Errors;
 using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;

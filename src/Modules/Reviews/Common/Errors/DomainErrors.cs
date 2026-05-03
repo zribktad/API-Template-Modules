@@ -25,7 +25,7 @@ public static class DomainErrors
         public static Error ForbiddenOwnReviewsOnly()
         {
             return Error.Forbidden(
-                SharedKernel.Application.Errors.ErrorCatalog.Auth.Forbidden,
+                BuildingBlocks.Application.Errors.ErrorCatalog.Auth.Forbidden,
                 ErrorCatalog.Reviews.ForbiddenOwnReviewsOnlyMessage
             );
         }

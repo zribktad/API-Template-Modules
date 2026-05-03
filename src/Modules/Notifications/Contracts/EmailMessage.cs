@@ -1,4 +1,4 @@
-using SharedKernel.Infrastructure.Logging;
+using BuildingBlocks.Web.Logging;
 
 namespace Notifications.Contracts;
 

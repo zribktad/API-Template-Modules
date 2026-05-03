@@ -1,4 +1,6 @@
 using System.Text;
+using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Infrastructure.EFCore.Persistence.DesignTime;
 using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain;
@@ -15,10 +17,8 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Registry;
 using Polly.Retry;
-using SharedKernel.Application.Resilience;
 using SharedKernel.Contracts.Commands.FileStorage;
 using SharedKernel.Infrastructure.Ids;
-using SharedKernel.Infrastructure.Persistence.DesignTime;
 using Shouldly;
 using Xunit;
 

@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using BuildingBlocks.Security;
 using ErrorOr;
 using Identity.Directory.Features.Role.CreateRole;
 using Identity.Directory.Features.Role.DeleteRole;
@@ -8,7 +9,6 @@ using Identity.Directory.Features.Role.GetRoles;
 using Identity.Directory.Features.Role.Shared;
 using Identity.Directory.Features.Role.UpdateRole;
 using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Contracts.Security;
 using Wolverine;
 
 namespace Identity.Directory.Controllers.V1;

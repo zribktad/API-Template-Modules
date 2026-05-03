@@ -1,7 +1,7 @@
+using BuildingBlocks.Infrastructure.EFCore.Configurations;
 using FileStorage.Domain.Sagas;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SharedKernel.Infrastructure.Configurations;
 
 namespace FileStorage.Persistence;
 

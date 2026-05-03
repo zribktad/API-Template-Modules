@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
+using BuildingBlocks.Application.Http;
 using Identity.Directory.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedKernel.Application.Http;
 using Shouldly;
 using Xunit;
 

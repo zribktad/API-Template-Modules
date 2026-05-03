@@ -1,11 +1,11 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Infrastructure.EFCore.Registration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Reviews.Features;
 using Reviews.Persistence;
 using Reviews.Repositories;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.Registration;
 
 namespace Reviews;
 

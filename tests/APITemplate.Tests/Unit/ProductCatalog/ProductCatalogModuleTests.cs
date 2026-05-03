@@ -1,3 +1,6 @@
+using BuildingBlocks.Application.Batch;
+using BuildingBlocks.Application.Batch.Rules;
+using BuildingBlocks.Application.Validation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProductCatalog;
@@ -5,9 +8,6 @@ using ProductCatalog.Features.Category.CreateCategories;
 using ProductCatalog.Features.Category.UpdateCategories;
 using ProductCatalog.Features.Product.CreateProducts;
 using ProductCatalog.Features.Product.UpdateProducts;
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
-using SharedKernel.Application.Validation;
 using Shouldly;
 using Xunit;
 

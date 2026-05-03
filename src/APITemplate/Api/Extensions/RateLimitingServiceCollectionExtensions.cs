@@ -1,13 +1,13 @@
 using System.Globalization;
 using System.Threading.RateLimiting;
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Application.Errors;
+using BuildingBlocks.Application.Http;
+using BuildingBlocks.Web.Api;
 using ErrorOr;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Net.Http.Headers;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Errors;
-using SharedKernel.Application.Http;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Infrastructure.Configuration;
 
 namespace APITemplate.Api.Extensions;
 

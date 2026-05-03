@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.Errors;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
@@ -5,7 +6,6 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using Notifications.Contracts;
 using Notifications.Logging;
-using SharedKernel.Application.Errors;
 using NTF = Notifications.Errors.ErrorCatalog;
 
 namespace Notifications.Services;

@@ -58,7 +58,7 @@ internal static class IntegrationAuthHelper
             claims.Add(
                 new Claim(
                     AuthConstants.Claims.Permission,
-                    SharedKernel.Contracts.Security.Permission.Platform.Manage
+                    BuildingBlocks.Security.Permission.Platform.Manage
                 )
             );
         }
@@ -67,7 +67,7 @@ internal static class IntegrationAuthHelper
             claims.Add(
                 new Claim(
                     AuthConstants.Claims.Permission,
-                    SharedKernel.Contracts.Security.Permission.Tenant.Manage
+                    BuildingBlocks.Security.Permission.Tenant.Manage
                 )
             );
         }

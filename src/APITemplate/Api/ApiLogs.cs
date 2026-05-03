@@ -1,5 +1,5 @@
+using BuildingBlocks.Web.Logging;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Infrastructure.Logging;
 
 namespace APITemplate.Api;
 

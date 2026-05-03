@@ -1,9 +1,9 @@
+using BuildingBlocks.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
 using Notifications.Domain;
 using Notifications.Logging;
-using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.Services;
 
@@ -17,10 +17,7 @@ public sealed class FailedEmailStore : IFailedEmailStore
     private readonly ILogger<FailedEmailStore> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public FailedEmailStore(
-        IServiceScopeFactory scopeFactory,
-        ILogger<FailedEmailStore> logger
-    )
+    public FailedEmailStore(IServiceScopeFactory scopeFactory, ILogger<FailedEmailStore> logger)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;

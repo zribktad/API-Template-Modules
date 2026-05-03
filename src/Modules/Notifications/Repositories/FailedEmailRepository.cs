@@ -1,8 +1,8 @@
+using BuildingBlocks.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Notifications.Domain;
 using Notifications.Persistence;
 using Notifications.StoredProcedures;
-using SharedKernel.Domain.Interfaces;
 
 namespace Notifications.Repositories;
 

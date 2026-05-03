@@ -1,8 +1,8 @@
+using BuildingBlocks.Infrastructure.EFCore.Persistence;
+using BuildingBlocks.Infrastructure.EFCore.Startup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using SharedKernel.Infrastructure.Persistence;
-using SharedKernel.Infrastructure.Startup;
 
 namespace Identity.Persistence;
 

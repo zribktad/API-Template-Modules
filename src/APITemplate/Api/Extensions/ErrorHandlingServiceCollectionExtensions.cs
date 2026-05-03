@@ -1,7 +1,7 @@
 using APITemplate.Api.ExceptionHandling;
-using SharedKernel.Application.Options.Http;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Infrastructure.Configuration;
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options.Http;
+using BuildingBlocks.Web.Api;
 
 namespace APITemplate.Api.Extensions;
 

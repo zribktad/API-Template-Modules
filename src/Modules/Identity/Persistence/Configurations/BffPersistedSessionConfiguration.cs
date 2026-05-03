@@ -1,7 +1,7 @@
+using BuildingBlocks.Infrastructure.EFCore.Configurations;
 using Identity.Auth.Security.Sessions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SharedKernel.Infrastructure.Configurations;
 
 namespace Identity.Persistence.Configurations;
 

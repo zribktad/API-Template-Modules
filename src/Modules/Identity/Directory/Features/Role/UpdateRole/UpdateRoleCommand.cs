@@ -1,14 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Validation;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Security;
 using ErrorOr;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.InvalidatePermissions;
 using Identity.Directory.Features.Role.Shared;
-using Microsoft.AspNetCore.Http;
 using Identity.Directory.Interfaces;
-using SharedKernel.Application.Validation;
-using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Interfaces;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 using Wolverine;
 
 namespace Identity.Directory.Features.Role.UpdateRole;

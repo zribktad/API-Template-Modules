@@ -1,5 +1,5 @@
-using SharedKernel.Domain.Entities;
-using SharedKernel.Domain.Entities.Contracts;
+using BuildingBlocks.Domain.Entities;
+using BuildingBlocks.Domain.Entities.Contracts;
 
 namespace FileStorage.Domain;
 

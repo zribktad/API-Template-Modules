@@ -1,8 +1,8 @@
+using BuildingBlocks.Application.Validation;
 using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Category.GetCategories;
 using ProductCatalog.Features.Category.GetCategoryById;
-using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Queries;

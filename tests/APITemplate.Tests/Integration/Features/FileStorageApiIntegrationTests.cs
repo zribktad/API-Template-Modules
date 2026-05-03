@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using APITemplate.Tests.Integration.Helpers;
+using BuildingBlocks.Security;
 using FileStorage.Contracts;
 using Identity.Directory.Entities;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 

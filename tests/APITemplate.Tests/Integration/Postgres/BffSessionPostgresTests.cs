@@ -1,4 +1,6 @@
 using APITemplate.Tests.Unit.Helpers;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
 using Identity.Auth.Entities;
 using Identity.Auth.Handlers;
 using Identity.Auth.Options;
@@ -12,9 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using SharedKernel.Application.Context;
 using SharedKernel.Contracts.Commands.Cleanup;
-using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using StackExchange.Redis;
 using Xunit;

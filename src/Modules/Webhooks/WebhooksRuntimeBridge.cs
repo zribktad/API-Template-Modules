@@ -1,11 +1,11 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Infrastructure.EFCore.Registration;
+using BuildingBlocks.Web.Resilience;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
-using SharedKernel.Application.Resilience;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.Registration;
-using SharedKernel.Infrastructure.Resilience;
 using Webhooks.Contracts;
 using Webhooks.Security;
 using Webhooks.Services;

@@ -1,3 +1,7 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Infrastructure.EFCore.Registration;
+using BuildingBlocks.Infrastructure.EFCore.Startup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,10 +12,6 @@ using Notifications.Repositories;
 using Notifications.Services;
 using Polly;
 using Polly.Retry;
-using SharedKernel.Application.Resilience;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.Registration;
-using SharedKernel.Infrastructure.Startup;
 
 namespace Notifications;
 

@@ -1,9 +1,9 @@
 using System.Net;
+using BuildingBlocks.Web.Health;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using SharedKernel.Infrastructure.Health;
 using Shouldly;
 using Xunit;
 

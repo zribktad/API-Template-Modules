@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Errors;
 using ErrorOr;
 using Identity.Logging;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Application.Errors;
 using Wolverine;
 using Wolverine.ErrorHandling;
 using Wolverine.Runtime.Handlers;

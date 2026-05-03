@@ -1,3 +1,4 @@
+using BuildingBlocks.Domain.Common;
 using ErrorOr;
 using Identity.Directory.Domain.Services;
 using Identity.Directory.Entities;
@@ -6,12 +7,11 @@ using Identity.Directory.Features.User;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using SharedKernel.Contracts.Events;
-using SharedKernel.Domain.Common;
 using Shouldly;
 using Wolverine;
 using Xunit;
 using ErrorCatalog = Identity.Errors.ErrorCatalog;
-using IdentityUnitOfWork = SharedKernel.Domain.Interfaces.IUnitOfWork<global::Identity.IdentityDbMarker>;
+using IdentityUnitOfWork = BuildingBlocks.Domain.Interfaces.IUnitOfWork<global::Identity.IdentityDbMarker>;
 using IUserRepository = Identity.Directory.Interfaces.IUserRepository;
 
 namespace APITemplate.Tests.Unit.Handlers;

@@ -1,8 +1,8 @@
+using BuildingBlocks.Application.Errors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
-using SharedKernel.Application.Errors;
 using Webhooks.Contracts;
 
 namespace Webhooks.Security;

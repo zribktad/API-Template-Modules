@@ -1,6 +1,6 @@
+using BuildingBlocks.Web.InfrastructureBackgroundJobs.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Infrastructure.BackgroundJobs.Services;
 using Webhooks.Contracts;
 using Webhooks.Logging;
 

@@ -1,5 +1,5 @@
+using BuildingBlocks.Infrastructure.EFCore.Repositories;
 using FileStorage.Persistence;
-using SharedKernel.Infrastructure.Repositories;
 
 namespace FileStorage.Domain;
 

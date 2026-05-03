@@ -2,11 +2,11 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
+using BuildingBlocks.Application.DTOs;
+using BuildingBlocks.Security;
 using Identity.Directory.Entities;
 using Microsoft.AspNetCore.Mvc.Testing;
 using ProductCatalog.Features.Product.Shared;
-using SharedKernel.Application.DTOs;
-using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 

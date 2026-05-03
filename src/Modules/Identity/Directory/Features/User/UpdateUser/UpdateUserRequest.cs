@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Web.Logging;
 using Identity.Directory.Entities;
-using SharedKernel.Infrastructure.Logging;
 
 namespace Identity.Directory.Features.User;
 

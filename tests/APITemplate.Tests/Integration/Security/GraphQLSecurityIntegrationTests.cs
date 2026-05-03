@@ -2,9 +2,9 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
+using BuildingBlocks.Application.Constants;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedKernel.Application.Constants;
 using Shouldly;
 using Xunit;
 

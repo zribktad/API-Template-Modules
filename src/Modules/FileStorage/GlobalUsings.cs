@@ -1,9 +1,9 @@
+global using BuildingBlocks.Application.DTOs;
+global using BuildingBlocks.Domain.Interfaces;
+global using BuildingBlocks.Security;
+global using BuildingBlocks.Web.Api;
 global using ErrorOr;
 global using FileStorage.Contracts;
 global using FileStorage.Domain;
 global using FileStorage.Persistence;
 global using FileStorage.Services;
-global using SharedKernel.Application.DTOs;
-global using SharedKernel.Contracts.Api;
-global using SharedKernel.Contracts.Security;
-global using SharedKernel.Domain.Interfaces;

@@ -2,13 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using APITemplate.Tests.Integration.Helpers;
+using BuildingBlocks.Domain.Common;
+using BuildingBlocks.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Tenant.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
-using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Common;
 using Shouldly;
 using Xunit;
 

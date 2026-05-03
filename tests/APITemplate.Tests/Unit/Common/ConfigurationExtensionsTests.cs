@@ -1,5 +1,5 @@
+using BuildingBlocks.Application.Configuration;
 using Microsoft.Extensions.Configuration;
-using SharedKernel.Infrastructure.Configuration;
 using Shouldly;
 using Xunit;
 

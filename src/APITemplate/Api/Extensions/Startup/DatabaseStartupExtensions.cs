@@ -1,7 +1,7 @@
+using BuildingBlocks.Infrastructure.EFCore.Startup;
 using Identity.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Infrastructure.Startup;
 
 namespace APITemplate.Api.Extensions.Startup;
 

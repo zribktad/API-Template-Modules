@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
+using BuildingBlocks.Application.Errors;
+using BuildingBlocks.Application.Resilience;
 using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain.Services;
@@ -10,8 +12,6 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Registry;
 using Polly.Retry;
-using SharedKernel.Application.Errors;
-using SharedKernel.Application.Resilience;
 using SharedKernel.Infrastructure.Ids;
 using Shouldly;
 using Xunit;

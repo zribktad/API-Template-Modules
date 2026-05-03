@@ -1,3 +1,4 @@
+using BuildingBlocks.Web.Logging;
 using Identity.Directory.Entities;
 using Identity.Directory.Enums;
 using Identity.Directory.Features.TenantInvitation.Specifications;
@@ -6,7 +7,6 @@ using Identity.Directory.Security;
 using Identity.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Infrastructure.Logging;
 using TenantInvitationEntity = Identity.Directory.Entities.TenantInvitation;
 
 namespace Identity.Directory.Features.User;

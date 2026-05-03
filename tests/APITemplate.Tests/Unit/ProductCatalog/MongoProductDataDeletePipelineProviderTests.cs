@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Resilience;
 using Polly;
 using Polly.Registry;
 using ProductCatalog.Services;
-using SharedKernel.Application.Resilience;
 using Shouldly;
 using Xunit;
 

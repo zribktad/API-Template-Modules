@@ -1,5 +1,5 @@
+using BuildingBlocks.Domain.Entities.Contracts;
 using ErrorOr;
-using SharedKernel.Domain.Entities.Contracts;
 using SharedKernel.Extensions;
 
 namespace Notifications.Domain;
@@ -58,7 +58,11 @@ public sealed class FailedEmail : IHasId
     ///     Attempts to claim this email for exclusive processing by <paramref name="workerId" />.
     ///     Returns <see cref="Error.Conflict" /> if a valid (non-expired) claim already exists.
     /// </summary>
-    public ErrorOr<Success> Claim(string workerId, TimeProvider timeProvider, TimeSpan leaseDuration)
+    public ErrorOr<Success> Claim(
+        string workerId,
+        TimeProvider timeProvider,
+        TimeSpan leaseDuration
+    )
     {
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         if (ClaimedUntilUtc.HasValue && ClaimedUntilUtc.Value > now)
@@ -95,5 +99,4 @@ public sealed class FailedEmail : IHasId
         ClaimedAtUtc = null;
         ClaimedUntilUtc = null;
     }
-
 }
