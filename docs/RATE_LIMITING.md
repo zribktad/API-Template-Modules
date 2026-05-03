@@ -133,4 +133,4 @@ public IActionResult Ping() => Ok();
 - **Middleware:** `app.UseRateLimiter()` is registered in `ApplicationBuilderExtensions.cs`.
 - **Service Registration:** `services.AddRateLimiting(configuration)` is registered in `RateLimitingServiceCollectionExtensions.cs`.
 - **Validation:** Options are validated at startup. `PermitLimit` must be greater than 0.
-- **Storage:** The current implementation uses in-memory partitioning. However, the system is designed to share the same `RedisOptions` as other infrastructure, making it ready for a **DragonFly**-backed distributed rate limiter if horizontal scaling requires global quota enforcement.
+- **Storage:** The implementation uses **Redis/Dragonfly** via the `RedisRateLimiting` library. This ensures that rate limits are distributed and synchronized across all API nodes in a cluster, preventing users from bypassing quotas by switching instances. The limiter reuses the same `IConnectionMultiplexer` established for other infrastructure (caching, sessions).

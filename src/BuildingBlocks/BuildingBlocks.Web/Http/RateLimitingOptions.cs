@@ -8,6 +8,13 @@ public sealed class RateLimitingOptions
 {
     public const string Section = "RateLimiting";
 
+    /// <summary>
+    ///     If true, the application will attempt to use Redis/Dragonfly as a shared backplane
+    ///     for rate limiting across a cluster. If false, or if Redis is not configured,
+    ///     it will fall back to local in-memory limiting.
+    /// </summary>
+    public bool AllowDistributedRateLimiting { get; init; } = true;
+
     // Baseline budget applied to every request via GlobalLimiter.
     [Required]
     public RateLimitPolicyOptions Global { get; init; } = new();
@@ -44,4 +51,3 @@ public sealed class RateLimitPolicyOptions
     [Range(1, int.MaxValue)]
     public int TokensPerPeriod { get; init; } = 1000;
 }
-

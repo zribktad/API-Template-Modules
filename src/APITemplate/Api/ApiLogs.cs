@@ -46,4 +46,19 @@ internal static partial class ApiLogs
         Exception exception,
         string tag
     );
+
+    // Infrastructure Diagnostics (1100-1101)
+    [LoggerMessage(
+        EventId = 1100,
+        Level = LogLevel.Information,
+        Message = "Distributed Rate Limiting is active using Redis backplane."
+    )]
+    public static partial void DistributedRateLimitingActive(this ILogger logger);
+
+    [LoggerMessage(
+        EventId = 1101,
+        Level = LogLevel.Information,
+        Message = "Rate Limiting is running in local In-Memory mode (Distributed disabled or Redis missing)."
+    )]
+    public static partial void InMemoryRateLimitingActive(this ILogger logger);
 }

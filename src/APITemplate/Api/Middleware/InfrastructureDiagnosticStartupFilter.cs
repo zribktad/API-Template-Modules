@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Http;
 using FileStorage.Contracts;
 using Identity.Auth.Options;
 using Npgsql;
@@ -105,6 +106,26 @@ internal sealed class InfrastructureDiagnosticStartupFilter(
         else
         {
             logger.HstsDisabled();
+        }
+
+        LogRateLimitingStatus();
+    }
+
+    private void LogRateLimitingStatus()
+    {
+        RateLimitingOptions? options = configuration
+            .GetSection(RateLimitingOptions.Section)
+            .Get<RateLimitingOptions>();
+
+        bool isRedisAvailable = configuration.IsRedisConfigured();
+
+        if (options?.AllowDistributedRateLimiting == true && isRedisAvailable)
+        {
+            logger.DistributedRateLimitingActive();
+        }
+        else
+        {
+            logger.InMemoryRateLimitingActive();
         }
     }
 }

@@ -34,6 +34,14 @@ string connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required.");
 
+builder.WebHost.ConfigureKestrel(
+    (context, options) =>
+    {
+        options.Limits.MaxRequestBodySize =
+            context.Configuration.GetValue<long>("Security:RequestSizeLimitMb") * 1024 * 1024;
+    }
+);
+
 builder.AddApplicationRedaction();
 
 builder.Host.UseSerilog(
@@ -54,6 +62,11 @@ builder.Host.UseSerilog(
 MongoSerializationConfiguration.Configure();
 
 builder.Services.AddRequestContext();
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize =
+        builder.Configuration.GetValue<long>("Security:RequestSizeLimitMb") * 1024 * 1024;
+});
 builder.Services.AddHstsRegistration(builder.Configuration);
 builder.Services.AddApiVersioningRegistration();
 builder.Services.AddRequestValidation();

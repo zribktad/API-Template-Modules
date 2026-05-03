@@ -56,16 +56,13 @@ public static class ErrorOrGraphQLExtensions
         throw new GraphQLException(
             result.Errors.Select(e =>
             {
-                IErrorBuilder builder = ErrorBuilder
-                    .New()
-                    .SetMessage(e.Description)
-                    .SetCode(e.Code);
+                ErrorBuilder builder = ErrorBuilder.New().SetMessage(e.Description).SetCode(e.Code);
                 if (
                     e.Metadata?.TryGetValue(ValidationConstants.PropertyNameKey, out object? pn)
                     == true
                 )
                 {
-                    builder = builder.SetExtension(ValidationConstants.PropertyNameKey, pn);
+                    builder.SetExtension(ValidationConstants.PropertyNameKey, pn);
                 }
                 return builder.Build();
             })
@@ -92,16 +89,13 @@ public static class ErrorOrGraphQLExtensions
         throw new GraphQLException(
             result.Errors.Select(e =>
             {
-                IErrorBuilder builder = ErrorBuilder
-                    .New()
-                    .SetMessage(e.Description)
-                    .SetCode(e.Code);
+                ErrorBuilder builder = ErrorBuilder.New().SetMessage(e.Description).SetCode(e.Code);
                 if (
                     e.Metadata?.TryGetValue(ValidationConstants.PropertyNameKey, out object? pn)
                     == true
                 )
                 {
-                    builder = builder.SetExtension(ValidationConstants.PropertyNameKey, pn);
+                    builder.SetExtension(ValidationConstants.PropertyNameKey, pn);
                 }
                 return builder.Build();
             })
