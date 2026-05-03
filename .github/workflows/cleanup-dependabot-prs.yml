@@ -1,0 +1,55 @@
+name: Cleanup Old Dependabot PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Každý deň o polnoci
+  workflow_dispatch: # Možnosť spustiť manuálne
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Close old Dependabot PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const daysLimit = 7;
+            const now = new Date();
+            const threshold = new Date(now.getTime() - (daysLimit * 24 * 60 * 60 * 1000));
+
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            for (const pr of pullRequests) {
+              // Skontrolujeme, či je autorom dependabot
+              if (pr.user.login === 'dependabot[bot]') {
+                const createdAt = new Date(pr.created_at);
+                
+                if (createdAt < threshold) {
+                  console.log(`Closing PR #${pr.number} (created at ${pr.created_at}) - older than ${daysLimit} days.`);
+                  
+                  // Pridáme komentár pred zatvorením
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    body: `Closing this PR automatically because it is older than ${daysLimit} days.`
+                  });
+
+                  // Zatvoríme PR
+                  await github.rest.pulls.update({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: pr.number,
+                    state: 'closed'
+                  });
+                }
+              }
+            }
