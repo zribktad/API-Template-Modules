@@ -6,8 +6,9 @@ A scalable, clean, and modern template designed to jumpstart **.NET 10** Web API
 
 ---
 
-## 📑 Table of Contents
-- [📚 How-To Guides](#-how-to-guides)
+## 📑 Table of Contents & Guides
+
+### 📌 Project Sections
 - [🚀 Key Features](#-key-features)
 - [🏗 Architecture Overview](#-architecture-overview)
 - [📦 Module Overview](#-module-overview)
@@ -28,10 +29,7 @@ A scalable, clean, and modern template designed to jumpstart **.NET 10** Web API
 - [🧪 Testing](#-testing)
 - [🏃 Getting Started](#-getting-started)
 
----
-
-## 📚 How-To Guides
-
+### 📚 How-To Guides
 Step-by-step guides for the most common workflows in this project:
 
 | Guide                                                    | Description                                                                 |
