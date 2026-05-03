@@ -1,7 +1,9 @@
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProductCatalog;
 using Reviews;
+using SharedKernel.Application.Constants;
 using SharedKernel.Application.DTOs;
 
 namespace APITemplate.Api.Extensions;
@@ -23,7 +25,13 @@ public static class GraphQLServiceCollectionExtensions
                 options.DefaultPageSize = PaginationFilter.DefaultPageSize;
                 options.IncludeTotalCount = true;
             })
-            .AddMaxExecutionDepthRule(5);
+            .AddMaxExecutionDepthRule(GraphQLConstants.MaxExecutionDepth) // Prevent deeply nested query DoS
+            .ModifyCostOptions(options =>
+            {
+                options.MaxFieldCost = GraphQLConstants.MaxFieldCost; // Prevent high-complexity query DoS
+                options.EnforceCostLimits = true;
+            })
+            .ModifyPagingOptions(options => options.MaxPageSize = PaginationFilter.MaxPageSize); // Enforce global paging limits
 
         return services;
     }

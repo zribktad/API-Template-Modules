@@ -61,6 +61,7 @@
     <Compile Include="Integration\Postgres\SharedPostgresContainer.cs" />
     <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
     <Compile Include="Integration\Security\SecurityHeadersTests.cs" />
+    <Compile Include="Integration\Security\GraphQLSecurityIntegrationTests.cs" />
     <Compile Include="Integration\Smoke\SmokeTestsCollection.cs" />
     <Compile Include="Integration\Smoke\SmokeTestBase.cs" />
     <Compile Include="Integration\Smoke\InfrastructureSmokeTests.cs" />
