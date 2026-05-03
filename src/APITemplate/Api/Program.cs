@@ -18,6 +18,7 @@ using Serilog;
 using SharedKernel.Application.Context;
 using SharedKernel.Application.Http;
 using SharedKernel.Infrastructure.Health;
+using SharedKernel.Infrastructure.Persistence;
 using Webhooks;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
@@ -48,6 +49,8 @@ builder.Host.UseSerilog(
 #endregion
 
 #region Service Registration
+
+MongoSerializationConfiguration.Configure();
 
 builder.Services.AddRequestContext();
 builder.Services.AddHstsRegistration(builder.Configuration);

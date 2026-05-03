@@ -30,8 +30,7 @@ public static class GraphQLServiceCollectionExtensions
             {
                 options.MaxFieldCost = GraphQLConstants.MaxFieldCost; // Prevent high-complexity query DoS
                 options.EnforceCostLimits = true;
-            })
-            .ModifyPagingOptions(options => options.MaxPageSize = PaginationFilter.MaxPageSize); // Enforce global paging limits
+            });
 
         return services;
     }
