@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Notifications;
 using ProductCatalog;
+using Reviews;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -35,6 +36,12 @@ public static class ApplicationBuilderExtensions
         app.UseRateLimiter();
         // Response headers, tenant Serilog, metrics — after Challenge/Forbid can set status.
         app.UseMiddleware<RequestContextMiddleware>();
+        // Replaces the standard ASP.NET Core request logging with a high-signal consolidated log.
+        // - GetLevel: Dynamically adjusts log level (Error for 500s/exceptions, Warning for 400s,
+        //   Information for others). Suppresses Error logs for client-aborted requests.
+        // - MessageTemplate: Standardizes the log output into a single-line summary with timing.
+        // - EnrichDiagnosticContext: Injects infrastructure metadata (Host, Scheme) into the
+        //   structured log payload for better traceability in Loki/Grafana.
         app.UseSerilogRequestLogging(options =>
         {
             options.MessageTemplate =
@@ -105,6 +112,7 @@ public static class ApplicationBuilderExtensions
             opts.UseDataAnnotationsValidationProblemDetailMiddleware();
         });
         app.MapProductCatalogEndpoints();
+        app.MapReviewsEndpoints();
         app.MapFileStorageEndpoints();
         app.MapChattingEndpoints();
         app.MapNotificationsEndpoints();

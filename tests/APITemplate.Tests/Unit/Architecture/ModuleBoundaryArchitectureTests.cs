@@ -46,19 +46,6 @@ public sealed class ModuleBoundaryArchitectureTests
     }
 
     [Fact]
-    public void ProductCatalog_TemporaryExceptionToReviews_ShouldRemainExplicitUntilRefactored()
-    {
-        string repoRoot = GetRepoRoot();
-        List<string> interModuleReferences = GetInterModuleProjectReferences(repoRoot);
-
-        interModuleReferences.ShouldContain(
-            "ProductCatalog -> Reviews",
-            "ProductCatalog -> Reviews is the only temporary cross-module exception. "
-                + "If this dependency is removed, delete the whitelist entry and this test."
-        );
-    }
-
-    [Fact]
     public void SharedKernel_ShouldNotDependOnAnyModule()
     {
         List<string> failures = new();
@@ -103,14 +90,13 @@ public sealed class ModuleBoundaryArchitectureTests
     }
 
     [Fact]
-    public void ModuleProjectReferences_ShouldOnlyContainTheExplicitTemporaryException()
+    public void ModuleProjectReferences_ShouldContainNoCrossModuleReferences()
     {
         string repoRoot = GetRepoRoot();
         List<string> interModuleReferences = GetInterModuleProjectReferences(repoRoot);
 
-        interModuleReferences.ShouldBe(
-            ["ProductCatalog -> Reviews"],
-            "Only the temporary ProductCatalog -> Reviews module reference should exist."
+        interModuleReferences.ShouldBeEmpty(
+            "No cross-module project references should exist anymore."
         );
     }
 
@@ -280,13 +266,7 @@ public sealed class ModuleBoundaryArchitectureTests
             IReadOnlySet<string>
         > _allowedModuleDependencies = new Dictionary<string, IReadOnlySet<string>>(
             StringComparer.Ordinal
-        )
-        {
-            [ProductCatalog.Name] = new HashSet<string>(StringComparer.Ordinal)
-            {
-                Reviews.RootNamespace,
-            },
-        };
+        );
 
         public static ModuleDefinition GetModule(string name)
         {

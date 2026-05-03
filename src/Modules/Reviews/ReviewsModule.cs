@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
@@ -5,6 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Reviews.Configuration;
+using Reviews.GraphQL.Mutations;
+using Reviews.GraphQL.Queries;
+using Reviews.GraphQL.Types;
 using Reviews.Persistence;
 using SharedKernel.Infrastructure.Startup;
 
@@ -26,6 +30,14 @@ public static class ReviewsModule
         >();
 
         return services;
+    }
+
+    public static IRequestExecutorBuilder AddReviewsGraphQL(this IRequestExecutorBuilder builder)
+    {
+        return builder
+            .AddTypeExtension<ProductReviewQueries>()
+            .AddTypeExtension<ProductReviewMutations>()
+            .AddType<ProductReviewType>();
     }
 
     public static IEndpointRouteBuilder MapReviewsEndpoints(this IEndpointRouteBuilder endpoints)

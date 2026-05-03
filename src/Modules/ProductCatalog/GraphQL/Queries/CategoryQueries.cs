@@ -12,7 +12,7 @@ namespace ProductCatalog.GraphQL.Queries;
 ///     root, providing paginated list and single-item lookup operations.
 /// </summary>
 [Authorize]
-[ExtendObjectType(typeof(ProductQueries))]
+[ExtendObjectType(HotChocolate.Types.OperationTypeNames.Query)]
 public sealed class CategoryQueries
 {
     /// <summary>
@@ -28,10 +28,9 @@ public sealed class CategoryQueries
     {
         CategoryFilter filter = (input ?? new CategoryQueryInput()).ToFilter();
         validator.ValidateForGraphQL(filter);
-        ErrorOr<PagedResponse<CategoryResponse>> result = await bus.InvokeAsync<ErrorOr<PagedResponse<CategoryResponse>>>(
-            new GetCategoriesQuery(filter),
-            ct
-        );
+        ErrorOr<PagedResponse<CategoryResponse>> result = await bus.InvokeAsync<
+            ErrorOr<PagedResponse<CategoryResponse>>
+        >(new GetCategoriesQuery(filter), ct);
         return new CategoryPageResult(result.ToGraphQLResult());
     }
 

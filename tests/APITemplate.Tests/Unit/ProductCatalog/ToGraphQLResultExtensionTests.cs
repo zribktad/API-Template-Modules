@@ -2,6 +2,7 @@ using ErrorOr;
 using HotChocolate;
 using ProductCatalog.GraphQL;
 using SharedKernel.Application.Errors;
+using SharedKernel.GraphQL.Extensions;
 using Shouldly;
 using Xunit;
 using DomainError = ErrorOr.Error;

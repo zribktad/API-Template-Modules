@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.Options;
-using ProductCatalog.Common.Events;
 using SharedKernel.Application.Options.Http;
+using SharedKernel.Contracts.Events;
 using SharedKernel.Infrastructure.OutputCache;
 
 namespace ProductCatalog.Configuration;

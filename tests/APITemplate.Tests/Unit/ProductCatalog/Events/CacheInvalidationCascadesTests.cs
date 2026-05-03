@@ -1,5 +1,6 @@
 using ProductCatalog;
 using ProductCatalog.Common.Events;
+using SharedKernel.Contracts.Events;
 using Shouldly;
 using Xunit;
 
@@ -22,7 +23,7 @@ public sealed class CacheInvalidationCascadesTests
         CacheInvalidationCascades
             .ForProductDeletion.Select(x => x.CacheTag)
             .ShouldBe(
-                [CacheTags.Products, CacheTags.Categories, CacheTags.Reviews],
+                [CacheTags.Products, CacheTags.Categories, CrossModuleCacheTags.Reviews],
                 ignoreOrder: true
             );
     }

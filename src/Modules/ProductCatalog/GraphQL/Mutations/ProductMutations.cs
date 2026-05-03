@@ -12,6 +12,7 @@ namespace ProductCatalog.GraphQL.Mutations;
 ///     batch CQRS handlers, enforcing per-operation authorization policies.
 /// </summary>
 [Authorize]
+[ExtendObjectType(HotChocolate.Types.OperationTypeNames.Mutation)]
 public class ProductMutations
 {
     /// <summary>Creates one or more products and returns a batch outcome.</summary>

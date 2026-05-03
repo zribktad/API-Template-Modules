@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\SharedKernel.GraphQL\SharedKernel.GraphQL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +22,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="HotChocolate.AspNetCore" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" />
     <PackageReference Include="WolverineFx" />
     <PackageReference Include="WolverineFx.Http" />
   </ItemGroup>

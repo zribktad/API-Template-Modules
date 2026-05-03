@@ -1,4 +1,4 @@
-namespace ProductCatalog.GraphQL.Models;
+namespace Reviews.GraphQL.Models;
 
 /// <summary>
 ///     GraphQL input type for querying product reviews, supporting filters by product,

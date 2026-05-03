@@ -1,5 +1,6 @@
 using Reviews;
 using Reviews.Common.Events;
+using SharedKernel.Contracts.Events;
 using Shouldly;
 using Xunit;
 
@@ -13,6 +14,6 @@ public sealed class CacheInvalidationCascadesTests
     {
         CacheInvalidationCascades
             .ForReviewChange.Select(x => x.CacheTag)
-            .ShouldBe([CacheTags.Reviews, CacheTags.Categories], ignoreOrder: true);
+            .ShouldBe([CacheTags.Reviews, CrossModuleCacheTags.Categories], ignoreOrder: true);
     }
 }

@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
-    <ProjectReference Include="..\Reviews\Reviews.csproj" />
+    <ProjectReference Include="..\..\SharedKernel.GraphQL\SharedKernel.GraphQL.csproj" />
   </ItemGroup>
 
   <ItemGroup>

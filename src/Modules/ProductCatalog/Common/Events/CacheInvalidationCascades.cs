@@ -1,3 +1,5 @@
+using SharedKernel.Contracts.Events;
+
 namespace ProductCatalog.Common.Events;
 
 public static class CacheInvalidationCascades
@@ -12,7 +14,7 @@ public static class CacheInvalidationCascades
     [
         new(CacheTags.Products),
         new(CacheTags.Categories),
-        new(CacheTags.Reviews),
+        new(CrossModuleCacheTags.Reviews),
     ];
 
     public static readonly IReadOnlyList<CacheInvalidationNotification> ForCategoryDeletion =

@@ -25,6 +25,8 @@ using Wolverine.ErrorHandling;
 using Wolverine.Http;
 using Wolverine.Postgresql;
 
+#region Setup & Logging
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 string connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
@@ -43,6 +45,10 @@ builder.Host.UseSerilog(
     }
 );
 
+#endregion
+
+#region Service Registration
+
 builder.Services.AddRequestContext();
 builder.Services.AddHstsRegistration(builder.Configuration);
 builder.Services.AddApiVersioningRegistration();
@@ -55,6 +61,7 @@ builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddRateLimiting(builder.Configuration);
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddInfrastructureDiagnostics();
+builder.Services.AddGraphQLRegistration();
 
 builder.Services.AddWolverineHttp();
 builder.Services.AddModuleHealthChecks(
@@ -72,6 +79,10 @@ builder.Services.AddBackgroundJobsModule(builder.Configuration);
 builder.Services.AddWebhooksModule(builder.Configuration);
 builder.Services.AddChattingModule(builder.Configuration);
 builder.Services.AddNotificationsModule(builder.Configuration);
+
+#endregion
+
+#region Wolverine Configuration
 
 // Auto-create Wolverine schema tables (incoming/outgoing/dead-letter) on startup.
 // Scoped to Development only — in other environments run `db-apply` as a pre-deployment step.
@@ -110,6 +121,10 @@ builder.Host.UseWolverine(options =>
     options.AddDurableRetryPolicy<MongoException>();
 });
 
+#endregion
+
+#region Middleware & Pipeline
+
 WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -120,5 +135,7 @@ app.MapApplicationEndpoints();
 app.MapDeadLettersEndpoints().RequireAuthorization(AuthConstants.Policies.PlatformAdmin);
 
 await app.RunJasperFxCommands(args);
+
+#endregion
 
 public partial class Program;
