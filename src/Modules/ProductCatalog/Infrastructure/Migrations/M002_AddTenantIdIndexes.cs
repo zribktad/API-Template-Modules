@@ -6,8 +6,7 @@ namespace ProductCatalog.Infrastructure.Migrations;
 
 /// <summary>
 ///     Adds indexes to the product_data collection to prevent full-collection scans
-///     when querying by TenantId and Id, or TenantId and IsDeleted.
-///     (Note: ProductId is managed in PostgreSQL via ProductDataLink, so we index on _id instead).
+///     when querying by TenantId and IsDeleted.
 /// </summary>
 public sealed class M002_AddTenantIdIndexes : MongoMigration
 {
@@ -22,21 +21,15 @@ public sealed class M002_AddTenantIdIndexes : MongoMigration
     {
         IMongoCollection<BsonDocument> collection = db.GetCollection<BsonDocument>("product_data");
 
-        // Index: { TenantId: 1, _id: 1 }
-        var tenantIdIdIndex = new CreateIndexModel<BsonDocument>(
-            Builders<BsonDocument>.IndexKeys.Ascending("TenantId").Ascending("_id"),
-            new CreateIndexOptions { Name = "idx_TenantId_Id" }
-        );
-
-        // Index: { TenantId: 1, IsDeleted: 1 }
+        // Index: { tenantId: 1, isDeleted: 1 }
         var tenantIdIsDeletedIndex = new CreateIndexModel<BsonDocument>(
-            Builders<BsonDocument>.IndexKeys.Ascending("TenantId").Ascending("IsDeleted"),
-            new CreateIndexOptions { Name = "idx_TenantId_IsDeleted" }
+            Builders<BsonDocument>.IndexKeys.Ascending("tenantId").Ascending("isDeleted"),
+            new CreateIndexOptions { Name = "idx_tenantId_isDeleted" }
         );
 
-        await collection.Indexes.CreateManyAsync(
+        await collection.Indexes.CreateOneAsync(
             session,
-            new[] { tenantIdIdIndex, tenantIdIsDeletedIndex },
+            tenantIdIsDeletedIndex,
             cancellationToken: ct
         );
     }
@@ -49,10 +42,9 @@ public sealed class M002_AddTenantIdIndexes : MongoMigration
     {
         IMongoCollection<BsonDocument> collection = db.GetCollection<BsonDocument>("product_data");
 
-        await collection.Indexes.DropOneAsync(session, "idx_TenantId_Id", cancellationToken: ct);
         await collection.Indexes.DropOneAsync(
             session,
-            "idx_TenantId_IsDeleted",
+            "idx_tenantId_isDeleted",
             cancellationToken: ct
         );
     }
