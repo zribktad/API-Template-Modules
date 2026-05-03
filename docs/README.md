@@ -6,6 +6,7 @@ extend the project.
 | Guide                                           | What it covers                                                                            |
 |-------------------------------------------------|-------------------------------------------------------------------------------------------|
 | [GraphQL Endpoint](graphql-endpoint.md)         | Create a type, query, mutation, and DataLoader with HotChocolate                          |
+| [GraphQL Implementation Guide ](graphql-implementation-guide.md) | Detailed guide for GraphQL implementation, resolvers, and DataLoaders (Slovak) |
 | [REST Endpoint](rest-endpoint.md)               | Full workflow: entity → DTO → validator → Wolverine handler → controller                  |
 | [Endpoint Showcases](endpoint-showcase.md)      | SSE streaming, file upload/download, async jobs, batch, idempotency, JSON Patch, webhooks |
 | [File Upload Saga](file-upload-saga.md)         | Content-addressed file storage with Wolverine saga, CAS layout, multi-backend ready       |

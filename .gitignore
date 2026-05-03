@@ -60,3 +60,6 @@ publish/
 .worktrees/
 
 
+
+# MkDocs site output
+docs/site/
