@@ -169,7 +169,9 @@ The project follows SRE best practices by using **Service Level Objectives (SLO)
 ### Latency SLO (99%)
 
 - **Target:** 99% of requests must complete within **500ms**.
-- **Alerting:** Triggers when more than 1% of requests exceed the 500ms threshold over a sustained period.
+- **Alerting:** Triggers when the "Error Budget" is being consumed too fast.
+  - **Critical:** Burn rate > 14.4x (2% budget consumed in 1h).
+  - **Warning:** Burn rate > 6x (5% budget consumed in 6h).
 
 ### Infrastructure Alerts
 

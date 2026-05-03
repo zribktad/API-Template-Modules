@@ -70,7 +70,32 @@ groups:
           slo: latency
         annotations:
           summary: "High burn rate for Latency SLO (Critical)"
-          description: "The latency error budget (p99 < 500ms) is being consumed at a rate of 14.4x."
+          description: "The latency error budget (p99 < 500ms) is being consumed at a rate of 14.4x. Current error rate is above 14.4%."
+
+      - alert: APITemplateLatencyBurnRateModerate
+        expr: |
+          (
+            1 - (
+              sum(rate(http_server_request_duration_seconds_bucket{le="0.5"}[6h])) 
+              / 
+              clamp_min(sum(rate(http_server_request_duration_seconds_count[6h])), 1)
+            )
+          ) > (6 * 0.01)
+          and
+          (
+            1 - (
+              sum(rate(http_server_request_duration_seconds_bucket{le="0.5"}[30m])) 
+              / 
+              clamp_min(sum(rate(http_server_request_duration_seconds_count[30m])), 1)
+            )
+          ) > (6 * 0.01)
+        for: 15m
+        labels:
+          severity: warning
+          slo: latency
+        annotations:
+          summary: "Moderate burn rate for Latency SLO (Warning)"
+          description: "The latency error budget (p99 < 500ms) is being consumed at a rate of 6x. Current error rate is above 6%."
 
   - name: apitemplate-infrastructure
     rules:

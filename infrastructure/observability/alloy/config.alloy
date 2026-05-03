@@ -15,7 +15,17 @@ otelcol.receiver.otlp "apitemplate" {
   output {
     metrics = [otelcol.exporter.prometheus.apitemplate.input]
     logs    = [otelcol.exporter.otlphttp.loki.input]
-    traces  = [otelcol.processor.tail_sampling.default.input]
+    traces  = [otelcol.processor.memory_limiter.default.input]
+  }
+}
+
+otelcol.processor.memory_limiter "default" {
+  check_interval = "1s"
+  limit_percentage = 80
+  spike_limit_percentage = 10
+
+  output {
+    traces = [otelcol.processor.tail_sampling.default.input]
   }
 }
 
