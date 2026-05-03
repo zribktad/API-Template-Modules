@@ -1,8 +1,10 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options.Infrastructure;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
+using BuildingBlocks.Web.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using BuildingBlocks.Application.Options.Infrastructure;
-using BuildingBlocks.Application.Configuration;
 
 namespace BuildingBlocks.Web.Health;
 
@@ -106,4 +108,3 @@ public sealed class SharedKernelHealthChecks : IHealthCheckModule
         );
     }
 }
-

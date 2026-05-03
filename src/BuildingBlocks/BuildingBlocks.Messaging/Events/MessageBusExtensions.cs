@@ -1,6 +1,6 @@
 using Wolverine;
 
-namespace BuildingBlocks.Application.Events;
+namespace BuildingBlocks.Messaging.Events;
 
 /// <summary>
 ///     Factory for <see cref="OutgoingMessages" /> instances when no cascading messages need to be dispatched.
@@ -12,4 +12,3 @@ public static class OutgoingMessagesHelper
     /// </summary>
     public static OutgoingMessages Empty => new();
 }
-

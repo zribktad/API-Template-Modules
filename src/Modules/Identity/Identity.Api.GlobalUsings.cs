@@ -1,6 +1,6 @@
 global using BuildingBlocks.Application.DTOs;
-global using BuildingBlocks.Application.Events;
 global using BuildingBlocks.Domain.Common;
+global using BuildingBlocks.Messaging.Events;
 global using BuildingBlocks.Security;
 global using BuildingBlocks.Web.Api;
 global using Identity.Auth.Security;

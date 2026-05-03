@@ -6,6 +6,8 @@ using BuildingBlocks.Infrastructure.EFCore.Persistence;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
 using BuildingBlocks.Infrastructure.EFCore.Startup;
 using BuildingBlocks.Infrastructure.Mongo;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
+using BuildingBlocks.Web.Configuration;
 using BuildingBlocks.Web.Health;
 using HotChocolate.Execution.Configuration;
 using Kot.MongoDB.Migrations;

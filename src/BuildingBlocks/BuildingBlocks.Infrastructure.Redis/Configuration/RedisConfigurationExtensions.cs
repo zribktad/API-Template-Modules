@@ -1,8 +1,9 @@
-using Microsoft.Extensions.Configuration;
+using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Application.Options.Infrastructure;
+using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 
-namespace BuildingBlocks.Application.Configuration;
+namespace BuildingBlocks.Infrastructure.Redis.Configuration;
 
 /// <summary>
 ///     Helpers for Redis connection configuration (StackExchange.Redis).
@@ -53,4 +54,3 @@ public static class RedisConfigurationExtensions
         return redisConfig;
     }
 }
-

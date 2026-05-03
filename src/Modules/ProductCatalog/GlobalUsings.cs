@@ -6,7 +6,6 @@ global using BuildingBlocks.Application.Batch.Rules;
 global using BuildingBlocks.Application.Context;
 global using BuildingBlocks.Application.Contracts;
 global using BuildingBlocks.Application.DTOs;
-global using BuildingBlocks.Application.Events;
 global using BuildingBlocks.Application.Extensions;
 // ── Infrastructure ────────────────────────────────────────────────────────────
 global using BuildingBlocks.Application.Options.Infrastructure;
@@ -24,6 +23,7 @@ global using BuildingBlocks.Infrastructure.EFCore.Repositories;
 global using BuildingBlocks.Infrastructure.EFCore.SoftDelete;
 global using BuildingBlocks.Infrastructure.EFCore.StoredProcedures;
 global using BuildingBlocks.Infrastructure.EFCore.UnitOfWork;
+global using BuildingBlocks.Messaging.Events;
 global using BuildingBlocks.Security;
 global using BuildingBlocks.Web.Api;
 global using ProductCatalog.Common.Errors;

@@ -2,6 +2,7 @@ using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
 using BuildingBlocks.Infrastructure.EFCore.Startup;
+using BuildingBlocks.Web.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
+using BuildingBlocks.Web.Configuration;
 using Identity.Auth.Http;
 using Identity.Auth.Options;
 using Identity.Auth.Security.Keycloak;

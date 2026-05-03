@@ -2,6 +2,7 @@ using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
 using BuildingBlocks.Infrastructure.EFCore.Startup;
+using BuildingBlocks.Web.Configuration;
 using FileStorage.Domain.Services;
 using FileStorage.Domain.Storage;
 using FileStorage.Features;

@@ -1,4 +1,4 @@
-using BuildingBlocks.Application.Events;
+using BuildingBlocks.Messaging.Events;
 using Microsoft.Extensions.DependencyInjection;
 using ProductCatalog.Common.Events;
 using SharedKernel.Contracts.Events;

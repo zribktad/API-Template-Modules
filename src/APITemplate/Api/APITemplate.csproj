@@ -21,7 +21,6 @@
     <ProjectReference Include="..\..\Modules\ProductCatalog\ProductCatalog.csproj" />
     <ProjectReference Include="..\..\Modules\Reviews\Reviews.csproj" />
     <ProjectReference Include="..\..\Modules\Webhooks\Webhooks.csproj" />
-    <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Domain\BuildingBlocks.Domain.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Infrastructure.EFCore\BuildingBlocks.Infrastructure.EFCore.csproj" />

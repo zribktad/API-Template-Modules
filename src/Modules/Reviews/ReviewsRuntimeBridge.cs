@@ -1,5 +1,7 @@
 using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
+using BuildingBlocks.Web.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

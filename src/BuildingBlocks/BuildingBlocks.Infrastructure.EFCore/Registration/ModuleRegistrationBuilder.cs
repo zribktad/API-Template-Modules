@@ -1,15 +1,15 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options.Infrastructure;
+using BuildingBlocks.Domain.Ids;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
+using BuildingBlocks.Infrastructure.EFCore.Persistence;
+using BuildingBlocks.Infrastructure.EFCore.StoredProcedures;
+using BuildingBlocks.Infrastructure.EFCore.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using BuildingBlocks.Application.Options.Infrastructure;
-using BuildingBlocks.Domain.Interfaces;
-using BuildingBlocks.Infrastructure.EFCore.Auditing;
-using BuildingBlocks.Application.Configuration;
-using SharedKernel.Infrastructure.Ids;
-using BuildingBlocks.Infrastructure.EFCore.Persistence;
-using BuildingBlocks.Infrastructure.EFCore.StoredProcedures;
-using BuildingBlocks.Infrastructure.EFCore.UnitOfWork;
 using Wolverine.EntityFrameworkCore;
 
 namespace BuildingBlocks.Infrastructure.EFCore.Registration;
@@ -112,4 +112,3 @@ public sealed class ModuleRegistrationBuilder<TContext>
         return this;
     }
 }
-

@@ -1,5 +1,7 @@
 using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
+using BuildingBlocks.Web.Configuration;
 using Identity.Directory.Controllers.V1;
 using Identity.Directory.Repositories;
 using Identity.Persistence;

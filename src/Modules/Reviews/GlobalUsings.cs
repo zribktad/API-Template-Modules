@@ -1,13 +1,13 @@
 global using BuildingBlocks.Application.Context;
 global using BuildingBlocks.Application.Contracts;
 global using BuildingBlocks.Application.DTOs;
-global using BuildingBlocks.Application.Events;
 global using BuildingBlocks.Application.Extensions;
 global using BuildingBlocks.Application.Sorting;
 global using BuildingBlocks.Application.Validation;
 global using BuildingBlocks.Domain.Common;
 global using BuildingBlocks.Domain.Entities.Contracts;
 global using BuildingBlocks.Domain.Interfaces;
+global using BuildingBlocks.Messaging.Events;
 global using BuildingBlocks.Security;
 global using BuildingBlocks.Web.Api;
 global using Reviews.Common.Errors;
