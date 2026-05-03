@@ -38,16 +38,12 @@ public sealed record ProductReviewFilter(
     )]
         string? SortBy = null,
     [property: SortDirection] string? SortDirection = null,
-    [property: Range(
-        1,
-        int.MaxValue,
-        ErrorMessage = "PageNumber must be greater than or equal to 1."
-    )]
+    [property: Range(1, int.MaxValue, ErrorMessage = PaginationFilter.PageNumberErrorMessage)]
         int PageNumber = 1,
     [property: Range(
         1,
         PaginationFilter.MaxPageSize,
-        ErrorMessage = "PageSize must be between 1 and 100."
+        ErrorMessage = PaginationFilter.PageSizeErrorMessage
     )]
         int PageSize = PaginationFilter.DefaultPageSize
 ) : IDateRangeFilter, ISortableFilter, IPagedFilter;

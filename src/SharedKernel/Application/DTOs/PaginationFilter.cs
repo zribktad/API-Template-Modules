@@ -8,9 +8,9 @@ namespace SharedKernel.Application.DTOs;
 ///     Data-annotation constraints enforce valid ranges at the HTTP boundary and in explicit object validation flows.
 /// </summary>
 public record PaginationFilter(
-    [Range(1, int.MaxValue, ErrorMessage = "PageNumber must be greater than or equal to 1.")]
+    [Range(1, int.MaxValue, ErrorMessage = PaginationFilter.PageNumberErrorMessage)]
         int PageNumber = 1,
-    [Range(1, PaginationFilter.MaxPageSize, ErrorMessage = "PageSize must be between 1 and 100.")]
+    [Range(1, PaginationFilter.MaxPageSize, ErrorMessage = PaginationFilter.PageSizeErrorMessage)]
         int PageSize = PaginationFilter.DefaultPageSize
 ) : IPagedFilter
 {
@@ -19,4 +19,7 @@ public record PaginationFilter(
 
     /// <summary>Maximum allowed page size to prevent unbounded queries.</summary>
     public const int MaxPageSize = 100;
+
+    public const string PageNumberErrorMessage = "PageNumber must be greater than or equal to 1.";
+    public const string PageSizeErrorMessage = "PageSize must be between 1 and 100.";
 }

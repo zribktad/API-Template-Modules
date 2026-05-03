@@ -16,8 +16,8 @@ public sealed record CategoryFilter(
     )]
         string? SortBy = null,
     [SortDirection] string? SortDirection = null,
-    [Range(1, int.MaxValue, ErrorMessage = "PageNumber must be greater than or equal to 1.")]
+    [Range(1, int.MaxValue, ErrorMessage = PaginationFilter.PageNumberErrorMessage)]
         int PageNumber = 1,
-    [Range(1, PaginationFilter.MaxPageSize, ErrorMessage = "PageSize must be between 1 and 100.")]
+    [Range(1, PaginationFilter.MaxPageSize, ErrorMessage = PaginationFilter.PageSizeErrorMessage)]
         int PageSize = PaginationFilter.DefaultPageSize
 ) : PaginationFilter(PageNumber, PageSize), ISortableFilter;

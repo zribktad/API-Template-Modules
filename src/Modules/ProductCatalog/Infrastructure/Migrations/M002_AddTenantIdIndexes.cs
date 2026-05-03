@@ -1,6 +1,7 @@
 using Kot.MongoDB.Migrations;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using ProductCatalog.Entities.ProductData;
 
 namespace ProductCatalog.Infrastructure.Migrations;
 
@@ -19,7 +20,9 @@ public sealed class M002_AddTenantIdIndexes : MongoMigration
         CancellationToken ct
     )
     {
-        IMongoCollection<BsonDocument> collection = db.GetCollection<BsonDocument>("product_data");
+        IMongoCollection<BsonDocument> collection = db.GetCollection<BsonDocument>(
+            ProductData.CollectionName
+        );
 
         // Index: { tenantId: 1, isDeleted: 1 }
         var tenantIdIsDeletedIndex = new CreateIndexModel<BsonDocument>(
@@ -40,7 +43,9 @@ public sealed class M002_AddTenantIdIndexes : MongoMigration
         CancellationToken ct
     )
     {
-        IMongoCollection<BsonDocument> collection = db.GetCollection<BsonDocument>("product_data");
+        IMongoCollection<BsonDocument> collection = db.GetCollection<BsonDocument>(
+            ProductData.CollectionName
+        );
 
         await collection.Indexes.DropOneAsync(
             session,

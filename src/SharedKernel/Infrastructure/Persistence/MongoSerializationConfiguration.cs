@@ -11,11 +11,29 @@ namespace SharedKernel.Infrastructure.Persistence;
 /// </summary>
 public static class MongoSerializationConfiguration
 {
+    private static bool _isConfigured;
+    private static readonly object _lock = new();
+
     public static void Configure()
     {
-        BsonSerializer.TryRegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+        if (_isConfigured)
+        {
+            return;
+        }
 
-        ConventionPack pack = new() { new CamelCaseElementNameConvention() };
-        ConventionRegistry.Register("CamelCase", pack, _ => true);
+        lock (_lock)
+        {
+            if (_isConfigured)
+            {
+                return;
+            }
+
+            BsonSerializer.TryRegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+
+            ConventionPack pack = new() { new CamelCaseElementNameConvention() };
+            ConventionRegistry.Register("CamelCase", pack, _ => true);
+
+            _isConfigured = true;
+        }
     }
 }

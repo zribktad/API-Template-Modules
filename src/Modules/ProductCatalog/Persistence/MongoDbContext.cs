@@ -26,7 +26,7 @@ public sealed class MongoDbContext
     }
 
     public IMongoCollection<ProductData> ProductData =>
-        _database.GetCollection<ProductData>("product_data");
+        _database.GetCollection<ProductData>(Entities.ProductData.ProductData.CollectionName);
 
     /// <summary>Sends a ping command to verify that the MongoDB server is reachable.</summary>
     public Task PingAsync(CancellationToken cancellationToken = default)
