@@ -26,7 +26,7 @@ jobs:
           dotnet tool install --global CycloneDX
           dotnet restore APITemplate.slnx
           mkdir -p sbom
-          $HOME/.dotnet/tools/dotnet-CycloneDX src/APITemplate/Api/APITemplate.csproj -o sbom/ -f json
+          $HOME/.dotnet/tools/dotnet-CycloneDX src/APITemplate/Api/APITemplate.csproj -o sbom/ --output-format json
         shell: bash
 
       - name: Upload SBOM
