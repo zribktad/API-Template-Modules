@@ -30,11 +30,14 @@ jobs:
           pip install -r docs/requirements.txt
 
       - name: Build documentation
-        run: mkdocs build --site-dir docs/site
+        run: |
+          mkdocs build --site-dir site
+          touch site/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/site
+          publish_dir: ./site
+          publish_branch: gh-pages
