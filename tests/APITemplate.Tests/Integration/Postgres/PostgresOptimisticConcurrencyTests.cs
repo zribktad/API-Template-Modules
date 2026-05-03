@@ -1,4 +1,6 @@
 using APITemplate.Tests.Unit.Helpers;
+using FileStorage.Domain.Sagas;
+using FileStorage.Persistence;
 using Identity.Directory.Entities;
 using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -45,16 +47,20 @@ public sealed class PostgresOptimisticConcurrencyTests
         );
 
         _tenantId = Guid.NewGuid();
-        using IdentityDbContext dbContext = CreateDbContext();
-        await dbContext.Database.MigrateAsync(ct);
+
+        using IdentityDbContext identityDb = CreateIdentityDbContext();
+        await identityDb.Database.MigrateAsync(ct);
 
         Tenant tenant = Tenant.Create(
             _tenantId,
             "t" + _tenantId.ToString("N")[..12],
             "Concurrency test tenant"
         );
-        dbContext.Tenants.Add(tenant);
-        await dbContext.SaveChangesAsync(ct);
+        identityDb.Tenants.Add(tenant);
+        await identityDb.SaveChangesAsync(ct);
+
+        using FileStorageDbContext fileStorageDb = CreateFileStorageDbContext();
+        await fileStorageDb.Database.MigrateAsync(ct);
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -69,15 +75,15 @@ public sealed class PostgresOptimisticConcurrencyTests
         user.Id = userId;
 
         // 1. Create the user in the database
-        using (IdentityDbContext dbContext = CreateDbContext())
+        using (IdentityDbContext dbContext = CreateIdentityDbContext())
         {
             dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync(ct);
         }
 
         // 2. Open two independent sessions and load the same user
-        using IdentityDbContext session1 = CreateDbContext();
-        using IdentityDbContext session2 = CreateDbContext();
+        using IdentityDbContext session1 = CreateIdentityDbContext();
+        using IdentityDbContext session2 = CreateIdentityDbContext();
 
         AppUser user1 = await session1.Users.SingleAsync(u => u.Id == userId, ct);
         AppUser user2 = await session2.Users.SingleAsync(u => u.Id == userId, ct);
@@ -107,19 +113,83 @@ public sealed class PostgresOptimisticConcurrencyTests
         );
     }
 
-    private IdentityDbContext CreateDbContext()
+    [Fact]
+    public async Task FileUploadSaga_WithConcurrentChange_ThrowsDbUpdateConcurrencyException()
+    {
+        // Arrange
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        string sagaId = Guid.NewGuid().ToString("N");
+        FileUploadSaga saga = new()
+        {
+            Id = sagaId,
+            TenantId = _tenantId,
+            Status = FileUploadStatus.Staged,
+            OriginalFileName = "test.txt",
+            Sha256 = "abc",
+            SizeBytes = 100,
+            StagingPath = "/tmp/test",
+            BackendKey = "local",
+            CreatedAtUtc = _time.GetUtcNow(),
+            CommitDeadlineUtc = _time.GetUtcNow().AddHours(1),
+        };
+
+        // 1. Create the saga in the database
+        using (FileStorageDbContext dbContext = CreateFileStorageDbContext())
+        {
+            dbContext.FileUploadSagas.Add(saga);
+            await dbContext.SaveChangesAsync(ct);
+        }
+
+        // 2. Open two independent sessions and load the same saga
+        using FileStorageDbContext session1 = CreateFileStorageDbContext();
+        using FileStorageDbContext session2 = CreateFileStorageDbContext();
+
+        FileUploadSaga saga1 = await session1.FileUploadSagas.SingleAsync(s => s.Id == sagaId, ct);
+        FileUploadSaga saga2 = await session2.FileUploadSagas.SingleAsync(s => s.Id == sagaId, ct);
+
+        uint xmin1Before = session1.Entry(saga1).Property<uint>("xmin").CurrentValue;
+        uint xmin2Before = session2.Entry(saga2).Property<uint>("xmin").CurrentValue;
+
+        xmin1Before.ShouldNotBe(0u);
+        xmin1Before.ShouldBe(xmin2Before);
+
+        // 3. Modify session 1 and save.
+        saga1.Status = FileUploadStatus.Committed;
+        await session1.SaveChangesAsync(ct);
+
+        uint xmin1After = session1.Entry(saga1).Property<uint>("xmin").CurrentValue;
+        xmin1After.ShouldNotBe(xmin1Before);
+
+        // 4. Modify session 2 and try to save.
+        saga2.Status = FileUploadStatus.Failed;
+
+        await Should.ThrowAsync<DbUpdateConcurrencyException>(async () =>
+            await session2.SaveChangesAsync(ct)
+        );
+    }
+
+    private IdentityDbContext CreateIdentityDbContext()
     {
         DbContextOptions<IdentityDbContext> options =
-            new DbContextOptionsBuilder<IdentityDbContext>()
-                .UseNpgsql(_connectionString)
-                .LogTo(
-                    Console.WriteLine,
-                    [DbLoggerCategory.Database.Command.Name],
-                    LogLevel.Information
-                )
-                .Options;
+            new DbContextOptionsBuilder<IdentityDbContext>().UseNpgsql(_connectionString).Options;
 
         return new IdentityDbContext(
+            options,
+            new IdentityIntegrationTenantProvider(_tenantId),
+            new IdentityIntegrationEmptyActorProvider(),
+            _time,
+            new AuditableEntityStateManager()
+        );
+    }
+
+    private FileStorageDbContext CreateFileStorageDbContext()
+    {
+        DbContextOptions<FileStorageDbContext> options =
+            new DbContextOptionsBuilder<FileStorageDbContext>()
+                .UseNpgsql(_connectionString)
+                .Options;
+
+        return new FileStorageDbContext(
             options,
             new IdentityIntegrationTenantProvider(_tenantId),
             new IdentityIntegrationEmptyActorProvider(),

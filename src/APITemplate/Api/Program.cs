@@ -64,7 +64,7 @@ builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddRateLimiting(builder.Configuration);
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddInfrastructureDiagnostics();
-builder.Services.AddGraphQLRegistration();
+builder.Services.AddGraphQLRegistration(builder.Environment);
 
 builder.Services.AddWolverineHttp();
 builder.Services.AddModuleHealthChecks(

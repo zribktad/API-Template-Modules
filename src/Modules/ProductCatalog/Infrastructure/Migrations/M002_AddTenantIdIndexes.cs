@@ -24,10 +24,10 @@ public sealed class M002_AddTenantIdIndexes : MongoMigration
             ProductData.CollectionName
         );
 
-        // Index: { tenantId: 1, isDeleted: 1 }
+        // Index: { TenantId: 1, IsDeleted: 1 }
         var tenantIdIsDeletedIndex = new CreateIndexModel<BsonDocument>(
-            Builders<BsonDocument>.IndexKeys.Ascending("tenantId").Ascending("isDeleted"),
-            new CreateIndexOptions { Name = "idx_tenantId_isDeleted" }
+            Builders<BsonDocument>.IndexKeys.Ascending("TenantId").Ascending("IsDeleted"),
+            new CreateIndexOptions { Name = "idx_TenantId_IsDeleted" }
         );
 
         await collection.Indexes.CreateOneAsync(
@@ -49,7 +49,7 @@ public sealed class M002_AddTenantIdIndexes : MongoMigration
 
         await collection.Indexes.DropOneAsync(
             session,
-            "idx_tenantId_isDeleted",
+            "idx_TenantId_IsDeleted",
             cancellationToken: ct
         );
     }

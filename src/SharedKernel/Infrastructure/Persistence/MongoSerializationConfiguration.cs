@@ -30,9 +30,6 @@ public static class MongoSerializationConfiguration
 
             BsonSerializer.TryRegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
-            ConventionPack pack = new() { new CamelCaseElementNameConvention() };
-            ConventionRegistry.Register("CamelCase", pack, _ => true);
-
             _isConfigured = true;
         }
     }

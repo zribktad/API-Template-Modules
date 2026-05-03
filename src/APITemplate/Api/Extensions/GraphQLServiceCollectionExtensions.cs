@@ -1,6 +1,8 @@
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using ProductCatalog;
 using Reviews;
 using SharedKernel.Application.Constants;
@@ -10,9 +12,12 @@ namespace APITemplate.Api.Extensions;
 
 public static class GraphQLServiceCollectionExtensions
 {
-    public static IServiceCollection AddGraphQLRegistration(this IServiceCollection services)
+    public static IServiceCollection AddGraphQLRegistration(
+        this IServiceCollection services,
+        IWebHostEnvironment environment
+    )
     {
-        services
+        IRequestExecutorBuilder builder = services
             .AddGraphQLServer()
             .AddQueryType(d => d.Name(HotChocolate.Types.OperationTypeNames.Query))
             .AddMutationType(d => d.Name(HotChocolate.Types.OperationTypeNames.Mutation))
@@ -32,6 +37,11 @@ public static class GraphQLServiceCollectionExtensions
                 options.MaxFieldCost = GraphQLConstants.MaxFieldCost; // Prevent high-complexity query DoS
                 options.EnforceCostLimits = true;
             });
+
+        if (!environment.IsDevelopment())
+        {
+            builder.DisableIntrospection(); // Disable introspection in production
+        }
 
         return services;
     }
