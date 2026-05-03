@@ -701,7 +701,7 @@ graph LR
 
 **Security principle:** Tokens never leave the server — the browser only holds an opaque GUID. Token fields (`access_token`, `refresh_token`, `id_token`) are encrypted at rest by `BffSessionTokenProtector` using `IDataProtector` with purpose `bff:session:tokens`.
 
-**ASP.NET Data Protection key ring:** When `Redis:ConnectionString` is set, [ApiServiceCollectionExtensions](../src/APITemplate/Api/Extensions/ApiServiceCollectionExtensions.cs) registers `AddDataProtection().PersistKeysToStackExchangeRedis(..., "DataProtection-Keys")` with application name `APITemplate`, so all API instances share the same key ring for BFF token encryption and CSRF tokens. Without Redis, the host default applies (suitable for single-process development; use shared storage for multi-instance production).
+**ASP.NET Data Protection key ring:** [RedisServiceCollectionExtensions](../src/APITemplate/Api/Extensions/RedisServiceCollectionExtensions.cs) registers `AddDataProtection().PersistKeysToDbContext<IdentityDbContext>()` with application name `APITemplate`, so all API instances share the same key ring for BFF token encryption and CSRF tokens. This ensures keys are stored persistently in PostgreSQL, separating them from the volatile Redis/DragonFly cache to prevent session invalidation during cache evictions or restarts. Without a database, the host default applies (suitable for single-process development).
 
 **Session load per request:** `BffSessionService.GetSessionAsync` memoizes the resolved `BffSessionRecord` on `HttpContext.Items` for the duration of the request so the cookie middleware and `CookieSessionRefresher` do not hit Redis/PostgreSQL twice for the same session id.
 
