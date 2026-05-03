@@ -1,4 +1,4 @@
-namespace SharedKernel.Extensions;
+namespace BuildingBlocks.Domain.Extensions;
 
 public static class StringExtensions
 {
@@ -10,7 +10,11 @@ public static class StringExtensions
     public static string? Truncate(this string? value, int maxLength)
     {
         if (maxLength < 0)
-            throw new ArgumentOutOfRangeException(nameof(maxLength), maxLength, "maxLength cannot be negative.");
+            throw new ArgumentOutOfRangeException(
+                nameof(maxLength),
+                maxLength,
+                "maxLength cannot be negative."
+            );
 
         return value is { Length: var len } && len > maxLength ? value[..maxLength] : value;
     }

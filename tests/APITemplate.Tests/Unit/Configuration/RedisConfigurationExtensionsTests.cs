@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
 using Microsoft.Extensions.Configuration;
 using Shouldly;
 using Xunit;

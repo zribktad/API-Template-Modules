@@ -1,5 +1,6 @@
 using System.Text;
 using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Domain.Ids;
 using BuildingBlocks.Infrastructure.EFCore.Persistence.DesignTime;
 using ErrorOr;
 using FileStorage.Contracts;
@@ -18,7 +19,6 @@ using Polly;
 using Polly.Registry;
 using Polly.Retry;
 using SharedKernel.Contracts.Commands.FileStorage;
-using SharedKernel.Infrastructure.Ids;
 using Shouldly;
 using Xunit;
 

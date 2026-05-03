@@ -1,6 +1,6 @@
 using BuildingBlocks.Domain.Entities.Contracts;
+using BuildingBlocks.Domain.Extensions;
 using ErrorOr;
-using SharedKernel.Extensions;
 
 namespace Notifications.Domain;
 

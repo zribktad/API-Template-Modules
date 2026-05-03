@@ -1,5 +1,6 @@
 using APITemplate.Api.Extensions;
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Caching.Distributed;
