@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Identity.Persistence;
 
-public sealed class IdentityDbContext : ModuleDbContext
+public sealed class IdentityDbContext : ModuleDbContext, IDataProtectionKeyContext
 {
     public IdentityDbContext(
         DbContextOptions<IdentityDbContext> options,
@@ -17,6 +18,7 @@ public sealed class IdentityDbContext : ModuleDbContext
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<TenantInvitation> TenantInvitations => Set<TenantInvitation>();
     public DbSet<BffPersistedSession> BffSessions => Set<BffPersistedSession>();
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

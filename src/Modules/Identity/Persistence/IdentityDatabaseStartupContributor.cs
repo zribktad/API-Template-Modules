@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SharedKernel.Infrastructure.Persistence;
 using SharedKernel.Infrastructure.Startup;
@@ -14,6 +15,6 @@ internal sealed class IdentityDatabaseStartupContributor : IDatabaseStartupContr
     )
     {
         IdentityDbContext context = serviceProvider.GetRequiredService<IdentityDbContext>();
-        await context.EnsureCreatedAndTablesAsync(cancellationToken);
+        await context.Database.MigrateAsync(cancellationToken);
     }
 }

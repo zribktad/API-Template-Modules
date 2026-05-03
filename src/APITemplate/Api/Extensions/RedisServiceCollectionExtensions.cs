@@ -1,6 +1,5 @@
+using Identity.Persistence;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using Microsoft.AspNetCore.DataProtection.StackExchangeRedis;
 using Microsoft.Extensions.Options;
 using SharedKernel.Infrastructure.Configuration;
 using StackExchange.Redis;
@@ -26,6 +25,13 @@ public static class RedisServiceCollectionExtensions
     {
         services.AddValidatedOptions<RedisOptions>(configuration);
 
+        // Data Protection keys are stored persistently in the database to separate them from volatile cache.
+        // This ensures sessions remain valid even if the cache is cleared or restarts.
+        services
+            .AddDataProtection()
+            .SetApplicationName("APITemplate")
+            .PersistKeysToDbContext<IdentityDbContext>();
+
         if (configuration.IsRedisConfigured())
         {
             ConfigurationOptions redisConfiguration =
@@ -41,22 +47,10 @@ public static class RedisServiceCollectionExtensions
             {
                 opts.ConfigurationOptions = redisConfiguration;
             });
-
-            services.AddDataProtection().SetApplicationName("APITemplate");
-
-            // Defer key persistence repository creation until Data Protection is first used.
-            services.AddSingleton<IConfigureOptions<KeyManagementOptions>>(
-                sp => new ConfigureOptions<KeyManagementOptions>(options =>
-                {
-                    options.XmlRepository = new RedisXmlRepository(
-                        () => sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase(),
-                        "DataProtection-Keys"
-                    );
-                })
-            );
         }
         else
         {
+            // Fallback to in-memory cache if Redis is not online.
             services.AddDistributedMemoryCache();
         }
 

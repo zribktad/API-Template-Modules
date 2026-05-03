@@ -40,8 +40,8 @@ The application is built with a multi-tenant architecture, ensuring strict data 
 - **Session Tokens:** Access, Refresh, and ID tokens stored in the `BffPersistedSession` table are encrypted using the ASP.NET Core **Data Protection** API (`IDataProtector`).
 - **CSRF Tokens:** Anti-forgery tokens are cryptographically bound to the user's session and encrypted.
 
-### Shared Key Ring (Redis)
-- In multi-instance deployments, the Data Protection key ring is persisted to **Redis/DragonFly**. This ensures that a session cookie or CSRF token issued by instance A can be correctly decrypted and validated by instance B.
+### Shared Key Ring (PostgreSQL)
+- In multi-instance deployments, the Data Protection key ring is persisted to **PostgreSQL** via EF Core (`IdentityDbContext`). This ensures that a session cookie or CSRF token issued by instance A can be correctly decrypted and validated by instance B, while protecting keys from being lost during cache evictions or restarts of the Redis/DragonFly service.
 
 ---
 

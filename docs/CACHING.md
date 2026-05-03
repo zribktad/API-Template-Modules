@@ -175,11 +175,11 @@ The Docker Compose setup provides a master/replica topology with HAProxy for hig
 ```yaml
 dragonfly-master:
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
-  command: dragonfly --maxmemory 256mb --proactor_threads 2
+  command: dragonfly --maxmemory 512mb --proactor_threads 2 --cache_mode=true
 
 dragonfly-replica:
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
-  command: dragonfly --maxmemory 256mb --proactor_threads 2 --replicaof dragonfly-master 6379
+  command: dragonfly --maxmemory 512mb --proactor_threads 2 --cache_mode=true --replicaof dragonfly-master 6379
 
 dragonfly-proxy:
   image: haproxy:3.1-alpine
@@ -303,11 +303,11 @@ The Docker Compose setup provides a master/replica topology with HAProxy for hig
 ```yaml
 dragonfly-master:
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
-  command: dragonfly --maxmemory 256mb --proactor_threads 2
+  command: dragonfly --maxmemory 512mb --proactor_threads 2 --cache_mode=true
 
 dragonfly-replica:
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
-  command: dragonfly --maxmemory 256mb --proactor_threads 2 --replicaof dragonfly-master 6379
+  command: dragonfly --maxmemory 512mb --proactor_threads 2 --cache_mode=true --replicaof dragonfly-master 6379
 
 dragonfly-proxy:
   image: haproxy:3.1-alpine
