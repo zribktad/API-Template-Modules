@@ -34,7 +34,7 @@ public sealed class GraphQLSecurityIntegrationTests
         );
 
         // Construct a deeply nested query (depth > 5)
-        // Category -> products -> categories -> products -> categories -> products
+        // categories (1) -> page (2) -> items (3) -> products (4) -> page (5) -> items (6) -> category (7) -> id (8)
         string deepQuery =
             @"
         query {
@@ -44,12 +44,8 @@ public sealed class GraphQLSecurityIntegrationTests
                 products {
                   page {
                     items {
-                      categories {
-                        page {
-                          items {
-                            id
-                          }
-                        }
+                      category {
+                        id
                       }
                     }
                   }
@@ -70,6 +66,41 @@ public sealed class GraphQLSecurityIntegrationTests
             .ShouldNotBeNull()
             .ToLowerInvariant()
             .ShouldContain("depth");
+    }
+
+    [Fact]
+    public async Task GraphQL_FieldCostLimit_WhenExceeded_ReturnsError()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        IntegrationAuthHelper.Authenticate(
+            _client,
+            username: $"{AuthConstants.Claims.ServiceAccountUsernamePrefix}graphql-security"
+        );
+
+        // Construct a query with very high cost (> 1000)
+        // We use aliases to repeat a field many times to bloat the complexity cost.
+        // We keep the total field count below 2048 to avoid the parser limit.
+        StringBuilder queryBuilder = new();
+        queryBuilder.AppendLine("query {");
+        for (int i = 0; i < 200; i++)
+        {
+            queryBuilder.AppendLine(
+                $"  c{i}: categories {{ page {{ items {{ products {{ page {{ totalCount }} }} }} }} }}"
+            );
+        }
+        queryBuilder.AppendLine("}");
+
+        var response = await ExecuteGraphQLQueryAsync(queryBuilder.ToString(), ct);
+        string responseBody = await response.Content.ReadAsStringAsync(ct);
+
+        using JsonDocument doc = JsonDocument.Parse(responseBody);
+        doc.RootElement.TryGetProperty("errors", out JsonElement errors).ShouldBeTrue(responseBody);
+        errors[0]
+            .GetProperty("message")
+            .GetString()
+            .ShouldNotBeNull()
+            .ToLowerInvariant()
+            .ShouldContain("cost");
     }
 
     [Fact]

@@ -123,7 +123,9 @@ public static class ProductCatalogModule
             .AddTypeExtension<CategoryQueries>()
             .AddTypeExtension<ProductMutations>()
             .AddType<ProductType>()
-            .AddDataLoader<ProductReviewsByProductDataLoader>();
+            .AddType<CategoryType>()
+            .AddDataLoader<ProductReviewsByProductDataLoader>()
+            .AddDataLoader<CategoryByIdDataLoader>();
     }
 
     public static IEndpointRouteBuilder MapProductCatalogEndpoints(

@@ -47,5 +47,10 @@ public sealed class ProductType : ObjectType<ProductResponse>
             .Field("reviews")
             .ResolveWith<ProductTypeResolvers>(r => r.GetReviews(default!, default!, default))
             .Description("The reviews associated with this product.");
+
+        descriptor
+            .Field("category")
+            .ResolveWith<ProductTypeResolvers>(r => r.GetCategory(default!, default!, default))
+            .Description("The category this product belongs to.");
     }
 }

@@ -1,11 +1,13 @@
+using ErrorOr;
+using ProductCatalog.Features.Category.GetCategoryById;
 using ProductCatalog.GraphQL.DataLoaders;
+using Wolverine;
 
 namespace ProductCatalog.GraphQL.Types;
 
 /// <summary>
-///     Resolver class for the <c>reviews</c> field on <see cref="ProductType" />.
-///     Delegates to <see cref="ProductReviewsByProductDataLoader" /> to batch-load reviews and
-///     returns an empty array when no reviews exist for the product.
+///     Resolver class for fields on <see cref="ProductType" />.
+///     Supports loading reviews and categories via batch data loaders.
 /// </summary>
 public sealed class ProductTypeResolvers
 {
@@ -20,5 +22,22 @@ public sealed class ProductTypeResolvers
     )
     {
         return await loader.LoadAsync(product.Id, ct) ?? Array.Empty<ProductReviewResponse>();
+    }
+
+    /// <summary>
+    ///     Loads the category for the given <paramref name="product" /> via the data loader.
+    /// </summary>
+    public async Task<CategoryResponse?> GetCategory(
+        [Parent] ProductResponse product,
+        CategoryByIdDataLoader loader,
+        CancellationToken ct
+    )
+    {
+        if (product.CategoryId is null)
+        {
+            return null;
+        }
+
+        return await loader.LoadAsync(product.CategoryId.Value, ct);
     }
 }
