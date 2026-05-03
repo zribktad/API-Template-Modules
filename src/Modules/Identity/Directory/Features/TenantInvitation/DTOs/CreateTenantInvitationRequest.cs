@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Infrastructure.Logging;
+using BuildingBlocks.Web.Logging;
 using TenantInvitationEntity = Identity.Directory.Entities.TenantInvitation;
 
 namespace Identity.Directory.Features.TenantInvitation.DTOs;

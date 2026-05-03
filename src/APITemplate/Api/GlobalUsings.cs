@@ -1,6 +1,8 @@
 global using APITemplate.Api.Extensions;
 global using APITemplate.Api.Extensions.Startup;
-global using SharedKernel.Application.Errors;
-global using SharedKernel.Application.Options;
-global using SharedKernel.Application.Options.Infrastructure;
-global using SharedKernel.Infrastructure.Configuration;
+global using BuildingBlocks.Application.Configuration;
+global using BuildingBlocks.Application.Errors;
+global using BuildingBlocks.Application.Options;
+global using BuildingBlocks.Application.Options.Infrastructure;
+global using BuildingBlocks.Infrastructure.Redis.Configuration;
+global using BuildingBlocks.Web.Configuration;

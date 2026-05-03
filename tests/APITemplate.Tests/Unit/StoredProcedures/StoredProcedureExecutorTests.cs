@@ -1,5 +1,5 @@
+using BuildingBlocks.Infrastructure.EFCore.StoredProcedures;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Infrastructure.StoredProcedures;
 using Shouldly;
 using Xunit;
 

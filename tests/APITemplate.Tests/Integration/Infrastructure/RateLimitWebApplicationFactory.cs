@@ -1,13 +1,13 @@
 using System.Threading.RateLimiting;
 using APITemplate.Tests.Integration.Helpers;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Application.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Http;
 
 namespace APITemplate.Tests.Integration.Infrastructure;
 

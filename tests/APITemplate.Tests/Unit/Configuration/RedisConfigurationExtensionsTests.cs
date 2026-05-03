@@ -1,5 +1,6 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
 using Microsoft.Extensions.Configuration;
-using SharedKernel.Infrastructure.Configuration;
 using Shouldly;
 using Xunit;
 

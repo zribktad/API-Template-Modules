@@ -1,3 +1,5 @@
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
 using Identity.Auth.Entities;
 using Identity.Auth.Options;
 using Identity.Auth.Security.Sessions;
@@ -9,8 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
-using SharedKernel.Application.Context;
-using SharedKernel.Infrastructure.Auditing;
 using Shouldly;
 using Xunit;
 

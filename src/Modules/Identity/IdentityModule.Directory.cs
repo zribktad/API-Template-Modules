@@ -1,11 +1,13 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Infrastructure.EFCore.Registration;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
+using BuildingBlocks.Web.Configuration;
 using Identity.Directory.Controllers.V1;
 using Identity.Directory.Repositories;
 using Identity.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.Registration;
 
 namespace Identity;
 

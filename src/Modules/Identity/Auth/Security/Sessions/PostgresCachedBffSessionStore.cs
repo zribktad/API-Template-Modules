@@ -1,7 +1,7 @@
+using BuildingBlocks.Infrastructure.Redis.Redis;
 using Identity.Auth.Options;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using SharedKernel.Infrastructure.Redis;
 using StackExchange.Redis;
 
 namespace Identity.Auth.Security.Sessions;

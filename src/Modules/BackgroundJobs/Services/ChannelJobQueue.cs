@@ -1,4 +1,4 @@
-using SharedKernel.Infrastructure.BackgroundJobs.Services;
+using BuildingBlocks.Web.InfrastructureBackgroundJobs.Services;
 
 namespace BackgroundJobs.Services;
 

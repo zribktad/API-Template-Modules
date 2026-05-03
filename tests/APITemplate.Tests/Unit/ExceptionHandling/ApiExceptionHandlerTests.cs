@@ -2,6 +2,8 @@ using System.Diagnostics.Metrics;
 using System.Net;
 using System.Text.Json;
 using APITemplate.Api.ExceptionHandling;
+using BuildingBlocks.Application.Errors;
+using BuildingBlocks.Web.Api;
 using Identity.Auth.Security;
 using Identity.Directory.Security;
 using Microsoft.AspNetCore.Http;
@@ -10,8 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
-using SharedKernel.Application.Errors;
-using SharedKernel.Contracts.Api;
 using Shouldly;
 using Xunit;
 

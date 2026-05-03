@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
+using BuildingBlocks.Infrastructure.EFCore.Persistence;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Application.Context;
-using SharedKernel.Infrastructure.Auditing;
-using SharedKernel.Infrastructure.Persistence;
 
 namespace BackgroundJobs.Persistence;
 

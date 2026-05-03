@@ -1,5 +1,5 @@
+using BuildingBlocks.Application.DTOs;
 using ErrorOr;
-using SharedKernel.Application.DTOs;
 using Shouldly;
 using Xunit;
 

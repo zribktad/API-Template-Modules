@@ -1,5 +1,5 @@
 using System.Net;
-using SharedKernel.Contracts.Security;
+using BuildingBlocks.Security;
 using Shouldly;
 using Xunit;
 

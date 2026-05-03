@@ -1,6 +1,6 @@
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
-using SharedKernel.Application.Validation;
+using BuildingBlocks.Application.Batch;
+using BuildingBlocks.Application.Batch.Rules;
+using BuildingBlocks.Application.Validation;
 
 namespace APITemplate.Api.Extensions;
 

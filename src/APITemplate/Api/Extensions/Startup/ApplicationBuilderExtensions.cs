@@ -1,4 +1,6 @@
 using APITemplate.Api.Middleware;
+using BuildingBlocks.Application.Http;
+using BuildingBlocks.Web.Health;
 using Chatting;
 using FileStorage;
 using HealthChecks.UI.Client;
@@ -11,8 +13,6 @@ using Reviews;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
-using SharedKernel.Application.Http;
-using SharedKernel.Infrastructure.Health;
 using Wolverine.Http;
 
 namespace APITemplate.Api.Extensions.Startup;
@@ -106,7 +106,7 @@ public static class ApplicationBuilderExtensions
 
         app.MapControllers();
         RouteGroupBuilder wolverineGroup = app.MapGroup("");
-        wolverineGroup.AddEndpointFilter<SharedKernel.Contracts.Api.Filters.PaginationFilter>();
+        wolverineGroup.AddEndpointFilter<BuildingBlocks.Web.Api.Filters.PaginationFilter>();
         wolverineGroup.MapWolverineEndpoints(opts =>
         {
             opts.UseDataAnnotationsValidationProblemDetailMiddleware();

@@ -1,3 +1,8 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Infrastructure.EFCore.Registration;
+using BuildingBlocks.Infrastructure.EFCore.Startup;
+using BuildingBlocks.Web.Configuration;
 using FileStorage.Domain.Services;
 using FileStorage.Domain.Storage;
 using FileStorage.Features;
@@ -10,10 +15,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Retry;
-using SharedKernel.Application.Resilience;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.Registration;
-using SharedKernel.Infrastructure.Startup;
 
 namespace FileStorage;
 

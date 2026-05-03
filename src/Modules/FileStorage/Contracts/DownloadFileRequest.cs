@@ -1,4 +1,4 @@
-using SharedKernel.Domain.Entities.Contracts;
+using BuildingBlocks.Domain.Entities.Contracts;
 
 namespace FileStorage.Contracts;
 

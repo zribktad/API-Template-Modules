@@ -1,4 +1,5 @@
 using APITemplate.Api.Extensions.Startup;
+using BuildingBlocks.Web.Logging;
 using Identity.Auth.Features.Bff.DTOs;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.User;
@@ -8,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Notifications.Contracts;
-using SharedKernel.Infrastructure.Logging;
 using Shouldly;
 using Xunit;
 

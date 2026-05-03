@@ -259,7 +259,7 @@ public sealed class ModuleBoundaryArchitectureTests
         ];
 
         public static Assembly SharedKernelAssembly =>
-            typeof(SharedKernel.Application.Errors.AppException).Assembly;
+            typeof(BuildingBlocks.Application.Errors.AppException).Assembly;
 
         private static readonly IReadOnlyDictionary<
             string,

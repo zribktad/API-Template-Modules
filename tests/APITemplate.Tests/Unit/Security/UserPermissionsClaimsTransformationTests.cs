@@ -1,11 +1,11 @@
 using System.Security.Claims;
 using System.Text.Json;
+using BuildingBlocks.Security;
 using Identity.Auth.Security;
 using Identity.Directory.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 

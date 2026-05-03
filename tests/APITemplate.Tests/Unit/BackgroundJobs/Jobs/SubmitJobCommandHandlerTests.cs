@@ -1,11 +1,11 @@
 using BackgroundJobs.Domain;
 using BackgroundJobs.Features;
+using BuildingBlocks.Application.Errors;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Domain.Options;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Moq;
-using SharedKernel.Application.Errors;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Domain.Options;
 using Shouldly;
 using Xunit;
 

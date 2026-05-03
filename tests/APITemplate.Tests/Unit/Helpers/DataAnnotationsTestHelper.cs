@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
+using BuildingBlocks.Application.Validation;
 
 namespace APITemplate.Tests.Unit.Helpers;
 

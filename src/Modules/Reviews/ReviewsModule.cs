@@ -1,3 +1,4 @@
+using BuildingBlocks.Infrastructure.EFCore.Startup;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OutputCaching;
@@ -10,7 +11,6 @@ using Reviews.GraphQL.Mutations;
 using Reviews.GraphQL.Queries;
 using Reviews.GraphQL.Types;
 using Reviews.Persistence;
-using SharedKernel.Infrastructure.Startup;
 
 namespace Reviews;
 

@@ -1,12 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using APITemplate.Tests.Integration.Helpers;
+using BuildingBlocks.Application.DTOs;
+using BuildingBlocks.Domain.Common;
+using BuildingBlocks.Security;
 using ProductCatalog.Features.Category.Shared;
 using ProductCatalog.Features.Product.Shared;
-using SharedKernel.Application.DTOs;
 using SharedKernel.Contracts.Queries.Reviews;
-using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Common;
 using Shouldly;
 using Xunit;
 

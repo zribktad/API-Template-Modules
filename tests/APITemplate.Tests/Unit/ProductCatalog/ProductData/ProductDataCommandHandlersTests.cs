@@ -1,14 +1,14 @@
 using global::ProductCatalog;
 using APITemplate.Tests.Unit.Helpers;
 using APITemplate.Tests.Unit.Infrastructure;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using global::ProductCatalog.Features.ProductData.CreateImageProductData;
 using global::ProductCatalog.Features.ProductData.CreateVideoProductData;
 using global::ProductCatalog.Features.ProductData.DeleteProductData;
 using global::ProductCatalog.Interfaces;
 using Moq;
-using SharedKernel.Application.Context;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;

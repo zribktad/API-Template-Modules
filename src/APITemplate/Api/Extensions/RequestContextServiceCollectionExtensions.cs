@@ -1,7 +1,7 @@
 using APITemplate.Api.Security;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Application.Http;
 using Identity.Auth.Security;
-using SharedKernel.Application.Context;
-using SharedKernel.Application.Http;
 
 namespace APITemplate.Api.Extensions;
 

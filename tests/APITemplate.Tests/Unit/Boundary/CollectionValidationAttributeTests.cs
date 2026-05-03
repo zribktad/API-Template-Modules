@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using APITemplate.Tests.Unit.Helpers;
-using SharedKernel.Application.Validation;
+using BuildingBlocks.Application.Validation;
 using Shouldly;
 using Xunit;
 

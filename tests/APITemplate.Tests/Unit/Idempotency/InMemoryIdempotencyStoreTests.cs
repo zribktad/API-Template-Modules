@@ -1,12 +1,12 @@
 using APITemplate.Tests.Unit.Helpers;
-using SharedKernel.Application.Contracts;
+using BuildingBlocks.Application.Contracts;
 using Shouldly;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Idempotency;
 
 /// <summary>
-///     Covers in-process idempotency. <see cref="SharedKernel.Infrastructure.Idempotency.DistributedCacheIdempotencyStore" /> depends on Redis Lua scripts;
+///     Covers in-process idempotency. <see cref="BuildingBlocks.Infrastructure.Redis.Idempotency.DistributedCacheIdempotencyStore" /> depends on Redis Lua scripts;
 ///     add container-backed integration tests if multi-instance lock semantics need automated coverage.
 /// </summary>
 [Trait("Category", "Unit")]

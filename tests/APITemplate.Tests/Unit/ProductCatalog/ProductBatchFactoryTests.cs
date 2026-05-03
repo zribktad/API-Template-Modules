@@ -1,10 +1,10 @@
+using BuildingBlocks.Application.Batch;
+using BuildingBlocks.Application.DTOs;
 using ErrorOr;
 using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Features.Product.CreateProducts;
 using ProductCatalog.ValueObjects;
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.DTOs;
 using Shouldly;
 using Xunit;
 using ProductEntity = ProductCatalog.Entities.Product;

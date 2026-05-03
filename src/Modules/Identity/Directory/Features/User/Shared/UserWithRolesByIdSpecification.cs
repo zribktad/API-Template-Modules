@@ -1,6 +1,6 @@
 using Ardalis.Specification;
+using BuildingBlocks.Domain.Interfaces;
 using Identity.Directory.Entities;
-using SharedKernel.Domain.Interfaces;
 
 namespace Identity.Directory.Features.User.Shared;
 

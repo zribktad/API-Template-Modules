@@ -1,4 +1,4 @@
-using SharedKernel.Application.BackgroundJobs;
+using BuildingBlocks.Application.BackgroundJobs;
 
 namespace BackgroundJobs.TickerQ;
 

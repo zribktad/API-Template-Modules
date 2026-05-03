@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
-using SharedKernel.Contracts.Security;
+using BuildingBlocks.Security;
 using Shouldly;
 using Xunit;
 

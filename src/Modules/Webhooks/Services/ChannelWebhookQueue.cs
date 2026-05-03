@@ -1,4 +1,4 @@
-using SharedKernel.Infrastructure.BackgroundJobs.Services;
+using BuildingBlocks.Web.InfrastructureBackgroundJobs.Services;
 using Webhooks.Contracts;
 
 namespace Webhooks.Services;

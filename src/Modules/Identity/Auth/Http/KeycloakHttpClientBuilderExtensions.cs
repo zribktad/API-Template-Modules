@@ -1,8 +1,8 @@
 using System.Net.Http;
+using BuildingBlocks.Web.Resilience;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
-using SharedKernel.Infrastructure.Resilience;
 
 namespace Identity.Auth.Http;
 

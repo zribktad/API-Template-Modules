@@ -1,4 +1,6 @@
 using APITemplate.Tests.Unit.Infrastructure;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using Identity;
 using Identity.Common.Email;
@@ -9,8 +11,6 @@ using Identity.Directory.Interfaces;
 using Identity.Directory.Options;
 using Microsoft.Extensions.Options;
 using Moq;
-using SharedKernel.Application.Context;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;

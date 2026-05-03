@@ -1,10 +1,10 @@
+using BuildingBlocks.Application.Http;
+using BuildingBlocks.Application.Validation;
+using BuildingBlocks.Web.Api;
+using BuildingBlocks.Web.Api.Routing;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using SharedKernel.Application.Http;
-using SharedKernel.Application.Validation;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Contracts.Api.Routing;
 
 namespace APITemplate.Api.Extensions;
 
@@ -25,7 +25,7 @@ public static class MvcConventionsServiceCollectionExtensions
             options.Conventions.Add(
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
-            options.Filters.Add<SharedKernel.Contracts.Api.Filters.PaginationFilter>();
+            options.Filters.Add<BuildingBlocks.Web.Api.Filters.PaginationFilter>();
         });
 
         services.Configure<ApiBehaviorOptions>(options =>

@@ -1,6 +1,6 @@
 using System.Globalization;
+using BuildingBlocks.Application.Context;
 using Identity.Auth.Security.Sessions;
-using SharedKernel.Application.Context;
 
 namespace APITemplate.Tests.Unit.Identity;
 

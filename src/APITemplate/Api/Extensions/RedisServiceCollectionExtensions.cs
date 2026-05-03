@@ -1,6 +1,6 @@
+using BuildingBlocks.Application.Configuration;
 using Identity.Persistence;
 using Microsoft.AspNetCore.DataProtection;
-using SharedKernel.Infrastructure.Configuration;
 using StackExchange.Redis;
 
 namespace APITemplate.Api.Extensions;

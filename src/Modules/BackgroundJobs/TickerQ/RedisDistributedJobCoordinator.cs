@@ -1,7 +1,7 @@
 using BackgroundJobs.Logging;
+using BuildingBlocks.Infrastructure.Redis.Redis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SharedKernel.Infrastructure.Redis;
 using StackExchange.Redis;
 
 namespace BackgroundJobs.TickerQ;

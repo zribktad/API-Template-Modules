@@ -1,9 +1,9 @@
 using System.Text.Json;
 using BackgroundJobs.Logging;
+using BuildingBlocks.Web.InfrastructureBackgroundJobs.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SharedKernel.Contracts.Commands.Webhooks;
-using SharedKernel.Infrastructure.BackgroundJobs.Services;
 using Wolverine;
 
 namespace BackgroundJobs.Services;

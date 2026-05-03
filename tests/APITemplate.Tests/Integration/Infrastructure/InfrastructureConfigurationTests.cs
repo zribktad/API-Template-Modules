@@ -1,11 +1,12 @@
 using APITemplate.Api.Extensions;
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using SharedKernel.Infrastructure.Configuration;
 using Shouldly;
 using StackExchange.Redis;
 using Xunit;

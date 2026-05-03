@@ -1,7 +1,7 @@
+using BuildingBlocks.Infrastructure.EFCore.Persistence;
+using BuildingBlocks.Infrastructure.EFCore.Startup;
 using Microsoft.Extensions.DependencyInjection;
 using Reviews.Persistence;
-using SharedKernel.Infrastructure.Persistence;
-using SharedKernel.Infrastructure.Startup;
 
 namespace Reviews.Persistence;
 

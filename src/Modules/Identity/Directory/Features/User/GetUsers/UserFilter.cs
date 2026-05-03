@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
+using BuildingBlocks.Application.Validation;
 
 namespace Identity.Directory.Features.User;
 
@@ -19,9 +19,8 @@ public sealed record UserFilter(
         UserSortFields.CreatedAtToken,
         ErrorMessage = "SortBy must be one of: Username, Email, CreatedAt."
     )]
-    string? SortBy = null,
-    [SortDirection]
-    string? SortDirection = null,
+        string? SortBy = null,
+    [SortDirection] string? SortDirection = null,
     int PageNumber = 1,
     int PageSize = PaginationFilter.DefaultPageSize
 ) : PaginationFilter(PageNumber, PageSize), ISortableFilter;

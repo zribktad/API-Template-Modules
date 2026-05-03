@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Validation;
 using ErrorOr;
-using SharedKernel.Application.Validation;
-using SharedKernelErrorCatalog = SharedKernel.Application.Errors.ErrorCatalog;
 using HotChocolate;
+using SharedKernelErrorCatalog = BuildingBlocks.Application.Errors.ErrorCatalog;
 
 namespace SharedKernel.GraphQL.Extensions;
 
@@ -17,7 +17,8 @@ public static class ErrorOrGraphQLExtensions
     ///     Validates <paramref name="model" /> and throws <see cref="GraphQLException" /> with
     ///     code <c>GEN-0400</c> if any failures are found.
     /// </summary>
-    public static void ValidateForGraphQL<T>(this IValidator validator, T model) where T : notnull
+    public static void ValidateForGraphQL<T>(this IValidator validator, T model)
+        where T : notnull
     {
         IReadOnlyList<ValidationResult> failures = validator.Validate(model);
         if (failures.Count == 0)
@@ -31,7 +32,10 @@ public static class ErrorOrGraphQLExtensions
                     .New()
                     .SetMessage(f.ErrorMessage ?? ValidationConstants.ValidationFailedMessage)
                     .SetCode(SharedKernelErrorCatalog.General.ValidationFailed)
-                    .SetExtension(ValidationConstants.PropertyNameKey, string.Join(", ", f.MemberNames))
+                    .SetExtension(
+                        ValidationConstants.PropertyNameKey,
+                        string.Join(", ", f.MemberNames)
+                    )
                     .Build()
             )
         );
@@ -56,7 +60,10 @@ public static class ErrorOrGraphQLExtensions
                     .New()
                     .SetMessage(e.Description)
                     .SetCode(e.Code);
-                if (e.Metadata?.TryGetValue(ValidationConstants.PropertyNameKey, out object? pn) == true)
+                if (
+                    e.Metadata?.TryGetValue(ValidationConstants.PropertyNameKey, out object? pn)
+                    == true
+                )
                 {
                     builder = builder.SetExtension(ValidationConstants.PropertyNameKey, pn);
                 }
@@ -89,7 +96,10 @@ public static class ErrorOrGraphQLExtensions
                     .New()
                     .SetMessage(e.Description)
                     .SetCode(e.Code);
-                if (e.Metadata?.TryGetValue(ValidationConstants.PropertyNameKey, out object? pn) == true)
+                if (
+                    e.Metadata?.TryGetValue(ValidationConstants.PropertyNameKey, out object? pn)
+                    == true
+                )
                 {
                     builder = builder.SetExtension(ValidationConstants.PropertyNameKey, pn);
                 }

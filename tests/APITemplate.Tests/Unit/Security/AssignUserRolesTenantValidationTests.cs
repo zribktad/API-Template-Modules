@@ -1,3 +1,4 @@
+using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.Role.Shared;
@@ -6,7 +7,6 @@ using Identity.Directory.Interfaces;
 using Identity.Errors;
 using Identity.ValueObjects;
 using Moq;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;

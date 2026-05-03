@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Validation;
 using Identity.Directory.Entities;
-using SharedKernel.Application.Validation;
 
 namespace Identity.Directory.Features.Role.CreateRole;
 

@@ -1,7 +1,7 @@
+using BuildingBlocks.Web.Api;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using SharedKernel.Contracts.Api;
 
 namespace APITemplate.Api.ExceptionHandling;
 

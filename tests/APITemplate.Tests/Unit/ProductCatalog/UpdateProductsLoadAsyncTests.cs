@@ -1,3 +1,7 @@
+using BuildingBlocks.Application.Batch;
+using BuildingBlocks.Application.Batch.Rules;
+using BuildingBlocks.Application.DTOs;
+using BuildingBlocks.Application.Validation;
 using Moq;
 using ProductCatalog.Domain.Services;
 using ProductCatalog.Entities;
@@ -5,10 +9,6 @@ using ProductCatalog.Features.Product.Shared;
 using ProductCatalog.Features.Product.UpdateProducts;
 using ProductCatalog.Interfaces;
 using ProductCatalog.ValueObjects;
-using SharedKernel.Application.Batch;
-using SharedKernel.Application.Batch.Rules;
-using SharedKernel.Application.DTOs;
-using SharedKernel.Application.Validation;
 using Shouldly;
 using Wolverine;
 using Xunit;

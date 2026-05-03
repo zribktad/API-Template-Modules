@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using BuildingBlocks.Web.Logging;
 using ErrorOr;
-using SharedKernel.Infrastructure.Logging;
 
 namespace Identity.Directory.Entities;
 

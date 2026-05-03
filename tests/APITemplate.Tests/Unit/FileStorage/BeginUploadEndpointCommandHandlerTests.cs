@@ -1,4 +1,6 @@
 using System.Text;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using FileStorage.Contracts;
 using FileStorage.Domain;
@@ -7,8 +9,6 @@ using FileStorage.Domain.Storage;
 using FileStorage.Features.Staging;
 using Microsoft.Extensions.Options;
 using Moq;
-using SharedKernel.Application.Context;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;

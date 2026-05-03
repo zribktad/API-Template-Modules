@@ -1,6 +1,6 @@
+using BuildingBlocks.Web.Health;
 using Notifications.Infrastructure.Health;
 using ProductCatalog.Infrastructure.Health;
-using SharedKernel.Infrastructure.Health;
 
 namespace APITemplate.Api;
 

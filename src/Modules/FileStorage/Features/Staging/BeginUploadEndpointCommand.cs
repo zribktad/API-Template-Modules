@@ -1,8 +1,8 @@
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Domain.Interfaces;
 using FileStorage.Domain.Sagas;
 using FileStorage.Domain.Storage;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Context;
-using SharedKernel.Domain.Interfaces;
 using Wolverine;
 
 namespace FileStorage.Features.Staging;

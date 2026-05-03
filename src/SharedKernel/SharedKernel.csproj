@@ -1,27 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <InternalsVisibleTo Include="APITemplate.Tests" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ardalis.Specification" />
-    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" />
-    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
-    <PackageReference Include="AspNetCore.HealthChecks.Redis" />
-    <PackageReference Include="ErrorOr" />
-    <PackageReference Include="JasperFx" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
-    <PackageReference Include="Microsoft.Extensions.Compliance.Redaction" />
-    <PackageReference Include="Microsoft.Extensions.Resilience" />
-    <PackageReference Include="MongoDB.Bson" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="StackExchange.Redis" />
-    <PackageReference Include="WolverineFx" />
-    <PackageReference Include="WolverineFx.EntityFrameworkCore" />
+    <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.Domain\BuildingBlocks.Domain.csproj" />
   </ItemGroup>
 
 </Project>

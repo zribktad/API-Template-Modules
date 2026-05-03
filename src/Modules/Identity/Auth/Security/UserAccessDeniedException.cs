@@ -1,4 +1,4 @@
-using SharedKernel.Application.Errors;
+using BuildingBlocks.Application.Errors;
 
 namespace Identity.Auth.Security;
 

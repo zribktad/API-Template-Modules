@@ -1,12 +1,12 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using SharedKernel.Application.Contracts;
+using BuildingBlocks.Application.Contracts;
 
 namespace APITemplate.Tests.Unit.Idempotency;
 
 /// <summary>
 ///     Test-only, single-process in-memory <see cref="IIdempotencyStore" />. Lock key suffix matches
-///     <c>SharedKernel.Infrastructure.Idempotency.IdempotencyStoreConstants.LockSuffix</c> (<c>:lock</c>).
+///     <c>BuildingBlocks.Infrastructure.Redis.Idempotency.IdempotencyStoreConstants.LockSuffix</c> (<c>:lock</c>).
 /// </summary>
 public sealed class InMemoryIdempotencyStore : IIdempotencyStore
 {

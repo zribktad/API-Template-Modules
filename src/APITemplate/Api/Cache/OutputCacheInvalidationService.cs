@@ -1,6 +1,6 @@
 using APITemplate.Api;
+using BuildingBlocks.Application.Context;
 using Microsoft.AspNetCore.OutputCaching;
-using SharedKernel.Application.Context;
 
 namespace APITemplate.Api.Cache;
 

@@ -470,7 +470,7 @@ namespace Identity.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("SharedKernel.Domain.Entities.AuditInfo", "Audit", b1 =>
+                    b.OwnsOne("BuildingBlocks.Domain.Entities.AuditInfo", "Audit", b1 =>
                         {
                             b1.Property<Guid>("AppUserId")
                                 .HasColumnType("uuid");
@@ -513,7 +513,7 @@ namespace Identity.Migrations
 
             modelBuilder.Entity("Identity.Auth.Entities.BffPersistedSession", b =>
                 {
-                    b.OwnsOne("SharedKernel.Domain.Entities.AuditInfo", "Audit", b1 =>
+                    b.OwnsOne("BuildingBlocks.Domain.Entities.AuditInfo", "Audit", b1 =>
                         {
                             b1.Property<Guid>("BffPersistedSessionId")
                                 .HasColumnType("uuid");
@@ -556,7 +556,7 @@ namespace Identity.Migrations
 
             modelBuilder.Entity("Identity.Directory.Entities.Tenant", b =>
                 {
-                    b.OwnsOne("SharedKernel.Domain.Entities.AuditInfo", "Audit", b1 =>
+                    b.OwnsOne("BuildingBlocks.Domain.Entities.AuditInfo", "Audit", b1 =>
                         {
                             b1.Property<Guid>("TenantId")
                                 .HasColumnType("uuid");
@@ -605,7 +605,7 @@ namespace Identity.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("SharedKernel.Domain.Entities.AuditInfo", "Audit", b1 =>
+                    b.OwnsOne("BuildingBlocks.Domain.Entities.AuditInfo", "Audit", b1 =>
                         {
                             b1.Property<Guid>("TenantInvitationId")
                                 .HasColumnType("uuid");
@@ -649,3 +649,4 @@ namespace Identity.Migrations
         }
     }
 }
+

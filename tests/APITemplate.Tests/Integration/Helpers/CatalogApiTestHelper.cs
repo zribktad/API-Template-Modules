@@ -1,11 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using BuildingBlocks.Application.DTOs;
+using BuildingBlocks.Domain.Common;
 using Identity.Directory.Entities;
 using ProductCatalog.Features.Category.Shared;
 using ProductCatalog.Features.Product.Shared;
 using Reviews.Domain;
-using SharedKernel.Application.DTOs;
-using SharedKernel.Domain.Common;
 using Shouldly;
 
 namespace APITemplate.Tests.Integration.Helpers;

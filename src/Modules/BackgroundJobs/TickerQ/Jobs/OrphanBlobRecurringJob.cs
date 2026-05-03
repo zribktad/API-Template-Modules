@@ -1,6 +1,6 @@
 using BackgroundJobs.Contracts;
+using BuildingBlocks.Application.BackgroundJobs;
 using Microsoft.Extensions.Logging;
-using SharedKernel.Application.BackgroundJobs;
 using TickerQ.Utilities.Base;
 
 namespace BackgroundJobs.TickerQ.Jobs;

@@ -1,4 +1,7 @@
 using System.Security.Claims;
+using BuildingBlocks.Application.Context;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Security;
 using ErrorOr;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
@@ -9,9 +12,6 @@ using Identity.Directory.Features.Role.UpdateRole;
 using Identity.Directory.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using SharedKernel.Application.Context;
-using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;

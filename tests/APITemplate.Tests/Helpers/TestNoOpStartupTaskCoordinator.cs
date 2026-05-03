@@ -1,4 +1,4 @@
-using SharedKernel.Application.Startup;
+using BuildingBlocks.Application.Startup;
 
 namespace APITemplate.Tests.Helpers;
 

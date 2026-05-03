@@ -1,6 +1,6 @@
+using BuildingBlocks.Security;
 using ErrorOr;
 using Identity.Directory.Entities;
-using SharedKernel.Contracts.Security;
 using Shouldly;
 using Xunit;
 

@@ -1,12 +1,12 @@
 using global::ProductCatalog;
 using APITemplate.Tests.Unit.Infrastructure;
+using BuildingBlocks.Application.DTOs;
+using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using global::ProductCatalog.Features.Category.Shared;
 using global::ProductCatalog.Features.Category.UpdateCategories;
 using global::ProductCatalog.Interfaces;
 using Moq;
-using SharedKernel.Application.DTOs;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;

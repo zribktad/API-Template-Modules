@@ -1,6 +1,6 @@
+using BuildingBlocks.Messaging.Events;
 using Microsoft.Extensions.DependencyInjection;
 using ProductCatalog.Common.Events;
-using SharedKernel.Application.Events;
 using SharedKernel.Contracts.Events;
 using Shouldly;
 using Wolverine;

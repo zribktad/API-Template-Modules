@@ -1,3 +1,4 @@
+using BuildingBlocks.Domain.Interfaces;
 using Identity;
 using Identity.Auth.Entities;
 using Identity.Directory.Entities;
@@ -8,7 +9,6 @@ using Identity.Directory.Security;
 using Identity.Persistence;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Xunit;
 

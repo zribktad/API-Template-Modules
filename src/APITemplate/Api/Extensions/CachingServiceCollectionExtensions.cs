@@ -1,8 +1,8 @@
 using APITemplate.Api.Cache;
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options.Http;
+using BuildingBlocks.Infrastructure.Redis.OutputCache;
 using Microsoft.AspNetCore.OutputCaching.StackExchangeRedis;
-using SharedKernel.Application.Options.Http;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.OutputCache;
 using StackExchange.Redis;
 
 namespace APITemplate.Api.Extensions;

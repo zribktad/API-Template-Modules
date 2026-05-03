@@ -1,6 +1,6 @@
+using BuildingBlocks.Application.Options.Http;
 using Microsoft.Extensions.Options;
 using NetEscapades.AspNetCore.SecurityHeaders;
-using SharedKernel.Application.Options.Http;
 
 namespace APITemplate.Api.Extensions.Startup;
 

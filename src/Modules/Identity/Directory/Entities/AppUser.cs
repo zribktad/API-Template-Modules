@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using SharedKernel.Infrastructure.Logging;
+using BuildingBlocks.Web.Logging;
 
 namespace Identity.Directory.Entities;
 

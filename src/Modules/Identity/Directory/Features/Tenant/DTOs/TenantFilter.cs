@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Validation;
 using Identity.Directory.Features.Tenant;
-using SharedKernel.Application.Validation;
 
 namespace Identity.Directory.Features.Tenant.DTOs;
 
@@ -15,9 +15,8 @@ public sealed record TenantFilter(
         TenantSortFields.CreatedAtToken,
         ErrorMessage = "SortBy must be one of: Code, Name, CreatedAt."
     )]
-    string? SortBy = null,
-    [SortDirection]
-    string? SortDirection = null,
+        string? SortBy = null,
+    [SortDirection] string? SortDirection = null,
     int PageNumber = 1,
     int PageSize = PaginationFilter.DefaultPageSize
 ) : PaginationFilter(PageNumber, PageSize), ISortableFilter;

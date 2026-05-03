@@ -1,8 +1,8 @@
+using BuildingBlocks.Application.Errors;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Notifications.Contracts;
 using Notifications.Services;
-using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
 using NTF = Notifications.Errors.ErrorCatalog;

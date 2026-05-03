@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Options.Security;
+using BuildingBlocks.Web.Logging;
 using Microsoft.Extensions.Compliance.Classification;
 using Microsoft.Extensions.Compliance.Redaction;
-using SharedKernel.Application.Options.Security;
-using SharedKernel.Infrastructure.Logging;
 
 namespace APITemplate.Api.Extensions.Startup;
 

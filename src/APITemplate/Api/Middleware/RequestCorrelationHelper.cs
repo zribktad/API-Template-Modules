@@ -1,4 +1,4 @@
-using SharedKernel.Application.Http;
+using BuildingBlocks.Application.Http;
 
 namespace APITemplate.Api.Middleware;
 

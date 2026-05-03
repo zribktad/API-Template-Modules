@@ -1,6 +1,6 @@
+using BuildingBlocks.Web.Health;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Infrastructure.Health;
 
 namespace Notifications.Infrastructure.Health;
 

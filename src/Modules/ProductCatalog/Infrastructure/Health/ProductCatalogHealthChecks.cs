@@ -1,8 +1,10 @@
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
+using BuildingBlocks.Web.Configuration;
+using BuildingBlocks.Web.Health;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProductCatalog.Persistence;
-using SharedKernel.Infrastructure.Configuration;
-using SharedKernel.Infrastructure.Health;
 
 namespace ProductCatalog.Infrastructure.Health;
 

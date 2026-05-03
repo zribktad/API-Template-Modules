@@ -1,6 +1,6 @@
+using BuildingBlocks.Application.Errors;
 using Notifications.Contracts;
 using Notifications.Services;
-using SharedKernel.Application.Errors;
 using Shouldly;
 using Xunit;
 using NTF = Notifications.Errors.ErrorCatalog;

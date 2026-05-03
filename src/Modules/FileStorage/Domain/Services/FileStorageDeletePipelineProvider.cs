@@ -1,6 +1,6 @@
+using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Web.Resilience;
 using Polly.Registry;
-using SharedKernel.Application.Resilience;
-using SharedKernel.Infrastructure.Resilience;
 
 namespace FileStorage.Domain.Services;
 

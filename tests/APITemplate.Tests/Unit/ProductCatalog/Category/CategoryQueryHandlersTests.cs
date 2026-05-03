@@ -1,3 +1,4 @@
+using BuildingBlocks.Domain.Common;
 using ErrorOr;
 using Moq;
 using ProductCatalog.Entities;
@@ -6,7 +7,6 @@ using ProductCatalog.Features.Category.GetCategoryById;
 using ProductCatalog.Features.Category.GetCategoryStats;
 using ProductCatalog.Features.Category.Shared;
 using ProductCatalog.Interfaces;
-using SharedKernel.Domain.Common;
 using Shouldly;
 using Xunit;
 

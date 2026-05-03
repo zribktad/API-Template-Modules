@@ -1,5 +1,5 @@
+using BuildingBlocks.Infrastructure.EFCore.Auditing;
 using Microsoft.EntityFrameworkCore;
-using SharedKernel.Infrastructure.Auditing;
 
 namespace Reviews.Persistence;
 

@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Resilience;
 using Notifications.Services;
 using Polly;
 using Polly.Registry;
-using SharedKernel.Application.Resilience;
 using Shouldly;
 using Xunit;
 

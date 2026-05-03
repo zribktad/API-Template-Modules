@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using APITemplate.Tests.Integration.Helpers;
-using SharedKernel.Application.Http;
+using BuildingBlocks.Application.Http;
 using Shouldly;
 using Xunit;
 

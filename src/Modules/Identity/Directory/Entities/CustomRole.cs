@@ -1,6 +1,6 @@
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Security;
 using ErrorOr;
-using SharedKernel.Contracts.Security;
-using SharedKernel.Domain.Interfaces;
 
 namespace Identity.Directory.Entities;
 

@@ -1,5 +1,5 @@
 using BackgroundJobs.Persistence;
-using SharedKernel.Infrastructure.Repositories;
+using BuildingBlocks.Infrastructure.EFCore.Repositories;
 
 namespace BackgroundJobs.Repositories;
 

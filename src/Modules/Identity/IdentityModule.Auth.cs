@@ -1,4 +1,8 @@
 using System.Security.Claims;
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Resilience;
+using BuildingBlocks.Infrastructure.Redis.Configuration;
+using BuildingBlocks.Web.Configuration;
 using Identity.Auth.Http;
 using Identity.Auth.Options;
 using Identity.Auth.Security.Keycloak;
@@ -16,8 +20,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using SharedKernel.Application.Resilience;
-using SharedKernel.Infrastructure.Configuration;
 
 namespace Identity;
 
@@ -293,7 +295,7 @@ public static partial class IdentityModule
                         .RequireAuthenticatedUser()
                         .RequireClaim(
                             AuthConstants.Claims.Permission,
-                            SharedKernel.Contracts.Security.Permission.Platform.Manage
+                            BuildingBlocks.Security.Permission.Platform.Manage
                         )
             )
             // Accepts Tenant.Manage OR Platform.Manage — platform admins implicitly have tenant admin rights.
@@ -308,8 +310,8 @@ public static partial class IdentityModule
                         .RequireAuthenticatedUser()
                         .RequireClaim(
                             AuthConstants.Claims.Permission,
-                            SharedKernel.Contracts.Security.Permission.Tenant.Manage,
-                            SharedKernel.Contracts.Security.Permission.Platform.Manage
+                            BuildingBlocks.Security.Permission.Tenant.Manage,
+                            BuildingBlocks.Security.Permission.Platform.Manage
                         )
             );
     }

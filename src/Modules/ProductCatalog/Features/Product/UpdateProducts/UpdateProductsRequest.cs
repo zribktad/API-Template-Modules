@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using SharedKernel.Application.Validation;
+using BuildingBlocks.Application.Validation;
 
 namespace ProductCatalog.Features.Product.UpdateProducts;
 
@@ -25,8 +25,14 @@ public sealed record UpdateProductItem(
         1000,
         ErrorMessage = "Description is required for products priced above 1000."
     )]
-    string? Description,
-    [Range(typeof(decimal), "0", "79228162514264337593543950335", ErrorMessage = "Price must be non-negative.")] decimal Price,
+        string? Description,
+    [Range(
+        typeof(decimal),
+        "0",
+        "79228162514264337593543950335",
+        ErrorMessage = "Price must be non-negative."
+    )]
+        decimal Price,
     Guid? CategoryId = null,
     IReadOnlyCollection<Guid>? ProductDataIds = null
 ) : IProductRequest, IHasId;

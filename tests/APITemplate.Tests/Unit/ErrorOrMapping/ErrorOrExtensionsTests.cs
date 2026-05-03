@@ -1,12 +1,12 @@
 using System.Net;
+using BuildingBlocks.Application.DTOs;
+using BuildingBlocks.Web.Api;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Application.DTOs;
-using SharedKernel.Contracts.Api;
 using Shouldly;
 using Xunit;
 

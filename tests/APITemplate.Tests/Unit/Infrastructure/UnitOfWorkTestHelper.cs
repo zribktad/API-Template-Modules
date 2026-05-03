@@ -1,6 +1,6 @@
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Domain.Options;
 using Moq;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Domain.Options;
 
 namespace APITemplate.Tests.Unit.Infrastructure;
 

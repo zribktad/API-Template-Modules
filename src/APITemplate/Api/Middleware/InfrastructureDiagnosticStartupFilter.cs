@@ -1,7 +1,7 @@
+using BuildingBlocks.Application.Configuration;
 using FileStorage.Contracts;
 using Identity.Auth.Options;
 using Npgsql;
-using SharedKernel.Infrastructure.Configuration;
 
 namespace APITemplate.Api.Middleware;
 

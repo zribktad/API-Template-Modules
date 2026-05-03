@@ -1,3 +1,6 @@
+using BuildingBlocks.Application.Validation;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Domain.Options;
 using ErrorOr;
 using Moq;
 using ProductCatalog;
@@ -7,10 +10,7 @@ using ProductCatalog.Features.Product.PatchProduct;
 using ProductCatalog.Features.Product.Shared;
 using ProductCatalog.Interfaces;
 using ProductCatalog.ValueObjects;
-using SharedKernel.Application.Validation;
 using SharedKernel.Contracts.Events;
-using SharedKernel.Domain.Interfaces;
-using SharedKernel.Domain.Options;
 using Shouldly;
 using SystemTextJsonPatch;
 using Wolverine;

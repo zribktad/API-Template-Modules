@@ -1,3 +1,4 @@
+using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using global::Identity.Directory.Entities;
 using global::Identity.Directory.Features.Role.Shared;
@@ -6,7 +7,6 @@ using global::Identity.Directory.Features.User.InvalidatePermissions;
 using global::Identity.Directory.Interfaces;
 using global::Identity.ValueObjects;
 using Moq;
-using SharedKernel.Domain.Interfaces;
 using Shouldly;
 using Wolverine;
 using Xunit;

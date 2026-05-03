@@ -1,8 +1,8 @@
+using BuildingBlocks.Application.Validation;
 using ErrorOr;
 using HotChocolate.Authorization;
 using ProductCatalog.Features.Product.GetProductById;
 using ProductCatalog.Features.Product.GetProducts;
-using SharedKernel.Application.Validation;
 using Wolverine;
 
 namespace ProductCatalog.GraphQL.Queries;

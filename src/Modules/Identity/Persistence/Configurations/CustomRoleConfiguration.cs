@@ -1,8 +1,8 @@
+using BuildingBlocks.Domain.Entities;
+using BuildingBlocks.Infrastructure.EFCore.Configurations;
 using Identity.Directory.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SharedKernel.Domain.Entities;
-using SharedKernel.Infrastructure.Configurations;
 
 namespace Identity.Persistence.Configurations;
 
@@ -72,7 +72,10 @@ public sealed class CustomRoleConfiguration : IEntityTypeConfiguration<CustomRol
             {
                 permissions.ToTable("RolePermissions", "identity");
                 permissions.WithOwner(rp => rp.Role).HasForeignKey(rp => rp.RoleId);
-                permissions.Property(rp => rp.Permission).IsRequired().HasMaxLength(CustomRole.PermissionMaxLength);
+                permissions
+                    .Property(rp => rp.Permission)
+                    .IsRequired()
+                    .HasMaxLength(CustomRole.PermissionMaxLength);
                 permissions.HasKey(rp => new { rp.RoleId, rp.Permission });
             }
         );

@@ -1,11 +1,11 @@
 using APITemplate.Tests.Unit.Infrastructure;
+using BuildingBlocks.Application.Context;
 using ErrorOr;
 using global::ProductCatalog.Features.ProductData.GetProductData;
 using global::ProductCatalog.Features.ProductData.GetProductDataById;
 using global::ProductCatalog.Features.ProductData.Shared;
 using global::ProductCatalog.Interfaces;
 using Moq;
-using SharedKernel.Application.Context;
 using Shouldly;
 using Xunit;
 

@@ -1,6 +1,6 @@
+using BuildingBlocks.Application.Validation;
 using ErrorOr;
 using HotChocolate.Authorization;
-using SharedKernel.Application.Validation;
 using SharedKernel.Contracts.Queries.Reviews;
 using Wolverine;
 

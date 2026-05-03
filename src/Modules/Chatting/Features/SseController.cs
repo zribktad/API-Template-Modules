@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Asp.Versioning;
+using BuildingBlocks.Security;
+using BuildingBlocks.Web.Api;
 using Chatting.Features.GetNotificationStream;
 using Microsoft.AspNetCore.Mvc;
-using SharedKernel.Contracts.Api;
-using SharedKernel.Contracts.Security;
 using Wolverine;
 
 namespace Chatting.Features;

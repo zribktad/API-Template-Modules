@@ -108,3 +108,4 @@
     <ProjectReference Include="..\..\src\SharedKernel.GraphQL\SharedKernel.GraphQL.csproj" />
   </ItemGroup>
 </Project>
+

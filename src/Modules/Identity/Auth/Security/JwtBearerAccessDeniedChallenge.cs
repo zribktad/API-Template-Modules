@@ -1,10 +1,10 @@
+using BuildingBlocks.Web.Api;
 using ErrorOr;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using SharedKernel.Contracts.Api;
 
 namespace Identity.Auth.Security;
 

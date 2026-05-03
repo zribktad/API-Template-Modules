@@ -1,6 +1,6 @@
+using BuildingBlocks.Infrastructure.EFCore.Persistence.DesignTime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using SharedKernel.Infrastructure.Persistence.DesignTime;
 
 namespace FileStorage.Persistence;
 

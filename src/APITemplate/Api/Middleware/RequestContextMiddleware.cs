@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using System.Security.Claims;
+using BuildingBlocks.Application.Http;
+using BuildingBlocks.Web.Observability;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Http.Features;
 using Serilog.Context;
-using SharedKernel.Application.Http;
-using SharedKernel.Infrastructure.Observability;
 
 namespace APITemplate.Api.Middleware;
 

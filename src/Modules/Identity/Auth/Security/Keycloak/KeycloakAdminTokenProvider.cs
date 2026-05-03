@@ -1,9 +1,9 @@
 using System.Net.Http.Json;
+using BuildingBlocks.Application.Errors;
 using Identity.Auth.Options;
 using Identity.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SharedKernel.Application.Errors;
 using KC = Identity.Errors.ErrorCatalog;
 
 namespace Identity.Auth.Security.Keycloak;
