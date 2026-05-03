@@ -9,39 +9,45 @@ public static class LoggingExtensions
 {
     public static WebApplicationBuilder AddApplicationRedaction(this WebApplicationBuilder builder)
     {
-        builder.Services.AddValidatedOptions<RedactionOptions>(builder.Configuration);
+        AddApplicationRedaction(builder.Services, builder.Configuration);
+        builder.Logging.EnableRedaction();
+        return builder;
+    }
 
-        builder.Services.AddRedaction(redactionBuilder =>
+    public static IServiceCollection AddApplicationRedaction(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        services.AddValidatedOptions<RedactionOptions>(configuration);
+
+        services.AddRedaction(redactionBuilder =>
         {
-            redactionBuilder.SetRedactor<ErasingRedactor>(LogDataClassifications.Personal);
-
 #pragma warning disable EXTEXP0002 // HMAC redactor is experimental in Microsoft.Extensions.Compliance.Redaction.
-            redactionBuilder.SetHmacRedactor(
-                options =>
-                {
-                    RedactionOptions redactionOptions =
-                        builder.Configuration.SectionFor<RedactionOptions>().Get<RedactionOptions>()
-                        ?? throw new InvalidOperationException(
-                            $"Configuration section '{nameof(RedactionOptions)}' is missing."
-                        );
-
-                    string hmacKey = RedactionConfiguration.ResolveHmacKey(
-                        redactionOptions,
-                        Environment.GetEnvironmentVariable
+            void ConfigureHmac(HmacRedactorOptions options)
+            {
+                RedactionOptions redactionOptions =
+                    configuration.SectionFor<RedactionOptions>().Get<RedactionOptions>()
+                    ?? throw new InvalidOperationException(
+                        $"Configuration section '{nameof(RedactionOptions)}' is missing."
                     );
 
-                    options.KeyId = redactionOptions.KeyId;
-                    options.Key = hmacKey;
-                },
-                new DataClassificationSet(LogDataClassifications.Sensitive)
-            );
+                string hmacKey = RedactionConfiguration.ResolveHmacKey(
+                    redactionOptions,
+                    Environment.GetEnvironmentVariable
+                );
+
+                options.KeyId = redactionOptions.KeyId;
+                options.Key = hmacKey;
+            }
+
+            redactionBuilder.SetHmacRedactor(ConfigureHmac, LogDataClassifications.Personal);
+            redactionBuilder.SetHmacRedactor(ConfigureHmac, LogDataClassifications.Sensitive);
 #pragma warning restore EXTEXP0002
 
             redactionBuilder.SetFallbackRedactor<ErasingRedactor>();
         });
 
-        builder.Logging.EnableRedaction();
-
-        return builder;
+        return services;
     }
 }

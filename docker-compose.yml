@@ -134,7 +134,7 @@ services:
       - "6379:6379"
     volumes:
       - dragonflydata:/data
-    command: dragonfly --maxmemory 512mb --proactor_threads 2
+    command: dragonfly --maxmemory 512mb --proactor_threads 2 --cache_mode=true
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
