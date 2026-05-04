@@ -28,7 +28,10 @@ public static class SecurityHeadersExtensions
             .AddFrameOptionsDeny()
             .AddContentTypeOptionsNoSniff()
             .AddXssProtectionDisabled()
-            .AddReferrerPolicyStrictOriginWhenCrossOrigin();
+            .AddReferrerPolicyStrictOriginWhenCrossOrigin()
+            .AddCrossOriginOpenerPolicy(builder => builder.SameOrigin())
+            .AddCrossOriginEmbedderPolicy(builder => builder.RequireCorp())
+            .AddCrossOriginResourcePolicy(builder => builder.SameOrigin());
 
         if (!environment.IsDevelopment())
         {

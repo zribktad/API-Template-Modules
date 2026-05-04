@@ -1,9 +1,10 @@
+using System.Reflection;
+using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
-using BuildingBlocks.Application.Options.Infrastructure;
-using BuildingBlocks.Application.Configuration;
 
 namespace BuildingBlocks.Web.Health;
 
@@ -26,18 +27,55 @@ public static class HealthCheckModuleExtensions
             return services;
         }
 
-        ServiceCollection tempServices = new();
-        tempServices.AddSingleton(configuration);
-        tempServices.AddSingleton(environment);
-        using ServiceProvider tempProvider = tempServices.BuildServiceProvider();
-
         foreach (Type type in moduleTypes)
         {
-            IHealthCheckModule module = (IHealthCheckModule)
-                ActivatorUtilities.CreateInstance(tempProvider, type);
+            IHealthCheckModule module = CreateHealthCheckModule(type, configuration, environment);
             module.RegisterHealthChecks(builder);
         }
+
         return services;
     }
-}
 
+    private static IHealthCheckModule CreateHealthCheckModule(
+        Type type,
+        IConfiguration configuration,
+        IHostEnvironment environment
+    )
+    {
+        // Manual instantiation to avoid BuildServiceProvider anti-pattern during startup.
+        ConstructorInfo[] constructors = type.GetConstructors();
+        foreach (ConstructorInfo ctor in constructors)
+        {
+            ParameterInfo[] parameters = ctor.GetParameters();
+            object?[] args = new object?[parameters.Length];
+            bool possible = true;
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i].ParameterType == typeof(IConfiguration))
+                {
+                    args[i] = configuration;
+                }
+                else if (parameters[i].ParameterType == typeof(IHostEnvironment))
+                {
+                    args[i] = environment;
+                }
+                else
+                {
+                    possible = false;
+                    break;
+                }
+            }
+
+            if (possible)
+            {
+                return (IHealthCheckModule)ctor.Invoke(args);
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"No suitable constructor found for health check module {type.FullName}. "
+                + "Supported parameters: IConfiguration, IHostEnvironment."
+        );
+    }
+}

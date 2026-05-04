@@ -56,7 +56,17 @@ The application is built with a multi-tenant architecture, ensuring strict data 
   - **`MaxAgeDays`:** How long (in days) the browser remembers this rule. Default is 365 days. This protects the exact domain the API is running on.
   - **`IncludeSubDomains`:** If true, tells the browser that *all* subdomains (e.g., `dev.api...`) must also use HTTPS. Use with caution if you have legacy HTTP subdomains.
   - **`Preload`:** The strictest setting. If true, adds the `preload` directive. If you register your domain at *hstspreload.org*, major browsers (Chrome, Safari, Firefox) will hardcode your domain as HTTPS-only. This protects users even on their very first visit, but it is very difficult to undo.
-- **TLS:** Only secure TLS versions are supported by the hosting environment.
+
+### Request Size Limits
+To mitigate Large Payload Denial-of-Service (DoS) attacks, the API enforces strict request body size limits:
+- **Default Limit:** 1 MB (configured via `Request:RequestSizeLimitMb`). Standard ASP.NET Core defaults to 30 MB, which is excessively high for most REST/GraphQL API calls and can be exploited to exhaust server memory/bandwidth.
+- **Overrides:** Specific endpoints that require larger payloads (e.g., file uploads in `FileStorage`) use the `[RequestSizeLimit]` attribute to safely allow larger requests (e.g., 10 MB or 100 MB) without compromising the rest of the system.
+
+### Modern Browser Isolation Headers
+The API includes high-security headers to protect against side-channel attacks (like Spectre) and cross-origin information leaks:
+- **COOP (Cross-Origin-Opener-Policy):** Set to `same-origin`. Ensures the document does not share a browsing context group with cross-origin documents.
+- **COEP (Cross-Origin-Embedder-Policy):** Set to `require-corp`. Prevents the document from loading any cross-origin resources that don't explicitly grant permission via CORP.
+- **CORP (Cross-Origin-Resource-Policy):** Set to `same-origin`. Prevents other origins from loading resources from this API.
 
 ### Security Response Headers
 Configured globally in `SecurityHeadersExtensions.cs`:
@@ -76,6 +86,7 @@ Configured globally in `SecurityHeadersExtensions.cs`:
 
 ### Rate Limiting
 - **Throttling:** Implemented to prevent DoS and brute-force attacks.
+- **Distributed State:** Uses **Redis/Dragonfly** as the backplane via `RedisRateLimiting`. This ensures that limits are synchronized across all API instances, preventing users from bypassing quotas by hitting different nodes in a cluster.
 - **Policies:** Includes both global limits and per-user partitioning.
 - **Detailed Doc:** See [RATE_LIMITING.md](RATE_LIMITING.md).
 

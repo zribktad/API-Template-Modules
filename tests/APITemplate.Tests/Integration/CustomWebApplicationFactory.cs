@@ -83,6 +83,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 
         builder.ConfigureTestServices(services =>
         {
+            // Register the test assembly so MVC can discover test controllers
+            services
+                .AddControllers()
+                .AddApplicationPart(typeof(CustomWebApplicationFactory).Assembly);
+
             TestServiceHelper.ReplaceOutputCacheWithInMemory(services);
             TestServiceHelper.ReplaceDataProtectionWithInMemory(services);
             TestServiceHelper.ReplaceDistributedCacheWithInMemory(services);

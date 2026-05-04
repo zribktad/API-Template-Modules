@@ -61,6 +61,7 @@
     <Compile Include="Integration\Postgres\SharedPostgresContainer.cs" />
     <Compile Include="Integration\Postgres\TenantInvitationRepositoryPostgresTests.cs" />
     <Compile Include="Integration\Postgres\PostgresOptimisticConcurrencyTests.cs" />
+    <Compile Include="Integration\Security\RequestSizeLimitTests.cs" />
     <Compile Include="Integration\Security\SecurityHeadersTests.cs" />
     <Compile Include="Integration\Security\GraphQLSecurityIntegrationTests.cs" />
     <Compile Include="Integration\Smoke\SmokeTestsCollection.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Integration\Infrastructure\RateLimitingIntegrationTests.cs" />
     <Compile Include="Integration\Infrastructure\RateLimitTestController.cs" />
     <Compile Include="Integration\Infrastructure\RateLimitWebApplicationFactory.cs" />
+    <Compile Include="Integration\Infrastructure\RequestSizeLimitTestController.cs" />
     <Compile Include="Integration\Infrastructure\HstsIntegrationTests.cs" />
     <Compile Include="Integration\Infrastructure\InfrastructureConfigurationTests.cs" />
     <Compile Include="Integration\Infrastructure\ScalarAndOpenApiTests.cs" />
