@@ -1,0 +1,4301 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Modern .NET 10 Web API and Data-Driven applications template.">
+      
+      
+      
+        <link rel="canonical" href="https://zribktad.github.io/API-Template-Modules/AUTHENTICATION/">
+      
+      
+        <link rel="prev" href="../transactions/">
+      
+      
+        <link rel="next" href="../auth-registration/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Authentication - APITemplate Modules</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#authentication-authorization" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="APITemplate Modules" class="md-header__button md-logo" aria-label="APITemplate Modules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            APITemplate Modules
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Authentication
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../cqrs-architecture/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  📚 Guides
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="APITemplate Modules" class="md-nav__button md-logo" aria-label="APITemplate Modules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    APITemplate Modules
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📚 Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture & Patterns
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture & Patterns
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cqrs-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CQRS & Messaging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../result-pattern/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Pattern
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wolverine-message-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wolverine Messages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/product-catalog-reviews-decoupling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Catalog Decoupling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Endpoints
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Endpoints
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraphQL Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql-implementation-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraphQL Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-create-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How To Create Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../endpoint-showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Endpoint Showcase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scalar-and-graphql-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scalar & UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Databases & Migrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Databases & Migrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ef-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EF Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mongodb-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MongoDB Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mongodb-polymorphism/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MongoDB Polymorphism
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stored-procedures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stored Procedures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security & Auth
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security & Auth
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-start-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Start Infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-default-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Default Credentials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-keycloak-admin-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Keycloak Admin Console
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flow-1-jwt-bearer-api-clients-mobile-apps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow 1 — JWT Bearer (API clients, mobile apps)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-request-a-token-manually-postman-curl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Request a Token Manually (Postman / cURL)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to Request a Token Manually (Postman / cURL)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-password-grant-resource-owner-password-credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Password Grant (Resource Owner Password Credentials)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-client-credentials-machine-to-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Client Credentials (Machine-to-Machine)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-refresh-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Refresh Token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-authorization-code-with-pkce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Authorization Code (with PKCE)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-direct-grant-mobile-desktop-app-login-alternative-for-native-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Direct Grant / Mobile &amp; Desktop App Login (Alternative for Native UI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flow-2-social-login-via-google-bff-keycloak-idp-brokering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow 2 — Social Login via Google (BFF + Keycloak IdP brokering)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flow 2 — Social Login via Google (BFF + Keycloak IdP brokering)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#2a-direct-redirect-to-google" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2a. Direct redirect to Google
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2b-discovery-endpoint-spa-dynamic-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2b. Discovery endpoint (SPA dynamic UI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2c-adding-a-new-social-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2c. Adding a new social provider
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2d-keycloak-google-idp-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2d. Keycloak Google IdP Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flow-3-bff-cookie-spa-browser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow 3 — BFF Cookie (SPA / browser)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Flow 3 — BFF Cookie (SPA / browser)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3a-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3a. Login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3b-authenticated-request-with-proactive-token-refresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3b. Authenticated Request (with proactive token refresh)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3b1-session-validation-cadence-and-revocation-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3b.1 Session validation cadence and revocation window
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3c-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3c. Logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-session-revocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3d. Session revocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3e-storage-architecture-and-redis-cache-keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3e. Storage architecture and Redis cache keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3ei-l1-local-cache-and-redis-pubsub-invalidation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3e.i. L1 local cache and Redis pub/sub invalidation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3f-csrf-endpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3f. CSRF endpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flow-4-scalar-oauth2-development-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow 4 — Scalar OAuth2 (development UI)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flow-5-client-credentials-machine-to-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow 5 — Client Credentials (machine-to-machine)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-tokens-are-stored" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Tokens Are Stored
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#token-claims" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Claims
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authorization-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authorization Policies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bff-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BFF Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#session-token-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session &amp; Token Lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keycloak-realm-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keycloak Realm Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Keycloak Realm Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#realm-api-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Realm: api-template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-lifetimes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Lifetimes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timeout-synchronization-between-keycloak-and-bff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timeout synchronization between Keycloak and BFF
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client-api-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client: api-template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-protocol-mappers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Protocol Mappers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#identity-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identity Providers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#standard-keycloak-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Standard Keycloak Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#appsettingsdevelopmentjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        appsettings.Development.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#appsettingsjson-bff-section" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        appsettings.json — BFF section
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secured-endpoint-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secured endpoint checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-source-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Source Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keycloak-event-webhook-internal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keycloak event webhook (internal)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strategic-deployment-alternatives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategic deployment alternatives
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth-registration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auth Registration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keycloak-auth-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keycloak Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Guidelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RATE_LIMITING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rate Limiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Testing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-fast-unit-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fast Unit Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure & Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Infrastructure & Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CACHING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mailing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mailing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-upload-saga/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Upload Saga
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GIT_HOOKS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refactoring & Code Quality
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Refactoring & Code Quality
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remaining-refactoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining Refactoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href=".." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../cqrs-architecture/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    📚 Guides
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Security & Auth
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="authentication-authorization">Authentication &amp; Authorization</h1>
+<h2 id="overview">Overview</h2>
+<p>Project uses <strong>Keycloak</strong> as identity provider with hybrid authentication:</p>
+<blockquote>
+<p><strong>Related doc:</strong> <a href="../keycloak-auth-workflow/">Keycloak auth workflow</a> focuses on user lifecycle (registration, invitations, account endpoints, webhooks). This document focuses on protocols, BFF session storage, tokens, and local infrastructure.</p>
+<p><strong>Where things register:</strong> For DI/middleware ownership and ordering (<code>AddApplicationComposition</code> vs <code>AddIdentityModule</code>, CSRF placement), see <a href="../auth-registration/">auth-registration.md</a>.</p>
+</blockquote>
+<ul>
+<li><strong>JWT Bearer</strong> — direct API access (microservices, mobile apps, Postman, curl)</li>
+<li><strong>OIDC + Cookie (BFF)</strong> — browser-based login for SPA; tokens never exposed to JavaScript</li>
+<li><strong>Scalar OAuth2</strong> — interactive OAuth2 Authorization Code flow in Scalar UI (development)</li>
+<li><strong>Client Credentials</strong> — machine-to-machine (service accounts, background jobs)</li>
+</ul>
+<h2 id="architecture">Architecture</h2>
+<pre class="mermaid"><code>graph TB
+    subgraph Clients
+        SPA[Browser / SPA]
+        API_CLIENT[API Client&lt;br/&gt;Postman, microservice, mobile]
+        SCALAR[Scalar UI&lt;br/&gt;dev tool]
+    end
+
+    subgraph APP[ASP.NET Core API]
+        BFF[BffController&lt;br/&gt;/api/v1/bff/login&lt;br/&gt;/api/v1/bff/login/{idpHint}&lt;br/&gt;/api/v1/bff/external-providers&lt;br/&gt;/api/v1/bff/logout&lt;br/&gt;/api/v1/bff/user&lt;br/&gt;/api/v1/bff/csrf]
+        JWT_VAL[JwtBearer Middleware&lt;br/&gt;validates Bearer token]
+        COOKIE_VAL[Cookie Middleware&lt;br/&gt;L1 in-process cache → DragonFly → PostgreSQL]
+        REFRESH[CookieSessionRefresher&lt;br/&gt;loads session, delegates to&lt;br/&gt;BffTokenRefreshService]
+        CSRF[CsrfValidationMiddleware&lt;br/&gt;X-CSRF token required]
+        TENANT[IdentityTokenValidatedPipeline&lt;br/&gt;validates tenant_id claim]
+        CLAIM[KeycloakClaimMapper&lt;br/&gt;maps Keycloak → .NET claims]
+        AUTHZ[Authorization Middleware&lt;br/&gt;Fallback: Bearer OR Cookie]
+    end
+
+    subgraph POSTGRES[PostgreSQL]
+        PG_STORE[BffPersistedSession table&lt;br/&gt;primary session store&lt;br/&gt;tokens encrypted at rest]
+    end
+
+    subgraph LOCAL[Per-Instance In-Process Cache]
+        L1[BffLocalSessionCache&lt;br/&gt;IMemoryCache, 10s TTL&lt;br/&gt;invalidated via DragonFly pub/sub]
+    end
+
+    subgraph SESSION[DragonFly]
+        CACHE[DragonFly Cache&lt;br/&gt;bff:session:GUID → BffSessionRecord&lt;br/&gt;read-through cache, 10 min TTL]
+        LOCK[Refresh Coordinator&lt;br/&gt;bff:session:GUID:refresh:lock&lt;br/&gt;bff:session:GUID:refresh:result]
+        REVOKE[Revocation Channel&lt;br/&gt;bff:session:revocations&lt;br/&gt;pub/sub broadcast]
+        DP[DataProtection Keys&lt;br/&gt;DataProtection:Keys]
+    end
+
+    subgraph KEYCLOAK[Keycloak :8180]
+        REALM[Realm: api-template&lt;br/&gt;Client: api-template]
+    end
+
+    SPA --&gt;|Cookie .APITemplate.Auth| COOKIE_VAL
+    SPA --&gt;|POST/PUT/DELETE + X-CSRF| CSRF
+    API_CLIENT --&gt;|Authorization: Bearer token| JWT_VAL
+    SCALAR --&gt;|OAuth2 Authorization Code| REALM
+    BFF --&gt;|OIDC Code Flow| REALM
+    JWT_VAL --&gt; TENANT --&gt; CLAIM --&gt; AUTHZ
+    COOKIE_VAL --&gt; L1
+    L1 -.-&gt;|miss| CACHE
+    CACHE -.-&gt;|miss| PG_STORE
+    REVOKE -. subscribe .-&gt; L1
+    COOKIE_VAL --&gt; REFRESH
+    REFRESH --&gt;|grant_type=refresh_token| REALM
+    REFRESH --&gt; LOCK
+    REFRESH --&gt; CSRF --&gt; AUTHZ</code></pre>
+<hr />
+<h2 id="authentication-methods">Authentication Methods</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Client</th>
+<th>Token visible to JS?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Scalar OAuth2</strong></td>
+<td>Scalar UI (dev tool)</td>
+<td>Yes (in Scalar memory only)</td>
+</tr>
+<tr>
+<td><strong>JWT Bearer</strong></td>
+<td>Mobile apps, Postman, curl</td>
+<td>Yes (client manages it)</td>
+</tr>
+<tr>
+<td><strong>Client Credentials</strong></td>
+<td>Microservices, background jobs</td>
+<td>N/A (machine-to-machine)</td>
+</tr>
+<tr>
+<td><strong>BFF Cookie</strong></td>
+<td>SPA frontend (browser)</td>
+<td><strong>No</strong> — httpOnly cookie, tokens in PostgreSQL (L2 DragonFly cache + L1 per-instance cache)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="1-start-infrastructure">1. Start Infrastructure</h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Port</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL</td>
+<td>5432</td>
+<td>Application database</td>
+</tr>
+<tr>
+<td>MongoDB</td>
+<td>27017</td>
+<td>Product data storage</td>
+</tr>
+<tr>
+<td>Keycloak</td>
+<td>8180</td>
+<td>Identity provider</td>
+</tr>
+<tr>
+<td>DragonFly</td>
+<td>6379</td>
+<td>Session store + cache</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>PostgreSQL 18+ volume mount:</strong> The <code>postgres</code> service uses <code>postgres:18.3</code>. Since PostgreSQL 18, the declared Docker volume moved from <code>/var/lib/postgresql/data</code> to <code>/var/lib/postgresql</code>, and <code>PGDATA</code> defaults to a version-specific subdirectory (<code>/var/lib/postgresql/18/docker</code>). The <code>docker-compose.yml</code> mounts at <code>/var/lib/postgresql</code> intentionally — this is correct for PostgreSQL 18+. Do not change it to <code>/var/lib/postgresql/data</code>.</p>
+<p><strong>Keycloak database — first-time setup:</strong> Keycloak shares the <code>postgres</code> service and uses a dedicated <code>keycloak</code> database within it. The init script (<code>infrastructure/postgres/init-keycloak-db.sql</code>) creates this database automatically on the <strong>first</strong> volume initialization. If the <code>pgdata</code> volume already existed before this change, create the database once manually:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>api-template-monolith-postgres-1<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;CREATE DATABASE keycloak;&quot;</span>
+</span></code></pre></div>
+After that, restart Keycloak: <code>docker compose restart keycloak</code>.</p>
+</blockquote>
+<h3 id="2-default-credentials">2. Default Credentials</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Username</th>
+<th>Password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Keycloak Admin Console</td>
+<td>admin</td>
+<td>admin</td>
+</tr>
+<tr>
+<td>Application User</td>
+<td>admin</td>
+<td>admin</td>
+</tr>
+</tbody>
+</table>
+<p>Default user has role <strong>PlatformAdmin</strong> and tenant <code>00000000-0000-0000-0000-000000000001</code>.</p>
+<h3 id="3-keycloak-admin-console">3. Keycloak Admin Console</h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>http://localhost:8180/admin
+</span></code></pre></div>
+<hr />
+<h2 id="flow-1-jwt-bearer-api-clients-mobile-apps">Flow 1 — JWT Bearer (API clients, mobile apps)</h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Client (Postman, mobile app, microservice)
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>│
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>│  Step 1: Get token from Keycloak
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│  POST http://localhost:8180/realms/api-template/protocol/openid-connect/token
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>│  grant_type=authorization_code | client_credentials | refresh_token
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│  Step 2: Call API with token
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│  GET /api/v1/products
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>│  Authorization: Bearer &lt;access_token&gt;
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>│
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>▼
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>[ JwtBearer Middleware ]
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>  - Downloads JWKS from Keycloak discovery endpoint
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>  - Validates token signature, issuer, audience, lifetime
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>▼
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>[ IdentityTokenValidatedPipeline.OnTokenValidated ]
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>  - KeycloakClaimMapper: preferred_username → ClaimTypes.Name
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>  - KeycloakClaimMapper: realm_access.roles[] → ClaimTypes.Role[]
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>  - Rejects token without tenant_id claim (unless service account)
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>▼
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>[ Authorization Middleware ]
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>  - Fallback policy: requires authenticated user (Bearer OR Cookie)
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>  - PlatformAdmin: requires role &quot;PlatformAdmin&quot;
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>▼
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>Controller Action
+</span></code></pre></div>
+<pre class="mermaid"><code>sequenceDiagram
+    participant C as Client
+    participant KC as Keycloak
+    participant API as ASP.NET Core API
+
+    C-&gt;&gt;KC: POST /token&lt;br/&gt;(grant_type=authorization_code | client_credentials | refresh_token)
+    KC--&gt;&gt;C: access_token
+    C-&gt;&gt;API: GET /api/v1/products&lt;br/&gt;Authorization: Bearer &amp;lt;token&amp;gt;
+    API-&gt;&gt;API: JwtBearer Middleware&lt;br/&gt;validates signature, issuer, audience, lifetime
+    API-&gt;&gt;API: IdentityTokenValidatedPipeline.OnTokenValidated&lt;br/&gt;maps claims, validates tenant_id
+    API-&gt;&gt;API: Authorization Middleware&lt;br/&gt;Fallback: Bearer OR Cookie
+    API--&gt;&gt;C: 200 OK</code></pre>
+<h2 id="how-to-request-a-token-manually-postman-curl">How to Request a Token Manually (Postman / cURL)</h2>
+<p>The key endpoint for obtaining a token across all flows is (for the local environment):<br />
+<code>POST http://localhost:8180/realms/api-template/protocol/openid-connect/token</code></p>
+<p>Below are all the supported methods (Grant Types) to obtain a token:</p>
+<h3 id="1-password-grant-resource-owner-password-credentials">1. Password Grant (Resource Owner Password Credentials)</h3>
+<p><strong>What it does:</strong> The client application collects the username and password directly and sends them in a single REST API POST request to Keycloak to receive tokens. It completely bypasses the Keycloak login UI.
+<strong>When to use:</strong> 
+- <strong>✅ YES:</strong> Local development, quick manual testing via Postman/cURL, and automated E2E/integration tests where simulating a browser login flow is too complex or slow.
+- <strong>❌ NO:</strong> Never use this in production apps (SPAs, mobile apps). Users should never enter their Keycloak credentials directly into your client application.</p>
+<p>This method allows you to send the username and password directly and receive a JWT token immediately.<br />
+<em>(Note: Requires the client to have "Direct Access Grants" enabled in Keycloak).</em></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://localhost:8180/realms/api-template/protocol/openid-connect/token&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/x-www-form-urlencoded&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;grant_type=password&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_id=api-template&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_secret=dev-client-secret&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=admin&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;password=admin&quot;</span>
+</span></code></pre></div>
+<h3 id="2-client-credentials-machine-to-machine">2. Client Credentials (Machine-to-Machine)</h3>
+<p><strong>What it does:</strong> The client application authenticates <em>itself</em> (not a human user) using its <code>client_id</code> and <code>client_secret</code>. Keycloak verifies the client and issues an access token representing the machine/service, which will have no human user context.</p>
+<p><strong>When to use:</strong> 
+- <strong>✅ YES:</strong> Background workers (CRON jobs), microservice-to-microservice communication, or any automated system that needs to call the API on its own behalf (as a Service Account) without any human user being present.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Get the token and store it directly in a variable (bash)</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://localhost:8180/realms/api-template/protocol/openid-connect/token&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/x-www-form-urlencoded&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;grant_type=client_credentials&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_id=api-template&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_secret=dev-client-secret&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span>-r<span class="w"> </span><span class="s1">&#39;.access_token&#39;</span><span class="k">)</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># Use the token to call our API</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span>http://localhost:5174/api/v1/products
+</span></code></pre></div>
+<h3 id="3-refresh-token">3. Refresh Token</h3>
+<p><strong>What it does:</strong> Instead of credentials, the client sends a previously obtained, long-lived <code>refresh_token</code>. Keycloak validates it and issues a fresh, short-lived <code>access_token</code> (and typically a rotated <code>refresh_token</code>), effectively extending the session without requiring user interaction.
+<strong>When to use:</strong> 
+- <strong>✅ YES:</strong> When your client application (mobile app, or backend BFF) needs to seamlessly maintain the user's session without forcing them to log in again after the short-lived <code>access_token</code> (e.g., 5 minutes) expires.</p>
+<p>Provide the <code>refresh_token</code> (which you received during the initial login) to Keycloak to get a completely new pair of tokens.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://localhost:8180/realms/api-template/protocol/openid-connect/token&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/x-www-form-urlencoded&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;grant_type=refresh_token&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_id=api-template&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_secret=dev-client-secret&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;refresh_token=&lt;YOUR_REFRESH_TOKEN&gt;&quot;</span>
+</span></code></pre></div>
+<h3 id="4-authorization-code-with-pkce">4. Authorization Code (with PKCE)</h3>
+<p><strong>What it does:</strong> A secure, multi-step flow where the application never sees the user's credentials.</p>
+<ol>
+<li>The app redirects the user to the Keycloak login page.</li>
+<li>After successful login, Keycloak redirects back to the app with a temporary, one-time "authorization code".</li>
+<li>The app exchanges this code on the backend for the actual tokens. (The PKCE extension adds a cryptographic challenge to ensure the client exchanging the code is the exact same one that requested it.)</li>
+</ol>
+<p><strong>When to use:</strong> 
+- <strong>✅ YES:</strong> User-facing interactive applications like Single Page Applications (React, Vue), native Mobile apps (iOS, Android), Desktop applications (Windows WPF, MAUI, Electron), and our Scalar UI developer documentation. This is the modern security standard for logging in users.</p>
+<p>For security, it requires redirecting to the browser where the user logs in securely on the Keycloak screen. The client then intercepts a temporary "authorization code" from the URL parameters and exchanges it for the actual token.</p>
+<p><strong>To simulate this in Postman:</strong>
+1. In the Authorization tab, select Type: <strong>OAuth 2.0</strong>
+2. Select Grant Type: <strong>Authorization Code (With PKCE)</strong>
+3. Callback/Redirect URL: (Depends on your client, e.g., <code>http://localhost:5174/scalar/v1</code>)
+4. Auth URL: <code>http://localhost:8180/realms/api-template/protocol/openid-connect/auth</code>
+5. Access Token URL: <code>http://localhost:8180/realms/api-template/protocol/openid-connect/token</code>
+6. Client ID: <code>api-template</code> (or <code>api-template-public</code> if you have one)
+7. Client Secret: (Can be left blank/is not required for a PKCE client)
+8. Scope: <code>openid profile email</code>
+9. Click <strong>Get New Access Token</strong> – Postman will open a secure Keycloak login window for you.</p>
+<h3 id="5-direct-grant-mobile-desktop-app-login-alternative-for-native-ui">5. Direct Grant / Mobile &amp; Desktop App Login (Alternative for Native UI)</h3>
+<p><strong>What it does:</strong> Similar to the Password Grant, it allows a mobile or desktop application to send the username and password directly to Keycloak from its own native UI without bouncing the user to a browser. <em>Note: Using an embedded/system browser with PKCE (Method 4) is generally the recommended modern approach for both mobile and desktop apps.</em>
+<strong>When to use:</strong>
+- <strong>✅ YES:</strong> In a native mobile or desktop application (iOS, Android, Windows WPF, MAUI) where you absolutely must build your own login screen natively, and you have configured a specific <code>public</code> client in Keycloak (e.g., <code>api-template-public</code>) that has "Direct Access Grants" enabled.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Notice there is no client_secret because a native app is an untrusted &quot;public&quot; client</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="s2">&quot;http://localhost:8180/realms/api-template/protocol/openid-connect/token&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/x-www-form-urlencoded&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;grant_type=password&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;client_id=api-template-public&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;username=user@example.com&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;password=mypassword&quot;</span>
+</span></code></pre></div>
+<blockquote>
+<p><strong>Tip:</strong> Copy the obtained <code>access_token</code> and paste it into <a href="https://jwt.io">jwt.io</a>. This allows you to inspect all claims (e.g., roles, <code>tenant_id</code>, etc.) that the API parses from Keycloak.</p>
+</blockquote>
+<hr />
+<h2 id="flow-2-social-login-via-google-bff-keycloak-idp-brokering">Flow 2 — Social Login via Google (BFF + Keycloak IdP brokering)</h2>
+<p>Users can log in with Google without leaving the BFF cookie flow. Keycloak acts as the broker — it handles the Google OAuth exchange and issues a standard Keycloak token to the app.</p>
+<h3 id="2a-direct-redirect-to-google">2a. Direct redirect to Google</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant SPA as Browser / SPA
+    participant BFF as BffController
+    participant OIDC as OIDC Middleware (BffOidc)
+    participant KC as Keycloak
+    participant G as Google OAuth
+
+    SPA-&gt;&gt;BFF: GET /api/v1/bff/login/google?returnUrl=/dashboard
+    BFF-&gt;&gt;BFF: Lookup "google" in IExternalIdentityProvider registry
+    BFF--&gt;&gt;SPA: 302 → Keycloak auth endpoint&lt;br/&gt;+ kc_idp_hint=google
+    SPA-&gt;&gt;KC: Keycloak skips login page, redirects straight to Google
+    KC-&gt;&gt;G: OAuth2 Authorization Code flow
+    G--&gt;&gt;KC: id_token + access_token
+    KC-&gt;&gt;KC: First Broker Login flow&lt;br/&gt;(link or create Keycloak user)
+    KC--&gt;&gt;OIDC: Authorization code → callback URL
+    OIDC-&gt;&gt;KC: Exchange code for tokens
+    KC--&gt;&gt;OIDC: access_token + refresh_token + id_token
+    OIDC-&gt;&gt;OIDC: IdentityTokenValidatedPipeline.OnTokenValidated
+    OIDC--&gt;&gt;SPA: Set-Cookie .APITemplate.Auth&lt;br/&gt;302 → /dashboard</code></pre>
+<p><strong>What is <code>kc_idp_hint</code>:</strong><br />
+<code>kc_idp_hint</code> is a Keycloak-specific query parameter added to the OIDC authorization URL. When Keycloak receives this parameter, it <strong>skips its own login page entirely</strong> and redirects the user straight to the specified external identity provider (e.g. Google, GitHub). The value must match the <strong>Alias</strong> configured in Keycloak Admin Console → Identity Providers (e.g. <code>google</code>, <code>github</code>).</p>
+<p>Without <code>kc_idp_hint</code>: <code>User → BFF /login → Keycloak login page → user clicks "Login with Google" → Google</code><br />
+With <code>kc_idp_hint=google</code>: <code>User → BFF /login/google → Keycloak (skipped) → Google directly</code></p>
+<p><strong>How it flows through the code:</strong></p>
+<ol>
+<li>SPA calls <code>GET /api/v1/bff/login/google</code></li>
+<li><code>BffController.LoginWithProvider</code> looks up <code>"google"</code> in registered <code>IExternalIdentityProvider</code> implementations</li>
+<li>Sets <code>AuthenticationProperties.Items["kc_idp_hint"] = "google"</code></li>
+<li>Issues OIDC <code>Challenge</code> — ASP.NET builds the Keycloak authorization URL</li>
+<li><code>IdentityModule.ConfigureOidc</code> → <code>OnRedirectToIdentityProvider</code> event reads <code>kc_idp_hint</code> from <code>Properties.Items</code> and appends it as a query parameter to the authorization URL</li>
+<li>Keycloak receives <code>?kc_idp_hint=google</code> and immediately redirects to Google OAuth</li>
+</ol>
+<h3 id="2b-discovery-endpoint-spa-dynamic-ui">2b. Discovery endpoint (SPA dynamic UI)</h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>GET /api/v1/bff/external-providers   (AllowAnonymous)
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Response:
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>[
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>  { &quot;idpHint&quot;: &quot;google&quot;, &quot;displayName&quot;: &quot;Google&quot; }
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>]
+</span></code></pre></div>
+<p>The SPA calls this endpoint on startup to render social login buttons dynamically — no hardcoded provider list in the frontend.</p>
+<h3 id="2c-adding-a-new-social-provider">2c. Adding a new social provider</h3>
+<ol>
+<li>Implement <code>IExternalIdentityProvider</code> in <code>Identity.Security.ExternalIdentityProviders</code></li>
+<li>Register as singleton in <code>IdentityModule.RegisterApplicationServices</code></li>
+<li>Add the corresponding IdP in Keycloak Admin Console (or realm JSON)</li>
+</ol>
+<p>No changes needed in <code>BffController</code> or <code>IdentityModule.ConfigureOidc</code>.</p>
+<h3 id="2d-keycloak-google-idp-setup">2d. Keycloak Google IdP Setup</h3>
+<p><strong>Development (docker compose):</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Set before docker compose up</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GOOGLE_CLIENT_ID</span><span class="o">=</span>your-client-id.apps.googleusercontent.com
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GOOGLE_CLIENT_SECRET</span><span class="o">=</span>your-client-secret
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>docker<span class="w"> </span>compose<span class="w"> </span>restart<span class="w"> </span>keycloak
+</span></code></pre></div>
+<p>The realm JSON imports the Google IdP automatically on first start. The <code>${GOOGLE_CLIENT_ID:-CHANGE_ME}</code> placeholder is replaced by Keycloak at runtime.</p>
+<p><strong>Google Cloud Console:</strong></p>
+<ol>
+<li>Create OAuth 2.0 Client ID (Web application type)</li>
+<li>Authorized redirect URI:
+   <div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>http://localhost:8180/realms/api-template/broker/google/endpoint
+</span></code></pre></div></li>
+<li>Copy Client ID + Secret → set env vars above</li>
+</ol>
+<p><strong>After first Google login:</strong><br />
+<code>IdentityTokenValidatedPipeline.OnTokenValidated</code> → <code>UserProvisioningService.ProvisionIfNeededAsync</code> fires. The user must have an accepted <code>TenantInvitation</code> for their Google email to be provisioned into a tenant.</p>
+<hr />
+<h2 id="flow-3-bff-cookie-spa-browser">Flow 3 — BFF Cookie (SPA / browser)</h2>
+<h3 id="3a-login">3a. Login</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant SPA as Browser / SPA
+    participant BFF as BffController
+    participant OIDC as OIDC Middleware (BffOidc)
+    participant KC as Keycloak
+    participant DF as DragonFly
+
+    SPA-&gt;&gt;BFF: GET /api/v1/bff/login?returnUrl=/dashboard
+    BFF--&gt;&gt;SPA: 302 → Keycloak login page (Challenge BffOidc)
+    SPA-&gt;&gt;KC: User enters credentials
+    KC--&gt;&gt;OIDC: Authorization code → callback URL
+    OIDC-&gt;&gt;KC: Exchange code for tokens
+    KC--&gt;&gt;OIDC: access_token + refresh_token + id_token
+    OIDC-&gt;&gt;OIDC: IdentityTokenValidatedPipeline.OnTokenValidated&lt;br/&gt;maps claims, validates tenant_id
+    OIDC-&gt;&gt;OIDC: RedisTicketStore.StoreAsync&lt;br/&gt;→ BffSessionService.CreateSessionAsync
+    Note over DF: BffSessionRecord created:&lt;br/&gt;tokens encrypted via IDataProtector&lt;br/&gt;PostgreSQL = primary, DragonFly = cache
+    OIDC-&gt;&gt;DF: Store BffPersistedSession (PostgreSQL)&lt;br/&gt;+ DragonFly cache (TTL = CacheTtlMinutes)
+    OIDC--&gt;&gt;SPA: Set-Cookie: .APITemplate.Auth=&amp;lt;GUID&amp;gt;&lt;br/&gt;HttpOnly, SameSite=Lax, Secure&lt;br/&gt;302 → /dashboard</code></pre>
+<p><strong>Session record contents</strong> — the cookie carries only the opaque <code>SessionId</code> (GUID). The server-side <code>BffPersistedSession</code> in PostgreSQL (cached in DragonFly) contains:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SessionId</code></td>
+<td>Opaque GUID used as cookie value and store lookup key</td>
+</tr>
+<tr>
+<td><code>UserId</code>, <code>Subject</code></td>
+<td>User and IdP subject identifiers</td>
+</tr>
+<tr>
+<td><code>Provider</code></td>
+<td>Identity provider type (<code>Keycloak</code>)</td>
+</tr>
+<tr>
+<td><code>TenantId</code>, <code>Roles</code>, <code>Email</code>, <code>DisplayName</code></td>
+<td>Identity claims projected from the OIDC ticket</td>
+</tr>
+<tr>
+<td><code>AccessToken</code>, <code>RefreshToken</code>, <code>IdToken</code></td>
+<td><strong>Encrypted at rest</strong> via <code>IDataProtector</code> (purpose: <code>bff:session:tokens</code>)</td>
+</tr>
+<tr>
+<td><code>AccessTokenExpiresAtUtc</code></td>
+<td>When the current access token expires</td>
+</tr>
+<tr>
+<td><code>CreatedAtUtc</code>, <code>LastSeenAtUtc</code>, <code>LastRefreshedAtUtc</code></td>
+<td>Lifecycle timestamps</td>
+</tr>
+<tr>
+<td><code>Status</code></td>
+<td><code>Active</code>, <code>Refreshing</code>, <code>Revoked</code>, or <code>Expired</code></td>
+</tr>
+<tr>
+<td><code>Version</code></td>
+<td>Optimistic concurrency counter (incremented on every mutation)</td>
+</tr>
+<tr>
+<td><code>RevokedAtUtc</code>, <code>RevocationReason</code></td>
+<td>Populated when session is revoked</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3b-authenticated-request-with-proactive-token-refresh">3b. Authenticated Request (with proactive token refresh)</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant SPA as Browser / SPA
+    participant CM as Cookie Middleware
+    participant VK as DragonFly
+    participant CSR as CookieSessionRefresher
+    participant TRS as BffTokenRefreshService
+    participant COORD as RedisBffRefreshCoordinator
+    participant KC as Keycloak
+    participant CSRF as CsrfValidationMiddleware
+    participant AUTHZ as Authorization Middleware
+
+    SPA-&gt;&gt;CM: POST /api/v1/products&lt;br/&gt;Cookie: .APITemplate.Auth=&amp;lt;GUID&amp;gt;&lt;br/&gt;X-CSRF: &amp;lt;token&amp;gt;
+    CM-&gt;&gt;VK: RedisTicketStore.RetrieveAsync(&amp;lt;GUID&amp;gt;)&lt;br/&gt;→ BffSessionService.GetTicketAsync
+    VK--&gt;&gt;CM: BffSessionRecord → AuthenticationTicket
+    CM-&gt;&gt;CSR: ValidatePrincipal event
+    CSR-&gt;&gt;VK: GetSessionAsync(sessionId)
+    VK--&gt;&gt;CSR: BffSessionRecord (or null → 401)
+    CSR-&gt;&gt;TRS: RefreshIfRequiredAsync(session)
+
+    alt AccessTokenExpiresAtUtc - now ≤ RefreshThresholdMinutes (2 min)
+        TRS-&gt;&gt;COORD: ExecuteAsync(sessionId, leader, follower)
+
+        alt Leader (acquired distributed lock)
+            COORD-&gt;&gt;VK: SET bff:session:GUID:refresh:lock NX TTL=5s
+            TRS-&gt;&gt;KC: POST /token (grant_type=refresh_token)
+            KC--&gt;&gt;TRS: new access_token + refresh_token (rotated)
+            TRS-&gt;&gt;VK: TryUpdateAsync(updatedSession, expectedVersion)&lt;br/&gt;optimistic concurrency check
+            COORD-&gt;&gt;VK: Write outcome to bff:session:GUID:refresh:result TTL=5s
+            COORD-&gt;&gt;VK: Release lock (compare-and-delete)
+        else Follower (lock already held)
+            COORD-&gt;&gt;VK: SUBSCRIBE bff:session:GUID:refresh:notify
+            COORD-&gt;&gt;VK: Early GET bff:session:GUID:refresh:result (already written?)
+            COORD-&gt;&gt;VK: Await pub/sub notification or timeout (RefreshWaitTimeoutMilliseconds)
+            COORD-&gt;&gt;VK: Final GET bff:session:GUID:refresh:result
+            COORD-&gt;&gt;VK: Reload updated BffSessionRecord via followerAction
+        end
+
+        CSR-&gt;&gt;CSR: Rebuild principal from BffSessionRecord&lt;br/&gt;ShouldRenew = true → new cookie issued
+    else Token still fresh
+        TRS--&gt;&gt;CSR: BffRefreshOutcome.NotRequired
+    else Refresh token missing or Keycloak rejected
+        TRS-&gt;&gt;VK: RevokeAsync(sessionId, reason)
+        CSR--&gt;&gt;SPA: 401 Unauthorized (RejectPrincipal)
+    end
+
+    CSR-&gt;&gt;CSRF: Validate X-CSRF header&lt;br/&gt;(GET/HEAD/OPTIONS exempt; JWT Bearer exempt)
+    alt Missing X-CSRF header
+        CSRF--&gt;&gt;SPA: 403 Forbidden
+    end
+    CSRF-&gt;&gt;AUTHZ: Bearer OR Cookie authenticated
+    AUTHZ--&gt;&gt;SPA: Controller Action → 200 OK</code></pre>
+<p><strong>Refresh coordination</strong> prevents concurrent requests from all hitting Keycloak when the token expires:</p>
+<h3 id="3b1-session-validation-cadence-and-revocation-window">3b.1 Session validation cadence and revocation window</h3>
+<p><code>CookieSessionRefresher.ValidatePrincipal</code> stores the last successful validation timestamp (<code>.last_validated</code>) in cookie properties.</p>
+<ul>
+<li>If the timestamp is younger than 1 minute, refresh checks are skipped for that request.</li>
+<li>Server-side session presence is still validated on every request, so revoked/deleted sessions are rejected immediately.</li>
+<li>This reduces database/cache pressure for high request rates.</li>
+<li>Trade-off: Keycloak refresh/rotation checks are interval-based, not per-request.</li>
+</ul>
+<p>Use this behavior when you want immediate revocation enforcement while still reducing refresh pressure.</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Leader</strong></td>
+<td>Acquires Redis distributed lock (<code>NX</code>, TTL = <code>RefreshLockTimeoutMilliseconds</code>), calls Keycloak, updates session with <code>TryUpdateAsync</code> (optimistic concurrency), writes outcome to result key</td>
+</tr>
+<tr>
+<td><strong>Follower</strong></td>
+<td>Polls the result key every 100ms (up to <code>RefreshWaitTimeoutMilliseconds</code>), then reloads the updated session</td>
+</tr>
+<tr>
+<td><strong>Fallback</strong> (Redis unavailable)</td>
+<td>In-memory semaphore per session — followers wait on the leader's <code>Task&lt;BffRefreshOutcome&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Keycloak refresh status mapping:</strong></p>
+<table>
+<thead>
+<tr>
+<th><code>KeycloakRefreshStatus</code></th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Success</code></td>
+<td>Update session with new tokens, set <code>Status = Active</code>, bump <code>Version</code></td>
+</tr>
+<tr>
+<td><code>Rejected</code> (<code>invalid_grant</code>)</td>
+<td>Revoke session (<code>RefreshRejected</code>) if <code>RevokeSessionOnRefreshFailure = true</code></td>
+</tr>
+<tr>
+<td><code>ProviderError</code> (HTTP/network failure)</td>
+<td>Revoke session (<code>ProviderSessionInvalid</code>) if configured</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3c-logout">3c. Logout</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant SPA as Browser / SPA
+    participant BFF as BffController
+    participant VK as DragonFly
+    participant KC as Keycloak
+
+    SPA-&gt;&gt;BFF: GET /api/v1/bff/logout&lt;br/&gt;Cookie: .APITemplate.Auth=&amp;lt;GUID&amp;gt;
+    BFF-&gt;&gt;VK: RedisTicketStore.RemoveAsync(&amp;lt;GUID&amp;gt;)&lt;br/&gt;→ BffSessionService.RevokeAsync(Logout)
+    Note over VK: Session soft-deleted in PostgreSQL&lt;br/&gt;removed from DragonFly cache&lt;br/&gt;(RevocationReason = Logout)
+    BFF--&gt;&gt;SPA: Clear cookie .APITemplate.Auth
+    BFF--&gt;&gt;SPA: 302 → Keycloak end_session_endpoint
+    SPA-&gt;&gt;KC: End session (SSO invalidated)
+    KC--&gt;&gt;SPA: 302 → PostLogoutRedirectUri (/)</code></pre>
+<h3 id="3d-session-revocation">3d. Session revocation</h3>
+<p>Revocation means the session is <strong>soft-deleted in PostgreSQL</strong>, <strong>removed from the Redis L2 cache</strong>, and <strong>broadcast on the <code>bff:session:revocations</code> pub/sub channel</strong> so every instance evicts its per-process L1 entry within milliseconds (see <a href="#3ei-l1-local-cache-and-redis-pubsub-invalidation">§ 3e.i</a>). The <code>BffPersistedSession</code> is marked with <code>IsDeleted = true</code> and <code>Status = Revoked</code>, <code>RevokedAtUtc</code>, and <code>RevocationReason</code> populated. Any subsequent request that loads a revoked session gets rejected immediately (<code>BffSessionService.GetSessionAsync</code> returns <code>null</code> for revoked sessions).</p>
+<p>This is intentional — keeping the record allows:
+- <strong>Audit trail</strong>: the reason and timestamp of revocation remain in PostgreSQL for 24h (cleanup job retention)
+- <strong>No race conditions</strong>: concurrent requests see the soft-deleted status rather than a missing row
+- <strong>Consistent behavior</strong>: the session is permanently deleted by the hourly cleanup job after the retention window</p>
+<p><strong>Revocation reasons:</strong></p>
+<table>
+<thead>
+<tr>
+<th><code>BffSessionRevocationReason</code></th>
+<th>Trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Logout</code></td>
+<td>User-initiated sign-out via <code>/api/v1/bff/logout</code></td>
+</tr>
+<tr>
+<td><code>RefreshRejected</code></td>
+<td>Keycloak returned <code>invalid_grant</code> (e.g. refresh token rotated and old one reused)</td>
+</tr>
+<tr>
+<td><code>RefreshTokenMissing</code></td>
+<td>Session record has no refresh token — cannot renew</td>
+</tr>
+<tr>
+<td><code>RefreshTokenReplaySuspected</code></td>
+<td>Suspicious refresh token reuse detected (reserved for future use)</td>
+</tr>
+<tr>
+<td><code>SessionCorrupted</code></td>
+<td>Session record is malformed — missing <code>SessionId</code>, <code>UserId</code>, <code>Subject</code>, or <code>AccessToken</code></td>
+</tr>
+<tr>
+<td><code>ProviderSessionInvalid</code></td>
+<td>Keycloak HTTP/network error during refresh (non-<code>invalid_grant</code> failure)</td>
+</tr>
+<tr>
+<td><code>AbsoluteLifetimeExceeded</code></td>
+<td><code>CreatedAtUtc + SessionAbsoluteLifetimeMinutes</code> (480 min) has passed</td>
+</tr>
+<tr>
+<td><code>CredentialRotation</code></td>
+<td>Password change or global sign-out: <code>POST /api/v1/account/password</code>, <code>POST /api/v1/account/sessions/revoke-all</code>, or <code>POST /internal/keycloak-events/password-changed</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Account password change (<code>POST /api/v1/account/password</code>):</strong> The handler verifies the current password by calling Keycloak’s token endpoint with the <strong>resource-owner password grant</strong> using the confidential client configured under <code>Keycloak:PasswordVerification</code> (<code>client_id</code> / <code>client_secret</code> in application settings; see realm client <code>api-template-password-verification</code> in the template). <strong>Direct Access Grants must be enabled for that server-side client</strong> in Keycloak. If this grant is disabled, <code>ValidateCredentialsAsync</code> will fail and password change returns a validation error even when the password is correct. Production realms that disable password grants for end-user clients should still allow them for this dedicated verification client only.</p>
+<h3 id="3e-storage-architecture-and-redis-cache-keys">3e. Storage architecture and Redis cache keys</h3>
+<p><strong>PostgreSQL</strong> is the primary durable session store (<code>BffPersistedSession</code> table). <strong>Redis/DragonFly</strong> acts as a read-through L2 cache with short TTL (<code>CacheTtlMinutes</code>, default 10 min). <strong>Each application instance</strong> also keeps a per-process L1 cache (<code>BffLocalSessionCache</code>, <code>IMemoryCache</code>-backed, default 10 s TTL) so repeated requests for the same session skip the Redis round-trip entirely. L1 coherence across instances is maintained by a Redis pub/sub revocation broadcast. This design supports offline sessions (<code>offline_access</code> scope) — the refresh token in PostgreSQL survives Redis restarts and long idle periods (up to 30 days).</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Key / Table</th>
+<th>Content</th>
+<th>TTL</th>
+<th>Set by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1 (in-process)</td>
+<td><code>bff:session:{id}</code></td>
+<td><code>BffSessionRecord</code> (plaintext, per-instance)</td>
+<td><code>LocalCacheTtlSeconds</code> (10 s), absolute</td>
+<td><code>CachingBffSessionStoreDecorator</code></td>
+</tr>
+<tr>
+<td>L2 (Redis)</td>
+<td><code>bff:session:{id}</code></td>
+<td><code>BffSessionRecord</code> as JSON (tokens encrypted)</td>
+<td><code>CacheTtlMinutes</code> (10 min), <strong>sliding</strong></td>
+<td><code>PostgresCachedBffSessionStore</code></td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td><code>BffPersistedSession</code></td>
+<td>Full session entity, tokens encrypted</td>
+<td>No TTL (cleanup job)</td>
+<td><code>PostgresCachedBffSessionStore</code></td>
+</tr>
+<tr>
+<td>Redis (refresh)</td>
+<td><code>bff:session:{id}:refresh:lock</code></td>
+<td>Lock owner identifier (<code>machine:pid:guid</code>)</td>
+<td><code>RefreshLockTimeoutMilliseconds</code> (5s), fixed</td>
+<td><code>RedisBffRefreshCoordinator</code></td>
+</tr>
+<tr>
+<td>Redis (refresh)</td>
+<td><code>bff:session:{id}:refresh:result</code></td>
+<td>Refresh outcome JSON (<code>{succeeded, failureReason}</code>)</td>
+<td><code>RefreshResultTtlMilliseconds</code> (5s), fixed</td>
+<td><code>RedisBffRefreshCoordinator</code></td>
+</tr>
+<tr>
+<td>Redis (pub/sub)</td>
+<td><code>bff:session:revocations</code></td>
+<td>Revoked session id (plain string)</td>
+<td>N/A (broadcast)</td>
+<td><code>RedisBffSessionRevocationNotifier</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Read path:</strong> L1 hit → return. L1 miss → L2 (Redis) hit → populate L1 → return. L2 miss → load from PostgreSQL → populate L2 + L1 → return.</p>
+<p><strong>Write path:</strong> Write to PostgreSQL (primary) → write to Redis (L2) → update or invalidate L1 through <code>CachingBffSessionStoreDecorator</code>. Terminal mutations (<code>RemoveAsync</code>, <code>TryUpdateAsync</code> with <code>Status = Revoked | Expired</code>, <code>BulkRevokeActiveSessionsBySubjectAsync</code>) also publish the affected session id to <code>bff:session:revocations</code>.</p>
+<h3 id="3ei-l1-local-cache-and-redis-pubsub-invalidation">3e.i. L1 local cache and Redis pub/sub invalidation</h3>
+<p>Without an L1 cache, every authenticated request paid a Redis <code>GET</code>. The L1 cache (<code>BffLocalSessionCache</code>, backed by <code>IMemoryCache</code>) collapses repeated reads of the same session into an in-memory dictionary lookup. Because L1 is per-process, a revocation on instance A would otherwise go unseen on instance B until L1's TTL expired. To close that window, the store is wrapped in <code>CachingBffSessionStoreDecorator</code> which publishes every terminal mutation over a single Redis pub/sub broadcast channel; on every instance, <code>BffSessionRevocationSubscriber</code> (registered as an <code>IHostedService</code>) listens on that channel and invalidates the matching L1 entry.</p>
+<p><strong>Coherence rules applied by the decorator:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Mutation</th>
+<th>L1 action</th>
+<th>Pub/sub publish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>StoreAsync</code> (initial sign-in)</td>
+<td>Write new record to L1</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>TryUpdateAsync</code> with <code>Status = Active</code> (token refresh)</td>
+<td>Write-through: replace L1 record</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>TryUpdateAsync</code> with <code>Status = Revoked \| Expired</code></td>
+<td>Invalidate L1 entry</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>RemoveAsync</code> (logout / <code>RedisTicketStore</code> eviction)</td>
+<td>Invalidate L1 entry</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>BulkRevokeActiveSessionsBySubjectAsync</code> (password change, revoke-all)</td>
+<td>Invalidate L1 entry per session id</td>
+<td>Yes, one message per session</td>
+</tr>
+<tr>
+<td><code>GetAsync</code> on L1 miss</td>
+<td>Populate L1 with the record returned by L2</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why a single broadcast channel (<code>bff:session:revocations</code>) rather than per-session channels?</strong> Each instance needs a constant number of subscriptions regardless of how many sessions are in its L1. Messages for sessions not present in the local cache translate into a cheap dictionary no-op; the volume of revocation events is bounded by logout/password-change/revoke-all activity, which is low.</p>
+<p><strong>Failure modes:</strong></p>
+<ul>
+<li><strong>Redis disconnected:</strong> <code>RedisBffSessionRevocationNotifier</code> logs a warning and returns without throwing. Peer instances fall back to TTL-bounded eviction (≤ <code>LocalCacheTtlSeconds</code>). StackExchange.Redis auto-reconnect restores the subscription when Redis comes back.</li>
+<li><strong>Malformed pub/sub message:</strong> The subscriber logs a warning and ignores the message. One bad message cannot disable the subscription.</li>
+<li><strong>Redis not configured at all (<code>Redis:ConnectionString</code> empty):</strong> <code>NullBffSessionRevocationNotifier</code> is registered and the hosted subscriber is not. The L1 cache still works locally; cross-instance staleness is bounded by TTL only. This mirrors the existing <code>InProcessBffRefreshCoordinator</code> fallback pattern.</li>
+</ul>
+<p><strong>Why subscribe in <code>StartAsync</code>, not <code>ExecuteAsync</code>?</strong> <code>IHostedService.StartAsync</code> is awaited by the host before HTTP traffic is accepted, so the subscription is guaranteed to be active before the first request. Deferring the subscribe to <code>BackgroundService.ExecuteAsync</code> would leave a short window where the application serves requests while its L1 cache is effectively non-coherent.</p>
+<p><strong>Configuration:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Setting (<code>BffOptions</code>)</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LocalCacheTtlSeconds</code></td>
+<td><code>10</code></td>
+<td>Absolute TTL for L1 entries. Set to <code>0</code> to disable the L1 cache.</td>
+</tr>
+<tr>
+<td><code>LocalCacheMaxEntries</code></td>
+<td><code>10000</code></td>
+<td><code>MemoryCache.SizeLimit</code> — caps L1 memory footprint per instance.</td>
+</tr>
+<tr>
+<td><code>CacheTtlMinutes</code></td>
+<td><code>10</code></td>
+<td>Sliding TTL for L2 (Redis) entries, unchanged.</td>
+</tr>
+</tbody>
+</table>
+<p>Setting <code>LocalCacheTtlSeconds = 0</code> produces a no-op L1 cache (<code>TryGet</code> always returns <code>false</code>, <code>Set</code> is ignored) and restores the previous single-level Redis-only behaviour without removing the decorator from the pipeline.</p>
+<p><strong>Sliding cache TTL</strong> — every time the session cache key is read, the TTL is atomically reset via a Lua script (<code>GET</code> + <code>PEXPIRE</code> in one roundtrip). This keeps the cache warm for active sessions:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Request at 0:00  → cache TTL reset to 10 min (expires 0:10)
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>Request at 0:05  → cache TTL reset to 10 min (expires 0:15)
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>No more requests → cache key expires at 0:15
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>Next request     → cache miss → load from PostgreSQL → repopulate cache
+</span></code></pre></div>
+<p><strong>Three independent guards</strong> control session lifetime:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>┌─────────────────────────────────────────────────────────────────┐
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>│ Guard 1: Idle timeout (application code)                        │
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>│ LastSeenAtUtc + SessionIdleTimeoutMinutes exceeded.             │
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>│ Cleanup job deletes session from PostgreSQL → 401               │
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>├─────────────────────────────────────────────────────────────────┤
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>│ Guard 2: BFF absolute lifetime (application code)               │
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>│ CreatedAtUtc + SessionAbsoluteLifetimeMinutes exceeded.         │
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>│ Session revoked with AbsoluteLifetimeExceeded → 401             │
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>│ Cleanup job deletes after 24h retention.                        │
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>├─────────────────────────────────────────────────────────────────┤
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>│ Guard 3: Keycloak client session (external)                     │
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>│ clientSessionMaxLifespan (8h) exceeded.                         │
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>│ Keycloak rejects refresh_token → RefreshRejected → revoke → 401│
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>└─────────────────────────────────────────────────────────────────┘
+</span></code></pre></div>
+<p><strong>Session cleanup</strong> — a periodic background job (<code>CleanupExpiredBffSessionsHandler</code>) runs hourly via TickerQ and permanently deletes sessions that are:
+1. Revoked with 24h retention (audit trail)
+2. Idle-expired (<code>LastSeenAtUtc + SessionIdleTimeoutMinutes</code> passed)
+3. Absolute-expired (<code>CreatedAtUtc + SessionAbsoluteLifetimeMinutes</code> passed)</p>
+<p><strong>Optimistic concurrency</strong> — two layers guard against concurrent mutations. The <code>Version</code> field in <code>BffSessionRecord</code> is incremented on every mutation and checked by <code>TryUpdateAsync</code> before writing (application-level version check). EF Core's <code>xmin</code> concurrency token guards against PostgreSQL-level races. If either check fails, <code>BffSessionService.MutateSessionAsync</code> retries (up to 5 attempts) or the refresh coordinator falls back to the follower path.</p>
+<h3 id="3f-csrf-endpoint">3f. CSRF endpoint</h3>
+<p>After the BFF session cookie is established, the SPA should call this to obtain the anti-CSRF header value (Data Protection–bound to the session). Without a session cookie the endpoint returns <strong>401 Unauthorized</strong>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>GET /api/v1/bff/csrf   (AllowAnonymous; requires BFF cookie for 200)
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Response: { &quot;headerName&quot;: &quot;X-CSRF&quot;, &quot;headerValue&quot;: &quot;&lt;base64url&gt;&quot;, &quot;tokenFormat&quot;: &quot;DataProtection&quot; }
+</span></code></pre></div>
+<p>Then send that <code>headerValue</code> on every POST / PUT / PATCH / DELETE (and on cookie-authenticated <code>GET /api/v1/bff/logout</code>) as the <code>X-CSRF</code> header.</p>
+<hr />
+<h2 id="flow-4-scalar-oauth2-development-ui">Flow 4 — Scalar OAuth2 (development UI)</h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant DEV as Developer
+    participant SC as Scalar UI
+    participant KC as Keycloak
+    participant API as ASP.NET Core API
+
+    DEV-&gt;&gt;SC: Opens /scalar/v1 → clicks Authorize
+    Note over SC: BearerSecuritySchemeDocumentTransformer&lt;br/&gt;registers OAuth2 Authorization Code + PKCE (S256)
+    SC-&gt;&gt;KC: Redirect → Keycloak login page
+    DEV-&gt;&gt;KC: Enters admin / admin
+    KC--&gt;&gt;SC: Authorization code → Scalar callback
+    SC-&gt;&gt;KC: Exchange code → access_token (PKCE S256)
+    KC--&gt;&gt;SC: access_token
+    SC-&gt;&gt;API: All requests with Authorization: Bearer &amp;lt;token&amp;gt;</code></pre>
+<blockquote>
+<p>Uses confidential client <code>api-template</code> with PKCE (S256). No separate public client needed.</p>
+</blockquote>
+<hr />
+<h2 id="flow-5-client-credentials-machine-to-machine">Flow 5 — Client Credentials (machine-to-machine)</h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant SVC as Microservice / Background Job
+    participant KC as Keycloak
+    participant API as ASP.NET Core API
+
+    SVC-&gt;&gt;KC: POST /token&lt;br/&gt;grant_type=client_credentials&lt;br/&gt;client_id=api-template
+    KC--&gt;&gt;SVC: access_token (service account)&lt;br/&gt;preferred_username = "service-account-api-template"
+    SVC-&gt;&gt;API: Request with Authorization: Bearer &amp;lt;token&amp;gt;
+    API-&gt;&gt;API: IdentityTokenValidatedPipeline&lt;br/&gt;IsServiceAccount() → true&lt;br/&gt;tenant_id check SKIPPED
+    Note over API: EF global filter: HasTenant = false&lt;br/&gt;tenant-scoped entities return empty&lt;br/&gt;Non-tenant endpoints work normally
+    API--&gt;&gt;SVC: Response</code></pre>
+<hr />
+<h2 id="where-tokens-are-stored">Where Tokens Are Stored</h2>
+<pre class="mermaid"><code>graph LR
+    Browser["Browser&lt;br/&gt;cookie = opaque GUID (HttpOnly)"] --&gt;|lookup| L1
+
+    subgraph Instance[Per-instance memory]
+        L1["BffLocalSessionCache&lt;br/&gt;├── BffSessionRecord (in-process)&lt;br/&gt;└── TTL = LocalCacheTtlSeconds (10 s)&lt;br/&gt;(skip-window L1 cache)"]
+    end
+
+    subgraph PostgreSQL
+        PGSession["BffPersistedSession table&lt;br/&gt;├── access_token (encrypted)&lt;br/&gt;├── refresh_token (encrypted)&lt;br/&gt;├── id_token (encrypted)&lt;br/&gt;├── AccessTokenExpiresAtUtc&lt;br/&gt;├── Status, Version&lt;br/&gt;└── identity claims&lt;br/&gt;(primary store, durable)"]
+    end
+
+    subgraph DragonFly
+        Cache["bff:session:&amp;lt;GUID&amp;gt;&lt;br/&gt;├── BffSessionRecord (JSON)&lt;br/&gt;│   ├── tokens (encrypted)&lt;br/&gt;│   └── identity claims&lt;br/&gt;└── TTL = CacheTtlMinutes (10 min)&lt;br/&gt;(L2 read-through cache)"]
+        Lock["bff:session:&amp;lt;GUID&amp;gt;:refresh:lock&lt;br/&gt;└── distributed mutex (NX, TTL=5s)"]
+        Result["bff:session:&amp;lt;GUID&amp;gt;:refresh:result&lt;br/&gt;└── leader outcome (TTL=5s)"]
+        Revoke["bff:session:revocations&lt;br/&gt;└── pub/sub broadcast of revoked session ids"]
+        DP["DataProtection:Keys&lt;br/&gt;└── ASP.NET Data Protection key ring"]
+    end
+
+    L1 -.-&gt;|miss| Cache
+    Cache -.-&gt;|miss| PGSession
+    Revoke -. subscribe/invalidate .-&gt; L1</code></pre>
+<p><strong>Storage architecture:</strong> PostgreSQL is the primary durable session store. Redis/DragonFly acts as an L2 read-through cache with a short TTL (<code>CacheTtlMinutes</code>, default 10 min). Each instance also holds an L1 in-process cache (<code>BffLocalSessionCache</code>, default 10 s TTL) so repeated reads of the same session don't cross the network at all; coherence between L1 caches is preserved by the <code>bff:session:revocations</code> pub/sub channel. On L1 miss the session is loaded from L2; on L2 miss from PostgreSQL; in both cases the upper tiers are populated on the way back. All writes go to PostgreSQL first, then L2, then L1 is written-through (for active sessions) or invalidated (for terminal mutations). This design allows offline sessions (with <code>offline_access</code> scope) to survive across Redis restarts and long idle periods — the refresh token in PostgreSQL remains available for up to 30 days.</p>
+<p><strong>Security principle:</strong> Tokens never leave the server — the browser only holds an opaque GUID. Token fields (<code>access_token</code>, <code>refresh_token</code>, <code>id_token</code>) are encrypted at rest by <code>BffSessionTokenProtector</code> using <code>IDataProtector</code> with purpose <code>bff:session:tokens</code>.</p>
+<p><strong>ASP.NET Data Protection key ring:</strong> <a href="../src/APITemplate/Api/Extensions/RedisServiceCollectionExtensions.cs">RedisServiceCollectionExtensions</a> registers <code>AddDataProtection().PersistKeysToDbContext&lt;IdentityDbContext&gt;()</code> with application name <code>APITemplate</code>, so all API instances share the same key ring for BFF token encryption and CSRF tokens. This ensures keys are stored persistently in PostgreSQL, separating them from the volatile Redis/DragonFly cache to prevent session invalidation during cache evictions or restarts. Without a database, the host default applies (suitable for single-process development).</p>
+<p><strong>Session load per request:</strong> <code>BffSessionService.GetSessionAsync</code> memoizes the resolved <code>BffSessionRecord</code> on <code>HttpContext.Items</code> for the duration of the request so the cookie middleware and <code>CookieSessionRefresher</code> do not hit Redis/PostgreSQL twice for the same session id.</p>
+<hr />
+<h2 id="token-claims">Token Claims</h2>
+<p>JWT tokens must contain these claims:</p>
+<table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sub</code></td>
+<td>Subject (user ID)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>preferred_username</code></td>
+<td>Username</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>User email</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>tenant_id</code></td>
+<td>Tenant GUID (custom claim)</td>
+<td>Yes (user tokens) / No (service acct)</td>
+</tr>
+<tr>
+<td><code>realm_access.roles</code></td>
+<td>Keycloak realm roles (JSON)</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>aud</code></td>
+<td>Must include <code>api-template</code></td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>iss</code></td>
+<td>Keycloak realm issuer URL</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Claim mapping by <code>KeycloakClaimMapper</code>:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Keycloak claim</th>
+<th>.NET ClaimType</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>preferred_username</code></td>
+<td><code>ClaimTypes.Name</code></td>
+</tr>
+<tr>
+<td><code>realm_access.roles[]</code></td>
+<td><code>ClaimTypes.Role</code></td>
+</tr>
+<tr>
+<td><code>tenant_id</code></td>
+<td><code>CustomClaimTypes.TenantId</code> (<code>"tenant_id"</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="authorization-policies">Authorization Policies</h2>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>Requirement</th>
+<th>Used on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fallback (default)</td>
+<td>Authenticated via Bearer OR Cookie</td>
+<td>All endpoints</td>
+</tr>
+<tr>
+<td><code>PlatformAdmin</code></td>
+<td>Role: <code>PlatformAdmin</code></td>
+<td>Admin-only endpoints</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="bff-endpoints">BFF Endpoints</h2>
+<p>All under <code>/api/v1/bff/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Auth required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /bff/login</code></td>
+<td>No</td>
+<td>Initiates OIDC login (Keycloak page), optional <code>?returnUrl=</code></td>
+</tr>
+<tr>
+<td><code>GET /bff/login/{idpHint}</code></td>
+<td>No</td>
+<td>Direct redirect to named IdP (e.g. <code>google</code>), skips Keycloak UI</td>
+</tr>
+<tr>
+<td><code>GET /bff/external-providers</code></td>
+<td>No</td>
+<td>Lists registered social providers <code>[{idpHint, displayName}]</code></td>
+</tr>
+<tr>
+<td><code>GET /bff/logout</code></td>
+<td>Cookie</td>
+<td>Same as POST; soft-deletes session, clears cache, signs out of Keycloak</td>
+</tr>
+<tr>
+<td><code>POST /bff/logout</code></td>
+<td>Cookie</td>
+<td>Preferred for SPAs; same behavior as GET</td>
+</tr>
+<tr>
+<td><code>GET /bff/user</code></td>
+<td>Cookie</td>
+<td>Returns current user claims as JSON</td>
+</tr>
+<tr>
+<td><code>GET /bff/csrf</code></td>
+<td>Cookie</td>
+<td>Returns <code>headerName</code>, Data Protection <code>headerValue</code>, and <code>tokenFormat: DataProtection</code> when the BFF session cookie is present; <strong>401 Unauthorized</strong> without a session.</td>
+</tr>
+</tbody>
+</table>
+<p><code>GET /bff/login/{idpHint}</code> returns <code>404</code> when the hint does not match any registered <code>IExternalIdentityProvider</code>.</p>
+<p><strong><code>GET /bff/user</code> response:</strong>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="p">{</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">&quot;userId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;unique-user-id&quot;</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;admin&quot;</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;admin@example.com&quot;</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nt">&quot;tenantId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;00000000-0000-0000-0000-000000000001&quot;</span><span class="p">,</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nt">&quot;roles&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;PlatformAdmin&quot;</span><span class="p">]</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p>Returns <code>401</code> (not redirect) when unauthenticated — SPA should redirect to <code>/api/v1/bff/login</code>.</p>
+<hr />
+<h2 id="session-token-lifecycle">Session &amp; Token Lifecycle</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Config key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Session idle timeout (cookie + server-side)</td>
+<td>60 min</td>
+<td><code>Bff:SessionIdleTimeoutMinutes</code></td>
+</tr>
+<tr>
+<td>Redis cache TTL</td>
+<td>10 min</td>
+<td><code>Bff:CacheTtlMinutes</code></td>
+</tr>
+<tr>
+<td>Absolute session lifetime</td>
+<td>480 min (8h)</td>
+<td><code>Bff:SessionAbsoluteLifetimeMinutes</code></td>
+</tr>
+<tr>
+<td>Proactive refresh threshold</td>
+<td>2 min before expiry</td>
+<td><code>Bff:RefreshThresholdMinutes</code></td>
+</tr>
+<tr>
+<td>Follower wait timeout</td>
+<td>10000 ms (see <code>BffOptions</code> default)</td>
+<td><code>Bff:RefreshWaitTimeoutMilliseconds</code></td>
+</tr>
+<tr>
+<td>Distributed lock TTL</td>
+<td>9000 ms (must be &lt; wait timeout)</td>
+<td><code>Bff:RefreshLockTimeoutMilliseconds</code></td>
+</tr>
+<tr>
+<td>Refresh result cache TTL</td>
+<td>15000 ms</td>
+<td><code>Bff:RefreshResultTtlMilliseconds</code></td>
+</tr>
+<tr>
+<td>Revoke on refresh failure</td>
+<td>true</td>
+<td><code>Bff:RevokeSessionOnRefreshFailure</code></td>
+</tr>
+<tr>
+<td>Scopes requested from OIDC</td>
+<td>openid, profile, email, offline_access</td>
+<td><code>Bff:Scopes</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Token refresh trigger:</strong> On every cookie-authenticated request, <code>CookieSessionRefresher.ValidatePrincipal</code> delegates to <code>BffTokenRefreshService.RefreshIfRequiredAsync</code>. This checks whether the access token expires within <code>RefreshThresholdMinutes</code>. If so, the <code>RedisBffRefreshCoordinator</code> ensures only one request performs the actual Keycloak <code>grant_type=refresh_token</code> call — concurrent requests wait for the leader result via Redis polling or in-memory fallback.</p>
+<p><strong>Session validation on load</strong> (<code>BffSessionService.GetSessionAsync</code>):
+1. Check session exists in store
+2. Reject if <code>Status</code> is <code>Revoked</code> or <code>Expired</code>
+3. Reject and revoke if session record is malformed (missing <code>SessionId</code>, <code>UserId</code>, <code>Subject</code>, or <code>AccessToken</code>)
+4. Reject and revoke if <code>CreatedAtUtc + SessionAbsoluteLifetimeMinutes</code> has passed</p>
+<hr />
+<h2 id="keycloak-realm-configuration">Keycloak Realm Configuration</h2>
+<p>Realm auto-imported on <code>docker compose up</code> from <code>infrastructure/keycloak/realms/api-template-realm.json</code>.</p>
+<h3 id="realm-api-template">Realm: <code>api-template</code></h3>
+<ul>
+<li>Self-registration: Disabled</li>
+<li>Brute force protection: 5 attempts → lockout 1–15 min, reset after 1h</li>
+<li>Email login: Allowed</li>
+<li>SSL: None (development)</li>
+<li>Remember Me: Enabled (SSO session up to 15 days)</li>
+<li>Password policy: min 4 chars, expires after 365 days</li>
+<li>Refresh token rotation: Enabled (old refresh token revoked on each use)</li>
+</ul>
+<h3 id="token-lifetimes">Token Lifetimes</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Value</th>
+<th>Keycloak JSON key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Access token lifespan</td>
+<td>5 min (300s)</td>
+<td><code>accessTokenLifespan</code></td>
+</tr>
+<tr>
+<td>SSO session idle timeout</td>
+<td>30 min (1800s)</td>
+<td><code>ssoSessionIdleTimeout</code></td>
+</tr>
+<tr>
+<td>SSO session max lifespan</td>
+<td>10h (36000s)</td>
+<td><code>ssoSessionMaxLifespan</code></td>
+</tr>
+<tr>
+<td>SSO session idle (Remember Me)</td>
+<td>7 days (604800s)</td>
+<td><code>ssoSessionIdleTimeoutRememberMe</code></td>
+</tr>
+<tr>
+<td>SSO session max (Remember Me)</td>
+<td>15 days (1296000s)</td>
+<td><code>ssoSessionMaxLifespanRememberMe</code></td>
+</tr>
+<tr>
+<td>Client session idle timeout</td>
+<td>1h (3600s)</td>
+<td><code>clientSessionIdleTimeout</code></td>
+</tr>
+<tr>
+<td>Client session max lifespan</td>
+<td>8h (28800s)</td>
+<td><code>clientSessionMaxLifespan</code></td>
+</tr>
+<tr>
+<td>Offline session idle timeout</td>
+<td>30 days (2592000s)</td>
+<td><code>offlineSessionIdleTimeout</code></td>
+</tr>
+<tr>
+<td>Offline session max lifespan</td>
+<td>60 days (5184000s)</td>
+<td><code>offlineSessionMaxLifespan</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="timeout-synchronization-between-keycloak-and-bff">Timeout synchronization between Keycloak and BFF</h3>
+<p>The BFF session layer and Keycloak maintain <strong>independent clocks</strong> — neither knows the other's timeouts. They must be configured so the BFF never tries to use a token that Keycloak already considers expired.</p>
+<p><strong>Full timeline for an active user:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>         Keycloak                                          BFF / Redis
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>         ────────                                          ──────────
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>         access_token issued (5 min lifespan)
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>         │                                                 BffSessionRecord created
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>         │                                                 Redis key: bff:session:{id}
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>         │                                                 Redis TTL: 60 min (sliding)
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>         │                                                 Cookie TTL: 60 min (sliding)
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>         │
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>  +3 min │ ← RefreshThresholdMinutes (2 min before expiry)
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>         │                                                 BffTokenRefreshService: refresh needed
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>         │                                                 POST /token grant_type=refresh_token
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>         │
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>         │ Keycloak issues new access_token (5 min)
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>         │ Keycloak resets client session idle (1h)        Session updated, Version++
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a>         │ Old refresh_token revoked (rotation)            Redis TTL reset (sliding)
+</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a>         │
+</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a>  +6 min │                                                 Next refresh cycle...
+</span><span id="__span-15-19"><a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a>         │
+</span><span id="__span-15-20"><a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a>         ... repeats every ~3 minutes ...
+</span><span id="__span-15-21"><a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a>         │
+</span><span id="__span-15-22"><a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a>    +1h  │ If no refresh in 1h:
+</span><span id="__span-15-23"><a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a>  (idle) │ Keycloak client session idle expires             If no request in 1h:
+</span><span id="__span-15-24"><a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a>         │ → refresh_token becomes invalid                  Redis key expires (TTL)
+</span><span id="__span-15-25"><a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a>         │                                                  → GetAsync returns null → 401
+</span><span id="__span-15-26"><a id="__codelineno-15-26" name="__codelineno-15-26" href="#__codelineno-15-26"></a>         │
+</span><span id="__span-15-27"><a id="__codelineno-15-27" name="__codelineno-15-27" href="#__codelineno-15-27"></a>    +8h  │ Keycloak client session max expires
+</span><span id="__span-15-28"><a id="__codelineno-15-28" name="__codelineno-15-28" href="#__codelineno-15-28"></a>  (abs)  │ → refresh_token rejected regardless              BFF absolute lifetime (480 min)
+</span><span id="__span-15-29"><a id="__codelineno-15-29" name="__codelineno-15-29" href="#__codelineno-15-29"></a>         │   of activity                                    → session revoked
+</span><span id="__span-15-30"><a id="__codelineno-15-30" name="__codelineno-15-30" href="#__codelineno-15-30"></a>         │                                                    (AbsoluteLifetimeExceeded)
+</span></code></pre></div>
+<p><strong>Constraint rules — what must be synchronized:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Constraint</th>
+<th>Rule</th>
+<th>Current values</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Refresh before expiry</td>
+<td><code>RefreshThresholdMinutes</code> &lt; <code>accessTokenLifespan</code></td>
+<td>2 min &lt; 5 min</td>
+<td>Otherwise the access token expires before BFF attempts refresh</td>
+</tr>
+<tr>
+<td>Cookie = idle timeout</td>
+<td><code>SessionIdleTimeoutMinutes</code> controls both cookie and server-side idle</td>
+<td>60 min</td>
+<td>Single unified setting for cookie expiry and session idle timeout</td>
+</tr>
+<tr>
+<td>Redis idle ≤ Keycloak client idle</td>
+<td><code>SessionIdleTimeoutMinutes</code> ≤ <code>clientSessionIdleTimeout</code></td>
+<td>60 min ≤ 60 min</td>
+<td>If Redis lives longer → BFF tries to refresh with an expired client session → <code>invalid_grant</code> → revocation</td>
+</tr>
+<tr>
+<td>BFF absolute ≤ Keycloak client max</td>
+<td><code>SessionAbsoluteLifetimeMinutes</code> ≤ <code>clientSessionMaxLifespan</code></td>
+<td>480 min ≤ 480 min (8h)</td>
+<td>If BFF lives longer → same as above, Keycloak rejects the refresh</td>
+</tr>
+<tr>
+<td>Keycloak client max ≤ SSO max</td>
+<td><code>clientSessionMaxLifespan</code> ≤ <code>ssoSessionMaxLifespan</code></td>
+<td>8h ≤ 10h</td>
+<td>Client session cannot outlive the SSO session</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What is independent (does not need synchronization):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Why independent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RefreshLockTimeoutMilliseconds</code> (default 9000 ms)</td>
+<td>Internal coordination between concurrent requests — Keycloak is not involved</td>
+</tr>
+<tr>
+<td><code>RefreshResultTtlMilliseconds</code> (default 15000 ms)</td>
+<td>Internal leader/follower result sharing</td>
+</tr>
+<tr>
+<td><code>RefreshWaitTimeoutMilliseconds</code> (default 10000 ms)</td>
+<td>How long followers wait — affects individual request latency, not session validity</td>
+</tr>
+<tr>
+<td><code>RevokeSessionOnRefreshFailure</code></td>
+<td>BFF-only policy decision</td>
+</tr>
+<tr>
+<td><code>offlineSessionIdleTimeout</code> (30 days)</td>
+<td>Only relevant if a separate client uses offline tokens without the BFF layer (e.g. mobile app, background job)</td>
+</tr>
+<tr>
+<td><code>offlineSessionMaxLifespan</code> (60 days)</td>
+<td>Same as above</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Single source of truth:</strong> Keep <code>Bff:*</code> timeouts aligned with <a href="../infrastructure/keycloak/realms/api-template-realm.json">infrastructure/keycloak/realms/api-template-realm.json</a> (<code>accessTokenLifespan</code>, <code>clientSessionIdleTimeout</code>, <code>clientSessionMaxLifespan</code>, etc.). The defaults in <a href="../src/Modules/Identity/Auth/Common/BffOptions.cs">BffOptions.cs</a> and <a href="../src/APITemplate/Api/appsettings.json">appsettings.json</a> are documented together in the Session &amp; Token Lifecycle table above; changing one side without the other causes the failure modes listed under “What happens when constraints are violated”.
+| <code>ssoSessionIdleTimeout</code> (30 min)                                      | Governs Keycloak login page SSO (single sign-on across multiple clients), not the BFF refresh flow             |
+| <code>ssoSessionIdleTimeoutRememberMe</code> / <code>ssoSessionMaxLifespanRememberMe</code> | Only affects the "Remember Me" checkbox on the Keycloak login page                                             |</p>
+<p><strong>What happens when constraints are violated:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Violation</th>
+<th>Symptom</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RefreshThresholdMinutes</code> ≥ <code>accessTokenLifespan</code></td>
+<td>Access token always expired before refresh → every request triggers refresh → Keycloak rejects expired token</td>
+</tr>
+<tr>
+<td><code>SessionIdleTimeoutMinutes</code> &gt; <code>clientSessionIdleTimeout</code></td>
+<td>After Keycloak client idle expires, BFF still has a Redis session but refresh fails → <code>RefreshRejected</code> → revocation. User gets surprise 401 before BFF idle timeout</td>
+</tr>
+<tr>
+<td><code>SessionAbsoluteLifetimeMinutes</code> &gt; <code>clientSessionMaxLifespan</code></td>
+<td>After Keycloak client max, BFF tries to refresh → <code>invalid_grant</code> → revocation. Absolute lifetime check in BFF code never fires because Keycloak kills it first</td>
+</tr>
+<tr>
+<td><code>CacheTtlMinutes</code> too low</td>
+<td>More PostgreSQL fallback reads on cache miss — higher DB load. Not a correctness issue, only performance</td>
+</tr>
+</tbody>
+</table>
+<h3 id="roles">Roles</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PlatformAdmin</code></td>
+<td>Full platform access</td>
+</tr>
+<tr>
+<td><code>User</code></td>
+<td>Regular tenant user</td>
+</tr>
+</tbody>
+</table>
+<h3 id="client-api-template">Client: <code>api-template</code></h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Type</td>
+<td>Confidential</td>
+</tr>
+<tr>
+<td>Secret</td>
+<td><code>dev-client-secret</code> (dev only)</td>
+</tr>
+<tr>
+<td>Standard Flow</td>
+<td>Enabled (Authorization Code + PKCE S256)</td>
+</tr>
+<tr>
+<td>Service Accounts</td>
+<td>Enabled (Client Credentials grant)</td>
+</tr>
+<tr>
+<td>Direct Access Grants</td>
+<td>Disabled (password grant removed in OAuth 2.1)</td>
+</tr>
+<tr>
+<td>PKCE</td>
+<td>Required (<code>S256</code>)</td>
+</tr>
+<tr>
+<td>Redirect URIs</td>
+<td><code>http://localhost:5174/*</code>, <code>http://localhost:8080/*</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>OAuth 2.1 compliance:</strong> All Authorization Code flows (BFF, Scalar, mobile) enforce PKCE (<code>code_challenge_method=S256</code>).</p>
+</blockquote>
+<h3 id="custom-protocol-mappers">Custom Protocol Mappers</h3>
+<table>
+<thead>
+<tr>
+<th>Mapper</th>
+<th>Type</th>
+<th>Source attribute</th>
+<th>JWT claim</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tenant_id</code></td>
+<td>User Attribute</td>
+<td><code>tenant_id</code></td>
+<td><code>tenant_id</code></td>
+</tr>
+<tr>
+<td>audience-mapper</td>
+<td>Audience Mapper</td>
+<td>—</td>
+<td><code>aud</code></td>
+</tr>
+<tr>
+<td>realm-roles</td>
+<td>Realm Role Mapper</td>
+<td>realm roles</td>
+<td><code>realm_access.roles</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="identity-providers">Identity Providers</h3>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Alias</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Google</td>
+<td><code>google</code></td>
+<td>Configurable</td>
+<td>Set <code>GOOGLE_CLIENT_ID</code> + <code>GOOGLE_CLIENT_SECRET</code> env vars</td>
+</tr>
+</tbody>
+</table>
+<p>Credentials use Keycloak env var interpolation (<code>${GOOGLE_CLIENT_ID:-CHANGE_ME}</code>) — no real credentials in the repo.</p>
+<h3 id="standard-keycloak-endpoints">Standard Keycloak Endpoints</h3>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Discovery</td>
+<td><code>/realms/{realm}/.well-known/openid-configuration</code></td>
+</tr>
+<tr>
+<td>Token</td>
+<td><code>/realms/{realm}/protocol/openid-connect/token</code></td>
+</tr>
+<tr>
+<td>Authorization</td>
+<td><code>/realms/{realm}/protocol/openid-connect/auth</code></td>
+</tr>
+<tr>
+<td>Logout</td>
+<td><code>/realms/{realm}/protocol/openid-connect/logout</code></td>
+</tr>
+<tr>
+<td>UserInfo</td>
+<td><code>/realms/{realm}/protocol/openid-connect/userinfo</code></td>
+</tr>
+</tbody>
+</table>
+<p>When the API sets <code>options.Authority</code>, ASP.NET auto-discovers all endpoints via the Discovery URL.</p>
+<hr />
+<h2 id="configuration">Configuration</h2>
+<h3 id="appsettingsdevelopmentjson">appsettings.Development.json</h3>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="p">{</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">&quot;Keycloak&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="nt">&quot;realm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;api-template&quot;</span><span class="p">,</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="nt">&quot;auth-server-url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://localhost:8180/&quot;</span><span class="p">,</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="nt">&quot;ssl-required&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;none&quot;</span><span class="p">,</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="nt">&quot;resource&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;api-template&quot;</span><span class="p">,</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="nt">&quot;credentials&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">      </span><span class="nt">&quot;secret&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dev-client-secret&quot;</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="appsettingsjson-bff-section">appsettings.json — BFF section</h3>
+<p>Defaults match <a href="../src/APITemplate/Api/appsettings.json">src/APITemplate/Api/appsettings.json</a> and <a href="../src/Modules/Identity/Auth/Common/BffOptions.cs">BffOptions.cs</a>:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">&quot;Bff&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nt">&quot;CookieName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;.APITemplate.Auth&quot;</span><span class="p">,</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="nt">&quot;PostLogoutRedirectUri&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/&quot;</span><span class="p">,</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">    </span><span class="nt">&quot;SessionIdleTimeoutMinutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">    </span><span class="nt">&quot;CacheTtlMinutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">    </span><span class="nt">&quot;SessionAbsoluteLifetimeMinutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">480</span><span class="p">,</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">    </span><span class="nt">&quot;Scopes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;openid&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;profile&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;email&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;offline_access&quot;</span><span class="p">],</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">&quot;RefreshThresholdMinutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="nt">&quot;RefreshWaitTimeoutMilliseconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">&quot;RefreshLockTimeoutMilliseconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">9000</span><span class="p">,</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">    </span><span class="nt">&quot;RefreshResultTtlMilliseconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">    </span><span class="nt">&quot;RevokeSessionOnRefreshFailure&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="production-environment-variables">Production Environment Variables</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KC_HOSTNAME</code></td>
+<td>Keycloak external hostname</td>
+</tr>
+<tr>
+<td><code>Keycloak__realm</code></td>
+<td>Keycloak realm name</td>
+</tr>
+<tr>
+<td><code>Keycloak__resource</code></td>
+<td>Client ID</td>
+</tr>
+<tr>
+<td><code>Keycloak__credentials__secret</code></td>
+<td>Client secret</td>
+</tr>
+<tr>
+<td><code>Redis__ConnectionString</code></td>
+<td>Redis connection string (StackExchange.Redis)</td>
+</tr>
+<tr>
+<td><code>GOOGLE_CLIENT_ID</code></td>
+<td>Google OAuth2 Client ID</td>
+</tr>
+<tr>
+<td><code>GOOGLE_CLIENT_SECRET</code></td>
+<td>Google OAuth2 Client Secret</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="secured-endpoint-checklist">Secured endpoint checklist</h2>
+<p>When adding a new HTTP or GraphQL surface:</p>
+<ol>
+<li><strong>Default auth:</strong> The fallback policy requires an authenticated user via <strong>JWT Bearer</strong> or <strong>BFF Cookie</strong> (<a href="../src/Modules/Identity/IdentityModule.Auth.cs"><code>IdentityModule.Auth.cs</code></a>). Opt out only with <code>[AllowAnonymous]</code> where appropriate.</li>
+<li><strong>Authorization:</strong> Use <code>[Authorize(Policy = ...)]</code> or permission attributes as needed; roles in test JWTs must match <a href="../src/Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs"><code>KeycloakClaimMapper</code></a> / Keycloak realm roles.</li>
+<li><strong>Browser + cookie:</strong> For mutating requests authenticated with the session cookie, send the CSRF header from <a href="../src/Modules/Identity/Auth/Features/V1/BffController.cs"><code>GET /api/v1/bff/csrf</code></a> (see <a href="#3f-csrf-endpoint">Flow 3f — CSRF endpoint</a>).</li>
+<li><strong>Manual API exploration:</strong> Use Scalar with the configured OAuth2 schemes (<a href="../src/APITemplate/Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs"><code>BearerSecuritySchemeDocumentTransformer</code></a>).</li>
+<li><strong>Integration tests:</strong> Prefer <a href="../tests/APITemplate.Tests/Integration/IntegrationAuthHelper.cs"><code>IntegrationAuthHelper</code></a> for JWT; use <code>BffSecurityWebApplicationFactory</code> when testing cookie + CSRF behavior.</li>
+</ol>
+<hr />
+<h2 id="testing">Testing</h2>
+<h3 id="integration-tests">Integration Tests</h3>
+<p>Tests use mock JWT authentication that bypasses Keycloak entirely:</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1">// Authenticate with PlatformAdmin role</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">IntegrationAuthHelper</span><span class="p">.</span><span class="n">Authenticate</span><span class="p">(</span><span class="n">client</span><span class="p">,</span><span class="w"> </span><span class="n">role</span><span class="p">:</span><span class="w"> </span><span class="n">UserRole</span><span class="p">.</span><span class="n">PlatformAdmin</span><span class="p">);</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1">// Authenticate with specific tenant</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">IntegrationAuthHelper</span><span class="p">.</span><span class="n">Authenticate</span><span class="p">(</span><span class="n">client</span><span class="p">,</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="n">tenantId</span><span class="p">:</span><span class="w"> </span><span class="n">myTenantGuid</span><span class="p">,</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="n">role</span><span class="p">:</span><span class="w"> </span><span class="n">UserRole</span><span class="p">.</span><span class="n">User</span><span class="p">);</span>
+</span></code></pre></div>
+<p>Test tokens are signed with RSA-256 using an in-memory test key pair and include all required claims (<code>tenant_id</code>, roles, etc.).</p>
+<p><strong>BFF/CSRF tests</strong> use <code>BffSecurityWebApplicationFactory</code> (<a href="../tests/APITemplate.Tests/Integration/Auth/BffSecurityTests.cs">tests/APITemplate.Tests/Integration/Auth/BffSecurityTests.cs</a>), which extends <code>CustomWebApplicationFactory</code> and replaces the BFF cookie scheme handler with <code>FakeCookieAuthHandler</code> via <code>PostConfigure&lt;AuthenticationOptions&gt;</code>:</p>
+<ul>
+<li>Set request header <code>X-Test-Cookie-Auth: 1</code> to simulate a cookie-authenticated session</li>
+<li>Mutating requests without a valid <code>X-CSRF</code> header (value from <code>GET /api/v1/bff/csrf</code>) return HTTP 403; cookie-authenticated <code>GET /api/v1/bff/logout</code> also requires the CSRF header (see tests)</li>
+</ul>
+<p><strong>External provider unit tests</strong> (<code>BffExternalProvidersTests</code>):
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>dotnet<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--filter<span class="w"> </span><span class="s2">&quot;FullyQualifiedName~BffExternalProviders&quot;</span>
+</span></code></pre></div>
+Covers: <code>GetExternalProviders</code> (empty/single/multi provider), <code>LoginWithProvider</code> (known hint → ChallengeResult, unknown hint → 404, case-insensitive, <code>returnUrl</code> validation, <code>kc_idp_hint</code> set in <code>AuthenticationProperties</code>), <code>GoogleIdentityProvider</code> contract.</p>
+<hr />
+<h2 id="key-source-files">Key Source Files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../src/APITemplate/Api/Extensions/ApplicationCompositionServiceCollectionExtensions.cs">src/APITemplate/Api/Extensions/ApplicationCompositionServiceCollectionExtensions.cs</a></td>
+<td>JWT Bearer registration (authority, validation); authorization policies</td>
+</tr>
+<tr>
+<td><a href="../src/APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs">src/APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs</a></td>
+<td>Middleware order (<code>UseAuthentication</code>, CSRF, <code>UseAuthorization</code>)</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/IdentityModule.Auth.cs">src/Modules/Identity/IdentityModule.Auth.cs</a></td>
+<td>BFF Cookie + OIDC, <code>PostConfigure&lt;JwtBearerOptions&gt;</code>, fallback authorization policies</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Features/V1/BffController.cs">src/Modules/Identity/Auth/Features/V1/BffController.cs</a></td>
+<td>BFF endpoints: login, logout, user, CSRF, external providers</td>
+</tr>
+<tr>
+<td><a href="../src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs">src/APITemplate/Api/Middleware/CsrfValidationMiddleware.cs</a></td>
+<td>CSRF header enforcement for cookie-authenticated mutating requests</td>
+</tr>
+<tr>
+<td><a href="../src/APITemplate/Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs">src/APITemplate/Api/OpenApi/BearerSecuritySchemeDocumentTransformer.cs</a></td>
+<td>Scalar/OpenAPI OAuth2 schemes</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Common/BffOptions.cs">src/Modules/Identity/Auth/Common/BffOptions.cs</a></td>
+<td>BFF configuration model</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Common/Security/AuthConstants.cs">src/Modules/Identity/Auth/Common/Security/AuthConstants.cs</a></td>
+<td>Schemes, claims, routes, CSRF constants</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/IdentityTokenValidatedPipeline.cs">src/Modules/Identity/Auth/Security/IdentityTokenValidatedPipeline.cs</a></td>
+<td>Post–token validation: claim mapping, tenant, user access</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs">src/Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs</a></td>
+<td>Keycloak → .NET claims</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Sessions/BffSessionService.cs">src/Modules/Identity/Auth/Security/Sessions/BffSessionService.cs</a></td>
+<td>Session lifecycle, <code>GetTicketAsync</code> / <code>GetSessionAsync</code></td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Sessions/RedisTicketStore.cs">src/Modules/Identity/Auth/Security/Sessions/RedisTicketStore.cs</a></td>
+<td><code>ITicketStore</code> → <code>IBffSessionService</code></td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Sessions/CookieSessionRefresher.cs">src/Modules/Identity/Auth/Security/Sessions/CookieSessionRefresher.cs</a></td>
+<td>Cookie <code>ValidatePrincipal</code>, refresh</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Sessions/BffTokenRefreshService.cs">src/Modules/Identity/Auth/Security/Sessions/BffTokenRefreshService.cs</a></td>
+<td>Refresh orchestration</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Sessions/RedisBffRefreshCoordinator.cs">src/Modules/Identity/Auth/Security/Sessions/RedisBffRefreshCoordinator.cs</a></td>
+<td>Leader/follower refresh coordination</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Sessions/BffSessionTokenProtector.cs">src/Modules/Identity/Auth/Security/Sessions/BffSessionTokenProtector.cs</a></td>
+<td>Data Protection for tokens at rest</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Keycloak/KeycloakService.cs">src/Modules/Identity/Auth/Security/Keycloak/KeycloakService.cs</a></td>
+<td>Keycloak token HTTP client</td>
+</tr>
+<tr>
+<td><a href="../src/SharedKernel/Infrastructure/Health/KeycloakHealthCheck.cs">src/SharedKernel/Infrastructure/Health/KeycloakHealthCheck.cs</a></td>
+<td>Keycloak discovery health probe</td>
+</tr>
+<tr>
+<td><a href="../infrastructure/keycloak/realms/api-template-realm.json">infrastructure/keycloak/realms/api-template-realm.json</a></td>
+<td>Realm import</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/Sessions/BffCsrfTokenService.cs">src/Modules/Identity/Auth/Security/Sessions/BffCsrfTokenService.cs</a></td>
+<td>CSRF token issue/validate (Data Protection)</td>
+</tr>
+<tr>
+<td><a href="../src/Modules/Identity/Auth/Security/BffCookieSecurePostConfigure.cs">src/Modules/Identity/Auth/Security/BffCookieSecurePostConfigure.cs</a></td>
+<td><code>CookieSecurePolicy.Always</code> outside Development</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="keycloak-event-webhook-internal">Keycloak event webhook (internal)</h2>
+<p><code>POST /internal/keycloak-events/password-changed</code> (<a href="../src/Modules/Identity/Auth/Features/KeycloakEventWebhookController.cs">KeycloakEventWebhookController</a>) is <code>[AllowAnonymous]</code> and gated by <code>Keycloak:eventWebhook:apiKey</code>. <strong>Do not expose this route to the public internet</strong> — place it on an internal network, VPN, or Kubernetes <code>NetworkPolicy</code>, optionally with mTLS. The API key is compared with a fixed-time routine; rotate keys if leaked.</p>
+<hr />
+<h2 id="strategic-deployment-alternatives">Strategic deployment alternatives</h2>
+<p>These are <strong>not</strong> required by the template but document common forks when scaling or changing threat models:</p>
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Browser-only Bearer (no BFF cookie)</strong></td>
+<td>SPA holds access tokens in memory; fewer server-side session components, different XSS responsibility.</td>
+</tr>
+<tr>
+<td><strong>Managed IdP (Entra ID, Auth0, …)</strong></td>
+<td>Less Keycloak/realm operations; vendor lock-in and cost.</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL-only BFF (no Redis)</strong></td>
+<td>Supported when <code>Redis:ConnectionString</code> is unset (<code>PostgresDistributedCacheBffSessionStore</code> + in-process refresh lock); weaker horizontal scale unless you add another coordination mechanism.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zribktad/API-Template-Modules" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.tracking", "navigation.indexes", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tooltips"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,4040 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Modern .NET 10 Web API and Data-Driven applications template.">
+      
+      
+      
+        <link rel="canonical" href="https://zribktad.github.io/API-Template-Modules/code-review/">
+      
+      
+        <link rel="prev" href="../GIT_HOOKS/">
+      
+      
+        <link rel="next" href="../validation/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Code Review - APITemplate Modules</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#code-review-api-template-monolith" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="APITemplate Modules" class="md-header__button md-logo" aria-label="APITemplate Modules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            APITemplate Modules
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Code Review
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../cqrs-architecture/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  📚 Guides
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="APITemplate Modules" class="md-nav__button md-logo" aria-label="APITemplate Modules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    APITemplate Modules
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📚 Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture & Patterns
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture & Patterns
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cqrs-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CQRS & Messaging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../result-pattern/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Pattern
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wolverine-message-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wolverine Messages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/product-catalog-reviews-decoupling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Catalog Decoupling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Endpoints
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Endpoints
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraphQL Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql-implementation-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraphQL Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-create-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How To Create Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../endpoint-showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Endpoint Showcase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scalar-and-graphql-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scalar & UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Databases & Migrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Databases & Migrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ef-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EF Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mongodb-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MongoDB Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mongodb-polymorphism/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MongoDB Polymorphism
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stored-procedures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stored Procedures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security & Auth
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security & Auth
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUTHENTICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth-registration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auth Registration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keycloak-auth-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keycloak Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Guidelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RATE_LIMITING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rate Limiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Testing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-fast-unit-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fast Unit Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure & Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Infrastructure & Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CACHING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mailing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mailing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-upload-saga/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Upload Saga
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GIT_HOOKS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refactoring & Code Quality
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Refactoring & Code Quality
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Review
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Executive Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ---
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bugs-correctness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔴 BUGS (Correctness)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔴 BUGS (Correctness)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-modulesbackgroundjobsfeaturessubmitjobsubmitjobcommandcs35-bug-catch-exception-swallows-operationcanceledexception" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #1 · Modules/BackgroundJobs/Features/SubmitJob/SubmitJobCommand.cs:35 🔴 [BUG] catch (Exception) swallows OperationCanceledException
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-modulesidentityauthsecuritykeycloakkeycloakclaimmappercs36-bug-unchecked-jsondocumentparse-on-realm_access-claim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #2 · Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs:36 🔴 [BUG] Unchecked JsonDocument.Parse on realm_access claim
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-moduleschattingfeaturesssecontrollercs39-bug-sse-writerwriteasync-ignores-cancellation-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #3 · Modules/Chatting/Features/SseController.cs:39 🔴 [BUG] SSE writer.WriteAsync ignores cancellation token
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-modulesidentityvalueobjectsemailcs54-bug-defaultemail-produces-null-value-nre-in-operatornormalize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #4 · Modules/Identity/ValueObjects/Email.cs:54 🔴 [BUG] default(Email) produces null Value → NRE in operator/Normalize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs91-bug-ssrf-check-is-toctou-httpclient-re-resolves-dns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #5 · Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:91 🔴 [BUG] SSRF check is TOCTOU — HttpClient re-resolves DNS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-modulesnotificationsservicesemailretryservicecs-bug-cancellation-between-smtp-send-success-and-db-commit-causes-duplicate-send" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #6 · Modules/Notifications/Services/EmailRetryService.cs 🔴 [BUG] Cancellation between SMTP-send success and DB commit causes duplicate send
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ---
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🟠 SECURITY &amp; ARCHITECTURE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🟠 SECURITY &amp; ARCHITECTURE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#secrets-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets / Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Secrets / Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7-srcapitemplateapiappsettingsdevelopmentjson36-hardcoded-hmac-redaction-key-committed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #7 · src/APITemplate/Api/appsettings.Development.json:36 🟠 Hardcoded HMAC redaction key committed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-srcapitemplateapiappsettingsdevelopmentjson19-dev-keycloak-secret-webhook-secret-committed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #8 · src/APITemplate/Api/appsettings.Development.json:19 🟠 Dev Keycloak secret + webhook secret committed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-modulesproductcatalogproductcatalogmodulecs54-mongodbsettings-bound-without-validation-empty-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #9 · Modules/ProductCatalog/ProductCatalogModule.cs:54 🟠 MongoDbSettings bound without validation; empty defaults
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-modulesnotificationscontractsemailoptionscs38-smtp-password-bound-as-plain-string-without-redaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #10 · Modules/Notifications/Contracts/EmailOptions.cs:38 🟠 SMTP password bound as plain string without redaction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-moduleswebhookscontractswebhookoptionscs14-webhook-secret-minlength16-below-hmac-sha256-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #11 · Modules/Webhooks/Contracts/WebhookOptions.cs:14 🟠 Webhook secret MinLength(16) below HMAC-SHA256 guidance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssrf-webhook-ingress-egress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSRF / Webhook ingress &amp; egress
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SSRF / Webhook ingress &amp; egress">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#12-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs15-plain-http-allowed-for-outbound-webhooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #12 · Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:15 🟠 Plain http allowed for outbound webhooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs105-ipv6-private-range-check-misses-ipv4-mapped-ipv6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #13 · Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:105 🟠 IPv6 private-range check misses IPv4-mapped IPv6
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-moduleswebhooksfeatureswebhookscontrollercs21-allowanonymous-webhook-receiver-with-no-rate-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #14 · Modules/Webhooks/Features/WebhooksController.cs:21 🟠 [AllowAnonymous] webhook receiver with no rate limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-moduleswebhookssecurityhmacwebhookpayloadvalidatorcs20-no-replay-de-duplication-within-300s-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #15 · Modules/Webhooks/Security/HmacWebhookPayloadValidator.cs:20 🟠 No replay de-duplication within 300s window
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#16-moduleswebhookssecuritywebhooksignatureresourcefiltercs56-filter-reads-full-body-into-string-without-explicit-cap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #16 · Modules/Webhooks/Security/WebhookSignatureResourceFilter.cs:56 🟠 Filter reads full body into string without explicit cap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#17-moduleswebhookswebhooksmodulecs22-signature-filter-registered-globally-on-every-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #17 · Modules/Webhooks/WebhooksModule.cs:22 🟠 Signature filter registered globally on every controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tenant-isolation-authorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tenant isolation / Authorization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tenant isolation / Authorization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#18-modulesproductcatalogrepositoriesproductrepositorycs149-bulksoftdeletebytenantasync-getnondeletedidsbytenantasync-use-ignorequeryfilters-with-caller-supplied-tenantid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #18 · Modules/ProductCatalog/Repositories/ProductRepository.cs:149 🟠 BulkSoftDeleteByTenantAsync + GetNonDeletedIdsByTenantAsync use IgnoreQueryFilters() with caller-supplied tenantId
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#19-modulesreviewsrepositoriesproductreviewrepositorycs30-bulksoftdeletebyproductidsasync-bypasses-tenant-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #19 · Modules/Reviews/Repositories/ProductReviewRepository.cs:30 🟠 BulkSoftDeleteByProductIdsAsync bypasses tenant filter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#20-modulesproductcatalogfeaturesproductpatchproductpatchproductcommandcs24-patch-does-not-re-validate-categoryid-tenant-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #20 · Modules/ProductCatalog/Features/Product/PatchProduct/PatchProductCommand.cs:24 🟠 Patch does not re-validate CategoryId tenant ownership
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#21-modulesproductcatalogfeaturesproductpatchproductpatchproductcommandcs40-raw-patch-exception-message-returned-to-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #21 · Modules/ProductCatalog/Features/Product/PatchProduct/PatchProductCommand.cs:40 🟠 Raw patch exception message returned to client
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anonymous-high-risk-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anonymous / high-risk endpoints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Anonymous / high-risk endpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#22-modulesidentitydirectoryfeaturesv1userscontrollercs148-post-apiv1userspassword-reset-anonymous-no-rate-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #22 · Modules/Identity/Directory/Features/V1/UsersController.cs:148 🟠 POST /api/v1/users/password-reset anonymous, no rate limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-modulesidentitydirectoryfeaturesv1tenantinvitationscontrollercs47-anonymous-invitation-accept-no-rate-limit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #23 · Modules/Identity/Directory/Features/V1/TenantInvitationsController.cs:47 🟠 Anonymous invitation-accept, no rate limit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-moduleschattingfeaturesssecontrollercs25-sse-endpoint-has-no-concurrency-cap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #24 · Modules/Chatting/Features/SseController.cs:25 🟠 SSE endpoint has no concurrency cap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bff-csrf-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BFF / CSRF / Session
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BFF / CSRF / Session">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#25-modulesidentityidentitymodulecs79-addcors-registered-but-usecors-never-invoked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #25 · Modules/Identity/IdentityModule.cs:79 🟠 AddCors registered but UseCors() never invoked
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-modulesidentityidentitymoduleauthcs148-bff-session-cookie-samesitelax-instead-of-strict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #26 · Modules/Identity/IdentityModule.Auth.cs:148 🟠 BFF session cookie SameSite=Lax instead of Strict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-modulesidentityauthfeaturesv1bffcontrollercs78-logout-accepts-both-get-and-post" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #27 · Modules/Identity/Auth/Features/V1/BffController.cs:78 🟠 Logout accepts both GET and POST
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#28-modulesidentityauthfeaturesv1bffcontrollercs42-open-redirect-mitigated-only-via-urlislocalurl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #28 · Modules/Identity/Auth/Features/V1/BffController.cs:42 🟠 Open-redirect mitigated only via Url.IsLocalUrl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#29-apitemplateapimiddlewarecsrfvalidationmiddlewarecs27-bearer-auth-bypass-of-csrf-when-cookie-also-present" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #29 · APITemplate/Api/Middleware/CsrfValidationMiddleware.cs:27 🟠 Bearer-auth bypass of CSRF when cookie also present
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#30-modulesidentityauthsecuritysessionsbffpostgressessionstorebasecs61-session-store-uses-iservicescopefactory-getrequiredserviceidentitydbcontext-dip-violation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #30 · Modules/Identity/Auth/Security/Sessions/BffPostgresSessionStoreBase.cs:61 🟠 Session store uses IServiceScopeFactory + GetRequiredService&lt;IdentityDbContext&gt;() (DIP violation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#31-modulesidentityauthhandlerscleanupexpiredbffsessionshandlercs41-handler-queries-identitydbcontext-directly-bypassing-repository-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #31 · Modules/Identity/Auth/Handlers/CleanupExpiredBffSessionsHandler.cs:41 🟠 Handler queries IdentityDbContext directly, bypassing repository pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#identity-keycloak" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identity / Keycloak
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Identity / Keycloak">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#32-modulesidentityauthfeatureskeycloakeventwebhookcontrollercs36-webhook-silently-returns-404-when-apikey-unconfigured" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #32 · Modules/Identity/Auth/Features/KeycloakEventWebhookController.cs:36 🟠 Webhook silently returns 404 when ApiKey unconfigured
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-modulesidentityauthfeatureskeycloakeventwebhookcontrollercs19-internal-routes-share-kestrel-with-public-no-second-line-of-defence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #33 · Modules/Identity/Auth/Features/KeycloakEventWebhookController.cs:19 🟠 /internal/* routes share Kestrel with public; no second line of defence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-modulesidentityauthsecuritykeycloakkeycloakadminservicecs225-password-check-via-deprecated-ropc-grant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #34 · Modules/Identity/Auth/Security/Keycloak/KeycloakAdminService.cs:225 🟠 Password check via deprecated ROPC grant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-modulesidentityauthsecuritykeycloakkeycloakadmintokenprovidercs108-full-keycloak-error-body-logged-on-token-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #35 · Modules/Identity/Auth/Security/Keycloak/KeycloakAdminTokenProvider.cs:108 🟠 Full Keycloak error body logged on token failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-modulesidentityauthsecuritysecuretokengeneratorcs22-unsalted-sha-256-for-persisted-invitation-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #36 · Modules/Identity/Auth/Security/SecureTokenGenerator.cs:22 🟠 Unsalted SHA-256 for persisted invitation tokens
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-storage-content-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File storage / Content handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File storage / Content handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#37-modulesfilestoragefeaturesfilescontrollercs22-requestsizelimit-hardcoded-10-mb-diverges-from-filestorageoptionsmaxfilesizebytes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #37 · Modules/FileStorage/Features/FilesController.cs:22 🟠 RequestSizeLimit hardcoded (10 MB) diverges from FileStorageOptions.MaxFileSizeBytes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#38-modulesfilestoragefeaturesfilescontrollercs28-upload-trusts-client-supplied-filename-contenttype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #38 · Modules/FileStorage/Features/FilesController.cs:28 🟠 Upload trusts client-supplied FileName / ContentType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#39-modulesfilestoragefeaturesfilescontrollercs71-download-streams-file-with-client-contenttype-no-content-disposition-attachment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #39 · Modules/FileStorage/Features/FilesController.cs:71 🟠 Download streams file with client ContentType, no Content-Disposition: attachment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database / SQL
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database / SQL">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#40-modulesbackgroundjobsservicesreindexservicecs64-executesqlrawasync-with-string-interpolated-identifier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #40 · Modules/BackgroundJobs/Services/ReindexService.cs:64 🟠 ExecuteSqlRawAsync with string-interpolated identifier
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clean-architecture-module-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clean Architecture / Module boundaries
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Clean Architecture / Module boundaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-modulesproductcatalogglobalusingscs15-productcatalog-imports-reviewsdomain-reviewsfeatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #41 · Modules/ProductCatalog/GlobalUsings.cs:15 🟠 ProductCatalog imports Reviews.Domain + Reviews.Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-modulesproductcataloggraphqlmutationsproductreviewmutationscs12-reviews-aggregates-graphql-mutations-live-inside-productcatalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #42 · Modules/ProductCatalog/GraphQL/Mutations/ProductReviewMutations.cs:12 🟠 Reviews aggregate's GraphQL mutations live inside ProductCatalog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-modulesproductcataloggraphqlmutationsproductmutationscs41-mutation-throws-new-graphqlexceptionstringjoin-batchfailures0errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #43 · Modules/ProductCatalog/GraphQL/Mutations/ProductMutations.cs:41 🟠 Mutation throws new GraphQLException(string.Join("; ", batch.Failures[0].Errors))
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#misc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Misc
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Misc">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#44-modulesnotificationsservicesmailkitemailsendercs60-smtp-uses-legacy-connectasynchostportusesslbool-overload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #44 · Modules/Notifications/Services/MailKitEmailSender.cs:60 🟠 SMTP uses legacy ConnectAsync(host,port,useSsl:bool,...) overload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-modulesnotificationsservicesmailkitemailsendercs14-singleton-smtpclient-serialized-behind-semaphoreslim11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #45 · Modules/Notifications/Services/MailKitEmailSender.cs:14 🟠 Singleton SmtpClient serialized behind SemaphoreSlim(1,1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-modulesproductcatalogproductcatalogmodulecs113-graphql-depth-5-but-no-execution-timeout-cost-analysis-introspection-gating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #46 · Modules/ProductCatalog/ProductCatalogModule.cs:113 🟠 GraphQL: depth 5 but no execution timeout / cost analysis / introspection gating
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-modulesidentitydirectoryfeaturesv1tenantscontrollercs10-missing-class-level-authorizeauthenticationschemes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #47 · Modules/Identity/Directory/Features/V1/TenantsController.cs:10 🟠 Missing class-level [Authorize(AuthenticationSchemes=...)]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48-moduleschattingchattingmodulecs11-addchattingmodule-accepts-iconfiguration-but-never-uses-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #48 · Modules/Chatting/ChattingModule.cs:11 🟠 AddChattingModule accepts IConfiguration but never uses it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#49-modulesnotificationsservicesemailretryservicecs35-claim-owner-machinenameprocessid-persisted-to-db" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #49 · Modules/Notifications/Services/EmailRetryService.cs:35 🟠 Claim owner "{MachineName}:{ProcessId}" persisted to DB
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#50-apitemplateapiextensionsstartupapplicationbuilderextensionscs107-openapiscalar-gated-only-by-isdevelopment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #50 · APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs:107 🟠 OpenAPI/Scalar gated only by IsDevelopment()
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ---
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🟡 PERFORMANCE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🟡 PERFORMANCE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#split-a-apitemplate-sharedkernel-backgroundjobs-chatting-filestorage-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Split A (APITemplate / SharedKernel / BackgroundJobs / Chatting / FileStorage / Identity)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Split A (APITemplate / SharedKernel / BackgroundJobs / Chatting / FileStorage / Identity)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-modulesbackgroundjobsservicesjobprocessingbackgroundservicecs53-7-db-round-trips-per-job-progress-commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #51 · Modules/BackgroundJobs/Services/JobProcessingBackgroundService.cs:53 🟡 7 DB round-trips per job (progress commits)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-modulesidentityauthhandlerscleanupexpiredbffsessionshandlercs41-select-then-delete-two-round-trips-instead-of-single-executedeleteasync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #52 · Modules/Identity/Auth/Handlers/CleanupExpiredBffSessionsHandler.cs:41 🟡 Select-then-delete (two round-trips) instead of single ExecuteDeleteAsync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-modulesbackgroundjobstickerqtickerqrecurringjobregistrarcs43-tolistasync-then-client-todictionary-with-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #53 · Modules/BackgroundJobs/TickerQ/TickerQRecurringJobRegistrar.cs:43 🟡 ToListAsync then client ToDictionary with tracking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-modulesidentityauthsecuritysessionsbffpostgressessionstorebasecs206-bulkrevoke-select-ids-executeupdate-on-same-predicate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #54 · Modules/Identity/Auth/Security/Sessions/BffPostgresSessionStoreBase.cs:206 🟡 BulkRevoke: SELECT ids → ExecuteUpdate on same predicate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-modulesidentityauthsecuritysessionsbffpostgressessionstorebasecs220-sequential-idistributedcacheremoveasync-in-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #55 · Modules/Identity/Auth/Security/Sessions/BffPostgresSessionStoreBase.cs:220 🟡 Sequential IDistributedCache.RemoveAsync in loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-modulesidentitydirectoryfeaturestenantcommandsdeletetenantcommandcs33-load-and-delete-for-soft-delete-instead-of-bulk-executeupdateasync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #56 · Modules/Identity/Directory/Features/Tenant/Commands/DeleteTenantCommand.cs:33 🟡 Load-and-delete for soft-delete instead of bulk ExecuteUpdateAsync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-apitemplateapicacheoutputcacheinvalidationservicecs27-sequential-evictbytagasync-in-foreach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #57 · APITemplate/Api/Cache/OutputCacheInvalidationService.cs:27 🟡 Sequential EvictByTagAsync in foreach
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-modulesbackgroundjobsservicesreindexservicecs51-sequential-bloat-checks-reindex-across-indexes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #58 · Modules/BackgroundJobs/Services/ReindexService.cs:51 🟡 Sequential bloat-checks + REINDEX across indexes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-sharedkernelinfrastructurerepositoriesrepositorybasecs62-extra-countasync-on-empty-page-edge-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #59 · SharedKernel/Infrastructure/Repositories/RepositoryBase.cs:62 🟡 Extra CountAsync on empty-page edge case
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#60-modulesidentitydirectoryfeaturesuserassignrolesassignuserrolescommandhandlercs53-userrolesclear-re-add-rewrites-unchanged-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #60 · Modules/Identity/Directory/Features/User/AssignRoles/AssignUserRolesCommandHandler.cs:53 🟡 user.Roles.Clear() + re-Add rewrites unchanged roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#61-modulesbackgroundjobsservicesjobprocessingbackgroundservicecs41-second-di-scope-inside-callback-for-imessagebus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #61 · Modules/BackgroundJobs/Services/JobProcessingBackgroundService.cs:41 🟡 Second DI scope inside callback for IMessageBus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-modulesbackgroundjobsfeaturessubmitjobsubmitjobcommandcs23-executeintransactionasync-wrapping-single-addasync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #62 · Modules/BackgroundJobs/Features/SubmitJob/SubmitJobCommand.cs:23 🟡 ExecuteInTransactionAsync wrapping single AddAsync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-modulesfilestorageserviceslocalfilestorageservicecs94-fileexists-toctou-before-filedelete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #63 · Modules/FileStorage/Services/LocalFileStorageService.cs:94 🟡 File.Exists TOCTOU before File.Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-modulesidentityauthsecuritykeycloakkeycloakadmintokenprovidercs85-using-on-pooled-httpclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #64 · Modules/Identity/Auth/Security/Keycloak/KeycloakAdminTokenProvider.cs:85 🟡 using on pooled HttpClient
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-modulesidentityauthsecuritysessionsbffcsrftokenservicecs54-encodingutf8getbytessessionid-allocation-on-every-unsafe-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #65 · Modules/Identity/Auth/Security/Sessions/BffCsrfTokenService.cs:54 🟡 Encoding.UTF8.GetBytes(sessionId) allocation on every unsafe request
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66-apitemplateapiauthorizationpermissionpolicyprovidercs22-permissionallcontains-on-per-policy-lookup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #66 · APITemplate/Api/Authorization/PermissionPolicyProvider.cs:22 🟡 Permission.All.Contains O(n) per policy lookup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#67-modulesidentitydirectoryfeaturesusercreateusercreateusercommandcs21-sequential-email-username-uniqueness-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #67 · Modules/Identity/Directory/Features/User/CreateUser/CreateUserCommand.cs:21 🟡 Sequential email + username uniqueness checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#split-b-notifications-productcatalog-reviews-webhooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Split B (Notifications / ProductCatalog / Reviews / Webhooks)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Split B (Notifications / ProductCatalog / Reviews / Webhooks)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#68-modulesproductcatalogfeaturesproductgetproductsgetproductsquerycs18-three-sequential-awaits-paged-category-facets-price-facets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #68 · Modules/ProductCatalog/Features/Product/GetProducts/GetProductsQuery.cs:18 🟡 Three sequential awaits: paged + category facets + price facets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#69-modulesproductcatalogrepositoriesproductrepositorycs62-category-facet-left-join-ternary-default-inside-groupby-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #69 · Modules/ProductCatalog/Repositories/ProductRepository.cs:62 🟡 Category-facet LEFT JOIN + ternary default inside GroupBy key
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#70-modulesproductcatalogrepositoriesproductdatalinkrepositorycs92-softdeleteactivelinksforproductdata-materialises-then-row-by-row-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #70 · Modules/ProductCatalog/Repositories/ProductDataLinkRepository.cs:92 🟡 SoftDeleteActiveLinksForProductData materialises then row-by-row delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#71-modulesproductcatalogfeaturesproductupdateproductsupdateproductscommandcs107-redundant-per-item-await-updateasync-inside-loop-on-tracked-entities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #71 · Modules/ProductCatalog/Features/Product/UpdateProducts/UpdateProductsCommand.cs:107 🟡 Redundant per-item await UpdateAsync inside loop on tracked entities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-modulesproductcatalogfeaturesproductsharedproductvalidationhelpercs128-missingidscontains-check-with-distincttolist-allocation-per-item" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #72 · Modules/ProductCatalog/Features/Product/Shared/ProductValidationHelper.cs:128 🟡 missingIds.Contains check with Distinct().ToList() allocation per item
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-modulesproductcataloghandlerscleanuporphanedproductdatahandlercs147-redundant-server-side-distinct-on-projected-pk-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #73 · Modules/ProductCatalog/Handlers/CleanupOrphanedProductDataHandler.cs:147 🟡 Redundant server-side Distinct() on projected PK column
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-modulesproductcataloghandlerscleanuporphanedproductdatahandlercs-mark-sweep-happen-in-the-same-invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #74 · Modules/ProductCatalog/Handlers/CleanupOrphanedProductDataHandler.cs 🟡 Mark + sweep happen in the same invocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs91-dns-lookup-per-outbound-delivery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #75 · Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:91 🟡 DNS lookup per outbound delivery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#76-moduleswebhookssecuritywebhooksignatureresourcefiltercs57-body-string-utf-8-re-encoding-for-hmac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #76 · Modules/Webhooks/Security/WebhookSignatureResourceFilter.cs:57 🟡 Body → string → UTF-8 re-encoding for HMAC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#77-moduleswebhookssecurityhmachelpercs18-timestamppayload-then-utf-8-encode-allocates-2-payload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #77 · Modules/Webhooks/Security/HmacHelper.cs:18 🟡 $"{timestamp}.{payload}" then UTF-8 encode allocates ~2× payload
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#78-modulesnotificationsservicesemailretryservicecs68-sequential-per-email-retry-db-commit-per-email" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #78 · Modules/Notifications/Services/EmailRetryService.cs:68 🟡 Sequential per-email retry; DB commit per email
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#79-modulesnotificationsservicesfluidemailtemplaterenderercs18-unbounded-static-template-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #79 · Modules/Notifications/Services/FluidEmailTemplateRenderer.cs:18 🟡 Unbounded static template cache
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#80-modulesproductcatalogfeaturesproductcreateproductscreateproductscommandcs64-double-pass-validation-entity-build-duplicates-pricecreatefrompersistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #80 · Modules/ProductCatalog/Features/Product/CreateProducts/CreateProductsCommand.cs:64 🟡 Double-pass validation + entity build duplicates Price.Create/FromPersistence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#81-modulesreviewsfeaturesgetproductreviewsgetproductreviewsbyproductidsquerycs32-requestproductidsdistincttodictionary-re-indexes-lookup-allocates-per-missing-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #81 · Modules/Reviews/Features/GetProductReviews/GetProductReviewsByProductIdsQuery.cs:32 🟡 request.ProductIds.Distinct().ToDictionary re-indexes lookup + allocates per missing id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-modulesproductcatalogfeaturesproductdatagetproductdatagetproductdataquerycs15-getallasync-with-no-paging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #82 · Modules/ProductCatalog/Features/ProductData/GetProductData/GetProductDataQuery.cs:15 🟡 GetAllAsync with no paging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-modulesproductcatalogfeaturestenantcascadedeletetenantcascadedeletehandlercs24-loads-all-product-ids-just-to-bundle-them-into-a-cross-module-notification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #83 · Modules/ProductCatalog/Features/TenantCascadeDelete/TenantCascadeDeleteHandler.cs:24 🟡 Loads all product ids just to bundle them into a cross-module notification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ---
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-style-dry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔵 CODE STYLE / DRY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔵 CODE STYLE / DRY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#84-moduleschattingfeaturesssecontrollercs31-await-businvokeasync-wrapping-iasyncenumerable-via-taskfromresult-is-redundant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #84 · Modules/Chatting/Features/SseController.cs:31 🔵 await bus.InvokeAsync wrapping IAsyncEnumerable via Task.FromResult is redundant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-sharedkernelapplicationeventsmessagebusextensionscs13-outgoingmessageshelperempty-allocates-per-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #85 · SharedKernel/Application/Events/MessageBusExtensions.cs:13 🔵 OutgoingMessagesHelper.Empty allocates per access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-modulesbackgroundjobsservicesjobprocessingbackgroundservicecs79-two-source-linked-cts-where-cancelafter-suffices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #86 · Modules/BackgroundJobs/Services/JobProcessingBackgroundService.cs:79 🔵 Two-source linked CTS where CancelAfter suffices
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#87-modulesbackgroundjobstickerqtickerqrecurringjobregistrarcs81-duplicated-property-assignments-across-add-vs-update-branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #87 · Modules/BackgroundJobs/TickerQ/TickerQRecurringJobRegistrar.cs:81 🔵 Duplicated property assignments across add vs update branches
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#88-modulesidentitydirectoryfeaturesuserupdateuserupdateusercommandcs42-inconsistent-var-vs-explicit-types-vs-project-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #88 · Modules/Identity/Directory/Features/User/UpdateUser/UpdateUserCommand.cs:42 🔵 Inconsistent var vs explicit types vs project rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#89-modulesidentityauthsecuritysessionsbffsessionservicecs20-implements-two-interfaces-7-deps-ispsrp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #89 · Modules/Identity/Auth/Security/Sessions/BffSessionService.cs:20 🔵 Implements two interfaces + 7 deps (ISP/SRP)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#90-moduleswebhooksserviceswebhookprocessingbackgroundservicecs29-on-stringly-typed-handler-match-per-message" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #90 · Modules/Webhooks/Services/WebhookProcessingBackgroundService.cs:29 🔵 O(n) stringly-typed handler match per message
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#91-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs44-using-on-factory-created-httpclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #91 · Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:44 🔵 using on factory-created HttpClient
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-modulesnotificationsrepositoriesfailedemailrepositorycs54-tolist-on-already-materialised-ireadonlylist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #92 · Modules/Notifications/Repositories/FailedEmailRepository.cs:54 🔵 .ToList() on already-materialised IReadOnlyList
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-modulesnotificationsservicesfailedemailstorecs45-catch-exception-ex-swallows-storage-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #93 · Modules/Notifications/Services/FailedEmailStore.cs:45 🔵 catch (Exception ex) swallows storage errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-modulesproductcatalogrepositoriesproductrepositorycs108-countstoarray-new-intdefaultpricebucketscount-simplify-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #94 · Modules/ProductCatalog/Repositories/ProductRepository.cs:108 🔵 counts?.ToArray() ?? new int[DefaultPriceBuckets.Count] — simplify fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-modulesproductcataloggraphqlqueriesproductqueriescs26-12-arg-productfilter-build-in-resolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #95 · Modules/ProductCatalog/GraphQL/Queries/ProductQueries.cs:26 🔵 12-arg ProductFilter build in resolver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#96-modulesproductcatalogfeaturesproductsharedproductvalidationhelpercs51-selector-invoked-twice-per-item" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #96 · Modules/ProductCatalog/Features/Product/Shared/ProductValidationHelper.cs:51 🔵 Selector invoked twice per item
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#97-modulesreviewsfeaturesgetproductreviewsgetproductreviewsbyproductidsquerycs20-verbose-explicit-cast-on-empty-dictionary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #97 · Modules/Reviews/Features/GetProductReviews/GetProductReviewsByProductIdsQuery.cs:20 🔵 Verbose explicit cast on empty dictionary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#98-modulesproductcatalogfeaturesproductcreateproductscreateproductsrequestcs10-maxlength100-magic-literal-duplicated-across-batch-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #98 · Modules/ProductCatalog/Features/Product/CreateProducts/CreateProductsRequest.cs:10 🔵 MaxLength(100) magic literal duplicated across batch requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#99-modulesproductcatalogfeaturesproductupdateproductsupdateproductscommandcs40-indexed-where_icontextisfailediselectxxid-duplicated-across-handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #99 · Modules/ProductCatalog/Features/Product/UpdateProducts/UpdateProductsCommand.cs:40 🔵 Indexed Where((_,i)=&gt;!context.IsFailed(i)).Select(x=&gt;x.Id) duplicated across handlers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#100-modulesnotificationsnotificationsmodulecs-commented-out-example-controller-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #100 · Modules/Notifications/NotificationsModule.cs 🔵 Commented-out "example controller" line
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#101-modulesproductcatalogproductcatalogmodulecs-135-line-addproductcatalogmodule-mixes-di-graphql-mongo-resilience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        #101 · Modules/ProductCatalog/ProductCatalogModule.cs 🔵 135-line AddProductCatalogModule mixes DI + GraphQL + Mongo + resilience
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ---
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#review-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Review Statistics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Review Statistics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#top-recommended-fixes-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Top Recommended Fixes (order)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#files-not-reviewed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files NOT reviewed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remaining-refactoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining Refactoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href=".." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../cqrs-architecture/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    📚 Guides
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Refactoring & Code Quality
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="code-review-api-template-monolith">🔍 Code Review — API-Template-Monolith</h1>
+<p><strong>Generated:</strong> 2026-04-16 · <strong>Branch:</strong> <code>main</code> · <strong>Method:</strong> 6 parallel specialized agents (2 repo splits × 3 disciplines: Bugs, Security/Architecture, Performance/Style)</p>
+<h2 id="executive-summary">🔍 Executive Summary</h2>
+<p>Solid modular-monolith template built on .NET 9 / Wolverine / Marten / EF Core with consistent vertical-slice handlers, ErrorOr pipelines, Ardalis.Specification repositories, and BFF-flavoured auth. Biggest risks concentrate in three areas: (1) <strong>webhook ingress/egress</strong> — SSRF TOCTOU, missing replay protection, global filter registration, plaintext HTTP allowed; (2) <strong>tenant isolation on bulk operations</strong> — <code>IgnoreQueryFilters()</code> + caller-supplied tenant/product ids in both ProductCatalog and Reviews bulk-delete paths; (3) <strong>secrets hygiene</strong> — dev HMAC/Keycloak/webhook secrets committed, Mongo/Email options unvalidated. Code-quality findings are mostly N+1 and eager-materialisation patterns plus a few SRP/DIP leaks in Identity session services.</p>
+<ul>
+<li><strong>Total findings:</strong> 101 (🔴 6 · 🟠 45 · 🟡 31 · 🔵 19)</li>
+<li><strong>Splits:</strong> A = <code>APITemplate</code> + <code>SharedKernel</code> + <code>Contracts</code> + <code>Modules/{BackgroundJobs,Chatting,FileStorage,Identity}</code>; B = <code>Modules/{Notifications,ProductCatalog,Reviews,Webhooks}</code></li>
+<li><strong>Tests:</strong> excluded per user instruction.</li>
+</ul>
+<h2 id="-">---</h2>
+<h2 id="bugs-correctness">🔴 BUGS (Correctness)</h2>
+<hr />
+<h3 id="1-modulesbackgroundjobsfeaturessubmitjobsubmitjobcommandcs35-bug-catch-exception-swallows-operationcanceledexception">#1 · <code>Modules/BackgroundJobs/Features/SubmitJob/SubmitJobCommand.cs:35</code> 🔴 [BUG] <code>catch (Exception)</code> swallows <code>OperationCanceledException</code></h3>
+<blockquote>
+<p>EnqueueAsync on a bounded channel throws OCE when the caller's token is cancelled. The unfiltered catch marks the job failed, writes a second DB transaction on a cancelled request, and returns <code>Error.Failure</code>, defeating <code>ApiExceptionHandler</code>'s 499 handling.</p>
+</blockquote>
+<p><strong>Fix:</strong>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="k">when</span><span class="w"> </span><span class="p">(</span><span class="n">ex</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">OperationCanceledException</span><span class="p">)</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="2-modulesidentityauthsecuritykeycloakkeycloakclaimmappercs36-bug-unchecked-jsondocumentparse-on-realm_access-claim">#2 · <code>Modules/Identity/Auth/Security/Keycloak/KeycloakClaimMapper.cs:36</code> 🔴 [BUG] Unchecked <code>JsonDocument.Parse</code> on <code>realm_access</code> claim</h3>
+<blockquote>
+<p>Parse is called on an IdP-supplied claim without try/catch. Non-object realm_access or non-array <code>roles</code> throws <code>JsonException</code>/<code>InvalidOperationException</code> out of <code>OnTokenValidated</code>, breaking auth for every request carrying such a token instead of skipping role mapping.</p>
+</blockquote>
+<p><strong>Fix:</strong> wrap Parse in <code>try/catch (JsonException)</code> and verify <code>roles.ValueKind == JsonValueKind.Array</code> before <code>EnumerateArray</code>.</p>
+<hr />
+<h3 id="3-moduleschattingfeaturesssecontrollercs39-bug-sse-writerwriteasync-ignores-cancellation-token">#3 · <code>Modules/Chatting/Features/SseController.cs:39</code> 🔴 [BUG] SSE <code>writer.WriteAsync</code> ignores cancellation token</h3>
+<blockquote>
+<p>Only <code>FlushAsync</code> observes <code>ct</code>; the preceding string-overload <code>WriteAsync</code> does not accept a CT. A client disconnect during a write cannot be observed until the next iteration, blocking on TCP backpressure.</p>
+</blockquote>
+<p><strong>Fix:</strong>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">await</span><span class="w"> </span><span class="n">writer</span><span class="p">.</span><span class="n">WriteAsync</span><span class="p">(</span><span class="s">$&quot;{SseDataPrefix}{json}\n\n&quot;</span><span class="p">.</span><span class="n">AsMemory</span><span class="p">(),</span><span class="w"> </span><span class="n">ct</span><span class="p">);</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="4-modulesidentityvalueobjectsemailcs54-bug-defaultemail-produces-null-value-nre-in-operatornormalize">#4 · <code>Modules/Identity/ValueObjects/Email.cs:54</code> 🔴 [BUG] <code>default(Email)</code> produces null <code>Value</code> → NRE in operator/Normalize</h3>
+<blockquote>
+<p><code>readonly record struct Email</code> has only a private constructor; <code>default(Email)</code> leaves <code>Value</code> null. Implicit <code>operator string</code> returns non-nullable string; <code>Normalize()</code> calls <code>Value.ToUpperInvariant()</code> — both NRE on default/uninitialised values.</p>
+</blockquote>
+<p><strong>Fix:</strong>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Value</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">string</span><span class="p">.</span><span class="n">Empty</span><span class="p">;</span>
+</span></code></pre></div></p>
+<hr />
+<h3 id="5-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs91-bug-ssrf-check-is-toctou-httpclient-re-resolves-dns">#5 · <code>Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:91</code> 🔴 [BUG] SSRF check is TOCTOU — HttpClient re-resolves DNS</h3>
+<blockquote>
+<p>Also tracked as SECURITY below. Validator resolves DNS once, checks IPs, then hands the URL to <code>HttpClient.SendAsync</code> which performs its own DNS resolution. DNS rebinding returns public IP to validator and private IP (169.254.169.254, 127.0.0.1) to the HTTP layer.</p>
+</blockquote>
+<p><strong>Fix:</strong> pin the validated IP via <code>SocketsHttpHandler.ConnectCallback</code> enforcing the policy on the connect socket.</p>
+<hr />
+<h3 id="6-modulesnotificationsservicesemailretryservicecs-bug-cancellation-between-smtp-send-success-and-db-commit-causes-duplicate-send">#6 · <code>Modules/Notifications/Services/EmailRetryService.cs</code> 🔴 [BUG] Cancellation between SMTP-send success and DB commit causes duplicate send</h3>
+<blockquote>
+<p><code>RetryFailedEmailsAsync</code> uses the same <code>ct</code> for <code>_sender.SendAsync</code> and <code>_unitOfWork.CommitAsync</code>. Cancellation after successful SMTP but before commit loses the staged delete and retries on the next run — <strong>duplicate email delivery</strong>.</p>
+</blockquote>
+<p><strong>Fix:</strong> after the "point of no return" (successful SMTP), commit with <code>CancellationToken.None</code> and surface the OCE only to the outer loop.</p>
+<h2 id="-_1">---</h2>
+<h2 id="security-architecture">🟠 SECURITY &amp; ARCHITECTURE</h2>
+<h3 id="secrets-configuration">Secrets / Configuration</h3>
+<h4 id="7-srcapitemplateapiappsettingsdevelopmentjson36-hardcoded-hmac-redaction-key-committed">#7 · <code>src/APITemplate/Api/appsettings.Development.json:36</code> 🟠 Hardcoded HMAC redaction key committed</h4>
+<blockquote>
+<p><code>mV7XhO9YXNw1fGKxvRrQz6CkKUL5jvN3i8A0Jv3cL2Q=</code> in git. Shared across developer machines; weakens HMAC-based PII pseudonymisation; risks bleed into non-dev environments.
+<strong>Fix:</strong> rotate, move to user-secrets / <code>APITEMPLATE_REDACTION_HMAC_KEY</code> env.</p>
+</blockquote>
+<h4 id="8-srcapitemplateapiappsettingsdevelopmentjson19-dev-keycloak-secret-webhook-secret-committed">#8 · <code>src/APITemplate/Api/appsettings.Development.json:19</code> 🟠 Dev Keycloak secret + webhook secret committed</h4>
+<blockquote>
+<p><code>Keycloak.credentials.secret = "dev-client-secret"</code>, <code>Webhook.Secret = "dev-webhook-secret-at-least-16-chars"</code>.
+<strong>Fix:</strong> user-secrets; keep only structural defaults in file.</p>
+</blockquote>
+<h4 id="9-modulesproductcatalogproductcatalogmodulecs54-mongodbsettings-bound-without-validation-empty-defaults">#9 · <code>Modules/ProductCatalog/ProductCatalogModule.cs:54</code> 🟠 <code>MongoDbSettings</code> bound without validation; empty defaults</h4>
+<blockquote>
+<p><code>services.Configure&lt;MongoDbSettings&gt;</code> accepts empty ConnectionString/DatabaseName; Mongo throws only at first use.
+<strong>Fix:</strong> <code>AddValidatedOptions&lt;&gt;()</code> + <code>[Required][MinLength(1)]</code> + <code>.ValidateOnStart()</code>.</p>
+</blockquote>
+<h4 id="10-modulesnotificationscontractsemailoptionscs38-smtp-password-bound-as-plain-string-without-redaction">#10 · <code>Modules/Notifications/Contracts/EmailOptions.cs:38</code> 🟠 SMTP password bound as plain string without redaction</h4>
+<blockquote>
+<p>Any options-dump middleware serialises it.
+<strong>Fix:</strong> require secret store; mark property for redaction in any diagnostics dumper.</p>
+</blockquote>
+<h4 id="11-moduleswebhookscontractswebhookoptionscs14-webhook-secret-minlength16-below-hmac-sha256-guidance">#11 · <code>Modules/Webhooks/Contracts/WebhookOptions.cs:14</code> 🟠 Webhook secret <code>MinLength(16)</code> below HMAC-SHA256 guidance</h4>
+<blockquote>
+<p><strong>Fix:</strong> raise to 32 + document cryptographically-random requirement.</p>
+</blockquote>
+<h3 id="ssrf-webhook-ingress-egress">SSRF / Webhook ingress &amp; egress</h3>
+<h4 id="12-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs15-plain-http-allowed-for-outbound-webhooks">#12 · <code>Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:15</code> 🟠 Plain <code>http</code> allowed for outbound webhooks</h4>
+<blockquote>
+<p><code>AllowedSchemes = {"https","http"}</code>. Signed payloads still delivered cleartext.
+<strong>Fix:</strong> https-only by default; <code>AllowInsecureHttp</code> opt-in.</p>
+</blockquote>
+<h4 id="13-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs105-ipv6-private-range-check-misses-ipv4-mapped-ipv6">#13 · <code>Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:105</code> 🟠 IPv6 private-range check misses IPv4-mapped IPv6</h4>
+<blockquote>
+<p><code>::ffff:10.0.0.5</code> bypasses the IPv4 private table.
+<strong>Fix:</strong> <code>IPAddress.MapToIPv4()</code> before range check; reject IsIPv6SiteLocal/LinkLocal/UniqueLocal.</p>
+</blockquote>
+<h4 id="14-moduleswebhooksfeatureswebhookscontrollercs21-allowanonymous-webhook-receiver-with-no-rate-limit">#14 · <code>Modules/Webhooks/Features/WebhooksController.cs:21</code> 🟠 <code>[AllowAnonymous]</code> webhook receiver with no rate limit</h4>
+<blockquote>
+<p>HMAC flood forces body reads + signature comparisons.
+<strong>Fix:</strong> <code>[EnableRateLimiting]</code> per-IP; short-circuit on missing headers before buffering.</p>
+</blockquote>
+<h4 id="15-moduleswebhookssecurityhmacwebhookpayloadvalidatorcs20-no-replay-de-duplication-within-300s-window">#15 · <code>Modules/Webhooks/Security/HmacWebhookPayloadValidator.cs:20</code> 🟠 No replay de-duplication within 300s window</h4>
+<blockquote>
+<p>Same <code>(timestamp,payload,signature)</code> triple replays fire the handler every time.
+<strong>Fix:</strong> persist seen EventIds with TTL ≥ tolerance window; reject duplicates.</p>
+</blockquote>
+<h4 id="16-moduleswebhookssecuritywebhooksignatureresourcefiltercs56-filter-reads-full-body-into-string-without-explicit-cap">#16 · <code>Modules/Webhooks/Security/WebhookSignatureResourceFilter.cs:56</code> 🟠 Filter reads full body into string without explicit cap</h4>
+<blockquote>
+<p>Combined with global filter registration (#17), unauthenticated clients can force large-body reads.
+<strong>Fix:</strong> read up to <code>WebhookOptions.MaxBodyBytes</code> into pooled buffer; return 413.</p>
+</blockquote>
+<h4 id="17-moduleswebhookswebhooksmodulecs22-signature-filter-registered-globally-on-every-controller">#17 · <code>Modules/Webhooks/WebhooksModule.cs:22</code> 🟠 Signature filter registered <strong>globally</strong> on every controller</h4>
+<blockquote>
+<p><code>options.Filters.AddService&lt;WebhookSignatureResourceFilter&gt;()</code> attaches the filter to all MVC actions. No-ops unless attribute is present, but every request pays the cost/risk.
+<strong>Fix:</strong> <code>[ServiceFilter(typeof(WebhookSignatureResourceFilter))]</code> on WebhooksController only.</p>
+</blockquote>
+<h3 id="tenant-isolation-authorization">Tenant isolation / Authorization</h3>
+<h4 id="18-modulesproductcatalogrepositoriesproductrepositorycs149-bulksoftdeletebytenantasync-getnondeletedidsbytenantasync-use-ignorequeryfilters-with-caller-supplied-tenantid">#18 · <code>Modules/ProductCatalog/Repositories/ProductRepository.cs:149</code> 🟠 <code>BulkSoftDeleteByTenantAsync</code> + <code>GetNonDeletedIdsByTenantAsync</code> use <code>IgnoreQueryFilters()</code> with caller-supplied <code>tenantId</code></h4>
+<blockquote>
+<p>Any module publishing <code>TenantSoftDeletedNotification</code> can wipe any tenant's catalog.
+<strong>Fix:</strong> internal visibility; require a signed/verified Identity-owned notification before executing.</p>
+</blockquote>
+<h4 id="19-modulesreviewsrepositoriesproductreviewrepositorycs30-bulksoftdeletebyproductidsasync-bypasses-tenant-filter">#19 · <code>Modules/Reviews/Repositories/ProductReviewRepository.cs:30</code> 🟠 <code>BulkSoftDeleteByProductIdsAsync</code> bypasses tenant filter</h4>
+<blockquote>
+<p><code>IgnoreQueryFilters()</code> + <code>productIds.Contains(r.ProductId)</code>. Malicious/buggy caller can soft-delete foreign tenants' reviews.
+<strong>Fix:</strong> require tenantId; <code>.Where(r =&gt; productIds.Contains(r.ProductId) &amp;&amp; r.TenantId == tenantId)</code>.</p>
+</blockquote>
+<h4 id="20-modulesproductcatalogfeaturesproductpatchproductpatchproductcommandcs24-patch-does-not-re-validate-categoryid-tenant-ownership">#20 · <code>Modules/ProductCatalog/Features/Product/PatchProduct/PatchProductCommand.cs:24</code> 🟠 Patch does not re-validate <code>CategoryId</code> tenant ownership</h4>
+<blockquote>
+<p>JSON Patch can set <code>CategoryId</code> to a foreign-tenant Guid; handler trusts EF filter only.
+<strong>Fix:</strong> load <code>Category</code> via repo and verify TenantId match before saving.</p>
+</blockquote>
+<h4 id="21-modulesproductcatalogfeaturesproductpatchproductpatchproductcommandcs40-raw-patch-exception-message-returned-to-client">#21 · <code>Modules/ProductCatalog/Features/Product/PatchProduct/PatchProductCommand.cs:40</code> 🟠 Raw patch exception message returned to client</h4>
+<blockquote>
+<p><code>DomainErrors.Patch.InvalidPatchDocument(ex.Message)</code> echoes library internals.
+<strong>Fix:</strong> log <code>ex</code>; return fixed <code>"Invalid JSON patch document"</code>.</p>
+</blockquote>
+<h3 id="anonymous-high-risk-endpoints">Anonymous / high-risk endpoints</h3>
+<h4 id="22-modulesidentitydirectoryfeaturesv1userscontrollercs148-post-apiv1userspassword-reset-anonymous-no-rate-limit">#22 · <code>Modules/Identity/Directory/Features/V1/UsersController.cs:148</code> 🟠 <code>POST /api/v1/users/password-reset</code> anonymous, no rate limit</h4>
+<blockquote>
+<p>Enables email-bombing and user enumeration via timing.
+<strong>Fix:</strong> per-IP + per-email rate-limit; identical response timing/status.</p>
+</blockquote>
+<h4 id="23-modulesidentitydirectoryfeaturesv1tenantinvitationscontrollercs47-anonymous-invitation-accept-no-rate-limit">#23 · <code>Modules/Identity/Directory/Features/V1/TenantInvitationsController.cs:47</code> 🟠 Anonymous invitation-accept, no rate limit</h4>
+<blockquote>
+<p>Brute-force online guessing of invitation tokens.
+<strong>Fix:</strong> rate-limit keyed by IP; uniform response for invalid/revoked/used.</p>
+</blockquote>
+<h4 id="24-moduleschattingfeaturesssecontrollercs25-sse-endpoint-has-no-concurrency-cap">#24 · <code>Modules/Chatting/Features/SseController.cs:25</code> 🟠 SSE endpoint has no concurrency cap</h4>
+<blockquote>
+<p>Unbounded long-lived connections; permit-limit applies to request count, not active streams.
+<strong>Fix:</strong> concurrency limiter + max stream duration + per-user active-stream cap.</p>
+</blockquote>
+<h3 id="bff-csrf-session">BFF / CSRF / Session</h3>
+<h4 id="25-modulesidentityidentitymodulecs79-addcors-registered-but-usecors-never-invoked">#25 · <code>Modules/Identity/IdentityModule.cs:79</code> 🟠 <code>AddCors</code> registered but <code>UseCors()</code> never invoked</h4>
+<blockquote>
+<p>Dead policy; future maintainer may enable <code>UseCors()</code> assuming defensive defaults.
+<strong>Fix:</strong> delete registration or wire <code>UseCors()</code> in <code>UseApiPipeline</code> between Authentication and Authorization.</p>
+</blockquote>
+<h4 id="26-modulesidentityidentitymoduleauthcs148-bff-session-cookie-samesitelax-instead-of-strict">#26 · <code>Modules/Identity/IdentityModule.Auth.cs:148</code> 🟠 BFF session cookie <code>SameSite=Lax</code> instead of <code>Strict</code></h4>
+<blockquote>
+<p>Combined with GET-allowed <code>/logout</code>, weakens CSRF.
+<strong>Fix:</strong> <code>SameSite = Strict</code> unless OIDC continuation demands Lax (document reason if so).</p>
+</blockquote>
+<h4 id="27-modulesidentityauthfeaturesv1bffcontrollercs78-logout-accepts-both-get-and-post">#27 · <code>Modules/Identity/Auth/Features/V1/BffController.cs:78</code> 🟠 Logout accepts both <code>GET</code> and <code>POST</code></h4>
+<blockquote>
+<p>Cross-site <code>&lt;img src=.../logout&gt;</code> can force sign-out.
+<strong>Fix:</strong> POST-only with CSRF header; if GET affordance needed, render confirmation page auto-submitting POST.</p>
+</blockquote>
+<h4 id="28-modulesidentityauthfeaturesv1bffcontrollercs42-open-redirect-mitigated-only-via-urlislocalurl">#28 · <code>Modules/Identity/Auth/Features/V1/BffController.cs:42</code> 🟠 Open-redirect mitigated only via <code>Url.IsLocalUrl</code></h4>
+<blockquote>
+<p>Protocol-relative / fragment edge cases known to bypass in framework versions.
+<strong>Fix:</strong> parse as <code>UriKind.Relative</code> and reject leading <code>//</code> or <code>\\</code>, or allow-list from config.</p>
+</blockquote>
+<h4 id="29-apitemplateapimiddlewarecsrfvalidationmiddlewarecs27-bearer-auth-bypass-of-csrf-when-cookie-also-present">#29 · <code>APITemplate/Api/Middleware/CsrfValidationMiddleware.cs:27</code> 🟠 Bearer-auth bypass of CSRF when cookie also present</h4>
+<blockquote>
+<p><code>HasSuccessfulBearerAuthenticationAsync</code> short-circuits CSRF when Authorization header validates. A stolen cookie + any valid bearer skips CSRF.
+<strong>Fix:</strong> reject simultaneous cookie+bearer or always enforce CSRF when a BFF cookie is present.</p>
+</blockquote>
+<h4 id="30-modulesidentityauthsecuritysessionsbffpostgressessionstorebasecs61-session-store-uses-iservicescopefactory-getrequiredserviceidentitydbcontext-dip-violation">#30 · <code>Modules/Identity/Auth/Security/Sessions/BffPostgresSessionStoreBase.cs:61</code> 🟠 Session store uses <code>IServiceScopeFactory</code> + <code>GetRequiredService&lt;IdentityDbContext&gt;()</code> (DIP violation)</h4>
+<blockquote>
+<p>Infrastructure concerns leak into <code>Auth/Security/Sessions</code>; hidden lifetime; potential conflict with Wolverine EF transactional middleware.
+<strong>Fix:</strong> move to <code>Identity.Persistence</code>; inject <code>IDbContextFactory&lt;IdentityDbContext&gt;</code>.</p>
+</blockquote>
+<h4 id="31-modulesidentityauthhandlerscleanupexpiredbffsessionshandlercs41-handler-queries-identitydbcontext-directly-bypassing-repository-pattern">#31 · <code>Modules/Identity/Auth/Handlers/CleanupExpiredBffSessionsHandler.cs:41</code> 🟠 Handler queries <code>IdentityDbContext</code> directly, bypassing repository pattern</h4>
+<blockquote>
+<p>Same for <code>CleanupExpiredInvitationsHandler</code>. Duplicates business rules in ad-hoc LINQ.
+<strong>Fix:</strong> expose <code>PurgeExpiredAsync(cutoff, batchSize, ct)</code> on the respective repos.</p>
+</blockquote>
+<h3 id="identity-keycloak">Identity / Keycloak</h3>
+<h4 id="32-modulesidentityauthfeatureskeycloakeventwebhookcontrollercs36-webhook-silently-returns-404-when-apikey-unconfigured">#32 · <code>Modules/Identity/Auth/Features/KeycloakEventWebhookController.cs:36</code> 🟠 Webhook silently returns 404 when ApiKey unconfigured</h4>
+<blockquote>
+<p>Silent failure to receive Keycloak password-change events → stale BFF sessions remain valid after external password changes.
+<strong>Fix:</strong> <code>IValidateOptions</code> + <code>.ValidateOnStart()</code>; fail fast when enabled but unconfigured.</p>
+</blockquote>
+<h4 id="33-modulesidentityauthfeatureskeycloakeventwebhookcontrollercs19-internal-routes-share-kestrel-with-public-no-second-line-of-defence">#33 · <code>Modules/Identity/Auth/Features/KeycloakEventWebhookController.cs:19</code> 🟠 <code>/internal/*</code> routes share Kestrel with public; no second line of defence</h4>
+<blockquote>
+<p>Leaked ApiKey → force-logout any user by Keycloak ID.
+<strong>Fix:</strong> IP allow-list or mTLS in addition to shared secret; document proxy rules.</p>
+</blockquote>
+<h4 id="34-modulesidentityauthsecuritykeycloakkeycloakadminservicecs225-password-check-via-deprecated-ropc-grant">#34 · <code>Modules/Identity/Auth/Security/Keycloak/KeycloakAdminService.cs:225</code> 🟠 Password check via deprecated ROPC grant</h4>
+<blockquote>
+<p>User's plaintext password transmitted to a secondary client; discouraged by Keycloak/OAuth 2.1.
+<strong>Fix:</strong> Keycloak step-up auth (<code>kc_action=UPDATE_PASSWORD</code>) or <code>max_age=0</code> fresh-ID-token flow.</p>
+</blockquote>
+<h4 id="35-modulesidentityauthsecuritykeycloakkeycloakadmintokenprovidercs108-full-keycloak-error-body-logged-on-token-failure">#35 · <code>Modules/Identity/Auth/Security/Keycloak/KeycloakAdminTokenProvider.cs:108</code> 🟠 Full Keycloak error body logged on token failure</h4>
+<blockquote>
+<p>May leak <code>error_description</code> containing secret/trace fragments.
+<strong>Fix:</strong> log <code>StatusCode</code> + extracted <code>error</code> code only.</p>
+</blockquote>
+<h4 id="36-modulesidentityauthsecuritysecuretokengeneratorcs22-unsalted-sha-256-for-persisted-invitation-tokens">#36 · <code>Modules/Identity/Auth/Security/SecureTokenGenerator.cs:22</code> 🟠 Unsalted SHA-256 for persisted invitation tokens</h4>
+<blockquote>
+<p>No keyed construction; DB leak enables rainbow-table attacks and no rotation path.
+<strong>Fix:</strong> <code>HMACSHA256</code> with server key (or DataProtection-derived key); store key-id alongside hash.</p>
+</blockquote>
+<h3 id="file-storage-content-handling">File storage / Content handling</h3>
+<h4 id="37-modulesfilestoragefeaturesfilescontrollercs22-requestsizelimit-hardcoded-10-mb-diverges-from-filestorageoptionsmaxfilesizebytes">#37 · <code>Modules/FileStorage/Features/FilesController.cs:22</code> 🟠 <code>RequestSizeLimit</code> hardcoded (10 MB) diverges from <code>FileStorageOptions.MaxFileSizeBytes</code></h4>
+<blockquote>
+<p><strong>Fix:</strong> configure <code>KestrelServerOptions.Limits.MaxRequestBodySize</code> + <code>FormOptions.MultipartBodyLengthLimit</code> from bound options at startup.</p>
+</blockquote>
+<h4 id="38-modulesfilestoragefeaturesfilescontrollercs28-upload-trusts-client-supplied-filename-contenttype">#38 · <code>Modules/FileStorage/Features/FilesController.cs:28</code> 🟠 Upload trusts client-supplied <code>FileName</code> / <code>ContentType</code></h4>
+<blockquote>
+<p>Only extension whitelist; real magic-byte detection missing.
+<strong>Fix:</strong> detect actual type from bytes (e.g., MimeDetective); enforce server-side allow-list.</p>
+</blockquote>
+<h4 id="39-modulesfilestoragefeaturesfilescontrollercs71-download-streams-file-with-client-contenttype-no-content-disposition-attachment">#39 · <code>Modules/FileStorage/Features/FilesController.cs:71</code> 🟠 Download streams file with client ContentType, no <code>Content-Disposition: attachment</code></h4>
+<blockquote>
+<p>MIME-sniffing browsers render HTML/JS from same origin → stored XSS.
+<strong>Fix:</strong> <code>Content-Disposition: attachment</code>, <code>X-Content-Type-Options: nosniff</code>, or serve from cookie-less subdomain.</p>
+</blockquote>
+<h3 id="database-sql">Database / SQL</h3>
+<h4 id="40-modulesbackgroundjobsservicesreindexservicecs64-executesqlrawasync-with-string-interpolated-identifier">#40 · <code>Modules/BackgroundJobs/Services/ReindexService.cs:64</code> 🟠 <code>ExecuteSqlRawAsync</code> with string-interpolated identifier</h4>
+<blockquote>
+<p><code>REINDEX INDEX CONCURRENTLY "{index}"</code> relies on regex <code>^[a-zA-Z_][a-zA-Z0-9_]*$</code>. Fragile — pattern-copy bugs re-introduce SQLi.
+<strong>Fix:</strong> <code>NpgsqlCommandBuilder.QuoteIdentifier(index)</code>.</p>
+</blockquote>
+<h3 id="clean-architecture-module-boundaries">Clean Architecture / Module boundaries</h3>
+<h4 id="41-modulesproductcatalogglobalusingscs15-productcatalog-imports-reviewsdomain-reviewsfeatures">#41 · <code>Modules/ProductCatalog/GlobalUsings.cs:15</code> 🟠 ProductCatalog imports <code>Reviews.Domain</code> + <code>Reviews.Features</code></h4>
+<blockquote>
+<p>Cross-module reference bypasses a <code>Contracts</code> namespace. Couples ProductCatalog to Reviews internals.
+<strong>Fix:</strong> introduce <code>Reviews.Contracts</code>; depend only on that.</p>
+</blockquote>
+<h4 id="42-modulesproductcataloggraphqlmutationsproductreviewmutationscs12-reviews-aggregates-graphql-mutations-live-inside-productcatalog">#42 · <code>Modules/ProductCatalog/GraphQL/Mutations/ProductReviewMutations.cs:12</code> 🟠 Reviews aggregate's GraphQL mutations live inside ProductCatalog</h4>
+<blockquote>
+<p><code>CreateProductReview</code>/<code>DeleteProductReview</code> + <code>ProductReviewType</code> + <code>ProductReviewsByProductDataLoader</code> manipulate the Reviews aggregate from the wrong module.
+<strong>Fix:</strong> move into Reviews as Hot Chocolate type extensions; ProductCatalog only extends <code>ProductType.reviews</code> via cross-module contract.</p>
+</blockquote>
+<h4 id="43-modulesproductcataloggraphqlmutationsproductmutationscs41-mutation-throws-new-graphqlexceptionstringjoin-batchfailures0errors">#43 · <code>Modules/ProductCatalog/GraphQL/Mutations/ProductMutations.cs:41</code> 🟠 Mutation throws <code>new GraphQLException(string.Join("; ", batch.Failures[0].Errors))</code></h4>
+<blockquote>
+<p>Duplicates ErrorOr→GraphQL translation; leaks raw failure text.
+<strong>Fix:</strong> route through <code>ErrorOrGraphQLExtensions</code>.</p>
+</blockquote>
+<h3 id="misc">Misc</h3>
+<h4 id="44-modulesnotificationsservicesmailkitemailsendercs60-smtp-uses-legacy-connectasynchostportusesslbool-overload">#44 · <code>Modules/Notifications/Services/MailKitEmailSender.cs:60</code> 🟠 SMTP uses legacy <code>ConnectAsync(host,port,useSsl:bool,...)</code> overload</h4>
+<blockquote>
+<p><code>UseSsl=false</code> on port 587 → no STARTTLS → credentials cleartext.
+<strong>Fix:</strong> <code>SecureSocketOptions.StartTlsWhenAvailable</code>; default to StartTls for 587.</p>
+</blockquote>
+<h4 id="45-modulesnotificationsservicesmailkitemailsendercs14-singleton-smtpclient-serialized-behind-semaphoreslim11">#45 · <code>Modules/Notifications/Services/MailKitEmailSender.cs:14</code> 🟠 Singleton SmtpClient serialized behind <code>SemaphoreSlim(1,1)</code></h4>
+<blockquote>
+<p>Single-flight site-wide; SRP leak (send + connection lifecycle).
+<strong>Fix:</strong> Scoped/Transient + small SmtpClient pool; split send from lifecycle.</p>
+</blockquote>
+<h4 id="46-modulesproductcatalogproductcatalogmodulecs113-graphql-depth-5-but-no-execution-timeout-cost-analysis-introspection-gating">#46 · <code>Modules/ProductCatalog/ProductCatalogModule.cs:113</code> 🟠 GraphQL: depth 5 but no execution timeout / cost analysis / introspection gating</h4>
+<blockquote>
+<p>DataLoader + deep queries = cheap DoS for authenticated users.
+<strong>Fix:</strong> <code>ModifyRequestOptions(o =&gt; o.ExecutionTimeout = 30s)</code>, <code>AddCostAnalyzer</code>, disable introspection in prod.</p>
+</blockquote>
+<h4 id="47-modulesidentitydirectoryfeaturesv1tenantscontrollercs10-missing-class-level-authorizeauthenticationschemes">#47 · <code>Modules/Identity/Directory/Features/V1/TenantsController.cs:10</code> 🟠 Missing class-level <code>[Authorize(AuthenticationSchemes=...)]</code></h4>
+<blockquote>
+<p>Relies on global fallback; future action without <code>[RequirePermission]</code> silently permitted.
+<strong>Fix:</strong> add explicit class-level attribute mirroring <code>AccountController</code>.</p>
+</blockquote>
+<h4 id="48-moduleschattingchattingmodulecs11-addchattingmodule-accepts-iconfiguration-but-never-uses-it">#48 · <code>Modules/Chatting/ChattingModule.cs:11</code> 🟠 <code>AddChattingModule</code> accepts <code>IConfiguration</code> but never uses it</h4>
+<blockquote>
+<p>Skeleton misleads maintainers; silent config drift.
+<strong>Fix:</strong> drop the parameter or bind <code>ChattingOptions</code>.</p>
+</blockquote>
+<h4 id="49-modulesnotificationsservicesemailretryservicecs35-claim-owner-machinenameprocessid-persisted-to-db">#49 · <code>Modules/Notifications/Services/EmailRetryService.cs:35</code> 🟠 Claim owner <code>"{MachineName}:{ProcessId}"</code> persisted to DB</h4>
+<blockquote>
+<p>Internal topology disclosure in admin UI/logs.
+<strong>Fix:</strong> opaque stable id (Guid per instance or HMAC of hostname).</p>
+</blockquote>
+<h4 id="50-apitemplateapiextensionsstartupapplicationbuilderextensionscs107-openapiscalar-gated-only-by-isdevelopment">#50 · <code>APITemplate/Api/Extensions/Startup/ApplicationBuilderExtensions.cs:107</code> 🟠 OpenAPI/Scalar gated only by <code>IsDevelopment()</code></h4>
+<blockquote>
+<p>Misconfigured <code>ASPNETCORE_ENVIRONMENT=Development</code> in staging/prod exposes full schema anonymously.
+<strong>Fix:</strong> gate on <code>IsDevelopment()</code> <strong>and</strong> explicit <code>EnableOpenApi</code> feature flag; require <code>[Authorize]</code> in non-prod docs.</p>
+</blockquote>
+<h2 id="-_2">---</h2>
+<h2 id="performance">🟡 PERFORMANCE</h2>
+<h3 id="split-a-apitemplate-sharedkernel-backgroundjobs-chatting-filestorage-identity">Split A (APITemplate / SharedKernel / BackgroundJobs / Chatting / FileStorage / Identity)</h3>
+<h4 id="51-modulesbackgroundjobsservicesjobprocessingbackgroundservicecs53-7-db-round-trips-per-job-progress-commits">#51 · <code>Modules/BackgroundJobs/Services/JobProcessingBackgroundService.cs:53</code> 🟡 7 DB round-trips per job (progress commits)</h4>
+<blockquote>
+<p><code>uow.CommitAsync()</code> per 20/40/60/80/100% step.
+<strong>Fix:</strong> batch progress writes or flush once on completion.</p>
+</blockquote>
+<h4 id="52-modulesidentityauthhandlerscleanupexpiredbffsessionshandlercs41-select-then-delete-two-round-trips-instead-of-single-executedeleteasync">#52 · <code>Modules/Identity/Auth/Handlers/CleanupExpiredBffSessionsHandler.cs:41</code> 🟡 Select-then-delete (two round-trips) instead of single <code>ExecuteDeleteAsync</code></h4>
+<blockquote>
+<p><strong>Fix:</strong> mirror <code>CleanupExpiredInvitationsHandler.cs:29</code>: single <code>ExecuteDeleteAsync</code> on filtered+ordered+Take query.</p>
+</blockquote>
+<h4 id="53-modulesbackgroundjobstickerqtickerqrecurringjobregistrarcs43-tolistasync-then-client-todictionary-with-tracking">#53 · <code>Modules/BackgroundJobs/TickerQ/TickerQRecurringJobRegistrar.cs:43</code> 🟡 <code>ToListAsync</code> then client <code>ToDictionary</code> with tracking</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>ToDictionaryAsync</code>; <code>.Where(x =&gt; ids.Contains(x.Id))</code> to trim set.</p>
+</blockquote>
+<h4 id="54-modulesidentityauthsecuritysessionsbffpostgressessionstorebasecs206-bulkrevoke-select-ids-executeupdate-on-same-predicate">#54 · <code>Modules/Identity/Auth/Security/Sessions/BffPostgresSessionStoreBase.cs:206</code> 🟡 BulkRevoke: SELECT ids → ExecuteUpdate on same predicate</h4>
+<blockquote>
+<p><strong>Fix:</strong> single ExecuteUpdateAsync on the predicate; invalidate cache by subject-keyed index.</p>
+</blockquote>
+<h4 id="55-modulesidentityauthsecuritysessionsbffpostgressessionstorebasecs220-sequential-idistributedcacheremoveasync-in-loop">#55 · <code>Modules/Identity/Auth/Security/Sessions/BffPostgresSessionStoreBase.cs:220</code> 🟡 Sequential <code>IDistributedCache.RemoveAsync</code> in loop</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>Task.WhenAll</code> or batch Redis <code>KeyDelete</code>.</p>
+</blockquote>
+<h4 id="56-modulesidentitydirectoryfeaturestenantcommandsdeletetenantcommandcs33-load-and-delete-for-soft-delete-instead-of-bulk-executeupdateasync">#56 · <code>Modules/Identity/Directory/Features/Tenant/Commands/DeleteTenantCommand.cs:33</code> 🟡 Load-and-delete for soft-delete instead of bulk <code>ExecuteUpdateAsync</code></h4>
+<blockquote>
+<p><strong>Fix:</strong> single ExecuteUpdateAsync setting <code>IsDeleted/DeletedAtUtc/DeletedBy</code>.</p>
+</blockquote>
+<h4 id="57-apitemplateapicacheoutputcacheinvalidationservicecs27-sequential-evictbytagasync-in-foreach">#57 · <code>APITemplate/Api/Cache/OutputCacheInvalidationService.cs:27</code> 🟡 Sequential <code>EvictByTagAsync</code> in foreach</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>Task.WhenAll</code> across distinct tags; isolate failures.</p>
+</blockquote>
+<h4 id="58-modulesbackgroundjobsservicesreindexservicecs51-sequential-bloat-checks-reindex-across-indexes">#58 · <code>Modules/BackgroundJobs/Services/ReindexService.cs:51</code> 🟡 Sequential bloat-checks + REINDEX across indexes</h4>
+<blockquote>
+<p><strong>Fix:</strong> bulk bloat SP; bounded parallel REINDEX (DOP=2).</p>
+</blockquote>
+<h4 id="59-sharedkernelinfrastructurerepositoriesrepositorybasecs62-extra-countasync-on-empty-page-edge-case">#59 · <code>SharedKernel/Infrastructure/Repositories/RepositoryBase.cs:62</code> 🟡 Extra <code>CountAsync</code> on empty-page edge case</h4>
+<blockquote>
+<p><strong>Fix:</strong> skip second Count; return PageOutOfRange when <code>pageNumber &gt; 1</code> unconditionally.</p>
+</blockquote>
+<h4 id="60-modulesidentitydirectoryfeaturesuserassignrolesassignuserrolescommandhandlercs53-userrolesclear-re-add-rewrites-unchanged-roles">#60 · <code>Modules/Identity/Directory/Features/User/AssignRoles/AssignUserRolesCommandHandler.cs:53</code> 🟡 <code>user.Roles.Clear()</code> + re-<code>Add</code> rewrites unchanged roles</h4>
+<blockquote>
+<p>2N pivot writes for no-op assignments.
+<strong>Fix:</strong> compute set difference; guard with <code>SetEquals</code>.</p>
+</blockquote>
+<h4 id="61-modulesbackgroundjobsservicesjobprocessingbackgroundservicecs41-second-di-scope-inside-callback-for-imessagebus">#61 · <code>Modules/BackgroundJobs/Services/JobProcessingBackgroundService.cs:41</code> 🟡 Second DI scope inside callback for <code>IMessageBus</code></h4>
+<blockquote>
+<p><strong>Fix:</strong> resolve once in outer scope, pass through.</p>
+</blockquote>
+<h4 id="62-modulesbackgroundjobsfeaturessubmitjobsubmitjobcommandcs23-executeintransactionasync-wrapping-single-addasync">#62 · <code>Modules/BackgroundJobs/Features/SubmitJob/SubmitJobCommand.cs:23</code> 🟡 <code>ExecuteInTransactionAsync</code> wrapping single <code>AddAsync</code></h4>
+<blockquote>
+<p>Same in <code>UploadFileCommand.cs:39</code>.
+<strong>Fix:</strong> plain <code>AddAsync</code> + <code>CommitAsync</code> for single-write handlers.</p>
+</blockquote>
+<h4 id="63-modulesfilestorageserviceslocalfilestorageservicecs94-fileexists-toctou-before-filedelete">#63 · <code>Modules/FileStorage/Services/LocalFileStorageService.cs:94</code> 🟡 <code>File.Exists</code> TOCTOU before <code>File.Delete</code></h4>
+<blockquote>
+<p><code>File.Delete</code> already silent for missing files.
+<strong>Fix:</strong> drop the check; try/catch <code>FileNotFoundException</code> for reads.</p>
+</blockquote>
+<h4 id="64-modulesidentityauthsecuritykeycloakkeycloakadmintokenprovidercs85-using-on-pooled-httpclient">#64 · <code>Modules/Identity/Auth/Security/Keycloak/KeycloakAdminTokenProvider.cs:85</code> 🟡 <code>using</code> on pooled <code>HttpClient</code></h4>
+<blockquote>
+<p>Short-circuits IHttpClientFactory handler pooling.
+<strong>Fix:</strong> drop the <code>using</code>.</p>
+</blockquote>
+<h4 id="65-modulesidentityauthsecuritysessionsbffcsrftokenservicecs54-encodingutf8getbytessessionid-allocation-on-every-unsafe-request">#65 · <code>Modules/Identity/Auth/Security/Sessions/BffCsrfTokenService.cs:54</code> 🟡 <code>Encoding.UTF8.GetBytes(sessionId)</code> allocation on every unsafe request</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>GetByteCount</code> + stackalloc for short session ids.</p>
+</blockquote>
+<h4 id="66-apitemplateapiauthorizationpermissionpolicyprovidercs22-permissionallcontains-on-per-policy-lookup">#66 · <code>APITemplate/Api/Authorization/PermissionPolicyProvider.cs:22</code> 🟡 <code>Permission.All.Contains</code> O(n) per policy lookup</h4>
+<blockquote>
+<p><strong>Fix:</strong> back with <code>FrozenSet&lt;string&gt;</code> or check ConcurrentDictionary cache first.</p>
+</blockquote>
+<h4 id="67-modulesidentitydirectoryfeaturesusercreateusercreateusercommandcs21-sequential-email-username-uniqueness-checks">#67 · <code>Modules/Identity/Directory/Features/User/CreateUser/CreateUserCommand.cs:21</code> 🟡 Sequential email + username uniqueness checks</h4>
+<blockquote>
+<p><strong>Fix:</strong> single query returning both exists flags; halves sign-up latency.</p>
+</blockquote>
+<h3 id="split-b-notifications-productcatalog-reviews-webhooks">Split B (Notifications / ProductCatalog / Reviews / Webhooks)</h3>
+<h4 id="68-modulesproductcatalogfeaturesproductgetproductsgetproductsquerycs18-three-sequential-awaits-paged-category-facets-price-facets">#68 · <code>Modules/ProductCatalog/Features/Product/GetProducts/GetProductsQuery.cs:18</code> 🟡 Three sequential awaits: paged + category facets + price facets</h4>
+<blockquote>
+<p><strong>Fix:</strong> combine into a single GroupBy server query, or parallel <code>Task.WhenAll</code> with <code>IDbContextFactory</code>.</p>
+</blockquote>
+<h4 id="69-modulesproductcatalogrepositoriesproductrepositorycs62-category-facet-left-join-ternary-default-inside-groupby-key">#69 · <code>Modules/ProductCatalog/Repositories/ProductRepository.cs:62</code> 🟡 Category-facet <code>LEFT JOIN</code> + ternary default inside <code>GroupBy</code> key</h4>
+<blockquote>
+<p><strong>Fix:</strong> group by <code>CategoryId</code> alone; resolve names via small lookup.</p>
+</blockquote>
+<h4 id="70-modulesproductcatalogrepositoriesproductdatalinkrepositorycs92-softdeleteactivelinksforproductdata-materialises-then-row-by-row-delete">#70 · <code>Modules/ProductCatalog/Repositories/ProductDataLinkRepository.cs:92</code> 🟡 <code>SoftDeleteActiveLinksForProductData</code> materialises then row-by-row delete</h4>
+<blockquote>
+<p><strong>Fix:</strong> single <code>ExecuteDeleteAsync</code>.</p>
+</blockquote>
+<h4 id="71-modulesproductcatalogfeaturesproductupdateproductsupdateproductscommandcs107-redundant-per-item-await-updateasync-inside-loop-on-tracked-entities">#71 · <code>Modules/ProductCatalog/Features/Product/UpdateProducts/UpdateProductsCommand.cs:107</code> 🟡 Redundant per-item <code>await UpdateAsync</code> inside loop on tracked entities</h4>
+<blockquote>
+<p><strong>Fix:</strong> remove; SaveChanges flushes tracked changes.</p>
+</blockquote>
+<h4 id="72-modulesproductcatalogfeaturesproductsharedproductvalidationhelpercs128-missingidscontains-check-with-distincttolist-allocation-per-item">#72 · <code>Modules/ProductCatalog/Features/Product/Shared/ProductValidationHelper.cs:128</code> 🟡 <code>missingIds.Contains</code> check with <code>Distinct().ToList()</code> allocation per item</h4>
+<blockquote>
+<p><strong>Fix:</strong> inline HashSet filter; drop Distinct when pdIds already deduped.</p>
+</blockquote>
+<h4 id="73-modulesproductcataloghandlerscleanuporphanedproductdatahandlercs147-redundant-server-side-distinct-on-projected-pk-column">#73 · <code>Modules/ProductCatalog/Handlers/CleanupOrphanedProductDataHandler.cs:147</code> 🟡 Redundant server-side <code>Distinct()</code> on projected PK column</h4>
+<blockquote>
+<p><strong>Fix:</strong> drop <code>Distinct()</code>; let <code>ToHashSet()</code> dedupe client-side.</p>
+</blockquote>
+<h4 id="74-modulesproductcataloghandlerscleanuporphanedproductdatahandlercs-mark-sweep-happen-in-the-same-invocation">#74 · <code>Modules/ProductCatalog/Handlers/CleanupOrphanedProductDataHandler.cs</code> 🟡 Mark + sweep happen in the <strong>same</strong> invocation</h4>
+<blockquote>
+<p>Zero safety interval defeats the mark/sweep purpose.
+<strong>Fix:</strong> split into two scheduled jobs with a minimum age filter on Phase 2.</p>
+</blockquote>
+<h4 id="75-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs91-dns-lookup-per-outbound-delivery">#75 · <code>Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:91</code> 🟡 DNS lookup per outbound delivery</h4>
+<blockquote>
+<p><strong>Fix:</strong> short-TTL <code>MemoryCache&lt;string,IPAddress[]&gt;</code> or <code>SocketsHttpHandler.ConnectCallback</code>.</p>
+</blockquote>
+<h4 id="76-moduleswebhookssecuritywebhooksignatureresourcefiltercs57-body-string-utf-8-re-encoding-for-hmac">#76 · <code>Modules/Webhooks/Security/WebhookSignatureResourceFilter.cs:57</code> 🟡 Body → string → UTF-8 re-encoding for HMAC</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>HMACSHA256.Create()</code> + <code>IncrementalHash</code> over <code>request.BodyReader</code>.</p>
+</blockquote>
+<h4 id="77-moduleswebhookssecurityhmachelpercs18-timestamppayload-then-utf-8-encode-allocates-2-payload">#77 · <code>Modules/Webhooks/Security/HmacHelper.cs:18</code> 🟡 <code>$"{timestamp}.{payload}"</code> then UTF-8 encode allocates ~2× payload</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>IncrementalHash</code> streaming: timestamp bytes, <code>.</code> separator, payload bytes.</p>
+</blockquote>
+<h4 id="78-modulesnotificationsservicesemailretryservicecs68-sequential-per-email-retry-db-commit-per-email">#78 · <code>Modules/Notifications/Services/EmailRetryService.cs:68</code> 🟡 Sequential per-email retry; DB commit per email</h4>
+<blockquote>
+<p><strong>Fix:</strong> batch DB commits every N successes; parallelise SMTP via pool if server allows.</p>
+</blockquote>
+<h4 id="79-modulesnotificationsservicesfluidemailtemplaterenderercs18-unbounded-static-template-cache">#79 · <code>Modules/Notifications/Services/FluidEmailTemplateRenderer.cs:18</code> 🟡 Unbounded static template cache</h4>
+<blockquote>
+<p>Safe today (fixed set), leaks if dynamic names ever slip in.
+<strong>Fix:</strong> validate template name against <code>EmailTemplateNames</code> set; or use MemoryCache <code>SizeLimit</code>.</p>
+</blockquote>
+<h4 id="80-modulesproductcatalogfeaturesproductcreateproductscreateproductscommandcs64-double-pass-validation-entity-build-duplicates-pricecreatefrompersistence">#80 · <code>Modules/ProductCatalog/Features/Product/CreateProducts/CreateProductsCommand.cs:64</code> 🟡 Double-pass validation + entity build duplicates <code>Price.Create</code>/<code>FromPersistence</code></h4>
+<blockquote>
+<p><strong>Fix:</strong> single pass; reuse successful <code>Price</code> instance for the entity.</p>
+</blockquote>
+<h4 id="81-modulesreviewsfeaturesgetproductreviewsgetproductreviewsbyproductidsquerycs32-requestproductidsdistincttodictionary-re-indexes-lookup-allocates-per-missing-id">#81 · <code>Modules/Reviews/Features/GetProductReviews/GetProductReviewsByProductIdsQuery.cs:32</code> 🟡 <code>request.ProductIds.Distinct().ToDictionary</code> re-indexes lookup + allocates per missing id</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>lookup.ToDictionary</code>; TryAdd empty sentinel for missing ids.</p>
+</blockquote>
+<h4 id="82-modulesproductcatalogfeaturesproductdatagetproductdatagetproductdataquerycs15-getallasync-with-no-paging">#82 · <code>Modules/ProductCatalog/Features/ProductData/GetProductData/GetProductDataQuery.cs:15</code> 🟡 <code>GetAllAsync</code> with no paging</h4>
+<blockquote>
+<p><strong>Fix:</strong> add paging / cursor parameters.</p>
+</blockquote>
+<h4 id="83-modulesproductcatalogfeaturestenantcascadedeletetenantcascadedeletehandlercs24-loads-all-product-ids-just-to-bundle-them-into-a-cross-module-notification">#83 · <code>Modules/ProductCatalog/Features/TenantCascadeDelete/TenantCascadeDeleteHandler.cs:24</code> 🟡 Loads all product ids just to bundle them into a cross-module notification</h4>
+<blockquote>
+<p><strong>Fix:</strong> publish tenant-keyed notification; let Reviews bulk-delete by TenantId.</p>
+</blockquote>
+<h2 id="-_3">---</h2>
+<h2 id="code-style-dry">🔵 CODE STYLE / DRY</h2>
+<h4 id="84-moduleschattingfeaturesssecontrollercs31-await-businvokeasync-wrapping-iasyncenumerable-via-taskfromresult-is-redundant">#84 · <code>Modules/Chatting/Features/SseController.cs:31</code> 🔵 <code>await bus.InvokeAsync</code> wrapping <code>IAsyncEnumerable</code> via <code>Task.FromResult</code> is redundant</h4>
+<blockquote>
+<p><strong>Fix:</strong> resolve dedicated streamer via DI; iterate directly.</p>
+</blockquote>
+<h4 id="85-sharedkernelapplicationeventsmessagebusextensionscs13-outgoingmessageshelperempty-allocates-per-access">#85 · <code>SharedKernel/Application/Events/MessageBusExtensions.cs:13</code> 🔵 <code>OutgoingMessagesHelper.Empty</code> allocates per access</h4>
+<blockquote>
+<p>Name implies singleton; returns <code>new()</code> each call.
+<strong>Fix:</strong> cache immutable instance or rename to <code>CreateEmpty()</code>.</p>
+</blockquote>
+<h4 id="86-modulesbackgroundjobsservicesjobprocessingbackgroundservicecs79-two-source-linked-cts-where-cancelafter-suffices">#86 · <code>Modules/BackgroundJobs/Services/JobProcessingBackgroundService.cs:79</code> 🔵 Two-source linked CTS where <code>CancelAfter</code> suffices</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>CreateLinkedTokenSource(ct).CancelAfter(TimeSpan.FromSeconds(30));</code></p>
+</blockquote>
+<h4 id="87-modulesbackgroundjobstickerqtickerqrecurringjobregistrarcs81-duplicated-property-assignments-across-add-vs-update-branches">#87 · <code>Modules/BackgroundJobs/TickerQ/TickerQRecurringJobRegistrar.cs:81</code> 🔵 Duplicated property assignments across add vs update branches</h4>
+<blockquote>
+<p><strong>Fix:</strong> extract <code>ApplyDefinition(entity, definition)</code> helper.</p>
+</blockquote>
+<h4 id="88-modulesidentitydirectoryfeaturesuserupdateuserupdateusercommandcs42-inconsistent-var-vs-explicit-types-vs-project-rule">#88 · <code>Modules/Identity/Directory/Features/User/UpdateUser/UpdateUserCommand.cs:42</code> 🔵 Inconsistent <code>var</code> vs explicit types vs project rule</h4>
+<blockquote>
+<p><strong>Fix:</strong> explicit types in <code>AssignUserRolesCommandHandler</code> to match module style.</p>
+</blockquote>
+<h4 id="89-modulesidentityauthsecuritysessionsbffsessionservicecs20-implements-two-interfaces-7-deps-ispsrp">#89 · <code>Modules/Identity/Auth/Security/Sessions/BffSessionService.cs:20</code> 🔵 Implements two interfaces + 7 deps (ISP/SRP)</h4>
+<blockquote>
+<p><strong>Fix:</strong> split revocation into <code>BffSessionRevocationService</code>.</p>
+</blockquote>
+<h4 id="90-moduleswebhooksserviceswebhookprocessingbackgroundservicecs29-on-stringly-typed-handler-match-per-message">#90 · <code>Modules/Webhooks/Services/WebhookProcessingBackgroundService.cs:29</code> 🔵 O(n) stringly-typed handler match per message</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>IReadOnlyDictionary&lt;string,IWebhookEventHandler[]&gt;</code> + wildcard list at startup.</p>
+</blockquote>
+<h4 id="91-moduleswebhooksservicesoutgoingwebhookbackgroundservicecs44-using-on-factory-created-httpclient">#91 · <code>Modules/Webhooks/Services/OutgoingWebhookBackgroundService.cs:44</code> 🔵 <code>using</code> on factory-created <code>HttpClient</code></h4>
+<blockquote>
+<p>Harmless but misleading.
+<strong>Fix:</strong> drop <code>using</code>.</p>
+</blockquote>
+<h4 id="92-modulesnotificationsrepositoriesfailedemailrepositorycs54-tolist-on-already-materialised-ireadonlylist">#92 · <code>Modules/Notifications/Repositories/FailedEmailRepository.cs:54</code> 🔵 <code>.ToList()</code> on already-materialised <code>IReadOnlyList</code></h4>
+<blockquote>
+<p><strong>Fix:</strong> change return type to <code>IReadOnlyList&lt;T&gt;</code>; return directly.</p>
+</blockquote>
+<h4 id="93-modulesnotificationsservicesfailedemailstorecs45-catch-exception-ex-swallows-storage-errors">#93 · <code>Modules/Notifications/Services/FailedEmailStore.cs:45</code> 🔵 <code>catch (Exception ex)</code> swallows storage errors</h4>
+<blockquote>
+<p><strong>Fix:</strong> catch specific (<code>DbUpdateException</code>, <code>DbException</code>); let truly unexpected propagate.</p>
+</blockquote>
+<h4 id="94-modulesproductcatalogrepositoriesproductrepositorycs108-countstoarray-new-intdefaultpricebucketscount-simplify-fallback">#94 · <code>Modules/ProductCatalog/Repositories/ProductRepository.cs:108</code> 🔵 <code>counts?.ToArray() ?? new int[DefaultPriceBuckets.Count]</code> — simplify fallback</h4>
+<blockquote>
+<p><strong>Fix:</strong> return <code>Enumerable.Repeat(0, DefaultPriceBuckets.Count)</code> or skip the buckets when null.</p>
+</blockquote>
+<h4 id="95-modulesproductcataloggraphqlqueriesproductqueriescs26-12-arg-productfilter-build-in-resolver">#95 · <code>Modules/ProductCatalog/GraphQL/Queries/ProductQueries.cs:26</code> 🔵 12-arg <code>ProductFilter</code> build in resolver</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>ProductFilter ToFilter(this ProductQueryInput? input)</code> extension.</p>
+</blockquote>
+<h4 id="96-modulesproductcatalogfeaturesproductsharedproductvalidationhelpercs51-selector-invoked-twice-per-item">#96 · <code>Modules/ProductCatalog/Features/Product/Shared/ProductValidationHelper.cs:51</code> 🔵 Selector invoked twice per item</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>items.Select(categoryIdSelector).Where(id =&gt; id.HasValue).Select(id =&gt; id!.Value).ToHashSet();</code></p>
+</blockquote>
+<h4 id="97-modulesreviewsfeaturesgetproductreviewsgetproductreviewsbyproductidsquerycs20-verbose-explicit-cast-on-empty-dictionary">#97 · <code>Modules/Reviews/Features/GetProductReviews/GetProductReviewsByProductIdsQuery.cs:20</code> 🔵 Verbose explicit cast on empty dictionary</h4>
+<blockquote>
+<p><strong>Fix:</strong> rely on <code>ErrorOr</code> implicit conversion; return <code>new Dictionary&lt;&gt;</code>.</p>
+</blockquote>
+<h4 id="98-modulesproductcatalogfeaturesproductcreateproductscreateproductsrequestcs10-maxlength100-magic-literal-duplicated-across-batch-requests">#98 · <code>Modules/ProductCatalog/Features/Product/CreateProducts/CreateProductsRequest.cs:10</code> 🔵 <code>MaxLength(100)</code> magic literal duplicated across batch requests</h4>
+<blockquote>
+<p><strong>Fix:</strong> <code>BatchLimits.MaxItems = 100</code>.</p>
+</blockquote>
+<h4 id="99-modulesproductcatalogfeaturesproductupdateproductsupdateproductscommandcs40-indexed-where_icontextisfailediselectxxid-duplicated-across-handlers">#99 · <code>Modules/ProductCatalog/Features/Product/UpdateProducts/UpdateProductsCommand.cs:40</code> 🔵 Indexed <code>Where((_,i)=&gt;!context.IsFailed(i)).Select(x=&gt;x.Id)</code> duplicated across handlers</h4>
+<blockquote>
+<p><strong>Fix:</strong> extract <code>BatchFailureContext.SuccessfulItems()</code> / <code>SuccessfulIndices()</code>.</p>
+</blockquote>
+<h4 id="100-modulesnotificationsnotificationsmodulecs-commented-out-example-controller-line">#100 · <code>Modules/Notifications/NotificationsModule.cs</code> 🔵 Commented-out "example controller" line</h4>
+<blockquote>
+<p><strong>Fix:</strong> delete (YAGNI).</p>
+</blockquote>
+<h4 id="101-modulesproductcatalogproductcatalogmodulecs-135-line-addproductcatalogmodule-mixes-di-graphql-mongo-resilience">#101 · <code>Modules/ProductCatalog/ProductCatalogModule.cs</code> 🔵 135-line <code>AddProductCatalogModule</code> mixes DI + GraphQL + Mongo + resilience</h4>
+<blockquote>
+<p><strong>Fix:</strong> extract <code>AddProductCatalogGraphQL</code>, <code>AddProductCatalogMongo</code>, <code>AddProductCatalogResilience</code> (pattern already used by <code>WebhooksRuntimeBridge</code>).</p>
+<p>Also noted: ProductCatalog has both <code>Configuration/</code> and <code>Configurations/</code> folders; two overlapping error files (<code>DomainErrors.cs</code> + <code>ProductCatalogDomainErrors.cs</code>); <code>IdempotentCreateCommand</code> bypasses <code>Product.Create</code> factory; Reviews has three global-usings files. Consolidate.</p>
+</blockquote>
+<h2 id="-_4">---</h2>
+<h2 id="review-statistics">📊 Review Statistics</h2>
+<ul>
+<li><strong>Total findings:</strong> <strong>101</strong> (🔴 6 · 🟠 45 · 🟡 31 · 🔵 19)</li>
+<li><strong>Scope:</strong> <code>src/</code> (excluding <code>bin/</code>, <code>obj/</code>, <code>Migrations/</code>, <code>StoredProcedures/</code>, tests)</li>
+<li><strong>Method:</strong> 6 parallel specialized agents across 2 splits</li>
+<li><strong>Tests:</strong> excluded per user instruction</li>
+</ul>
+<h3 id="top-recommended-fixes-order">Top Recommended Fixes (order)</h3>
+<ol>
+<li><strong>Duplicate email sends</strong> on cancellation in <code>EmailRetryService</code> (#6)</li>
+<li><strong>SSRF TOCTOU + IPv4-mapped IPv6 + HTTP scheme + no replay protection + no rate limit</strong> in Webhooks (#5, #12, #13, #14, #15)</li>
+<li><strong>Tenant-bypass bulk deletes</strong> in ProductCatalog &amp; Reviews (#18, #19, #20)</li>
+<li><strong>Committed dev secrets</strong> (#7, #8) + unvalidated Mongo options (#9)</li>
+<li><strong>CSRF bypass via bearer coexistence</strong> (#29) + <code>SameSite=Lax</code> + GET <code>/logout</code> (#26, #27)</li>
+<li><strong>SMTP STARTTLS</strong> legacy overload (#44) + ROPC password check (#34)</li>
+<li><strong>Unsafe file download</strong> (#38, #39) + hardcoded upload cap drift (#37)</li>
+<li><strong>Cleanup handlers' mark+sweep in same run</strong> (#74) + progress-commit storm (#51)</li>
+<li><strong>Module boundary leak</strong> ProductCatalog→Reviews (#41, #42)</li>
+</ol>
+<h3 id="files-not-reviewed">Files NOT reviewed</h3>
+<p>(none) ✅ — scope covered all <code>src/</code> production modules across both splits.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zribktad/API-Template-Modules" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.tracking", "navigation.indexes", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tooltips"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

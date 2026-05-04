@@ -1,0 +1,2819 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Modern .NET 10 Web API and Data-Driven applications template.">
+      
+      
+      
+        <link rel="canonical" href="https://zribktad.github.io/API-Template-Modules/validation/">
+      
+      
+        <link rel="prev" href="../code-review/">
+      
+      
+        <link rel="next" href="../remaining-refactoring/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Validation - APITemplate Modules</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#validation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="APITemplate Modules" class="md-header__button md-logo" aria-label="APITemplate Modules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            APITemplate Modules
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Validation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../cqrs-architecture/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  📚 Guides
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="APITemplate Modules" class="md-nav__button md-logo" aria-label="APITemplate Modules" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    APITemplate Modules
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    📚 Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture & Patterns
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture & Patterns
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cqrs-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CQRS & Messaging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../result-pattern/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Result Pattern
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wolverine-message-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wolverine Messages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/product-catalog-reviews-decoupling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product Catalog Decoupling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Endpoints
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Endpoints
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    REST Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraphQL Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graphql-implementation-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraphQL Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-create-endpoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How To Create Endpoint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../endpoint-showcase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Endpoint Showcase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scalar-and-graphql-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scalar & UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Databases & Migrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Databases & Migrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ef-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EF Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mongodb-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MongoDB Migration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mongodb-polymorphism/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MongoDB Polymorphism
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stored-procedures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stored Procedures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security & Auth
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security & Auth
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUTHENTICATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auth-registration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auth Registration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../keycloak-auth-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Keycloak Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SECURITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Guidelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RATE_LIMITING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rate Limiting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Testing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-fast-unit-audit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fast Unit Audit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure & Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Infrastructure & Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CACHING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mailing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mailing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../file-upload-saga/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Upload Saga
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GIT_HOOKS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Refactoring & Code Quality
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Refactoring & Code Quality
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code-review/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#request-lifecycle-where-validation-fits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request lifecycle — where validation fits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-surfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation surfaces
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-aspnet-core-model-validation-data-annotations-on-dtos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. ASP.NET Core model validation (Data Annotations on DTOs)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A. ASP.NET Core model validation (Data Annotations on DTOs)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#record-dto-convention-mvc-vs-wolverine-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Record DTO convention (MVC vs. Wolverine HTTP)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Record DTO convention (MVC vs. Wolverine HTTP)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-every-inheritancecomposition-variant-fails-on-wolverine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why every inheritance/composition variant fails on Wolverine
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b-wolverine-middleware-dataannotationsvalidationmiddleware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Wolverine middleware — DataAnnotationsValidationMiddleware
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c-batch-validation-dataannotationsbatchrule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Batch validation — DataAnnotationsBatchRule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#d-handler-domain-rules-erroror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Handler / domain rules (ErrorOr)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataannotationsvalidator-ivalidator-shared-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DataAnnotationsValidator (IValidator) — shared implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#net-10-microsoftextensionsvalidation-how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        .NET 10 Microsoft.Extensions.Validation — how it works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=".NET 10 Microsoft.Extensions.Validation — how it works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-it-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-opt-a-type-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to opt a type in
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-wire-it-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to wire it up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-does-not-do-today" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What it does NOT do (today)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-state-in-this-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current state in this project
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migration-plan-deferred" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migration plan (deferred)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-suppress-asp0029-locally-rather-than-globally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why suppress ASP0029 locally rather than globally
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-this-codebase-does-not-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this codebase does NOT use
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rule-of-thumb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule of thumb
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key files
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../remaining-refactoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remaining Refactoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href=".." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../cqrs-architecture/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    📚 Guides
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../code-review/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Refactoring & Code Quality
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="validation">Validation</h1>
+<p>This document describes every validation mechanism in this codebase, how they wire together, and the full request lifecycle from HTTP arrival to response.</p>
+<hr />
+<h2 id="request-lifecycle-where-validation-fits">Request lifecycle — where validation fits</h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>HTTP Request
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  │
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  ▼
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>[1] ASP.NET Core model binding
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>      Binds [FromBody] / [FromQuery] to request/filter DTO.
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>      Runs Data Annotations on the bound DTO (property-level + constructor parameters for records).
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>      → Invalid: 400 ProblemDetails before the controller action runs ([ApiController] attribute).
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  │
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  ▼
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>[2] Controller action
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      Maps DTO → Wolverine Command/Query and dispatches via bus.InvokeAsync(command, ct).
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  │
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  ▼
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>[3] Wolverine middleware — DataAnnotationsValidationMiddleware
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      Runs IValidator.Validate(message) on the command/query object itself.
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>      Applied only to handlers whose return type is ErrorOr&lt;T&gt;.
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      → Invalid: returns (HandlerContinuation.Stop, ErrorOr&lt;T&gt; errors) — handler never executes.
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>      NOTE: Commands currently have no DataAnnotation attributes → middleware is a no-op for HTTP flows.
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>      It activates for non-HTTP entry points (scheduled jobs, outbox retry) where MVC never runs.
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  │
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>  ▼
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>[4] Handler — BatchFailureContext + IBatchRule&lt;TItem&gt;
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>      For batch commands only. Runs DataAnnotationsBatchRule&lt;TItem&gt; per item.
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>      Collects per-item failures without throwing.
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>      → Any failures: returns BatchResponse with per-index error details.
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>  │
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>  ▼
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>[5] Handler — domain / business rules (ErrorOr)
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>      DB-dependent checks: entity existence, uniqueness, business constraints.
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>      Returns ErrorOr&lt;T&gt; with Error.Conflict / Error.NotFound / etc.
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>  │
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>  ▼
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>[6] Response mapping
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>      ErrorOr&lt;T&gt; → RFC 7807 ProblemDetails via ApiExceptionHandler.
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>      HTTP 400 for validation, 404 for not found, 409 for conflict, etc.
+</span></code></pre></div>
+<hr />
+<h2 id="validation-surfaces">Validation surfaces</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Surface</th>
+<th>Validates</th>
+<th>When active</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>ASP.NET Core model validation</td>
+<td>Request/filter DTOs (Data Annotations)</td>
+<td>Every MVC <code>[ApiController]</code> endpoint</td>
+</tr>
+<tr>
+<td><strong>A'</strong></td>
+<td>Wolverine HTTP validation policy</td>
+<td>Request/filter DTOs (Data Annotations)</td>
+<td>Every Wolverine HTTP endpoint (<code>MapWolverineEndpoints</code> + <code>UseDataAnnotationsValidationProblemDetailMiddleware</code>)</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td><code>DataAnnotationsValidationMiddleware</code></td>
+<td>Wolverine command/query objects</td>
+<td>Handlers returning <code>ErrorOr&lt;T&gt;</code>; currently relevant for non-HTTP entry points</td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td><code>DataAnnotationsBatchRule&lt;TItem&gt;</code> via <code>IBatchRule&lt;T&gt;</code></td>
+<td>Batch item DTOs</td>
+<td>Batch command handlers</td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>Handler / domain rules</td>
+<td>Business invariants needing loaded state</td>
+<td>Inside every handler that needs it</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="a-aspnet-core-model-validation-data-annotations-on-dtos">A. ASP.NET Core model validation (Data Annotations on DTOs)</h2>
+<p>Every controller inherits <code>ApiControllerBase</code> which applies <code>[ApiController]</code>. This enables automatic 400 responses before the action runs when model state is invalid.</p>
+<p><strong>What gets validated:</strong> any class/record declared as a direct action parameter (<code>[FromBody]</code>, <code>[FromQuery]</code>, <code>[FromRoute]</code>).</p>
+<p><strong>Validation runs:</strong>
+- <code>Validator.TryValidateObject</code> with <code>validateAllProperties: true</code> — covers properties.
+- For <code>record</code> types: additionally runs attributes declared on primary constructor parameters (via <code>DataAnnotationsValidator</code>; standard MVC may miss these for records).</p>
+<p><strong>Custom attributes available in <code>SharedKernel.Application.Validation</code>:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[NotEmpty]</code></td>
+<td>Rejects null, empty string, empty collection</td>
+</tr>
+<tr>
+<td><code>[CaseInsensitiveAllowedValues("a","b")]</code></td>
+<td>Allowed string values, case-insensitive; null always passes</td>
+</tr>
+<tr>
+<td><code>[SortDirection]</code></td>
+<td>Accepts <code>"asc"</code>, <code>"desc"</code>, null</td>
+</tr>
+<tr>
+<td><code>[NoEmptyGuidItems]</code></td>
+<td>Rejects <code>Guid.Empty</code> inside a collection</td>
+</tr>
+<tr>
+<td><code>[NoWhitespaceItems]</code></td>
+<td>Rejects whitespace-only strings inside a collection</td>
+</tr>
+<tr>
+<td><code>[MaxLengthItems(n)]</code></td>
+<td>Max length per string item in a collection</td>
+</tr>
+<tr>
+<td><code>[GreaterThanOrEqualToProperty("OtherProp")]</code></td>
+<td>Cross-field: value ≥ other property</td>
+</tr>
+<tr>
+<td><code>[RequiredWhenDecimalPropertyExceeds("Prop", threshold)]</code></td>
+<td>Required string when another decimal exceeds threshold</td>
+</tr>
+</tbody>
+</table>
+<p>Standard .NET attributes (<code>[Required]</code>, <code>[Range]</code>, <code>[MaxLength]</code>, <code>[MinLength]</code>) work as normal.</p>
+<p><strong>Error response shape:</strong></p>
+<p><code>ApiBehaviorOptions.InvalidModelStateResponseFactory</code> maps model-state errors to <code>Error.Validation(ErrorCatalog.General.ValidationFailed, ...)</code> and returns RFC 7807 ProblemDetails.</p>
+<h3 id="record-dto-convention-mvc-vs-wolverine-http">Record DTO convention (MVC vs. Wolverine HTTP)</h3>
+<p>MVC (<code>[ApiController]</code>) reads validation attributes from <strong>both</strong> record primary-constructor parameters and from generated properties. Wolverine HTTP (<code>DataAnnotationsHttpValidationExecutor</code> → <code>Validator.TryValidateObject</code>) reads them <strong>only from properties</strong>. Pick the DTO style per endpoint host:</p>
+<table>
+<thead>
+<tr>
+<th>DTO role</th>
+<th>Binding style</th>
+<th>Recommended record shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Request <strong>body</strong> (<code>[FromBody]</code>) — any host</td>
+<td>JSON deserialization (System.Text.Json)</td>
+<td><code>public sealed record Foo { [Range] public int X { get; init; } }</code> — attrs naturally on properties, <code>init</code> is honored by the JSON binder</td>
+</tr>
+<tr>
+<td>Query <strong>filter</strong> (<code>[FromQuery]</code>) — MVC</td>
+<td>MVC model binder</td>
+<td>Either primary-ctor <code>record Foo([Range] int X = 0)</code> <strong>or</strong> <code>{ get; init; }</code> — both work</td>
+</tr>
+<tr>
+<td>Query <strong>filter</strong> (<code>[FromQuery]</code>) — Wolverine HTTP</td>
+<td><code>QueryStringBindingFrame</code></td>
+<td><strong>Primary-ctor only</strong>, with <code>[property: ...]</code> targets: <code>record Foo([property: Range] int X = 0)</code>. Wolverine codegen assigns <code>filter.X = value;</code> after <code>new</code>, which <code>init</code>-only setters reject at compile time — so class-style records break query binding. The <code>[property:]</code> target moves the attribute onto the generated property so the validation policy wires it up.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Known limitation — pagination on inherited filters:</strong> <code>PaginationFilter</code> declares <code>[Range]</code> on its ctor parameters (no <code>[property:]</code> target) because moving them onto the generated properties breaks MVC validation for derived filters, and a derived primary-ctor param that shadows a base property cannot itself carry a <code>[property:]</code> target (CS0657). A Wolverine HTTP endpoint binding a <code>PaginationFilter</code>-derived filter therefore lets invalid <code>PageNumber</code>/<code>PageSize</code> values through the <code>DataAnnotations</code> policy. Composing pagination as a nested <code>PaginationFilter</code> ctor param also fails — Wolverine's query-string binder only handles primitive/string/nullable-primitive types and cannot flatten a complex type from a flat query string. When filter DTOs eventually migrate to a unified class-style record + custom <code>IHttpPolicy</code> this section goes away.</p>
+<p><strong>Current workaround:</strong> Wolverine filters that need <code>PageNumber</code>/<code>PageSize</code> validation declare those fields inline on their own primary ctor with <code>[property: Range]</code> instead of inheriting <code>PaginationFilter</code>. MVC-bound filters keep inheriting <code>PaginationFilter</code> unchanged. See <code>ProductReviewFilter</code> as the reference.</p>
+</blockquote>
+<h4 id="why-every-inheritancecomposition-variant-fails-on-wolverine">Why every inheritance/composition variant fails on Wolverine</h4>
+<p>Ruled-out options (each validated empirically before landing on the inline fix):</p>
+<table>
+<thead>
+<tr>
+<th>Attempt</th>
+<th>Why it fails</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inherit <code>PaginationFilter</code>; re-declare <code>PageNumber</code>/<code>PageSize</code> in derived primary ctor with <code>[property: Range]</code></td>
+<td><strong>CS0657</strong> — a shadowed ctor param cannot carry a <code>[property:]</code> target</td>
+</tr>
+<tr>
+<td>Inherit <code>PaginationFilter</code>; move its <code>[Range]</code> attributes to <code>[property: Range]</code></td>
+<td>Breaks MVC validation for every other derived filter (ctor-param shadowing vs. attributed base property) — existing 400-for-invalid-query tests start returning 500</td>
+</tr>
+<tr>
+<td>Inherit <code>PaginationFilter</code>; duplicate attributes as both <code>[param: Range]</code> and <code>[property: Range]</code> on base ctor params</td>
+<td>Same MVC breakage as above</td>
+</tr>
+<tr>
+<td>Inherit <code>PaginationFilter</code>; derived primary ctor omits <code>PageNumber</code>/<code>PageSize</code></td>
+<td>Wolverine <code>QueryStringBindingFrame</code> iterates only the derived ctor params, so inherited base properties are never bound from the query string — <code>?pageNumber=2</code> is silently ignored</td>
+</tr>
+<tr>
+<td>Compose via nested <code>PaginationFilter Pagination</code> ctor param with a dedicated <code>[PaginationFilterValidator(...)]</code> attribute</td>
+<td>Wolverine's <code>TryFindOrCreateQuerystringValue</code> handles only <code>string</code>, <code>string[]</code>, and nullable primitives; a complex-typed ctor param produces a null <code>HttpElementVariable</code>, then codegen NREs on <code>x.Usage</code>. Validation would work, but binding doesn't</td>
+</tr>
+</tbody>
+</table>
+<p>Escape hatches that <em>would</em> restore inheritance/composition but were deferred as YAGNI at one Wolverine filter:</p>
+<ul>
+<li>Write a custom <code>IHttpPolicy</code> that replaces <code>QueryStringBindingFrame</code> to either flatten nested records from flat query strings, or to bind inherited <code>init</code> properties alongside ctor params.</li>
+<li>Migrate all filter DTOs (and <code>PaginationFilter</code>) to class-style records with <code>{ get; init; }</code> properties plus the custom policy above (Wolverine's default codegen assigns <code>filter.X = value;</code> after <code>new</code>, which <code>init</code> rejects).</li>
+</ul>
+<hr />
+<h2 id="b-wolverine-middleware-dataannotationsvalidationmiddleware">B. Wolverine middleware — DataAnnotationsValidationMiddleware</h2>
+<p>Declared in <code>src/SharedKernel/Application/Middleware/DataAnnotationsValidationMiddleware.cs</code>.</p>
+<p>Registered in <code>Program.cs</code>:
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">options</span><span class="p">.</span><span class="n">Policies</span><span class="p">.</span><span class="n">AddMiddleware</span><span class="p">(</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="k">typeof</span><span class="p">(</span><span class="n">DataAnnotationsValidationMiddleware</span><span class="p">),</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">chain</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">chain</span><span class="p">.</span><span class="n">ShouldApplyDataAnnotationsValidation</span><span class="p">()</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">);</span>
+</span></code></pre></div></p>
+<p><code>ShouldApplyDataAnnotationsValidation()</code> returns <code>true</code> when the handler's return type is <code>ErrorOr&lt;T&gt;</code> (possibly wrapped in <code>Task</code>/<code>ValueTask</code>).</p>
+<p><strong>What it does:</strong> calls <code>IValidator.Validate(message)</code> on the Wolverine message. If there are failures it returns <code>(HandlerContinuation.Stop, errors)</code> and the handler never runs.</p>
+<p><strong>Current state:</strong> No command or query in the codebase has DataAnnotation attributes directly on its own parameters. The middleware therefore does nothing during normal HTTP flows (MVC already validated the DTO, and the Command is just a wrapper with no annotations).</p>
+<p><strong>Where it matters:</strong>
+- Scheduled jobs (TickerQ) that dispatch directly to a handler without HTTP.
+- Outbox worker retrying a message — MVC never ran for this invocation.
+- Any future command that gains its own validation attributes.</p>
+<hr />
+<h2 id="c-batch-validation-dataannotationsbatchrule">C. Batch validation — DataAnnotationsBatchRule<TItem></h2>
+<p>For batch commands (<code>CreateProductsCommand</code>, <code>UpdateProductsCommand</code>, etc.) items are validated inside the handler using <code>IBatchRule&lt;TItem&gt;</code>.</p>
+<p><code>DataAnnotationsBatchRule&lt;TItem&gt;</code> is registered once in the composition root (<code>Program.cs</code> via <code>AddRequestValidation</code> extension):
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">services</span><span class="p">.</span><span class="n">AddScoped</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">IBatchRule</span><span class="o">&lt;&gt;</span><span class="p">),</span><span class="w"> </span><span class="k">typeof</span><span class="p">(</span><span class="n">DataAnnotationsBatchRule</span><span class="o">&lt;&gt;</span><span class="p">));</span>
+</span></code></pre></div></p>
+<p><code>DataAnnotationsBatchRule&lt;TItem&gt;</code> calls <code>IValidator.Validate(item)</code> for every item in the batch and accumulates failures by index in a <code>BatchFailureContext&lt;TItem&gt;</code>.</p>
+<p><strong>Handler pattern:</strong>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="n">Task</span><span class="o">&lt;</span><span class="n">ErrorOr</span><span class="o">&lt;</span><span class="n">BatchResponse</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">HandleAsync</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="n">CreateProductsCommand</span><span class="w"> </span><span class="n">command</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="n">IBatchRule</span><span class="o">&lt;</span><span class="n">CreateProductRequest</span><span class="o">&gt;</span><span class="w"> </span><span class="n">itemRule</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">ct</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">{</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">BatchFailureContext</span><span class="o">&lt;</span><span class="n">CreateProductRequest</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ctx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="p">(</span><span class="n">command</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">Items</span><span class="p">);</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="n">ctx</span><span class="p">.</span><span class="n">ApplyRulesAsync</span><span class="p">(</span><span class="n">ct</span><span class="p">,</span><span class="w"> </span><span class="n">itemRule</span><span class="p">);</span><span class="w">   </span><span class="c1">// runs DataAnnotations per item</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">HasFailures</span><span class="p">)</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ctx</span><span class="p">.</span><span class="n">ToFailureResponse</span><span class="p">();</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="c1">// ... persist</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<p><strong>Note on duplication:</strong> For HTTP batch endpoints MVC already validated the outer request wrapper (<code>[FromBody] UpdateProductsRequest</code>). The batch rule re-validates each <em>item</em> inside using <code>IValidator</code> — this is the same attribute set but applied per-item, not to the outer wrapper. There is no redundant double-validation of the same object.</p>
+<hr />
+<h2 id="d-handler-domain-rules-erroror">D. Handler / domain rules (ErrorOr)</h2>
+<p>Business checks that require loaded state (entity existence, uniqueness, permissions) live inside the handler and return <code>ErrorOr&lt;T&gt;</code>:</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="n">Task</span><span class="o">&lt;</span><span class="n">ErrorOr</span><span class="o">&lt;</span><span class="n">ProductResponse</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">HandleAsync</span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">CreateProductsCommand</span><span class="w"> </span><span class="n">command</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">IProductRepository</span><span class="w"> </span><span class="n">repository</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="n">CancellationToken</span><span class="w"> </span><span class="n">ct</span><span class="p">)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">{</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">await</span><span class="w"> </span><span class="n">repository</span><span class="p">.</span><span class="n">ExistsByNameAsync</span><span class="p">(</span><span class="n">command</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span><span class="w"> </span><span class="n">ct</span><span class="p">))</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">Error</span><span class="p">.</span><span class="n">Conflict</span><span class="p">(</span><span class="n">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;A product with this name already exists.&quot;</span><span class="p">);</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="c1">// ...</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>These errors flow through the same <code>ErrorOr</code> → ProblemDetails pipeline as validation errors.</p>
+<hr />
+<h2 id="dataannotationsvalidator-ivalidator-shared-implementation">DataAnnotationsValidator (IValidator) — shared implementation</h2>
+<p><code>src/SharedKernel/Application/Validation/IValidator.cs</code>
+<code>src/SharedKernel/Application/Validation/DataAnnotationsValidator.cs</code></p>
+<p>Single shared implementation of "run Data Annotations on a CLR object," exposed via the
+<code>IValidator</code> abstraction and registered as a singleton in <code>Program.cs</code> via <code>AddRequestValidation</code>. Used by:
+- <strong>Surface A</strong> — MVC uses it internally for property-level validation.
+- <strong>Surface B</strong> — <code>DataAnnotationsValidationMiddleware</code> receives <code>IValidator</code> as a Wolverine-resolved parameter and calls it on Wolverine messages.
+- <strong>Surface C</strong> — <code>DataAnnotationsBatchRule&lt;TItem&gt;</code> constructor-injects <code>IValidator</code> and calls it per batch item.
+- <strong>Unit tests</strong> — <code>DataAnnotationsTestHelper</code> holds a private <code>DataAnnotationsValidator</code> instance so tests match production behavior exactly.</p>
+<p><strong>What it runs:</strong>
+1. <code>Validator.TryValidateObject</code> with <code>validateAllProperties: true</code> — property-level attributes.
+2. An additional pass over primary constructor parameters for <code>record</code> types — ensures attributes declared on positional parameters are evaluated (standard <code>TryValidateObject</code> may not cover them).
+3. One-level recursion into nested complex public properties (e.g. command wrappers like <code>CreateFooCommand(FooRequest Request)</code>).</p>
+<p><strong>Performance:</strong> Reflection lookups (<code>GetConstructors</code>, <code>GetParameters</code>, <code>GetCustomAttributes</code>, <code>GetProperty</code>) are cached in a per-instance <code>ConcurrentDictionary</code> keyed by <code>Type</code>, so the cost is paid once per type for the lifetime of the singleton.</p>
+<hr />
+<h2 id="net-10-microsoftextensionsvalidation-how-it-works">.NET 10 <code>Microsoft.Extensions.Validation</code> — how it works</h2>
+<h3 id="what-it-is">What it is</h3>
+<p><code>Microsoft.Extensions.Validation</code> is a new validation infrastructure shipped in .NET 10
+(still <strong>experimental</strong> — emits <code>ASP0029</code>). Unlike the reflection-based
+<code>Validator.TryValidateObject</code>, it relies on a <strong>Roslyn source generator</strong> that reads Data
+Annotations attributes at compile time and generates strongly-typed validators. The result:</p>
+<ul>
+<li><strong>No reflection at runtime</strong> — faster, AOT-compatible</li>
+<li><strong>Records with attributes on primary-constructor parameters work correctly</strong> — this is
+  the exact gap that our custom <code>DataAnnotationsValidator</code> fills today</li>
+<li><strong>Nested <code>[ValidatableType]</code> objects are traversed</strong> by the generator without manual recursion</li>
+</ul>
+<h3 id="how-to-opt-a-type-in">How to opt a type in</h3>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">Microsoft.Extensions.Validation</span><span class="p">;</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="cp">#pragma warning disable ASP0029 // experimental until .NET 11</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="na">[ValidatableType]</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">public</span><span class="w"> </span><span class="k">sealed</span><span class="w"> </span><span class="k">record</span><span class="w"> </span><span class="nf">CreateUserRequest</span><span class="p">(</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="na">[NotEmpty]</span><span class="w"> </span><span class="p">[</span><span class="n">MaxLength</span><span class="p">(</span><span class="mi">100</span><span class="p">)]</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Username</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="na">[NotEmpty]</span><span class="w"> </span><span class="p">[</span><span class="n">MaxLength</span><span class="p">(</span><span class="mi">320</span><span class="p">)]</span><span class="w"> </span><span class="p">[</span><span class="n">EmailAddress</span><span class="p">]</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Email</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">);</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="cp">#pragma warning restore ASP0029</span>
+</span></code></pre></div>
+<p>The source generator scans the compilation for <code>[ValidatableType]</code> and emits an
+<code>IValidatableInfoResolver</code> implementation that knows how to validate each annotated type
+without reflection. Standard <code>System.ComponentModel.DataAnnotations</code> attributes (<code>[Required]</code>,
+<code>[MaxLength]</code>, <code>[Range]</code>, <code>[EmailAddress]</code>, …) and custom <code>ValidationAttribute</code> derivatives
+(our <code>[NotEmpty]</code>, <code>[GreaterThanOrEqualToProperty]</code>, <code>[CaseInsensitiveAllowedValues]</code>, …)
+all work transparently as long as they derive from <code>ValidationAttribute</code>.</p>
+<h3 id="how-to-wire-it-up">How to wire it up</h3>
+<p>Register once at startup:</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// src/APITemplate/Api/Extensions/ApiServiceCollectionExtensions.cs</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">services</span><span class="p">.</span><span class="n">AddValidation</span><span class="p">();</span>
+</span></code></pre></div>
+<p><code>AddValidation()</code> registers:
+- The generated resolvers into DI as <code>IValidatableInfoResolver</code> (keyed per annotated type)
+- A root <code>IValidatableInfo</code> / validation orchestrator that composes them
+- An <strong>endpoint filter</strong> for ASP.NET Core <strong>Minimal API</strong> that intercepts requests bound
+  to <code>[ValidatableType]</code> parameters, validates them before the handler executes, and
+  short-circuits with <code>ValidationProblemDetails</code> (HTTP 400) on failure</p>
+<h3 id="what-it-does-not-do-today">What it does NOT do (today)</h3>
+<ul>
+<li><strong>MVC controllers</strong> — the endpoint filter is a Minimal API concept. MVC controllers
+  keep going through <code>ModelState</code> / <code>InvalidModelStateResponseFactory</code>.
+  In this project every HTTP entry point is an MVC controller (<code>[HttpPost]</code>, <code>[HttpGet]</code>,
+  …) or a Wolverine HTTP attribute endpoint (<code>[WolverinePost]</code>, …), so adding
+  <code>[ValidatableType]</code> alone does <strong>not</strong> change the request-time validation path.</li>
+<li><strong>Wolverine messages</strong> — no native integration in Wolverine 5.29. Wolverine middleware
+  (<code>DataAnnotationsValidationMiddleware</code>) still runs <code>IValidator.Validate(message)</code>.</li>
+<li><strong>Programmatic validation of an arbitrary object</strong> outside endpoint binding — e.g. the
+  JSON-Patch flow in <code>PatchProductCommandHandler</code> that validates the patched DTO — has
+  no public API on <code>AddValidation()</code>. It must continue to use <code>IValidator</code>.</li>
+<li><strong><code>IEnumerable&lt;T&gt;</code> where <code>T</code> is <code>[ValidatableType]</code></strong> — item-level validation of
+  collections is not guaranteed. Batch rules (<code>DataAnnotationsBatchRule&lt;TItem&gt;</code>) keep
+  driving per-item validation through <code>IValidator</code>.</li>
+</ul>
+<h3 id="current-state-in-this-project">Current state in this project</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Uses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>services.AddValidation()</code> registration</td>
+<td>Active (<code>Program.cs</code> via <code>ValidationServiceCollectionExtensions.cs</code>)</td>
+</tr>
+<tr>
+<td><code>[ValidatableType]</code> on DTOs</td>
+<td><strong>Pilot only</strong> — <code>CreateUserRequest</code></td>
+</tr>
+<tr>
+<td>MVC request validation</td>
+<td><code>ModelState</code> + <code>IValidator</code> (unchanged)</td>
+</tr>
+<tr>
+<td>Wolverine middleware validation</td>
+<td><code>IValidator</code> (unchanged)</td>
+</tr>
+<tr>
+<td>Batch validation</td>
+<td><code>IValidator</code> via <code>DataAnnotationsBatchRule&lt;TItem&gt;</code> (unchanged)</td>
+</tr>
+<tr>
+<td>JSON-Patch DTO validation</td>
+<td><code>IValidator</code> in <code>PatchProductCommandHandler</code> (unchanged)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="migration-plan-deferred">Migration plan (deferred)</h3>
+<p>Full replacement of <code>DataAnnotationsValidator</code> by the source generator is deferred until:</p>
+<ol>
+<li><code>[ValidatableType]</code> graduates from experimental (expected .NET 11 stable — no more
+   <code>ASP0029</code> suppression)</li>
+<li>Wolverine ships native integration with <code>AddValidation()</code> for handler messages</li>
+<li>A public programmatic API for validating an arbitrary object exists
+   (<code>IValidatableInfoResolver</code> / equivalent)</li>
+</ol>
+<p>The <code>IValidator</code> abstraction is the migration seam — swapping implementations to a
+source-generator-backed validator later will not require changes at the call sites
+(middleware, batch rule, patch handler, test helper).</p>
+<h3 id="why-suppress-asp0029-locally-rather-than-globally">Why suppress <code>ASP0029</code> locally rather than globally</h3>
+<p>The analyzer warning is the only signal telling us that the API may break before .NET 11.
+Suppressing it globally (csproj-level <code>NoWarn</code>) would hide that signal across every new
+annotation. Keeping the suppression next to each <code>[ValidatableType]</code> makes the experimental
+surface visible in diff-review and easy to delete when the API stabilizes.</p>
+<hr />
+<h2 id="what-this-codebase-does-not-use">What this codebase does NOT use</h2>
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Status</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FluentValidation</td>
+<td><strong>Removed</strong></td>
+<td>Replaced by Data Annotations; was used for request/filter validators and Wolverine middleware</td>
+</tr>
+<tr>
+<td><code>WolverineFx.FluentValidation</code></td>
+<td><strong>Removed</strong></td>
+<td>Package uninstalled; <code>DataAnnotationsValidationMiddleware</code> replaces the old <code>ErrorOrValidationMiddleware</code></td>
+</tr>
+<tr>
+<td><code>FluentValidation.DependencyInjectionExtensions</code></td>
+<td><strong>Removed</strong></td>
+<td>No validators to register</td>
+</tr>
+<tr>
+<td><code>AddFluentValidationAutoValidation()</code></td>
+<td><strong>Never used</strong></td>
+<td>MVC's built-in Data Annotations pipeline is sufficient</td>
+</tr>
+<tr>
+<td><code>AbstractValidator&lt;T&gt;</code></td>
+<td><strong>Removed</strong></td>
+<td>All validators migrated to Data Annotations attributes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="testing-validation">Testing validation</h2>
+<p><strong>Data Annotations attributes</strong> — use <code>DataAnnotationsTestHelper</code> which delegates to <code>DataAnnotationsValidator</code>:</p>
+<div class="language-csharp highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="na">[Theory]</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="na">[InlineData(null)]</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="na">[InlineData(&quot;&quot;)]</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">InvalidName_FailsValidation</span><span class="p">(</span><span class="kt">string?</span><span class="w"> </span><span class="n">name</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">{</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="n">IReadOnlyList</span><span class="o">&lt;</span><span class="n">ValidationResult</span><span class="o">&gt;</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="o">=</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="n">DataAnnotationsTestHelper</span><span class="p">.</span><span class="n">Validate</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">CreateProductRequest</span><span class="p">(</span><span class="n">name</span><span class="o">!</span><span class="p">,</span><span class="w"> </span><span class="k">null</span><span class="p">,</span><span class="w"> </span><span class="mf">9.99m</span><span class="p">));</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="n">results</span><span class="p">.</span><span class="n">ShouldContain</span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">MemberNames</span><span class="p">.</span><span class="n">Contains</span><span class="p">(</span><span class="s">&quot;Name&quot;</span><span class="p">));</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Middleware</strong> — tested in isolation in <code>tests/APITemplate.Tests/Unit/Middleware/</code>.</p>
+<p><strong>Batch rule</strong> — tested by injecting <code>DataAnnotationsBatchRule&lt;T&gt;</code> directly.</p>
+<p><strong>Integration</strong> — <code>tests/APITemplate.Tests/Integration/Validation/BoundaryValidationIntegrationTests.cs</code> sends real HTTP requests and asserts 400 responses.</p>
+<hr />
+<h2 id="rule-of-thumb">Rule of thumb</h2>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Simple per-field rule on HTTP input DTO</td>
+<td>Data Annotation on the DTO; surface <strong>A</strong> handles it</td>
+</tr>
+<tr>
+<td>Cross-field rule (MaxPrice ≥ MinPrice)</td>
+<td><code>[GreaterThanOrEqualToProperty]</code> attribute</td>
+</tr>
+<tr>
+<td>Conditional required field</td>
+<td><code>[RequiredWhenDecimalPropertyExceeds]</code> attribute</td>
+</tr>
+<tr>
+<td>Allowed string values (sort field)</td>
+<td><code>[CaseInsensitiveAllowedValues]</code> attribute</td>
+</tr>
+<tr>
+<td>Batch item validation</td>
+<td>Data Annotations on the item DTO; surface <strong>C</strong> handles it</td>
+</tr>
+<tr>
+<td>Business rule needing DB/aggregates</td>
+<td>Handler + <code>ErrorOr</code> — surface <strong>D</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="key-files">Key files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/SharedKernel/Application/Validation/IValidator.cs</code></td>
+<td>Abstraction for DI / swap-in of alternate implementations</td>
+</tr>
+<tr>
+<td><code>src/SharedKernel/Application/Validation/DataAnnotationsValidator.cs</code></td>
+<td>Core: runs Data Annotations + record constructor param pass</td>
+</tr>
+<tr>
+<td><code>src/SharedKernel/Application/Middleware/DataAnnotationsValidationMiddleware.cs</code></td>
+<td>Wolverine pre-handler middleware (surface B)</td>
+</tr>
+<tr>
+<td><code>src/SharedKernel/Application/Batch/Rules/DataAnnotationsBatchRule.cs</code></td>
+<td>Per-item batch validation (surface C)</td>
+</tr>
+<tr>
+<td><code>src/SharedKernel/Application/Validation/GreaterThanOrEqualToPropertyAttribute.cs</code></td>
+<td>Cross-field comparison attribute</td>
+</tr>
+<tr>
+<td><code>src/SharedKernel/Application/Validation/RequiredWhenDecimalPropertyExceedsAttribute.cs</code></td>
+<td>Conditional required attribute</td>
+</tr>
+<tr>
+<td><code>src/SharedKernel/Application/Validation/CaseInsensitiveAllowedValuesAttribute.cs</code></td>
+<td>Allowed-values attribute (null-safe, case-insensitive)</td>
+</tr>
+<tr>
+<td><code>src/SharedKernel/Application/Validation/NotEmptyAttribute.cs</code></td>
+<td>Non-empty string/collection attribute</td>
+</tr>
+<tr>
+<td><code>src/SharedKernel/Application/Errors/ErrorCatalog.cs</code></td>
+<td>Error codes (<code>GEN-0400</code> for validation)</td>
+</tr>
+<tr>
+<td><code>src/APITemplate/Api/Extensions/ValidationServiceCollectionExtensions.cs</code></td>
+<td>Registers <code>IBatchRule&lt;&gt;</code> → <code>DataAnnotationsBatchRule&lt;&gt;</code></td>
+</tr>
+<tr>
+<td><code>src/APITemplate/Api/Extensions/WolverineHandlerChainExtensions.cs</code></td>
+<td><code>ShouldApplyDataAnnotationsValidation</code> filter</td>
+</tr>
+<tr>
+<td><code>src/APITemplate/Api/Extensions/WolverineTypeExtensions.cs</code></td>
+<td><code>IsErrorOrReturnType</code> helper</td>
+</tr>
+<tr>
+<td><code>src/APITemplate/Api/Program.cs</code></td>
+<td>Wolverine middleware policy registration</td>
+</tr>
+<tr>
+<td><code>tests/APITemplate.Tests/Integration/Validation/BoundaryValidationIntegrationTests.cs</code></td>
+<td>End-to-end HTTP validation tests</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/zribktad/API-Template-Modules" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.path", "navigation.top", "navigation.tracking", "navigation.indexes", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tooltips"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
