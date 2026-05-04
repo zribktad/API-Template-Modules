@@ -1,6 +1,5 @@
 using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Application.Http;
-using BuildingBlocks.Application.Options;
 using FileStorage.Contracts;
 using Identity.Auth.Options;
 using Npgsql;
@@ -100,10 +99,6 @@ internal sealed class InfrastructureDiagnosticStartupFilter(
 
     private void LogSecurityStatus()
     {
-        RequestOptions? requestOptions = configuration
-            .GetSection(RequestOptions.Section)
-            .Get<RequestOptions>();
-
         if (!environment.IsDevelopment())
         {
             logger.HstsEnabled();
@@ -111,11 +106,6 @@ internal sealed class InfrastructureDiagnosticStartupFilter(
         else
         {
             logger.HstsDisabled();
-        }
-
-        if (requestOptions != null)
-        {
-            // Diagnostics for request limits could be added here.
         }
 
         LogRateLimitingStatus();

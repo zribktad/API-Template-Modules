@@ -24,7 +24,7 @@
     <PackageVersion Include="HotChocolate.AspNetCore" Version="16.0.0" />
     <PackageVersion Include="HotChocolate.AspNetCore.Authorization" Version="16.0.0" />
     <PackageVersion Include="HotChocolate.Data.EntityFramework" Version="16.0.0" />
-    <PackageVersion Include="HotChocolate.Diagnostics" Version="15.1.15" />
+    <PackageVersion Include="HotChocolate.Diagnostics" Version="16.0.0" />
     <PackageVersion Include="JasperFx" Version="1.28.2" />
     <PackageVersion Include="Keycloak.AuthServices.Authentication" Version="2.8.0" />
     <PackageVersion Include="Keycloak.AuthServices.Authorization" Version="2.8.0" />

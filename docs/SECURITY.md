@@ -59,7 +59,7 @@ The application is built with a multi-tenant architecture, ensuring strict data 
 
 ### Request Size Limits
 To mitigate Large Payload Denial-of-Service (DoS) attacks, the API enforces strict request body size limits:
-- **Default Limit:** 1 MB (configured via `Security:RequestSizeLimitMb`). Standard ASP.NET Core defaults to 30 MB, which is excessively high for most REST/GraphQL API calls and can be exploited to exhaust server memory/bandwidth.
+- **Default Limit:** 1 MB (configured via `Request:RequestSizeLimitMb`). Standard ASP.NET Core defaults to 30 MB, which is excessively high for most REST/GraphQL API calls and can be exploited to exhaust server memory/bandwidth.
 - **Overrides:** Specific endpoints that require larger payloads (e.g., file uploads in `FileStorage`) use the `[RequestSizeLimit]` attribute to safely allow larger requests (e.g., 10 MB or 100 MB) without compromising the rest of the system.
 
 ### Modern Browser Isolation Headers

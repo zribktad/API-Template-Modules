@@ -1,5 +1,6 @@
 using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Application.Options;
+using Microsoft.AspNetCore.Server.IIS;
 
 namespace APITemplate.Api.Extensions;
 

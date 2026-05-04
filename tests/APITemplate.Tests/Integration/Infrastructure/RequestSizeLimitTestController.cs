@@ -9,22 +9,22 @@ namespace APITemplate.Tests.Integration.Infrastructure;
 public class RequestSizeLimitTestController : ControllerBase
 {
     [HttpPost("global-limit")]
-    public IActionResult PostWithGlobalLimit()
+    public IActionResult PostWithGlobalLimit([FromBody] string body)
     {
-        return Ok("Global limit applied");
+        return Ok(body);
     }
 
     [HttpPost("disable-limit")]
     [DisableRequestSizeLimit]
-    public IActionResult PostWithDisabledLimit()
+    public IActionResult PostWithDisabledLimit([FromBody] string body)
     {
-        return Ok("Limit disabled");
+        return Ok(body);
     }
 
     [HttpPost("custom-limit")]
     [RequestSizeLimit(10 * 1024 * 1024)] // 10 MB custom limit
-    public IActionResult PostWithCustomLimit()
+    public IActionResult PostWithCustomLimit([FromBody] string body)
     {
-        return Ok("Custom limit applied");
+        return Ok(body);
     }
 }

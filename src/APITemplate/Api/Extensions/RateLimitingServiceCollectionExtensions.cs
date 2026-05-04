@@ -78,6 +78,8 @@ public static class RateLimitingServiceCollectionExtensions
     private static void AddRedisPolicies(RateLimiterOptions limiter, RateLimitingOptions opts)
     {
         // Named policy providing a distributed fixed request budget per time window.
+        // NOTE: RedisRateLimiting library (RedisFixedWindowRateLimiterOptions) does NOT support
+        // QueueLimit or QueueProcessingOrder. These settings from opts.Fixed are ignored in Redis mode.
         limiter.AddPolicy(
             RateLimitPolicies.Fixed,
             ctx =>
@@ -97,6 +99,8 @@ public static class RateLimitingServiceCollectionExtensions
         );
 
         // Named policy providing a distributed sliding request budget.
+        // NOTE: RedisRateLimiting library (RedisSlidingWindowRateLimiterOptions) does NOT support
+        // QueueLimit, QueueProcessingOrder, or SegmentsPerWindow. These settings from opts.Sliding are ignored in Redis mode.
         limiter.AddPolicy(
             RateLimitPolicies.Sliding,
             ctx =>
@@ -116,6 +120,8 @@ public static class RateLimitingServiceCollectionExtensions
         );
 
         // Global baseline partitioned by authenticated user ID or remote IP address.
+        // NOTE: RedisRateLimiting library (RedisTokenBucketRateLimiterOptions) does NOT support
+        // QueueLimit or QueueProcessingOrder. These settings from opts.Global are ignored in Redis mode.
         limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
         {
             IConnectionMultiplexer redis =
