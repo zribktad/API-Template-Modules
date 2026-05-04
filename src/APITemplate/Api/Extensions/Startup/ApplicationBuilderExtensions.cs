@@ -22,6 +22,17 @@ public static class ApplicationBuilderExtensions
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
         app.UseExceptionHandler();
+
+        // Explicitly trigger routing here so the next middleware (RequestSizeLimits)
+        // can read the endpoint metadata to check for custom size limits.
+        //
+        // WHY THIS IS NEEDED:
+        // The RequestSizeLimits middleware calls context.GetEndpoint() to check
+        // for IRequestSizeLimitMetadata (set by [DisableRequestSizeLimit] /
+        // [RequestSizeLimit] attributes). Without UseRouting() being called
+        // first, the endpoint would be null and custom limits would be ignored.
+        app.UseRouting();
+
         app.UseRequestSizeLimits();
 
         app.UseSecurityHeadersPolicy();

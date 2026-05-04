@@ -89,6 +89,7 @@
     <Compile Include="Integration\Infrastructure\RateLimitingIntegrationTests.cs" />
     <Compile Include="Integration\Infrastructure\RateLimitTestController.cs" />
     <Compile Include="Integration\Infrastructure\RateLimitWebApplicationFactory.cs" />
+    <Compile Include="Integration\Infrastructure\RequestSizeLimitTestController.cs" />
     <Compile Include="Integration\Infrastructure\HstsIntegrationTests.cs" />
     <Compile Include="Integration\Infrastructure\InfrastructureConfigurationTests.cs" />
     <Compile Include="Integration\Infrastructure\ScalarAndOpenApiTests.cs" />
