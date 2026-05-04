@@ -22,6 +22,7 @@ public static class ApplicationBuilderExtensions
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
         app.UseExceptionHandler();
+        app.UseRequestSizeLimits();
 
         app.UseSecurityHeadersPolicy();
         app.UseHttpsRedirection();

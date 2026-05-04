@@ -4,9 +4,11 @@ using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Application.Context;
 using BuildingBlocks.Application.Errors;
 using BuildingBlocks.Application.Http;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Web.Api;
 using ErrorOr;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using RedisRateLimiting;
 using RedisRateLimiting.AspNetCore;
@@ -33,86 +35,92 @@ public static class RateLimitingServiceCollectionExtensions
     )
     {
         services.AddValidatedOptions<RateLimitingOptions>(configuration);
+        services.AddRateLimiter();
+        services.ConfigureOptions<RateLimiterOptionsSetup>();
+        return services;
+    }
 
-        RateLimitingOptions opts =
-            configuration.SectionFor<RateLimitingOptions>().Get<RateLimitingOptions>() ?? new();
-
-        // Distributed Rate Limiting requires Redis and explicit opt-in via AllowDistributedRateLimiting.
-        // If disabled or Redis is missing, we fall back to in-memory limiting.
-        bool useRedis =
-            opts.AllowDistributedRateLimiting
-            && services.Any(d => d.ServiceType == typeof(IConnectionMultiplexer));
-
-        services.AddRateLimiter(limiter =>
+    /// <summary>
+    ///     A class automatically invoked by the ASP.NET Core DI container (via the Options pattern)
+    ///     during Rate Limiter initialization. It ensures dynamic switching between
+    ///     distributed (Redis) and local (In-Memory) modes.
+    /// </summary>
+    private sealed class RateLimiterOptionsSetup(
+        IOptions<RateLimitingOptions> options,
+        IConfiguration configuration
+    ) : IConfigureOptions<RateLimiterOptions>
+    {
+        /// <summary>
+        ///     The main configuration method. It populates an empty <see cref="RateLimiterOptions"/>
+        ///     object with policies based on the settings from appsettings.json.
+        /// </summary>
+        public void Configure(RateLimiterOptions limiter)
         {
+            RateLimitingOptions opts = options.Value;
+            // Check whether we want and can use Redis as a shared backplane for all API instances
+            bool useRedis = opts.AllowDistributedRateLimiting && configuration.IsRedisConfigured();
+
+            // Register corresponding policy implementations (Global, Fixed, Sliding)
             if (useRedis)
             {
-                AddRedisPolicies(limiter, opts, services);
+                AddRedisPolicies(limiter, opts);
             }
             else
             {
                 AddInMemoryPolicies(limiter, opts);
             }
 
+            // Configure behavior upon limit violation (returns 429 Too Many Requests in RFC 7807 format)
             ConfigureOnRejected(limiter, opts);
-        });
-
-        return services;
+        }
     }
 
-    private static void AddRedisPolicies(
-        RateLimiterOptions limiter,
-        RateLimitingOptions opts,
-        IServiceCollection services
-    )
+    private static void AddRedisPolicies(RateLimiterOptions limiter, RateLimitingOptions opts)
     {
-        // Connection multiplexer resolved lazily from the root provider to avoid BuildServiceProvider cycles.
-        // We use BuildServiceProvider() once here during registration to get the factory,
-        // which is acceptable for singleton-like infrastructure setup if guarded.
-        IServiceProvider rootProvider = services.BuildServiceProvider();
-
-        limiter.AddRedisFixedWindowLimiter(
+        // Named policy providing a distributed fixed request budget per time window.
+        limiter.AddPolicy(
             RateLimitPolicies.Fixed,
-            opt =>
+            ctx =>
             {
-                opt.PermitLimit = opts.Fixed.PermitLimit;
-                opt.Window = TimeSpan.FromMinutes(opts.Fixed.WindowMinutes);
-                opt.ConnectionMultiplexerFactory = () =>
-                    rootProvider.GetRequiredService<IConnectionMultiplexer>();
-            }
-        );
-
-        limiter.AddRedisSlidingWindowLimiter(
-            RateLimitPolicies.Sliding,
-            opt =>
-            {
-                opt.PermitLimit = opts.Sliding.PermitLimit;
-                opt.Window = TimeSpan.FromMinutes(opts.Sliding.WindowMinutes);
-                opt.ConnectionMultiplexerFactory = () =>
-                    rootProvider.GetRequiredService<IConnectionMultiplexer>();
-            }
-        );
-
-        limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
-        {
-            IConnectionMultiplexer? redis =
-                ctx.RequestServices.GetService<IConnectionMultiplexer>();
-            string partitionKey = GetPartitionKey(ctx);
-
-            if (redis is null)
-            {
-                return RateLimitPartition.GetTokenBucketLimiter(
-                    partitionKey: partitionKey,
-                    factory: _ => new TokenBucketRateLimiterOptions
+                IConnectionMultiplexer redis =
+                    ctx.RequestServices.GetRequiredService<IConnectionMultiplexer>();
+                return RedisRateLimitPartition.GetFixedWindowRateLimiter(
+                    partitionKey: GetPartitionKey(ctx),
+                    factory: _ => new RedisFixedWindowRateLimiterOptions
                     {
-                        TokenLimit = opts.Global.PermitLimit,
-                        ReplenishmentPeriod = TimeSpan.FromMinutes(opts.Global.WindowMinutes),
-                        TokensPerPeriod = opts.Global.TokensPerPeriod,
-                        AutoReplenishment = true,
-                        QueueLimit = opts.Global.QueueLimit,
+                        PermitLimit = opts.Fixed.PermitLimit,
+                        Window = TimeSpan.FromMinutes(opts.Fixed.WindowMinutes),
+                        ConnectionMultiplexerFactory = () => redis,
                     }
                 );
             }
+        );
+
+        // Named policy providing a distributed sliding request budget.
+        limiter.AddPolicy(
+            RateLimitPolicies.Sliding,
+            ctx =>
+            {
+                IConnectionMultiplexer redis =
+                    ctx.RequestServices.GetRequiredService<IConnectionMultiplexer>();
+                return RedisRateLimitPartition.GetSlidingWindowRateLimiter(
+                    partitionKey: GetPartitionKey(ctx),
+                    factory: _ => new RedisSlidingWindowRateLimiterOptions
+                    {
+                        PermitLimit = opts.Sliding.PermitLimit,
+                        Window = TimeSpan.FromMinutes(opts.Sliding.WindowMinutes),
+                        ConnectionMultiplexerFactory = () => redis,
+                    }
+                );
+            }
+        );
+
+        // Global baseline partitioned by authenticated user ID or remote IP address.
+        limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+        {
+            IConnectionMultiplexer redis =
+                ctx.RequestServices.GetRequiredService<IConnectionMultiplexer>();
+            string partitionKey = GetPartitionKey(ctx);
 
             return RedisRateLimitPartition.GetTokenBucketRateLimiter(
                 partitionKey: partitionKey,

@@ -29,9 +29,9 @@ public static class SecurityHeadersExtensions
             .AddContentTypeOptionsNoSniff()
             .AddXssProtectionDisabled()
             .AddReferrerPolicyStrictOriginWhenCrossOrigin()
-            .AddCustomHeader("Cross-Origin-Opener-Policy", "same-origin")
-            .AddCustomHeader("Cross-Origin-Embedder-Policy", "require-corp")
-            .AddCustomHeader("Cross-Origin-Resource-Policy", "same-origin");
+            .AddCrossOriginOpenerPolicy(builder => builder.SameOrigin())
+            .AddCrossOriginEmbedderPolicy(builder => builder.RequireCorp())
+            .AddCrossOriginResourcePolicy(builder => builder.SameOrigin());
 
         if (!environment.IsDevelopment())
         {

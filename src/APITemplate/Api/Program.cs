@@ -6,6 +6,7 @@ using Asp.Versioning;
 using BackgroundJobs;
 using BuildingBlocks.Application.Context;
 using BuildingBlocks.Application.Http;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Infrastructure.EFCore.Persistence;
 using BuildingBlocks.Infrastructure.Mongo;
 using BuildingBlocks.Web.Health;
@@ -34,13 +35,7 @@ string connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required.");
 
-builder.WebHost.ConfigureKestrel(
-    (context, options) =>
-    {
-        options.Limits.MaxRequestBodySize =
-            context.Configuration.GetValue<long>("Security:RequestSizeLimitMb") * 1024 * 1024;
-    }
-);
+builder.WebHost.ConfigureKestrelRequestLimits(builder.Configuration);
 
 builder.AddApplicationRedaction();
 
@@ -62,11 +57,7 @@ builder.Host.UseSerilog(
 MongoSerializationConfiguration.Configure();
 
 builder.Services.AddRequestContext();
-builder.Services.Configure<IISServerOptions>(options =>
-{
-    options.MaxRequestBodySize =
-        builder.Configuration.GetValue<long>("Security:RequestSizeLimitMb") * 1024 * 1024;
-});
+builder.Services.AddRequestSizeLimits(builder.Configuration);
 builder.Services.AddHstsRegistration(builder.Configuration);
 builder.Services.AddApiVersioningRegistration();
 builder.Services.AddRequestValidation();
