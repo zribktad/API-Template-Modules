@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
@@ -35,6 +36,19 @@ public sealed class HstsIntegrationTests
         var testFactory = _factory.WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment(environment);
+
+            builder.ConfigureAppConfiguration(
+                (context, config) =>
+                {
+                    config.AddInMemoryCollection(
+                        new Dictionary<string, string?>
+                        {
+                            { "Ldap:Host", "localhost" },
+                            { "Ldap:BaseDn", "dc=domain,dc=com" },
+                        }
+                    );
+                }
+            );
 
             builder.ConfigureServices(services =>
             {

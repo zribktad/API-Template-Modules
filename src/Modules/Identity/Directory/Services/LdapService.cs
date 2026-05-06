@@ -49,10 +49,36 @@ public sealed class LdapService : ILdapService
                 );
             }
 
-            string userDn = user.DistinguishedName!;
+            // 2. Try to bind with user credentials
+            // For AD with Negotiate (default), UPN (user@domain) is often more reliable than DN.
+            string bindUsername = user.DistinguishedName!;
+            if (
+                !string.IsNullOrEmpty(_options.BindDn)
+                && _options.BindDn.Contains('@')
+                && !username.Contains('@')
+            )
+            {
+                var domain = _options.BindDn.Split('@')[1];
+                bindUsername = $"{username}@{domain}";
+            }
 
-            // 2. Simple Bind is a blocking operation in S.DSP, so we wrap it in Task.Run.
-            await Task.Run(() => connection.Bind(new NetworkCredential(userDn, password)));
+            try
+            {
+                await Task.Run(() =>
+                    connection.Bind(new NetworkCredential(bindUsername, password))
+                );
+            }
+            catch (LdapException ex)
+                when (ex.ErrorCode == 49 && bindUsername != user.DistinguishedName)
+            {
+                _logger.LogDebug(
+                    "UPN bind failed, falling back to DN bind for {Username}",
+                    username
+                );
+                await Task.Run(() =>
+                    connection.Bind(new NetworkCredential(user.DistinguishedName, password))
+                );
+            }
 
             return user;
         }
@@ -128,7 +154,22 @@ public sealed class LdapService : ILdapService
                 DirectoryAttribute? attr = entry.Attributes[attrName];
                 if (attr != null)
                 {
-                    attributes[attrName] = attr.GetValues(typeof(string)).Cast<string>().ToArray();
+                    try
+                    {
+                        // Some LDAP attributes are binary (e.g., objectSid, objectGuid) and throw when read as strings.
+                        // We filter for string values to populate the response.
+                        object[] values = attr.GetValues(typeof(string));
+                        attributes[attrName] = values.OfType<string>().ToArray();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(
+                            ex,
+                            "Skipping binary or incompatible LDAP attribute {AttributeName} for user {Username}",
+                            attrName,
+                            username
+                        );
+                    }
                 }
             }
 
@@ -154,6 +195,7 @@ public sealed class LdapService : ILdapService
 
         LdapConnection connection = new(identifier);
         connection.SessionOptions.ProtocolVersion = 3;
+        // Negotiate is default on Windows and works well with UPNs
 
         if (_options.UseSsl)
         {

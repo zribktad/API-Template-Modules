@@ -1,11 +1,28 @@
+using Ardalis.Specification;
 using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
 using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Interfaces;
+using Identity.Persistence;
+using Identity.ValueObjects;
 using SharedKernel.Contracts.Queries.Identity;
 
 namespace Identity.Directory.Handlers;
+
+/// <summary>
+///     Specification to find a user by username in a specific tenant, ignoring global query filters.
+/// </summary>
+public sealed class UserByUsernameAndTenantSpecification : Specification<AppUser>
+{
+    public UserByUsernameAndTenantSpecification(string username, Guid tenantId)
+    {
+        string normalizedUsername = NormalizedString.Normalize(username);
+        Query
+            .IgnoreQueryFilters()
+            .Where(u => u.DbNormalizedUsername == normalizedUsername && u.TenantId == tenantId);
+    }
+}
 
 /// <summary>
 ///     Wolverine handler for AuthenticateLdapQuery.
@@ -16,7 +33,7 @@ public static class AuthenticateLdapHandler
         AuthenticateLdapQuery query,
         ILdapService ldapService,
         IUserRepository userRepository,
-        IUnitOfWork unitOfWork,
+        IUnitOfWork<IdentityDbMarker> unitOfWork,
         CancellationToken ct
     )
     {
@@ -32,10 +49,11 @@ public static class AuthenticateLdapHandler
         }
 
         LdapUserResponse user = authResult.Value;
+        Guid bootstrapTenantId = Guid.Parse(AuthConstants.Tenants.Bootstrap);
 
         // 4. Provision local user if needed
         AppUser? localUser = await userRepository.FirstOrDefaultAsync(
-            new UserByUsernameSpecification(user.Username),
+            new UserByUsernameAndTenantSpecification(user.Username, bootstrapTenantId),
             ct
         );
 
@@ -45,7 +63,7 @@ public static class AuthenticateLdapHandler
                 user.Username,
                 user.Email ?? $"{user.Username}@ldap.local", // Fallback email
                 keycloakUserId: null,
-                tenantId: Guid.Parse(AuthConstants.Tenants.Bootstrap) // LDAP users belong to bootstrap tenant initially
+                tenantId: bootstrapTenantId // LDAP users belong to bootstrap tenant initially
             );
 
             await userRepository.AddAsync(localUser, ct);
