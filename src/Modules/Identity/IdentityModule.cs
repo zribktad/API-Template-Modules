@@ -10,7 +10,9 @@ using Identity.Auth.Validation;
 using Identity.Common.Email;
 using Identity.Configuration;
 using Identity.Directory.Domain.Services;
+using Identity.Directory.Interfaces;
 using Identity.Directory.Options;
+using Identity.Directory.Services;
 using Identity.Options;
 using Keycloak.AuthServices.Sdk;
 using Microsoft.AspNetCore.Builder;
@@ -68,6 +70,7 @@ public static partial class IdentityModule
             );
         services.AddValidatedOptions<TenantInvitationOptions>(configuration);
         services.AddValidatedOptions<SystemIdentityOptions>(configuration);
+        services.AddValidatedOptions<LdapOptions>(configuration);
     }
 
     // ── CORS ─────────────────────────────────────────────────────────────────
@@ -114,6 +117,7 @@ public static partial class IdentityModule
         services.AddSingleton<IExternalIdentityProvider, GoogleIdentityProvider>();
         services.AddScoped<IUserUniquenessChecker, UserUniquenessChecker>();
         services.AddScoped<ITenantUniquenessChecker, TenantUniquenessChecker>();
+        services.AddScoped<ILdapService, LdapService>();
     }
 
     // ── Keycloak Admin ────────────────────────────────────────────────────────

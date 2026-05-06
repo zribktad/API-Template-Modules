@@ -3,6 +3,11 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
+# Install native LDAP libraries required by System.DirectoryServices.Protocols on Linux
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libldap-2.5-0 libldap-common && \
+    rm -rf /var/lib/apt/lists/*
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 

@@ -94,6 +94,7 @@
     <Compile Include="Integration\Infrastructure\InfrastructureConfigurationTests.cs" />
     <Compile Include="Integration\Infrastructure\ScalarAndOpenApiTests.cs" />
     <Compile Include="Integration\Infrastructure\WolverineNotificationTests.cs" />
+    <Compile Include="Integration\Identity\LdapIntegrationTests.cs" />
     <Compile Include="Integration\IntegrationResponseModels.cs" />
   </ItemGroup>
   <ItemGroup>

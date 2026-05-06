@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
+using Wolverine;
 using Xunit;
 
 namespace APITemplate.Tests.Unit.Identity;
@@ -23,7 +24,12 @@ public sealed class BffExternalProvidersTests
     {
         IOptions<BffOptions> options = Options.Create(new BffOptions());
 
-        BffController controller = new(options, new Mock<IBffCsrfTokenService>().Object, providers);
+        BffController controller = new(
+            options,
+            new Mock<IBffCsrfTokenService>().Object,
+            new Mock<IMessageBus>().Object,
+            providers
+        );
 
         Mock<IUrlHelper> urlHelper = new();
         urlHelper

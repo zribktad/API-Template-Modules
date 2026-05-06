@@ -21,6 +21,12 @@ public static class AuthConstants
         public const string TokenEndpointPath = "protocol/openid-connect/token";
     }
 
+    /// <summary>Well-known tenant identifiers used across the platform.</summary>
+    public static class Tenants
+    {
+        public const string Bootstrap = "00000000-0000-0000-0000-000000000001";
+    }
+
     /// <summary>OpenAPI / Scalar UI security scheme and client identifiers.</summary>
     public static class OpenApi
     {

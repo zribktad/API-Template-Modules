@@ -156,6 +156,19 @@ services:
       timeout: 5s
       retries: 5
 
+  samba-ad-dc:
+    image: quay.io/samba.org/samba-ad-server:latest
+    profiles: [ "ldap" ]
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - SAMBA_DOMAIN=api-template
+      - SAMBA_REALM=API-TEMPLATE.LOCAL
+      - SAMBA_ADMIN_PASSWORD=AdminPassword123
+    ports:
+      - "389:389"
+      - "636:636"
+
   api:
     build:
       context: .

@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using SharedKernel.Contracts.Queries.Identity;
+using Wolverine;
 
 namespace Identity.Auth.Controllers.V1;
 
@@ -16,17 +18,20 @@ public sealed class BffController : ApiControllerBase
 {
     private readonly BffOptions _bffOptions;
     private readonly IBffCsrfTokenService _csrfTokens;
+    private readonly IMessageBus _bus;
     private readonly IReadOnlyDictionary<string, IExternalIdentityProvider> _identityProviders;
     private readonly IReadOnlyList<ExternalProviderResponse> _externalProviderResponses;
 
     public BffController(
         IOptions<BffOptions> bffOptions,
         IBffCsrfTokenService csrfTokens,
+        IMessageBus bus,
         IEnumerable<IExternalIdentityProvider> identityProviders
     )
     {
         _bffOptions = bffOptions.Value;
         _csrfTokens = csrfTokens;
+        _bus = bus;
         _identityProviders = identityProviders.ToDictionary(
             p => p.IdpHint,
             p => p,
@@ -35,6 +40,47 @@ public sealed class BffController : ApiControllerBase
         _externalProviderResponses = _identityProviders
             .Values.Select(p => new ExternalProviderResponse(p.IdpHint, p.DisplayName))
             .ToList();
+    }
+
+    [HttpPost("login/ldap")]
+    [AllowAnonymous]
+    public async Task<IActionResult> LoginLdap([FromBody] LdapLoginRequest request)
+    {
+        ErrorOr.ErrorOr<LdapUserContract> result =
+            await _bus.InvokeAsync<ErrorOr.ErrorOr<LdapUserContract>>(
+                new AuthenticateLdapQuery(request.Username, request.Password)
+            );
+
+        if (result.IsError)
+        {
+            return result.ToErrorResult(this);
+        }
+
+        LdapUserContract ldapUser = result.Value;
+        List<Claim> claims = new()
+        {
+            new Claim(AuthConstants.Claims.Subject, ldapUser.LocalId.ToString()),
+            new Claim(AuthConstants.Claims.TenantId, AuthConstants.Tenants.Bootstrap),
+            new Claim(ClaimTypes.Name, ldapUser.DisplayName ?? ldapUser.Username),
+            new Claim("display_name", ldapUser.DisplayName ?? ldapUser.Username),
+            new Claim("auth_method", "ldap"),
+        };
+
+        if (!string.IsNullOrEmpty(ldapUser.Email))
+        {
+            claims.Add(new Claim(ClaimTypes.Email, ldapUser.Email));
+        }
+
+        ClaimsIdentity identity = new(claims, AuthConstants.BffSchemes.Cookie);
+        ClaimsPrincipal principal = new(identity);
+
+        await HttpContext.SignInAsync(
+            AuthConstants.BffSchemes.Cookie,
+            principal,
+            new AuthenticationProperties { IsPersistent = true }
+        );
+
+        return Ok();
     }
 
     [HttpGet("login")]
