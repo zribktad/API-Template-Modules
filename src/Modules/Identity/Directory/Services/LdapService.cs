@@ -128,7 +128,9 @@ public sealed class LdapService : ILdapService
                 _options.BaseDn,
                 filter,
                 SearchScope.Subtree,
-                null // Request all attributes
+                "mail",
+                "displayName",
+                "cn"
             );
 
             // Execute search asynchronously

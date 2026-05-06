@@ -1,11 +1,12 @@
 using Ardalis.Specification;
 using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
-using Identity.Auth.Security;
 using Identity.Directory.Entities;
 using Identity.Directory.Interfaces;
+using Identity.Directory.Options;
 using Identity.Persistence;
 using Identity.ValueObjects;
+using Microsoft.Extensions.Options;
 using SharedKernel.Contracts.Queries.Identity;
 
 namespace Identity.Directory.Handlers;
@@ -34,6 +35,7 @@ public static class AuthenticateLdapHandler
         ILdapService ldapService,
         IUserRepository userRepository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
+        IOptions<LdapOptions> ldapOptions,
         CancellationToken ct
     )
     {
@@ -49,9 +51,9 @@ public static class AuthenticateLdapHandler
         }
 
         LdapUserResponse user = authResult.Value;
-        Guid bootstrapTenantId = Guid.Parse(AuthConstants.Tenants.Bootstrap);
+        Guid bootstrapTenantId = ldapOptions.Value.DefaultTenantId;
 
-        // 4. Provision local user if needed
+        // Provision local user if needed
         AppUser? localUser = await userRepository.FirstOrDefaultAsync(
             new UserByUsernameAndTenantSpecification(user.Username, bootstrapTenantId),
             ct
@@ -61,9 +63,9 @@ public static class AuthenticateLdapHandler
         {
             localUser = AppUser.Create(
                 user.Username,
-                user.Email ?? $"{user.Username}@ldap.local", // Fallback email
+                user.Email ?? $"{user.Username}@{ldapOptions.Value.FallbackEmailDomain}",
                 keycloakUserId: null,
-                tenantId: bootstrapTenantId // LDAP users belong to bootstrap tenant initially
+                tenantId: bootstrapTenantId
             );
 
             await userRepository.AddAsync(localUser, ct);
@@ -76,7 +78,7 @@ public static class AuthenticateLdapHandler
             );
         }
 
-        // 5. Update local details (Sync)
+        // Update local details (Sync)
         if (!string.IsNullOrEmpty(user.Email))
         {
             localUser.Email = new NormalizedString(user.Email);
