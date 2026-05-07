@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc" />
+    <PackageReference Include="JasperFx" />
     <PackageReference Include="WolverineFx" />
   </ItemGroup>
 

@@ -22,6 +22,7 @@
     <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" />
     <PackageReference Include="Asp.Versioning.Mvc" />
     <PackageReference Include="ErrorOr" />
+  <PackageReference Include="JasperFx" />
     <PackageReference Include="Keycloak.AuthServices.Sdk" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />

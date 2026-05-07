@@ -28,6 +28,7 @@
     <PackageReference Include="HotChocolate.AspNetCore" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" />
     <PackageReference Include="HotChocolate.Data.EntityFramework" />
+  <PackageReference Include="JasperFx" />
     <PackageReference Include="Kot.MongoDB.Migrations" />
     <PackageReference Include="Kot.MongoDB.Migrations.DI" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
