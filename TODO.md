@@ -115,6 +115,12 @@
 - [ ] **Standardize module endpoint mapping**  
   Ensure all modules follow the `app.MapXXXEndpoints()` convention and are called centrally from `MapApplicationEndpoints`. Review existing modules (`Identity`, `BackgroundJobs`, `Webhooks`) that might be missing explicit mapping calls or have inconsistent routing setups.
 
+- [x] **Configuration Overhaul (Modular Options + JSON5)**  
+  Successfully transitioned from standard JSON to JSON5 with comments/trailing commas. Implemented `IModuleOptions` interface and `AddModuleOptions<T>` fluent API with Fail-Fast validation on startup for all modules.
+
+- [ ] **Finalize Program.cs cleanup after module extraction**  
+  Once all modules (Reviews, Chatting) are fully isolated, perform the final rewiring in `Program.cs` to remove legacy project references and redundant service registrations.
+
 
 ## RFC / HTTP Standards
 
