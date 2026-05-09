@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Web.Logging;
 
 namespace Notifications.Contracts;
@@ -8,8 +9,10 @@ namespace Notifications.Contracts;
 ///     Configuration for the outbound SMTP email service, including connection settings, sender identity,
 ///     and retry behaviour.
 /// </summary>
-public sealed class EmailOptions
+public sealed class EmailOptions : IModuleOptions
 {
+    public static string SectionName => "Email";
+
     [Description("SMTP server hostname used for outbound email delivery.")]
     [Required]
     [MinLength(1)]

@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Options;
 using Microsoft.Extensions.Options;
 
 namespace BackgroundJobs.Options;
@@ -7,8 +8,10 @@ namespace BackgroundJobs.Options;
 /// <summary>
 ///     Aggregates per-job configuration options for all registered background jobs in the application.
 /// </summary>
-public sealed class BackgroundJobsOptions
+public sealed class BackgroundJobsOptions : IModuleOptions
 {
+    public static string SectionName => "BackgroundJobs";
+
     [Description("Scheduler-level options controlling the TickerQ runtime.")]
     [Required]
     [ValidateObjectMembers]

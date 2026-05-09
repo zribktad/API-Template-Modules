@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Options;
 
 namespace FileStorage.Contracts;
 
@@ -7,8 +8,10 @@ namespace FileStorage.Contracts;
 ///     Configuration for the content-addressed file-storage layer, including on-disk layout, upload size limit,
 ///     allowed file extensions, saga staging TTL, and orphan-blob reaper schedule.
 /// </summary>
-public sealed class FileStorageOptions
+public sealed class FileStorageOptions : IModuleOptions
 {
+    public static string SectionName => "FileStorage";
+
     [Description(
         "Base directory under which staging and blob subdirectories are created by default."
     )]

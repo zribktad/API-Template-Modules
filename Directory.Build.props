@@ -1,10 +1,19 @@
 <Project>
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Force upgrade of transitive vulnerabilities from MongoDB.Driver and others -->
+    <PackageReference Include="Snappier" />
+    <PackageReference Include="SharpCompress" />
+  </ItemGroup>
 
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('Tests'))">
     <IsPackable>false</IsPackable>

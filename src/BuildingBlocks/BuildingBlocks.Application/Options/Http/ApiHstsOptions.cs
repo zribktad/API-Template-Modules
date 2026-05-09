@@ -5,8 +5,10 @@ namespace BuildingBlocks.Application.Options.Http;
 /// <summary>
 ///     Configures HTTP Strict Transport Security (HSTS) settings for the API host.
 /// </summary>
-public sealed class ApiHstsOptions
+public sealed class ApiHstsOptions : IModuleOptions
 {
+    public static string SectionName => "Hsts";
+
     /// <summary>
     ///     Enables HSTS preloading, allowing the domain to be included in browser preload lists.
     ///     Caution: This is effectively irreversible once submitted.
@@ -24,4 +26,3 @@ public sealed class ApiHstsOptions
     [Range(1, int.MaxValue)]
     public int MaxAgeDays { get; set; } = 365;
 }
-

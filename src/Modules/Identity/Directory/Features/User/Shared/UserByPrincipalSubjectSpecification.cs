@@ -4,7 +4,7 @@ using Identity.Directory.Entities;
 namespace Identity.Directory.Features.User;
 
 /// <summary>
-///     Finds a user by Keycloak subject string or, when <paramref name="subjectMatchesApplicationUserId" />, by
+///     Finds a user by Keycloak subject string or by
 ///     application user id. Ignores global query filters (no tenant context during claims transformation).
 /// </summary>
 public sealed class UserByPrincipalSubjectSpecification : Specification<AppUser>

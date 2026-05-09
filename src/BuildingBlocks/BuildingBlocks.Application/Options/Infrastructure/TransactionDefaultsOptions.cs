@@ -9,8 +9,10 @@ namespace BuildingBlocks.Application.Options.Infrastructure;
 ///     Application-level defaults for database transaction settings that can be overridden per call site.
 ///     Consumed by infrastructure components to build consistent <see cref="TransactionOptions" /> instances.
 /// </summary>
-public sealed class TransactionDefaultsOptions
+public sealed class TransactionDefaultsOptions : IModuleOptions
 {
+    public static string SectionName => "TransactionDefaults";
+
     [Description("Default database isolation level applied when a transaction starts.")]
     public IsolationLevel IsolationLevel { get; set; } = IsolationLevel.ReadCommitted;
 
@@ -82,4 +84,3 @@ public sealed class TransactionDefaultsOptions
         }
     }
 }
-

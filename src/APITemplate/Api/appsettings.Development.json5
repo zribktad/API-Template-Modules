@@ -1,3 +1,10 @@
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * DEVELOPMENT OVERRIDES (JSON5)
+ * ──────────────────────────────────────────────────────────────────────────────
+ * These settings are active only when ASPNETCORE_ENVIRONMENT is 'Development'.
+ * Use this for local Docker/Infrastructure links and verbose logging.
+ */
 {
   "ErrorDocumentation": {
     "ErrorTypeBaseUri": "https://localhost:7289/errors"
@@ -8,6 +15,8 @@
   "Dragonfly": {
     "ConnectionString": "localhost:6379"
   },
+  
+  // Local development overrides for Keycloak
   "Keycloak": {
     "realm": "api-template",
     "auth-server-url": "http://localhost:8180/",
@@ -19,6 +28,8 @@
     },
     "confidential-port": 0
   },
+  
+  // Local development MailHog/Mailpit SMTP server
   "Email": {
     "SmtpHost": "localhost",
     "SmtpPort": 1025,
@@ -30,6 +41,8 @@
   "TenantInvitation": {
     "BaseUrl": "http://localhost:5000"
   },
+  
+  // Development redaction key. DO NOT USE IN PRODUCTION.
   "Redaction": {
     "HmacKeyEnvironmentVariable": "APITEMPLATE_REDACTION_HMAC_KEY",
     "HmacKey": "mV7XhO9YXNw1fGKxvRrQz6CkKUL5jvN3i8A0Jv3cL2Q=",
@@ -38,8 +51,10 @@
   },
   "Webhook": {
     "Secret": "dev-webhook-secret-at-least-16-chars",
-    "AllowLocalRequests": true
+    "AllowLocalRequests": true // Allow sending webhooks to localhost in dev
   },
+  
+  // Verbose logging for development
   "Serilog": {
     "MinimumLevel": {
       "Default": "Debug",

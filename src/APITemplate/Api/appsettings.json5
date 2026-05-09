@@ -1,10 +1,27 @@
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * GLOBAL APPLICATION CONFIGURATION (JSON5)
+ * ──────────────────────────────────────────────────────────────────────────────
+ * This is the base configuration file. Values here can be overridden by:
+ * 1. appsettings.{Environment}.json5
+ * 2. appsettings.Identity.json5, appsettings.Catalog.json5, etc.
+ * 3. Environment Variables
+ * 4. appsettings.local.json5 (Git-ignored)
+ */
 {
+  // ── Error Documentation ──────────────────────────────────────────────────
+  // Base URI used for RFC 7807 problem details 'type' fields.
   "ErrorDocumentation": {
     "ErrorTypeBaseUri": ""
   },
+
+  // ── Application Metadata ─────────────────────────────────────────────────
+  // Logical service name used in telemetry and diagnostics.
   "App": {
     "ServiceName": "APITemplate"
   },
+
+  // ── Databases ────────────────────────────────────────────────────────────
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=apitemplate;Username=postgres;Password=postgres"
   },
@@ -17,6 +34,8 @@
     "ConnectTimeoutMs": 5000,
     "SyncTimeoutMs": 3000
   },
+
+  // ── Web & HTTP Limits ────────────────────────────────────────────────────
   "Cors": {
     "AllowedOrigins": [
       "http://localhost:3000",
@@ -25,6 +44,18 @@
       "https://localhost:5173"
     ]
   },
+  // Maximum request body size (in Megabytes). Enforced at Kestrel level.
+  "Request": {
+    "RequestSizeLimitMb": 1
+  },
+  "Hsts": {
+    "Preload": false,
+    "IncludeSubDomains": true,
+    "MaxAgeDays": 365
+  },
+  "AllowedHosts": "*",
+
+  // ── Identity & Security ──────────────────────────────────────────────────
   "Keycloak": {
     "realm": "",
     "auth-server-url": "",
@@ -62,9 +93,21 @@
     "RefreshResultTtlMilliseconds": 15000,
     "RevokeSessionOnRefreshFailure": true
   },
+  // Default Actor for automated system actions (No human user).
   "SystemIdentity": {
     "DefaultActorId": "00000000-0000-0000-0000-000000000000"
   },
+  // Initial tenant seeded on first run.
+  "BootstrapTenant": {
+    "Code": "default",
+    "Name": "Default Tenant"
+  },
+  "TenantInvitation": {
+    "InvitationTokenExpiryHours": 72,
+    "BaseUrl": "http://localhost:5000"
+  },
+
+  // ── Resiliency & Rate Limiting ───────────────────────────────────────────
   "RateLimiting": {
     "AllowDistributedRateLimiting": false,
     "Global": { "PermitLimit": 1000, "WindowMinutes": 1, "QueueLimit": 0 },
@@ -87,6 +130,8 @@
     "RetryCount": 3,
     "RetryDelaySeconds": 5
   },
+
+  // ── Observability & Telemetry ────────────────────────────────────────────
   "Observability": {
     "Otlp": {
       "Endpoint": "http://localhost:4317"
@@ -106,6 +151,37 @@
       }
     }
   },
+  "Serilog": {
+    "Using": [
+      "Serilog.Sinks.Console",
+      "Serilog.Enrichers.Environment",
+      "Serilog.Enrichers.Thread"
+    ],
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "Microsoft.AspNetCore": "Warning",
+        "System": "Warning"
+      }
+    },
+    "Enrich": [
+      "FromLogContext",
+      "WithMachineName",
+      "WithThreadId"
+    ],
+    "Properties": {
+      "Application": "APITemplate"
+    },
+    "WriteTo": [
+      {
+        "Name": "Console"
+      }
+    ]
+  },
+  "WolverineHealthCheck": {},
+
+  // ── Integrations & Modules ───────────────────────────────────────────────
   "Email": {
     "SmtpHost": "localhost",
     "SmtpPort": 587,
@@ -115,10 +191,6 @@
     "BaseUrl": "http://localhost:5174",
     "MaxRetryAttempts": 3,
     "RetryBaseDelaySeconds": 2
-  },
-  "TenantInvitation": {
-    "InvitationTokenExpiryHours": 72,
-    "BaseUrl": "http://localhost:5000"
   },
   "BackgroundJobs": {
     "TickerQ": {
@@ -152,51 +224,9 @@
       "ClaimLeaseMinutes": 10
     }
   },
-  "BootstrapTenant": {
-    "Code": "default",
-    "Name": "Default Tenant"
-  },
-  "Serilog": {
-    "Using": [
-      "Serilog.Sinks.Console",
-      "Serilog.Enrichers.Environment",
-      "Serilog.Enrichers.Thread"
-    ],
-    "MinimumLevel": {
-      "Default": "Information",
-      "Override": {
-        "Microsoft": "Warning",
-        "Microsoft.AspNetCore": "Warning",
-        "System": "Warning"
-      }
-    },
-    "Enrich": [
-      "FromLogContext",
-      "WithMachineName",
-      "WithThreadId"
-    ],
-    "Properties": {
-      "Application": "APITemplate"
-    },
-    "WriteTo": [
-      {
-        "Name": "Console"
-      }
-    ]
-  },
-  "WolverineHealthCheck": {},
   "Webhook": {
     "Secret": "",
     "TimestampToleranceSeconds": 300,
     "AllowLocalRequests": false
-  },
-  "Request": {
-    "RequestSizeLimitMb": 1
-  },
-  "Hsts": {
-    "Preload": false,
-    "IncludeSubDomains": true,
-    "MaxAgeDays": 365
-  },
-  "AllowedHosts": "*"
+  }
 }

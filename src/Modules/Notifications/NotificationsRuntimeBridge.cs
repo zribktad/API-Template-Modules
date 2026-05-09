@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
 using BuildingBlocks.Infrastructure.EFCore.Startup;
@@ -35,9 +36,10 @@ public static class NotificationsRuntimeBridge
             .ForwardUnitOfWork<NotificationsDbMarker>()
             .AddRepository<IFailedEmailRepository, FailedEmailRepository>();
 
-        IConfigurationSection emailSection = configuration.SectionFor<EmailOptions>();
-        EmailOptions emailOptions = emailSection.Get<EmailOptions>() ?? new EmailOptions();
-        services.AddValidatedOptions<EmailOptions>(configuration);
+        services.AddModuleOptions<EmailOptions>(configuration);
+        EmailOptions emailOptions =
+            configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>()
+            ?? new EmailOptions();
 
         services.AddSingleton<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
         services.AddSingleton<IEmailSender, MailKitEmailSender>();

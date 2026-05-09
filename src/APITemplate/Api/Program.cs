@@ -31,6 +31,21 @@ using Wolverine.Postgresql;
 #region Setup & Logging
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// NEW: Explicit Configuration Ordering (JSON5 Only)
+builder.Configuration.Sources.Clear();
+builder
+    .Configuration.AddJsonFile("appsettings.json5", optional: false, reloadOnChange: true)
+    .AddJsonFile(
+        $"appsettings.{builder.Environment.EnvironmentName}.json5",
+        optional: true,
+        reloadOnChange: true
+    )
+    .AddJsonFile("appsettings.Identity.json5", optional: true, reloadOnChange: true)
+    .AddJsonFile("appsettings.Catalog.json5", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables()
+    .AddJsonFile("appsettings.local.json5", optional: true, reloadOnChange: true);
+
 string connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required.");

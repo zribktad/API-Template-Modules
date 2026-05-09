@@ -10,6 +10,8 @@ public sealed class LocalSingleProcessJobCoordinator : IDistributedJobCoordinato
 {
     /// <inheritdoc />
     /// <param name="jobName">Unused; retained for <see cref="IDistributedJobCoordinator" /> contract.</param>
+    /// <param name="action">The action to execute.</param>
+    /// <param name="ct">Cancellation token.</param>
     public Task ExecuteIfLeaderAsync(
         string jobName,
         Func<CancellationToken, Task> action,

@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Infrastructure.EFCore.Startup;
 using Identity.Auth.Http;
@@ -55,19 +56,14 @@ public static partial class IdentityModule
 
     private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddValidatedOptions<KeycloakOptions>(configuration);
-        services.AddValidatedOptions<BffOptions>(configuration);
+        services.AddModuleOptions<KeycloakOptions>(configuration);
+        services.AddModuleOptions<BffOptions>(configuration);
         services.AddSingleton<IValidateOptions<BffOptions>, BffOptionsValidator>();
         services.AddSingleton<IValidateOptions<KeycloakOptions>, KeycloakOptionsValidator>();
-        services.AddValidatedOptions<CorsOptions>(configuration);
-        services
-            .AddValidatedOptions<BootstrapTenantOptions>(configuration)
-            .Validate(
-                o => !string.IsNullOrWhiteSpace(o.Code) && !string.IsNullOrWhiteSpace(o.Name),
-                "Bootstrap tenant code/name is required"
-            );
-        services.AddValidatedOptions<TenantInvitationOptions>(configuration);
-        services.AddValidatedOptions<SystemIdentityOptions>(configuration);
+        services.AddModuleOptions<CorsOptions>(configuration);
+        services.AddModuleOptions<BootstrapTenantOptions>(configuration);
+        services.AddModuleOptions<TenantInvitationOptions>(configuration);
+        services.AddModuleOptions<SystemIdentityOptions>(configuration);
     }
 
     // ── CORS ─────────────────────────────────────────────────────────────────

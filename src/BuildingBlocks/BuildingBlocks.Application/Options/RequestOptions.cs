@@ -5,8 +5,10 @@ namespace BuildingBlocks.Application.Options;
 /// <summary>
 ///     Binds to "Request" section. Centralizes limits and flags for request handling.
 /// </summary>
-public sealed class RequestOptions
+public sealed class RequestOptions : IModuleOptions
 {
+    public static string SectionName => "Request";
+
     public const string Section = "Request";
 
     /// <summary>

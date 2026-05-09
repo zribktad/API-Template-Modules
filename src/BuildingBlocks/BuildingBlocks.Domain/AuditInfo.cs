@@ -1,3 +1,5 @@
+using BuildingBlocks.Domain.Entities.Contracts;
+
 namespace BuildingBlocks.Domain.Entities;
 
 /// <summary>
@@ -11,4 +13,3 @@ public sealed class AuditInfo
     public DateTime UpdatedAtUtc { get; set; }
     public Guid UpdatedBy { get; set; } = AuditDefaults.SystemActorId;
 }
-

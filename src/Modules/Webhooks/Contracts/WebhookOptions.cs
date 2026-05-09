@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Options;
 
 namespace Webhooks.Contracts;
 
@@ -7,8 +8,10 @@ namespace Webhooks.Contracts;
 ///     Configuration for incoming webhook verification, including the shared HMAC secret
 ///     and the tolerance window used to reject replayed requests.
 /// </summary>
-public sealed class WebhookOptions
+public sealed class WebhookOptions : IModuleOptions
 {
+    public static string SectionName => "Webhook";
+
     [Description("Shared HMAC secret used to verify incoming webhook signatures.")]
     [Required]
     [MinLength(16, ErrorMessage = "Webhook secret must be at least 16 characters.")]

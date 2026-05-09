@@ -8,11 +8,11 @@ using Wolverine;
 
 namespace Chatting.Features;
 
-[ApiVersion(1.0)]
 /// <summary>
 /// Presentation-layer controller that demonstrates Server-Sent Events (SSE) by streaming
 /// notifications as newline-delimited JSON over a persistent HTTP connection.
 /// </summary>
+[ApiVersion(1.0)]
 public sealed class SseController(IMessageBus bus) : ApiControllerBase
 {
     private const string EventStreamContentType = "text/event-stream";

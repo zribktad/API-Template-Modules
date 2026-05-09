@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Options;
 
 namespace Identity.Auth.Options;
 
@@ -7,8 +8,10 @@ namespace Identity.Auth.Options;
 ///     Configuration for the Backend-for-Frontend (BFF) session layer, including cookie settings,
 ///     requested OIDC scopes, and token refresh thresholds.
 /// </summary>
-public sealed class BffOptions
+public sealed class BffOptions : IModuleOptions
 {
+    public static string SectionName => "Bff";
+
     [Description("Cookie name used to persist the BFF authenticated session.")]
     [Required]
     [MinLength(1)]

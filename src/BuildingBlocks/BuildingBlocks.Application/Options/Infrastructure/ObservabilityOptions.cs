@@ -7,8 +7,10 @@ namespace BuildingBlocks.Application.Options.Infrastructure;
 /// <summary>
 ///     Root configuration object for observability (tracing, metrics, and logging) exporters and endpoints.
 /// </summary>
-public sealed class ObservabilityOptions
+public sealed class ObservabilityOptions : IModuleOptions
 {
+    public static string SectionName => "Observability";
+
     [Description("Endpoint configuration for OpenTelemetry OTLP export.")]
     [Required]
     [ValidateObjectMembers]
@@ -39,10 +41,7 @@ public sealed class ObservabilityOptions
             return otlpUri;
 
         bool aspireEnabled = Exporters.Aspire.Enabled ?? isDevelopment;
-        if (
-            aspireEnabled
-            && Uri.TryCreate(Aspire.Endpoint, UriKind.Absolute, out Uri? aspireUri)
-        )
+        if (aspireEnabled && Uri.TryCreate(Aspire.Endpoint, UriKind.Absolute, out Uri? aspireUri))
             return aspireUri;
 
         return null;
@@ -99,4 +98,3 @@ public sealed class ObservabilityExporterToggleOptions
     )]
     public bool? Enabled { get; init; }
 }
-
