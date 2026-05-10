@@ -2,7 +2,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.TestData;
 
-/// <summary>Shared inputs for <see cref="ProductCatalog.ValueObjects.Price" /> parametrized tests.</summary>
+/// <summary>Shared inputs for Price parametrized tests.</summary>
 public static class PriceTheoryData
 {
     public static TheoryData<decimal> InvalidNegativeAmounts =>

@@ -16,6 +16,7 @@ using Identity;
 using Identity.Auth.Security;
 using JasperFx;
 using JasperFx.Resources;
+using Json5;
 using MongoDB.Driver;
 using Notifications;
 using ProductCatalog;
@@ -35,16 +36,23 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // NEW: Explicit Configuration Ordering (JSON5 Only)
 builder.Configuration.Sources.Clear();
 builder
-    .Configuration.AddJsonFile("appsettings.json5", optional: false, reloadOnChange: true)
-    .AddJsonFile(
+    .Configuration.AddJson5File("appsettings.json5", optional: false, reloadOnChange: true)
+    .AddJson5File(
         $"appsettings.{builder.Environment.EnvironmentName}.json5",
         optional: true,
         reloadOnChange: true
     )
-    .AddJsonFile("appsettings.Identity.json5", optional: true, reloadOnChange: true)
-    .AddJsonFile("appsettings.Catalog.json5", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables()
-    .AddJsonFile("appsettings.local.json5", optional: true, reloadOnChange: true);
+    .AddJson5File("appsettings.Identity.json5", optional: true, reloadOnChange: true)
+    .AddJson5File("appsettings.Catalog.json5", optional: true, reloadOnChange: true)
+    .AddJson5File("appsettings.local.json5", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
+builder.Configuration.AddCommandLine(args);
 
 string connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")

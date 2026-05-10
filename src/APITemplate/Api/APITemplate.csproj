@@ -5,6 +5,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="appsettings*.json5" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="artifacts\**\*.cs" />
     <Compile Remove="obj-codex\**\*.cs" />
     <None Remove="artifacts\**\*" />

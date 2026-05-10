@@ -5,7 +5,7 @@ namespace APITemplate.Tests.Unit.Helpers;
 
 /// <summary>
 ///     Shared DataAnnotations validation for tests using <see cref="DataAnnotationsValidator" />,
-///     which covers both property attributes (<see cref="Validator.TryValidateObject" />)
+///     which covers both property attributes (Validator.TryValidateObject)
 ///     and constructor-parameter attributes for primary-constructor records.
 /// </summary>
 internal static class DataAnnotationsTestHelper

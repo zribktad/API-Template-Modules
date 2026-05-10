@@ -14,6 +14,7 @@ public sealed class BootstrapTenantOptions : IModuleOptions
     [Description("Code of the tenant that is seeded automatically during first-time bootstrap.")]
     [Required]
     [MinLength(1)]
+    [RegularExpression(@"^(?!\s*$).+", ErrorMessage = "Code cannot be empty or whitespace only.")]
     public string Code { get; init; } = "default";
 
     [Description(
@@ -21,5 +22,6 @@ public sealed class BootstrapTenantOptions : IModuleOptions
     )]
     [Required]
     [MinLength(1)]
+    [RegularExpression(@"^(?!\s*$).+", ErrorMessage = "Name cannot be empty or whitespace only.")]
     public string Name { get; init; } = "Default Tenant";
 }
