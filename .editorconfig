@@ -82,7 +82,7 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
 
 # Modifiers
 csharp_prefer_static_local_function = true:suggestion
-dotnet_style_require_accessibility_modifiers = always:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 csharp_preferred_modifier_order = public, private, protected, internal, file, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, required, volatile, async:suggestion
 
 # this. qualification — never
