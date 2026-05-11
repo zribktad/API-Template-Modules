@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using BuildingBlocks.Domain.Entities;
 using BuildingBlocks.Domain.Entities.Contracts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace BuildingBlocks.Infrastructure.EFCore.Auditing;
 
@@ -68,10 +68,11 @@ public class AuditableEntityStateManager : IAuditableEntityStateManager
         if (
             auditEntry.State is EntityState.Deleted or EntityState.Detached or EntityState.Unchanged
         )
+        {
             auditEntry.State = EntityState.Modified;
+        }
 
         auditEntry.Property(nameof(AuditInfo.UpdatedAtUtc)).CurrentValue = now;
         auditEntry.Property(nameof(AuditInfo.UpdatedBy)).CurrentValue = actor;
     }
 }
-

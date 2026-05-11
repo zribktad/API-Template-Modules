@@ -6,8 +6,7 @@ namespace BuildingBlocks.Infrastructure.EFCore.SoftDelete;
 /// </summary>
 public interface ISoftDeleteCleanupStrategy
 {
-    public string EntityName { get; }
+    string EntityName { get; }
 
-    public Task<int> CleanupAsync(DateTime cutoff, int batchSize, CancellationToken ct = default);
+    Task<int> CleanupAsync(DateTime cutoff, int batchSize, CancellationToken ct = default);
 }
-

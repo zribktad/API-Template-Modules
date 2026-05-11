@@ -1,8 +1,8 @@
 using System.Linq.Expressions;
-using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using BuildingBlocks.Application.Errors;
 using BuildingBlocks.Domain.Common;
+using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 namespace BuildingBlocks.Infrastructure.EFCore.Repositories.Pagination;
 
@@ -18,15 +18,20 @@ internal static class PagedQueryExecutor
     )
     {
         if (pageNumber < 1)
+        {
             return Error.Validation(
                 ErrorCatalog.General.PageOutOfRange,
                 "Page number must be at least 1."
             );
+        }
+
         if (pageSize < 1)
+        {
             return Error.Validation(
                 ErrorCatalog.General.PageOutOfRange,
                 "Page size must be at least 1."
             );
+        }
 
         int skip = (pageNumber - 1) * pageSize;
         int totalCount = await countSource.CountAsync(ct);
@@ -52,4 +57,3 @@ internal static class PagedQueryExecutor
         return new PagedResponse<TResult>(items, totalCount, pageNumber, pageSize);
     }
 }
-

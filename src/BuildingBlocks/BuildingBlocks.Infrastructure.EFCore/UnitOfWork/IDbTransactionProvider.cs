@@ -1,7 +1,7 @@
 using System.Data;
+using BuildingBlocks.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using BuildingBlocks.Domain.Options;
 
 namespace BuildingBlocks.Infrastructure.EFCore.UnitOfWork;
 
@@ -10,14 +10,14 @@ namespace BuildingBlocks.Infrastructure.EFCore.UnitOfWork;
 /// </summary>
 public interface IDbTransactionProvider
 {
-    public IDbContextTransaction? CurrentTransaction { get; }
+    IDbContextTransaction? CurrentTransaction { get; }
 
-    public Task<IDbContextTransaction> BeginTransactionAsync(
+    Task<IDbContextTransaction> BeginTransactionAsync(
         IsolationLevel isolationLevel,
         CancellationToken ct
     );
 
-    public IExecutionStrategy CreateExecutionStrategy(TransactionOptions options);
+    IExecutionStrategy CreateExecutionStrategy(TransactionOptions options);
 }
 
 /// <summary>
@@ -25,4 +25,3 @@ public interface IDbTransactionProvider
 /// </summary>
 public interface IDbTransactionProvider<TContext> : IDbTransactionProvider
     where TContext : DbContext { }
-
