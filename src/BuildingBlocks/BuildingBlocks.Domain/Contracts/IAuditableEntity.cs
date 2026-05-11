@@ -6,6 +6,5 @@ namespace BuildingBlocks.Domain.Entities.Contracts;
 /// </summary>
 public interface IAuditableEntity
 {
-    public AuditInfo Audit { get; set; }
+    AuditInfo Audit { get; set; }
 }
-

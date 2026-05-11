@@ -24,6 +24,5 @@ public interface IStoredProcedure<TResult>
     ///     EF Core automatically converts each interpolated value into a named
     ///     SQL parameter (@p0, @p1, ...), preventing SQL injection.
     /// </summary>
-    public FormattableString ToSql();
+    FormattableString ToSql();
 }
-

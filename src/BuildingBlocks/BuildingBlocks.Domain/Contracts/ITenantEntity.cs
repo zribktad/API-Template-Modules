@@ -6,6 +6,5 @@ namespace BuildingBlocks.Domain.Entities.Contracts;
 /// </summary>
 public interface ITenantEntity
 {
-    public Guid TenantId { get; set; }
+    Guid TenantId { get; set; }
 }
-

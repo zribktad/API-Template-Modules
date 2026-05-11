@@ -34,7 +34,7 @@ public interface IUnitOfWork
     ///     <see cref="ExecuteInTransactionAsync(Func{Task}, CancellationToken, TransactionOptions?)" />
     ///     or <see cref="ExecuteInTransactionAsync{T}(Func{Task{T}}, CancellationToken, TransactionOptions?)" />.
     /// </summary>
-    public Task CommitAsync(CancellationToken ct = default);
+    Task CommitAsync(CancellationToken ct = default);
 
     /// <summary>
     ///     Runs a multi-step relational write flow in one explicit transaction.
@@ -52,7 +52,7 @@ public interface IUnitOfWork
     ///     await _reviewRepository.AddAsync(review, ct);
     ///     }, ct);
     /// </summary>
-    public Task ExecuteInTransactionAsync(
+    Task ExecuteInTransactionAsync(
         Func<Task> action,
         CancellationToken ct = default,
         TransactionOptions? options = null
@@ -68,10 +68,9 @@ public interface IUnitOfWork
     ///     the outermost call.
     ///     Nested calls inherit the active outer transaction policy and must not pass conflicting overrides.
     /// </summary>
-    public Task<T> ExecuteInTransactionAsync<T>(
+    Task<T> ExecuteInTransactionAsync<T>(
         Func<Task<T>> action,
         CancellationToken ct = default,
         TransactionOptions? options = null
     );
 }
-

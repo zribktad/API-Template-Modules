@@ -1,6 +1,6 @@
 using Ardalis.Specification;
-using ErrorOr;
 using BuildingBlocks.Domain.Common;
+using ErrorOr;
 
 namespace BuildingBlocks.Domain.Interfaces;
 
@@ -24,11 +24,10 @@ public interface IRepository<T> : IRepositoryBase<T>
     ///     The specification must contain filter, sort, and projection but <b>no</b> Skip/Take.
     ///     Returns <see cref="Error" /> when the requested page number exceeds the total available pages.
     /// </summary>
-    public Task<ErrorOr<PagedResponse<TResult>>> GetPagedAsync<TResult>(
+    Task<ErrorOr<PagedResponse<TResult>>> GetPagedAsync<TResult>(
         ISpecification<T, TResult> spec,
         int pageNumber,
         int pageSize,
         CancellationToken ct = default
     );
 }
-

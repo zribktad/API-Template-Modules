@@ -13,6 +13,5 @@ namespace BuildingBlocks.Domain.Interfaces;
 public interface IScalarStoredProcedure<TResult>
 {
     /// <inheritdoc cref="IStoredProcedure{TResult}.ToSql" />
-    public FormattableString ToSql();
+    FormattableString ToSql();
 }
-
