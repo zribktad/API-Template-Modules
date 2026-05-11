@@ -7,6 +7,5 @@ namespace BuildingBlocks.Application.Context;
 public interface IActorProvider
 {
     /// <summary>Gets the unique identifier of the acting user.</summary>
-    public Guid ActorId { get; }
+    Guid ActorId { get; }
 }
-

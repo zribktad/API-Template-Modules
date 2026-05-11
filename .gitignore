@@ -42,7 +42,7 @@ Thumbs.db
 .env
 .env.local
 *.env
-appsettings.Development.json
+
 
 # Docker
 docker-compose.override.yml

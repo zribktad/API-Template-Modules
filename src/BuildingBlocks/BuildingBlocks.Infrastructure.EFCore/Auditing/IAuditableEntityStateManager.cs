@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using BuildingBlocks.Domain.Entities.Contracts;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace BuildingBlocks.Infrastructure.EFCore.Auditing;
 
@@ -8,7 +8,7 @@ namespace BuildingBlocks.Infrastructure.EFCore.Auditing;
 /// </summary>
 public interface IAuditableEntityStateManager
 {
-    public void StampAdded(
+    void StampAdded(
         EntityEntry entry,
         IAuditableTenantEntity entity,
         DateTime now,
@@ -17,13 +17,12 @@ public interface IAuditableEntityStateManager
         Guid currentTenantId
     );
 
-    public void StampModified(IAuditableTenantEntity entity, DateTime now, Guid actor);
+    void StampModified(IAuditableTenantEntity entity, DateTime now, Guid actor);
 
-    public void MarkSoftDeleted(
+    void MarkSoftDeleted(
         EntityEntry entry,
         IAuditableTenantEntity entity,
         DateTime now,
         Guid actor
     );
 }
-

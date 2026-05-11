@@ -11,7 +11,7 @@ public static class CategoryMappings
 {
     /// <summary>
     ///     EF Core-compatible expression that projects a <see cref="CategoryEntity" /> to a <see cref="CategoryResponse" />.
-    ///     Shared with <see cref="Specifications" /> so the same shape is produced by both DB queries and in-memory maps.
+    ///     Shared with specifications so the same shape is produced by both DB queries and in-memory maps.
     /// </summary>
     public static readonly Expression<Func<CategoryEntity, CategoryResponse>> Projection =
         category => new CategoryResponse(

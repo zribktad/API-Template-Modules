@@ -77,7 +77,7 @@ public static class ErrorOrGraphQLExtensions
     }
 
     /// <summary>
-    ///     Converts a collection of <see cref="Error" /> objects into a <see cref="GraphQLException" />.
+    ///     Converts a collection of <see cref="ErrorOr.Error" /> objects into a <see cref="GraphQLException" />.
     /// </summary>
     private static GraphQLException ToGraphQLException<T>(this ErrorOr<T> result)
     {

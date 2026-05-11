@@ -2,7 +2,7 @@ using Xunit;
 
 namespace APITemplate.Tests.Unit.TestData;
 
-/// <summary>Shared inputs for <see cref="Identity.ValueObjects.Email" /> parametrized tests.</summary>
+/// <summary>Shared inputs for Email parametrized tests.</summary>
 public static class EmailTheoryData
 {
     public static IEnumerable<object?[]> InvalidRawInputs()

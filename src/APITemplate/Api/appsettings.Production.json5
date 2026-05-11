@@ -1,3 +1,10 @@
+/**
+ * ──────────────────────────────────────────────────────────────────────────────
+ * PRODUCTION OVERRIDES (JSON5)
+ * ──────────────────────────────────────────────────────────────────────────────
+ * These settings are active only when ASPNETCORE_ENVIRONMENT is 'Production'.
+ * Ensure all sensitive values are injected via Kubernetes Secrets or Env Vars.
+ */
 {
   "App": {
     "ServiceName": "APITemplate"
@@ -9,10 +16,14 @@
     "Code": "default",
     "Name": "Default Tenant"
   },
+  
+  // Enforce getting HMAC key from environment in production
   "Redaction": {
     "HmacKeyEnvironmentVariable": "APITEMPLATE_REDACTION_HMAC_KEY",
     "KeyId": 1001
   },
+  
+  // Production observability endpoints (e.g. Alloy/Grafana Agent)
   "Observability": {
     "Otlp": {
       "Endpoint": "http://alloy:4317"
@@ -32,6 +43,8 @@
       }
     }
   },
+  
+  // Production structured JSON logging and log rotation
   "Serilog": {
     "Using": [
       "Serilog.Sinks.Console",
@@ -92,6 +105,7 @@
   "Request": {
     "RequestSizeLimitMb": 1
   },
+  // Strict HTTPs enforcement for production
   "Hsts": {
     "Preload": true,
     "IncludeSubDomains": true,

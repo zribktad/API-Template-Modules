@@ -5,6 +5,5 @@ namespace BuildingBlocks.Domain.Entities.Contracts;
 /// </summary>
 public interface IHasId
 {
-    public Guid Id { get; }
+    Guid Id { get; }
 }
-

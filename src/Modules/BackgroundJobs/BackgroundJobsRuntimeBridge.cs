@@ -8,6 +8,7 @@ using BackgroundJobs.TickerQ.Jobs;
 using BackgroundJobs.TickerQ.RecurringJobRegistrations;
 using BackgroundJobs.Validation;
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Application.Options.Infrastructure;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
 using BuildingBlocks.Infrastructure.EFCore.Startup;
@@ -45,14 +46,10 @@ public static class BackgroundJobsRuntimeBridge
             IValidateOptions<BackgroundJobsOptions>,
             BackgroundJobsOptionsValidator
         >();
-        services.AddValidatedOptions<BackgroundJobsOptions>(configuration, false);
-        services.AddValidatedOptions<EmailRetryJobOptions>(
-            configuration
-                .SectionFor<BackgroundJobsOptions>()
-                .GetSection(nameof(BackgroundJobsOptions.EmailRetry))
-        );
+        services.AddModuleOptions<BackgroundJobsOptions>(configuration);
+
         BackgroundJobsOptions options =
-            configuration.SectionFor<BackgroundJobsOptions>().Get<BackgroundJobsOptions>()
+            configuration.GetSection(BackgroundJobsOptions.SectionName).Get<BackgroundJobsOptions>()
             ?? new BackgroundJobsOptions();
 
         services.AddQueueWithConsumer<

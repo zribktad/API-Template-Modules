@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Options;
 using Microsoft.Extensions.Configuration;
 
 namespace Identity.Auth.Options;
@@ -8,8 +9,10 @@ namespace Identity.Auth.Options;
 ///     Configuration for the Keycloak identity provider, covering realm, server URL, client credentials,
 ///     and startup readiness-check behaviour.
 /// </summary>
-public sealed class KeycloakOptions
+public sealed class KeycloakOptions : IModuleOptions
 {
+    public static string SectionName => "Keycloak";
+
     [Description("Keycloak realm used by this application.")]
     [Required]
     [ConfigurationKeyName("realm")]

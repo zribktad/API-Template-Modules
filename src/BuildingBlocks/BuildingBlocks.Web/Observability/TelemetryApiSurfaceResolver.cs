@@ -24,9 +24,10 @@ public static class TelemetryApiSurfaceResolver
             path.StartsWithSegments(TelemetryPathPrefixes.Scalar)
             || path.StartsWithSegments(TelemetryPathPrefixes.OpenApi)
         )
+        {
             return TelemetrySurfaces.Documentation;
+        }
 
         return TelemetrySurfaces.Rest;
     }
 }
-

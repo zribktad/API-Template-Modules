@@ -17,7 +17,7 @@ namespace APITemplate.Tests.Unit.ProductCatalog;
 public sealed class ProductCatalogModuleTests
 {
     /// <summary>
-    ///     IBatchRule<T> is registered in the composition root (Program.cs via AddRequestValidation), not per-module.
+    ///     IBatchRule&lt;T&gt; is registered in the composition root (Program.cs via AddRequestValidation), not per-module.
     ///     This test verifies that once the generic registration is present, all ProductCatalog item types resolve.
     /// </summary>
     [Fact]

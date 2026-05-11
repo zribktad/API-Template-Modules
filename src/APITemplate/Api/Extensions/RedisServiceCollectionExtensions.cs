@@ -1,4 +1,7 @@
+using APITemplate.Api.Extensions;
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options;
+using BuildingBlocks.Application.Options.Infrastructure;
 using Identity.Persistence;
 using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
@@ -22,7 +25,7 @@ public static class RedisServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        services.AddValidatedOptions<RedisOptions>(configuration);
+        services.AddModuleOptions<RedisOptions>(configuration);
 
         // Data Protection keys are stored persistently in the database to separate them from volatile cache.
         // This ensures sessions remain valid even if the cache is cleared or restarts.

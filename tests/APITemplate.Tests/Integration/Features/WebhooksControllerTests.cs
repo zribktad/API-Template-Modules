@@ -17,8 +17,8 @@ public sealed class WebhooksControllerTests
     private readonly CustomWebApplicationFactory _factory;
 
     /// <summary>
-    ///     Lazy client: test class ctor can run before the fixture's <see cref="IAsyncLifetime.InitializeAsync" />,
-    ///     so we must not call <see cref="WebApplicationFactory{Program}.CreateClient" /> in the ctor.
+    ///     Lazy client: test class ctor can run before the fixture's IAsyncLifetime.InitializeAsync,
+    ///     so we must not call CreateClient() in the ctor.
     /// </summary>
     private HttpClient Client => field ??= _factory.CreateClient();
 

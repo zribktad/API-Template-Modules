@@ -13,7 +13,8 @@ public sealed class RequiredWhenDecimalPropertyExceedsAttribute(
     double threshold
 ) : ValidationAttribute
 {
-    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> _propertyCache = new();
+    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> _propertyCache =
+        new();
     private readonly decimal _threshold = (decimal)threshold;
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
@@ -22,7 +23,7 @@ public sealed class RequiredWhenDecimalPropertyExceedsAttribute(
             (validationContext.ObjectType, otherPropertyName),
             static key => key.Item1.GetProperty(key.Item2)
         );
-        if (otherProperty is null)
+        if (otherProperty is not PropertyInfo resolvedProperty)
         {
             throw new ValidationException(
                 $"{nameof(RequiredWhenDecimalPropertyExceedsAttribute)} could not find property '{otherPropertyName}'."
@@ -42,4 +43,3 @@ public sealed class RequiredWhenDecimalPropertyExceedsAttribute(
         return new ValidationResult(ErrorMessageString, [validationContext.MemberName!]);
     }
 }
-

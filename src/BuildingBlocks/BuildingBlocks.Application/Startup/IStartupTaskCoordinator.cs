@@ -10,9 +10,8 @@ public interface IStartupTaskCoordinator
     ///     Acquires an exclusive distributed lease for <paramref name="startupTask" /> and returns
     ///     an <see cref="IAsyncDisposable" /> that releases the lease when disposed.
     /// </summary>
-    public Task<IAsyncDisposable> AcquireAsync(
+    Task<IAsyncDisposable> AcquireAsync(
         StartupTaskName startupTask,
         CancellationToken ct = default
     );
 }
-

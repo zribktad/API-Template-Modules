@@ -36,7 +36,7 @@ public interface IBlobStore
 
     /// <summary>
     ///     Opens the committed blob for reading. Returns <see cref="DomainErrors.Files.FileNotFound" /> if the blob
-    ///     does not exist, and <see cref="DomainErrors.Files.PathTraversal" /> on path-traversal.
+    ///     does not exist, and <c>PathTraversal</c> on path-traversal.
     /// </summary>
     Task<ErrorOr<Stream>> OpenReadAsync(
         Guid tenantId,

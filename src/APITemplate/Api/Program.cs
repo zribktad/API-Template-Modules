@@ -16,6 +16,7 @@ using Identity;
 using Identity.Auth.Security;
 using JasperFx;
 using JasperFx.Resources;
+using Json5;
 using MongoDB.Driver;
 using Notifications;
 using ProductCatalog;
@@ -31,6 +32,28 @@ using Wolverine.Postgresql;
 #region Setup & Logging
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// NEW: Explicit Configuration Ordering (JSON5 Only)
+builder.Configuration.Sources.Clear();
+builder
+    .Configuration.AddJson5File("appsettings.json5", optional: false, reloadOnChange: true)
+    .AddJson5File(
+        $"appsettings.{builder.Environment.EnvironmentName}.json5",
+        optional: true,
+        reloadOnChange: true
+    )
+    .AddJson5File("appsettings.Identity.json5", optional: true, reloadOnChange: true)
+    .AddJson5File("appsettings.Catalog.json5", optional: true, reloadOnChange: true)
+    .AddJson5File("appsettings.local.json5", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
+builder.Configuration.AddCommandLine(args);
+
 string connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is required.");

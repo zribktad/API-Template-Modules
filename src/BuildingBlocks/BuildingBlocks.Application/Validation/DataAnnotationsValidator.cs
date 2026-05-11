@@ -6,7 +6,7 @@ namespace BuildingBlocks.Application.Validation;
 
 /// <summary>
 ///     Default <see cref="IValidator" /> implementation: property validation via
-///     <see cref="Validator.TryValidateObject" /> plus constructor-parameter attributes for
+///     <see cref="Validator.TryValidateObject(object, ValidationContext, ICollection{ValidationResult}?, bool)" /> plus constructor-parameter attributes for
 ///     primary-constructor records, with one-level recursion into nested complex properties.
 /// </summary>
 public sealed class DataAnnotationsValidator : IValidator
@@ -141,4 +141,3 @@ public sealed class DataAnnotationsValidator : IValidator
             }
         );
 }
-

@@ -30,9 +30,11 @@ public static class BatchResponseError
     public static BatchResponse Unwrap(Error error)
     {
         if (!TryUnwrap(error, out BatchResponse? response))
+        {
             throw new InvalidOperationException(
                 $"Error with code '{error.Code}' was not produced by {nameof(BatchResponseError)}.{nameof(From)}."
             );
+        }
 
         return response;
     }
@@ -58,4 +60,3 @@ public static class BatchResponseError
         return false;
     }
 }
-

@@ -7,6 +7,5 @@ namespace BuildingBlocks.Application.DTOs;
 /// <typeparam name="TFacets">The type that holds the facet aggregations specific to the query.</typeparam>
 public interface IHasFacets<TFacets>
 {
-    public TFacets Facets { get; }
+    TFacets Facets { get; }
 }
-

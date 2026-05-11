@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
 using BuildingBlocks.Web.Resilience;
@@ -29,7 +30,7 @@ public static class WebhooksRuntimeBridge
         IConfiguration configuration
     )
     {
-        services.AddValidatedOptions<WebhookOptions>(configuration);
+        services.AddModuleOptions<WebhookOptions>(configuration);
         services.AddSingleton<IWebhookPayloadValidator, HmacWebhookPayloadValidator>();
         services.AddQueueWithConsumer<
             ChannelWebhookQueue,

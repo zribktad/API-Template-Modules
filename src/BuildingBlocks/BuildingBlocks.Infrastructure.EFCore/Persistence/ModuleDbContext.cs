@@ -1,10 +1,11 @@
 using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata;
 using BuildingBlocks.Application.Context;
 using BuildingBlocks.Domain.Entities.Contracts;
 using BuildingBlocks.Infrastructure.EFCore.Auditing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata;
+
 namespace BuildingBlocks.Infrastructure.EFCore.Persistence;
 
 /// <summary>
@@ -59,7 +60,9 @@ public abstract class ModuleDbContext : DbContext
                 !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType)
                 || !typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType)
             )
+            {
                 continue;
+            }
 
             MethodInfo method = typeof(ModuleDbContext)
                 .GetMethod(nameof(SetGlobalFilter), BindingFlags.Instance | BindingFlags.NonPublic)!
@@ -116,4 +119,3 @@ public abstract class ModuleDbContext : DbContext
         }
     }
 }
-

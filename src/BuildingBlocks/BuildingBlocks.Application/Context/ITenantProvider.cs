@@ -7,12 +7,7 @@ namespace BuildingBlocks.Application.Context;
 public interface ITenantProvider
 {
     /// <summary>Gets the unique identifier of the current tenant.</summary>
-    public Guid TenantId { get; }
+    Guid TenantId { get; }
 
-    /// <summary>
-    ///     Returns <c>true</c> when the current request is scoped to a tenant;
-    ///     <c>false</c> for system-level or anonymous requests.
-    /// </summary>
-    public bool HasTenant { get; }
+    bool HasTenant { get; }
 }
-

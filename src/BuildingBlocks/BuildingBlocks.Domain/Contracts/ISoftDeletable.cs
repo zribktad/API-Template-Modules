@@ -6,8 +6,7 @@ namespace BuildingBlocks.Domain.Entities.Contracts;
 /// </summary>
 public interface ISoftDeletable
 {
-    public bool IsDeleted { get; set; }
-    public DateTime? DeletedAtUtc { get; set; }
-    public Guid? DeletedBy { get; set; }
+    bool IsDeleted { get; set; }
+    DateTime? DeletedAtUtc { get; set; }
+    Guid? DeletedBy { get; set; }
 }
-

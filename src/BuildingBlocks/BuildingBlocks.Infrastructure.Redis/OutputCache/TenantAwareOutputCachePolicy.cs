@@ -1,7 +1,7 @@
 using System.Security.Claims;
+using BuildingBlocks.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.OutputCaching;
-using BuildingBlocks.Security;
 
 namespace BuildingBlocks.Infrastructure.Redis.OutputCache;
 
@@ -16,7 +16,9 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
             !HttpMethods.IsGet(context.HttpContext.Request.Method)
             && !HttpMethods.IsHead(context.HttpContext.Request.Method)
         )
+        {
             return ValueTask.CompletedTask;
+        }
 
         string tenantId =
             context.HttpContext.User.FindFirstValue(TenantSecurityClaims.TenantId) ?? string.Empty;
@@ -58,4 +60,3 @@ public sealed class TenantAwareOutputCachePolicy : IOutputCachePolicy
         return ValueTask.CompletedTask;
     }
 }
-

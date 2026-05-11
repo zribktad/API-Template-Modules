@@ -1,9 +1,9 @@
 using Ardalis.Specification;
-using ErrorOr;
-using Microsoft.EntityFrameworkCore;
 using BuildingBlocks.Domain.Common;
 using BuildingBlocks.Domain.Interfaces;
 using BuildingBlocks.Infrastructure.EFCore.Repositories.Pagination;
+using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 namespace BuildingBlocks.Infrastructure.EFCore.Repositories;
 
@@ -26,9 +26,11 @@ public abstract class RepositoryBase<T>
     )
     {
         if (spec.Selector is null)
+        {
             throw new InvalidOperationException(
                 $"Specification {spec.GetType().Name} must define a Select projection to use GetPagedAsync."
             );
+        }
 
         IQueryable<T> baseQuery = ApplySpecification((ISpecification<T>)spec);
         IQueryable<T> countSource = ApplySpecification(spec, true);
@@ -88,4 +90,3 @@ public abstract class RepositoryBase<T>
         return Task.FromResult(0);
     }
 }
-

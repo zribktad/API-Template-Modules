@@ -11,6 +11,5 @@ public interface IQueueReader<out T>
     ///     Returns an async stream that yields items as they become available, completing only when
     ///     <paramref name="ct" /> is cancelled or the underlying channel is closed.
     /// </summary>
-    public IAsyncEnumerable<T> ReadAllAsync(CancellationToken ct = default);
+    IAsyncEnumerable<T> ReadAllAsync(CancellationToken ct = default);
 }
-

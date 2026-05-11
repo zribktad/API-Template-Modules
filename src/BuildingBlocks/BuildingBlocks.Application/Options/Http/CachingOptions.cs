@@ -2,8 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BuildingBlocks.Application.Options.Http;
 
-public sealed class CachingOptions
+public sealed class CachingOptions : IModuleOptions
 {
+    public static string SectionName => "Caching";
+
     [Range(1, int.MaxValue)]
     public int ProductsExpirationSeconds { get; set; } = 30;
 
@@ -25,4 +27,3 @@ public sealed class CachingOptions
     [Range(1, int.MaxValue)]
     public int UsersExpirationSeconds { get; set; } = 300;
 }
-

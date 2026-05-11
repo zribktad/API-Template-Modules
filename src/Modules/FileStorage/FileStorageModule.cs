@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
 using BuildingBlocks.Infrastructure.EFCore.Startup;
@@ -44,7 +45,7 @@ public static class FileStorageModule
 
     private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddValidatedOptions<FileStorageOptions>(configuration);
+        services.AddModuleOptions<FileStorageOptions>(configuration);
 
         // Normalize extensions once so call sites can do straightforward ordinal lookups regardless
         // of the casing supplied in configuration (e.g. ".PNG" vs ".png").

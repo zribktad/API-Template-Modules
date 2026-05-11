@@ -7,8 +7,10 @@ namespace BuildingBlocks.Application.Options.Infrastructure;
 ///     Configuration for the Redis connection (via StackExchange.Redis) used for distributed caching
 ///     and background-job coordination.
 /// </summary>
-public sealed class RedisOptions
+public sealed class RedisOptions : IModuleOptions
 {
+    public static string SectionName => "Redis";
+
     public const int DefaultConnectTimeoutMs = 5000;
     public const int DefaultSyncTimeoutMs = 3000;
 
@@ -25,4 +27,3 @@ public sealed class RedisOptions
     [Range(1, int.MaxValue)]
     public int SyncTimeoutMs { get; init; } = DefaultSyncTimeoutMs;
 }
-

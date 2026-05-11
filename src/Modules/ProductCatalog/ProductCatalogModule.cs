@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Batch;
 using BuildingBlocks.Application.Batch.Rules;
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Options;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Infrastructure.EFCore.Persistence;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
@@ -63,13 +64,11 @@ public static class ProductCatalogModule
 
         MongoSerializationConfiguration.Configure();
 
-        services.Configure<MongoDbSettings>(
-            configuration.GetSection(ConfigurationSections.MongoDB)
-        );
+        services.AddModuleOptions<MongoDbSettings>(configuration);
         services.AddSingleton<MongoDbContext>();
 
         MongoDbSettings mongoSettings =
-            configuration.GetSection(ConfigurationSections.MongoDB).Get<MongoDbSettings>()
+            configuration.GetSection(MongoDbSettings.SectionName).Get<MongoDbSettings>()
             ?? new MongoDbSettings();
         if (
             !string.IsNullOrWhiteSpace(mongoSettings.ConnectionString)

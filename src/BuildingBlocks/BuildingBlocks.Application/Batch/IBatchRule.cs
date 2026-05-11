@@ -2,6 +2,5 @@ namespace BuildingBlocks.Application.Batch;
 
 public interface IBatchRule<TItem>
 {
-    public Task ApplyAsync(BatchFailureContext<TItem> context, CancellationToken ct);
+    Task ApplyAsync(BatchFailureContext<TItem> context, CancellationToken ct);
 }
-

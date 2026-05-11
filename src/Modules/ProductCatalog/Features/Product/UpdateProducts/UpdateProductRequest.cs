@@ -4,8 +4,7 @@ using BuildingBlocks.Application.Validation;
 namespace ProductCatalog.Features.Product.UpdateProducts;
 
 /// <summary>
-///     Carries the replacement data for an existing product, subject to the same validation constraints as
-///     <see cref="CreateProductRequest" />.
+///     Carries the replacement data for an existing product, subject to validation constraints.
 /// </summary>
 public sealed record UpdateProductRequest(
     [NotEmpty(ErrorMessage = "Product name is required.")]

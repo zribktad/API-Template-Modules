@@ -26,7 +26,7 @@ public static class RequestContextConstants
     public static class ContextKeys
     {
         /// <summary>
-        ///     Key under which the resolved correlation ID is stored in <see cref="AspNetCore.Http.HttpContext.Items" />.
+        ///     Key under which the resolved correlation ID is stored in <see cref="Microsoft.AspNetCore.Http.HttpContext.Items" />.
         /// </summary>
         public const string CorrelationId = "CorrelationId";
     }
@@ -54,4 +54,3 @@ public static class RequestContextConstants
         public const string RequestScheme = "RequestScheme";
     }
 }
-

@@ -224,7 +224,7 @@ public abstract class BffPostgresSessionStoreBase : IBffSessionStore
     protected abstract Task<string?> GetCachedPayloadAsync(string cacheKey, CancellationToken ct);
 
     /// <summary>
-    ///     Reads via <see cref="IDistributedCache.GetStringAsync(string?, CancellationToken)" />; sliding expiration
+    ///     Reads via IDistributedCache.GetStringAsync; sliding expiration
     ///     is applied when this store writes entries using <see cref="DistributedCacheEntryOptions" /> from options.
     /// </summary>
     protected static Task<string?> GetDistributedCachePayloadSlidingAsync(
