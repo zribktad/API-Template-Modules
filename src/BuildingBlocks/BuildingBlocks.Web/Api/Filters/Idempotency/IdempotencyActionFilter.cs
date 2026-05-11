@@ -1,9 +1,9 @@
 using System.Text.Json;
+using BuildingBlocks.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using BuildingBlocks.Application.Contracts;
 
 namespace BuildingBlocks.Web.Api.Filters.Idempotency;
 
@@ -126,7 +126,9 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
             );
         }
         else
+        {
             await _store.ReleaseAsync(key, lockToken, ct);
+        }
     }
 
     public async Task OnResultExecutionAsync(
@@ -177,4 +179,3 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
         IActionResult Result
     );
 }
-

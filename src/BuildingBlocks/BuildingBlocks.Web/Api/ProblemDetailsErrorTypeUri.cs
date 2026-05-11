@@ -20,7 +20,9 @@ public static class ProblemDetailsErrorTypeUri
             !TryGetTrimmedBase(errorTypeBaseUri, out string trimmedBase)
             || string.IsNullOrWhiteSpace(errorCode)
         )
+        {
             return null;
+        }
 
         string encodedCode = Uri.EscapeDataString(errorCode);
         string combined = $"{trimmedBase}/{encodedCode}";
@@ -46,4 +48,3 @@ public static class ProblemDetailsErrorTypeUri
         return true;
     }
 }
-
