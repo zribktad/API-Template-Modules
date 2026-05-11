@@ -4,21 +4,7 @@
 
 ### Integration
 
-#### High Priority
-
-- [ ] **Add category API CRUD integration coverage**  
-  Current smoke coverage only verifies `GET /api/v1/categories` returns OK. Add authenticated integration tests for create, get by id, update, delete, get stats, not-found, validation failure, and permission failure paths.
-
-- [ ] **Add product review API integration coverage**  
-  Current coverage includes validation and smoke GET checks, but not an authenticated create/read/delete flow. Add tests for creating a review against an existing product, querying by product, deleting it, not-found behavior, and permission failure paths.
-
-- [ ] **Add ProductData API integration coverage**  
-  Current smoke coverage only verifies `GET /api/v1/product-data` returns OK. Add tests for creating image/video product data, reading by id/list, deleting product data, not-found behavior, validation failure, and permission failure paths.
-
 #### Medium Priority
-
-- [x] **Add FileStorage HTTP integration coverage**  
-  Unit coverage exists for the core upload/saga pieces. Add API-level tests for begin upload, commit upload, download, delete, invalid extension/content-type rejection, and missing file behavior.
 
 - [ ] **Add cache invalidation/output-cache integration coverage**  
   Verify that product, category, product-data, and review mutations evict the expected output-cache entries or tags across module boundaries.
@@ -36,15 +22,7 @@
 
 ### Smoke
 
-#### High Priority
-
-- [ ] **Add write-path smoke tests for ProductCatalog and Reviews**  
-  Current smoke tests mostly assert GET endpoints return OK. Add one minimal authenticated create-read-delete smoke flow for products, categories, and product reviews to catch broken routing, auth, Wolverine dispatch, and persistence wiring.
-
 #### Medium Priority
-
-- [x] **Add FileStorage smoke test**  
-  Add one minimal begin-upload/commit/download smoke path using the configured local blob store to catch broken storage registration and endpoint wiring.
 
 - [ ] **Add Identity invitation smoke test**  
   Existing identity smoke checks list endpoints. Add one minimal invitation create/resend/revoke path or a narrower create/revoke path if token acceptance requires external email flow.
@@ -115,42 +93,11 @@
 - [ ] **Standardize module endpoint mapping**  
   Ensure all modules follow the `app.MapXXXEndpoints()` convention and are called centrally from `MapApplicationEndpoints`. Review existing modules (`Identity`, `BackgroundJobs`, `Webhooks`) that might be missing explicit mapping calls or have inconsistent routing setups.
 
-- [x] **Configuration Overhaul (Modular Options + JSON5)**  
-  Successfully transitioned from standard JSON to JSON5 with comments/trailing commas. Implemented `IModuleOptions` interface and `AddModuleOptions<T>` fluent API with Fail-Fast validation on startup for all modules.
-
 - [ ] **Finalize Program.cs cleanup after module extraction**  
   Once all modules (Reviews, Chatting) are fully isolated, perform the final rewiring in `Program.cs` to remove legacy project references and redundant service registrations.
 
 
-## RFC / HTTP Standards
-
-### High Priority
-
-- [x] **Implement Rate Limiting (RFC 6585 + IETF draft `ratelimit-headers`)**  
-  `RateLimitPolicies.Fixed = "fixed"` constant exists but `AddRateLimiter()` / `UseRateLimiter()` are never called — rate limiting is not active. Register a fixed window rate limiter in `ApiServiceCollectionExtensions`, add `UseRateLimiter()` to the pipeline, and consider emitting `Retry-After` + `RateLimit-*` response headers.
-
-- [x] **Add HSTS (RFC 6797)**  
-  Implemented via `NetEscapades.AspNetCore.SecurityHeaders` alongside other security policies. Configuration is driven by `appsettings.json` (MaxAgeDays, IncludeSubDomains, Preload) and active in non-Development environments.
-
-### Medium Priority
-
-- [x] **Add HTTP security response headers (OWASP / W3C)**  
-  Missing: `X-Frame-Options`, `X-Content-Type-Options` (only set on file downloads today), `Content-Security-Policy`, `Referrer-Policy`, `Permissions-Policy`. Consider `NetEscapades.AspNetCore.SecurityHeaders` or `NWebsec` and add as middleware in the pipeline.
-
-- [x] **Implement ETag / Conditional Requests (RFC 7232)**  - Done for FileStorage (If-Range/ETag)
-  No support for `ETag`, `If-None-Match`, or `If-Modified-Since`. Output Cache works server-side but clients cannot validate their cache via conditional requests. Consider `Marvin.Cache.Headers` or a manual implementation for `GET` list and detail endpoints.
-
-### Low Priority
-
-- [x] **Add `Link` header for pagination (RFC 8288)**  
-  `PagedResponse<T>` exposes `TotalCount`/`PageNumber`/`TotalPages` in the JSON body only. RFC 8288 defines `Link: <url>; rel="next"` headers. Add a helper to `ApiControllerBase` or the Wolverine endpoint pipeline that generates Link headers from `PagedResponse` metadata.
-
-- [x] **Implement Range Requests for file downloads (RFC 7233)**  
-  `FilesController` streams files without `Range` header support — resumable downloads are not possible. Add `Accept-Ranges: bytes`, process the `Range` request header, and return `206 Partial Content` with `Content-Range`.
-
-
 ## Features
-
 
 ### Medium Priority
 
