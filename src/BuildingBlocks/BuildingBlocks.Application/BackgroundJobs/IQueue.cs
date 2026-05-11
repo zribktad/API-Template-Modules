@@ -10,6 +10,5 @@ public interface IQueue<in T>
     /// <summary>
     ///     Adds <paramref name="item" /> to the queue, waiting asynchronously if the queue is full.
     /// </summary>
-    public ValueTask EnqueueAsync(T item, CancellationToken ct = default);
+    ValueTask EnqueueAsync(T item, CancellationToken ct = default);
 }
-

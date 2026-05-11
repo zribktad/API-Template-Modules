@@ -11,10 +11,9 @@ public interface IDistributedJobCoordinator
     ///     .
     ///     If the current node is not the leader, the action is skipped without error.
     /// </summary>
-    public Task ExecuteIfLeaderAsync(
+    Task ExecuteIfLeaderAsync(
         string jobName,
         Func<CancellationToken, Task> action,
         CancellationToken ct = default
     );
 }
-

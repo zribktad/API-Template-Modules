@@ -9,9 +9,7 @@ namespace BuildingBlocks.Application.Contracts;
 public interface IPagedFilter
 {
     /// <summary>1-based page index.</summary>
-    public int PageNumber { get; }
+    int PageNumber { get; }
 
-    /// <summary>Number of items per page.</summary>
-    public int PageSize { get; }
+    int PageSize { get; }
 }
-

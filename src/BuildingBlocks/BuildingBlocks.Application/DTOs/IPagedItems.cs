@@ -9,6 +9,5 @@ namespace BuildingBlocks.Application.DTOs;
 /// <typeparam name="T">The type of items in the page.</typeparam>
 public interface IPagedItems<T>
 {
-    public PagedResponse<T> Page { get; }
+    PagedResponse<T> Page { get; }
 }
-

@@ -12,7 +12,8 @@ namespace BuildingBlocks.Application.Validation;
 public sealed class GreaterThanOrEqualToPropertyAttribute(string otherPropertyName)
     : ValidationAttribute
 {
-    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> _propertyCache = new();
+    private static readonly ConcurrentDictionary<(Type, string), PropertyInfo?> _propertyCache =
+        new();
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
@@ -23,7 +24,7 @@ public sealed class GreaterThanOrEqualToPropertyAttribute(string otherPropertyNa
             (validationContext.ObjectType, otherPropertyName),
             static key => key.Item1.GetProperty(key.Item2)
         );
-        if (otherProperty is null)
+        if (otherProperty is not PropertyInfo resolvedProperty)
         {
             throw new ValidationException(
                 $"{nameof(GreaterThanOrEqualToPropertyAttribute)} could not find property '{otherPropertyName}'."
@@ -34,7 +35,10 @@ public sealed class GreaterThanOrEqualToPropertyAttribute(string otherPropertyNa
         if (otherValue is null)
             return ValidationResult.Success;
 
-        if (value is not IComparable comparableValue || otherValue is not IComparable comparableOtherValue)
+        if (
+            value is not IComparable comparableValue
+            || otherValue is not IComparable comparableOtherValue
+        )
         {
             throw new ValidationException(
                 $"{nameof(GreaterThanOrEqualToPropertyAttribute)} can only be used on comparable values."
@@ -43,13 +47,11 @@ public sealed class GreaterThanOrEqualToPropertyAttribute(string otherPropertyNa
 
         if (comparableValue.GetType() != comparableOtherValue.GetType())
         {
-
             return new ValidationResult(
                 $"Cannot compare '{validationContext.MemberName}' to '{otherPropertyName}': type mismatch.",
                 [validationContext.MemberName!]
             );
         }
-
 
         if (comparableValue.CompareTo(comparableOtherValue) >= 0)
             return ValidationResult.Success;
@@ -57,4 +59,3 @@ public sealed class GreaterThanOrEqualToPropertyAttribute(string otherPropertyNa
         return new ValidationResult(ErrorMessageString, [validationContext.MemberName!]);
     }
 }
-

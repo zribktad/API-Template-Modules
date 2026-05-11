@@ -29,7 +29,9 @@ public static class Permission
                     && field.FieldType == typeof(string)
                     && field.GetRawConstantValue() is string value
                 )
+                {
                     permissions.Add(value);
+                }
             }
         }
 
@@ -133,4 +135,3 @@ public static class Permission
         public const string Manage = "Tenant.Manage";
     }
 }
-

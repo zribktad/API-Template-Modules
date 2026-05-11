@@ -10,6 +10,5 @@ public interface IRecurringBackgroundJobRegistration
     ///     Constructs the raw <see cref="RecurringBackgroundJobDefinition" /> struct to be persisted.
     ///     Implementations receive their dependencies through constructor injection.
     /// </summary>
-    public RecurringBackgroundJobDefinition Build();
+    RecurringBackgroundJobDefinition Build();
 }
-

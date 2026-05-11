@@ -7,9 +7,7 @@ namespace BuildingBlocks.Application.Contracts;
 public interface IDateRangeFilter
 {
     /// <summary>Inclusive lower bound of the creation-date filter; <c>null</c> means no lower bound.</summary>
-    public DateTime? CreatedFrom { get; }
+    DateTime? CreatedFrom { get; }
 
-    /// <summary>Inclusive upper bound of the creation-date filter; <c>null</c> means no upper bound.</summary>
-    public DateTime? CreatedTo { get; }
+    DateTime? CreatedTo { get; }
 }
-

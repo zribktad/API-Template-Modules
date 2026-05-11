@@ -38,7 +38,9 @@ public sealed class ObservabilityOptions : IModuleOptions
             Exporters.Otlp.Enabled == true
             && Uri.TryCreate(Otlp.Endpoint, UriKind.Absolute, out Uri? otlpUri)
         )
+        {
             return otlpUri;
+        }
 
         bool aspireEnabled = Exporters.Aspire.Enabled ?? isDevelopment;
         if (aspireEnabled && Uri.TryCreate(Aspire.Endpoint, UriKind.Absolute, out Uri? aspireUri))

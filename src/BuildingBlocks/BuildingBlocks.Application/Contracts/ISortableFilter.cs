@@ -7,9 +7,7 @@ namespace BuildingBlocks.Application.Contracts;
 public interface ISortableFilter
 {
     /// <summary>Name of the field to sort by; <c>null</c> applies default ordering.</summary>
-    public string? SortBy { get; }
+    string? SortBy { get; }
 
-    /// <summary>Sort direction, typically <c>"asc"</c> or <c>"desc"</c>; <c>null</c> applies default direction.</summary>
-    public string? SortDirection { get; }
+    string? SortDirection { get; }
 }
-
