@@ -17,11 +17,4 @@ public static class BackgroundJobsModule
 
         return services;
     }
-
-    public static IEndpointRouteBuilder MapBackgroundJobsEndpoints(
-        this IEndpointRouteBuilder endpoints
-    )
-    {
-        return endpoints;
-    }
 }

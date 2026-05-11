@@ -16,9 +16,4 @@ public static class ChattingModule
         services.AddControllers().AddApplicationPart(typeof(SseController).Assembly);
         return services;
     }
-
-    public static IEndpointRouteBuilder MapChattingEndpoints(this IEndpointRouteBuilder endpoints)
-    {
-        return endpoints;
-    }
 }

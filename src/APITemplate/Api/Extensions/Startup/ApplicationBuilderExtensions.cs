@@ -1,9 +1,11 @@
 using APITemplate.Api.Middleware;
+using BackgroundJobs;
 using BuildingBlocks.Application.Http;
 using BuildingBlocks.Web.Health;
 using Chatting;
 using FileStorage;
 using HealthChecks.UI.Client;
+using Identity;
 using Identity.Auth.Security;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -13,6 +15,7 @@ using Reviews;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
+using Webhooks;
 using Wolverine.Http;
 
 namespace APITemplate.Api.Extensions.Startup;
@@ -123,11 +126,8 @@ public static class ApplicationBuilderExtensions
         {
             opts.UseDataAnnotationsValidationProblemDetailMiddleware();
         });
-        app.MapProductCatalogEndpoints();
-        app.MapReviewsEndpoints();
-        app.MapFileStorageEndpoints();
-        app.MapChattingEndpoints();
-        app.MapNotificationsEndpoints();
+
+        app.MapGraphQL();
 
         return app;
     }

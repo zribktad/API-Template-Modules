@@ -47,11 +47,6 @@ public static partial class IdentityModule
         return services;
     }
 
-    public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder endpoints)
-    {
-        return endpoints;
-    }
-
     // ── Options ──────────────────────────────────────────────────────────────
 
     private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)

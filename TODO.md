@@ -87,10 +87,10 @@
 
 ### High Priority
 
-- [ ] **Centralize shared infrastructure mapping in `ApplicationBuilderExtensions`**  
+- [x] **Centralize shared infrastructure mapping in `ApplicationBuilderExtensions`**  
   Shared infrastructure such as `MapGraphQL()` is currently hidden inside `ProductCatalogModule.cs`. This violates module isolation and the Composition Root pattern. Move `MapGraphQL()` to `ApplicationBuilderExtensions.cs` and ensure modules only contribute to the schema via `AddXXXGraphQL()`.
 
-- [ ] **Standardize module endpoint mapping**  
+- [x] **Standardize module endpoint mapping**  
   Ensure all modules follow the `app.MapXXXEndpoints()` convention and are called centrally from `MapApplicationEndpoints`. Review existing modules (`Identity`, `BackgroundJobs`, `Webhooks`) that might be missing explicit mapping calls or have inconsistent routing setups.
 
 - [ ] **Finalize Program.cs cleanup after module extraction**  

@@ -16,9 +16,4 @@ public static class NotificationsModule
         // services.AddControllers().AddApplicationPart(typeof(SomeController).Assembly);
         return services;
     }
-
-    /// <summary>Notifications are event-driven (Wolverine); no HTTP routes to map.</summary>
-    public static IEndpointRouteBuilder MapNotificationsEndpoints(
-        this IEndpointRouteBuilder endpoints
-    ) => endpoints;
 }
