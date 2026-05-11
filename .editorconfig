@@ -86,7 +86,7 @@ dotnet_style_require_accessibility_modifiers = none:silent
 csharp_preferred_modifier_order = public, private, protected, internal, file, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, required, volatile, async:suggestion
 
 # this. qualification — never
-dotnet_style_qualification_for_field = false:silent
+dotnet_style_qualification_for_field = false:warning
 dotnet_style_qualification_for_property = false:silent
 dotnet_style_qualification_for_method = false:silent
 dotnet_style_qualification_for_event = false:silent
