@@ -87,11 +87,11 @@
 
 ### High Priority
 
-- [ ] **Centralize shared infrastructure mapping in `ApplicationBuilderExtensions`**  
+- [x] **Centralize shared infrastructure mapping in `ApplicationBuilderExtensions`**  
   Shared infrastructure such as `MapGraphQL()` is currently hidden inside `ProductCatalogModule.cs`. This violates module isolation and the Composition Root pattern. Move `MapGraphQL()` to `ApplicationBuilderExtensions.cs` and ensure modules only contribute to the schema via `AddXXXGraphQL()`.
 
-- [ ] **Standardize module endpoint mapping**  
-  Ensure all modules follow the `app.MapXXXEndpoints()` convention and are called centrally from `MapApplicationEndpoints`. Review existing modules (`Identity`, `BackgroundJobs`, `Webhooks`) that might be missing explicit mapping calls or have inconsistent routing setups.
+- [x] **Eliminate boilerplate module endpoint mapping**  
+  Since Wolverine and Controllers handle automatic endpoint discovery, removed all empty `MapXXXEndpoints` methods across modules to strictly adhere to YAGNI and reduce cognitive load.
 
 - [ ] **Finalize Program.cs cleanup after module extraction**  
   Once all modules (Reviews, Chatting) are fully isolated, perform the final rewiring in `Program.cs` to remove legacy project references and redundant service registrations.

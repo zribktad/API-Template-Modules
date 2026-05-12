@@ -129,12 +129,4 @@ public static class ProductCatalogModule
             .AddDataLoader<ProductReviewsByProductDataLoader>()
             .AddDataLoader<CategoryByIdDataLoader>();
     }
-
-    public static IEndpointRouteBuilder MapProductCatalogEndpoints(
-        this IEndpointRouteBuilder endpoints
-    )
-    {
-        endpoints.MapGraphQL();
-        return endpoints;
-    }
 }

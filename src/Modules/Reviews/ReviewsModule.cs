@@ -39,9 +39,4 @@ public static class ReviewsModule
             .AddTypeExtension<ProductReviewMutations>()
             .AddType<ProductReviewType>();
     }
-
-    public static IEndpointRouteBuilder MapReviewsEndpoints(this IEndpointRouteBuilder endpoints)
-    {
-        return endpoints;
-    }
 }

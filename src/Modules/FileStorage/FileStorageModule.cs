@@ -36,13 +36,6 @@ public static class FileStorageModule
         return services;
     }
 
-    public static IEndpointRouteBuilder MapFileStorageEndpoints(
-        this IEndpointRouteBuilder endpoints
-    )
-    {
-        return endpoints;
-    }
-
     private static void RegisterOptions(IServiceCollection services, IConfiguration configuration)
     {
         services.AddModuleOptions<FileStorageOptions>(configuration);

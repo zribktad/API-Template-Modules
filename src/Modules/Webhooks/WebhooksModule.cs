@@ -25,9 +25,4 @@ public static class WebhooksModule
 
         return services;
     }
-
-    public static IEndpointRouteBuilder MapWebhooksEndpoints(this IEndpointRouteBuilder endpoints)
-    {
-        return endpoints;
-    }
 }
