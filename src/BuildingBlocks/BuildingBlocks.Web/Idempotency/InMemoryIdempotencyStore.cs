@@ -23,21 +23,29 @@ public sealed class InMemoryIdempotencyStore : IIdempotencyStore
     {
         string lockKey = "lock:" + key;
 
-        if (_cache.TryGetValue(lockKey, out _))
-            return Task.FromResult<string?>(null);
+        // Guard the check-then-act against concurrent acquirers: without the lock two requests with the
+        // same key could both observe the missing entry and both set it, defeating the idempotency lock.
+        lock (LockValue)
+        {
+            if (_cache.TryGetValue(lockKey, out _))
+                return Task.FromResult<string?>(null);
 
-        string token = Guid.NewGuid().ToString();
-        _cache.Set(lockKey, token, ttl);
+            string token = Guid.NewGuid().ToString();
+            _cache.Set(lockKey, token, ttl);
 
-        return Task.FromResult<string?>(token);
+            return Task.FromResult<string?>(token);
+        }
     }
 
     public Task ReleaseAsync(string key, string lockToken, CancellationToken ct = default)
     {
         string lockKey = "lock:" + key;
-        if (_cache.TryGetValue(lockKey, out string? token) && token == lockToken)
+        lock (LockValue)
         {
-            _cache.Remove(lockKey);
+            if (_cache.TryGetValue(lockKey, out string? token) && token == lockToken)
+            {
+                _cache.Remove(lockKey);
+            }
         }
         return Task.CompletedTask;
     }

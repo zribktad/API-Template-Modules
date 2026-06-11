@@ -192,6 +192,10 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
 
         try
         {
+            // Execute the result first so the framework populates response headers/status — notably the
+            // Location header set by Created(...) results, which is not present until the result runs.
+            await next();
+
             string? responseBody = null;
             if (ctx.Result is ObjectResult objectResult && objectResult.Value is not null)
                 responseBody = JsonSerializer.Serialize(objectResult.Value, _jsonOptions);
@@ -217,10 +221,7 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
                 locationHeader
             );
 
-            // Store the entry before the response is sent to the client
             await _store.SetAsync(ctx.Key, entry, ctx.Ttl, CancellationToken.None);
-
-            await next();
         }
         finally
         {

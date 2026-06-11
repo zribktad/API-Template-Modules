@@ -42,9 +42,13 @@ public sealed class TickerQRecurringJobRegistrar
         // Serialise seeding across replicas: two instances starting simultaneously would both INSERT
         // the same fixed-Id rows and one would fail its startup on a PK violation. A transaction-scoped
         // advisory lock makes the second replica wait, then observe the rows the first inserted.
-        await using IDbContextTransaction transaction =
-            await _dbContext.Database.BeginTransactionAsync(ct);
-        if (_dbContext.Database.IsNpgsql())
+        // The advisory lock is PostgreSQL-specific, so only open a transaction on Npgsql. Providers
+        // without transaction support (e.g. the EF Core InMemory provider used in tests) would throw on
+        // BeginTransactionAsync; await using safely handles the null transaction.
+        await using IDbContextTransaction? transaction = _dbContext.Database.IsNpgsql()
+            ? await _dbContext.Database.BeginTransactionAsync(ct)
+            : null;
+        if (transaction is not null)
         {
             await _dbContext.Database.ExecuteSqlInterpolatedAsync(
                 $"SELECT pg_advisory_xact_lock(hashtextextended({SeedIdentifier}, 0))",
@@ -103,7 +107,8 @@ public sealed class TickerQRecurringJobRegistrar
         }
 
         await _dbContext.SaveChangesAsync(ct);
-        await transaction.CommitAsync(ct);
+        if (transaction is not null)
+            await transaction.CommitAsync(ct);
         _logger.TickerQJobDefinitionsSynchronized(definitions.Count);
     }
 }
