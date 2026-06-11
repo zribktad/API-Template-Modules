@@ -52,7 +52,7 @@ public static class ProductCatalogModule
             .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<ProductCatalogDbMarker>()
-            .AddStoredProcedureSupport()
+            .ForwardStoredProcedureExecutor<ProductCatalogDbMarker>()
             .AddRepository<ProductApplicationRepository, ProductRepository>()
             .AddRepository<ICategoryRepository, CategoryRepository>()
             .AddRepository<IProductDataLinkRepository, ProductDataLinkRepository>()

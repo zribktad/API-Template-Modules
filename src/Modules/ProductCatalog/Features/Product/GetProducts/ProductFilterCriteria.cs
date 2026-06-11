@@ -51,10 +51,16 @@ internal static class ProductFilterCriteria
             query.Where(p => p.Price <= filter.MaxPrice.Value);
 
         if (filter.CreatedFrom.HasValue)
-            query.Where(p => p.Audit.CreatedAtUtc >= filter.CreatedFrom.Value);
+        {
+            DateTime createdFrom = filter.CreatedFrom.Value.ToUtcKind();
+            query.Where(p => p.Audit.CreatedAtUtc >= createdFrom);
+        }
 
         if (filter.CreatedTo.HasValue)
-            query.Where(p => p.Audit.CreatedAtUtc <= filter.CreatedTo.Value);
+        {
+            DateTime createdTo = filter.CreatedTo.Value.ToUtcKind();
+            query.Where(p => p.Audit.CreatedAtUtc <= createdTo);
+        }
 
         if (!options.IgnoreCategoryIds && filter.CategoryIds is { Count: > 0 })
         {

@@ -32,7 +32,7 @@ public sealed class SetUserActiveCommandHandler
         OutgoingMessages messages = new();
         if (user.KeycloakUserId is not null)
             messages.Add(new SyncKeycloakUserActiveEvent(user.KeycloakUserId, command.IsActive));
-        messages.Add(new CacheInvalidationNotification(CacheTags.Users));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Users, user.TenantId));
         return (Result.Success, messages);
     }
 }

@@ -27,7 +27,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         CancellationToken cancellationToken
     )
     {
-        if (context.Request.Path.StartsWithSegments("/graphql"))
+        if (context.Request.Path.StartsWithSegments(GraphQLPathConstants.BasePath))
             return false;
 
         if (IsClientAbortedRequest(context, exception, cancellationToken))
@@ -49,7 +49,13 @@ public sealed class ApiExceptionHandler : IExceptionHandler
 
         problemDetails.Extensions["errorCode"] = resolved.ErrorCode;
 
-        if (resolved.Metadata is { Count: > 0 })
+        // Only surface error metadata for client errors (<500). For server errors the metadata may
+        // carry internal details (Keycloak/SMTP/DB messages) that must not leak to callers; it is
+        // still logged below.
+        if (
+            resolved.Metadata is { Count: > 0 }
+            && resolved.StatusCode < StatusCodes.Status500InternalServerError
+        )
             problemDetails.Extensions["metadata"] = resolved.Metadata;
 
         if (resolved.StatusCode >= StatusCodes.Status500InternalServerError)

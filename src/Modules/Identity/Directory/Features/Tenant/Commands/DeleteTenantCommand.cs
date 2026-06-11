@@ -35,11 +35,10 @@ public sealed class DeleteTenantCommandHandler
                     ct
                 );
 
-                List<Entities.TenantInvitation> invitations =
-                    await invitationRepository.ListAsync(
-                        new InvitationsForTenantSoftDeleteSpecification(command.Id),
-                        ct
-                    );
+                List<Entities.TenantInvitation> invitations = await invitationRepository.ListAsync(
+                    new InvitationsForTenantSoftDeleteSpecification(command.Id),
+                    ct
+                );
 
                 if (users.Count > 0)
                     await userRepository.DeleteRangeAsync(users, ct);
@@ -60,7 +59,7 @@ public sealed class DeleteTenantCommandHandler
                 timeProvider.GetUtcNow().UtcDateTime
             )
         );
-        messages.Add(new CacheInvalidationNotification(CacheTags.Tenants));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Tenants, Guid.Empty));
         return (Result.Success, messages);
     }
 }

@@ -25,9 +25,11 @@ public sealed class ProductReviewHandlersTests
     private readonly Mock<IActorProvider> _actorProvider = new();
     private readonly Mock<IMessageBus> _bus = new();
     private readonly Mock<IUnitOfWork<ReviewsDbMarker>> _unitOfWork = new();
+    private readonly Mock<ITenantProvider> _tenantProvider = new();
 
     public ProductReviewHandlersTests()
     {
+        _tenantProvider.Setup(x => x.TenantId).Returns(Guid.NewGuid());
         UnitOfWorkTestHelper.SetupTransactionPassthrough(_unitOfWork);
         UnitOfWorkTestHelper.SetupTransactionPassthrough<ReviewsDbMarker, ProductReview>(
             _unitOfWork
@@ -102,6 +104,7 @@ public sealed class ProductReviewHandlersTests
                 state!,
                 _repository.Object,
                 _unitOfWork.Object,
+                _tenantProvider.Object,
                 TestContext.Current.CancellationToken
             );
 
@@ -237,6 +240,7 @@ public sealed class ProductReviewHandlersTests
                 state!,
                 _repository.Object,
                 _unitOfWork.Object,
+                _tenantProvider.Object,
                 TestContext.Current.CancellationToken
             );
         };
@@ -284,6 +288,7 @@ public sealed class ProductReviewHandlersTests
                 state!,
                 _repository.Object,
                 _unitOfWork.Object,
+                _tenantProvider.Object,
                 TestContext.Current.CancellationToken
             );
         };

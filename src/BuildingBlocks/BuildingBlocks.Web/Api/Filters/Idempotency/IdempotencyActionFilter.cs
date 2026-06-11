@@ -1,7 +1,9 @@
 using System.Text.Json;
 using BuildingBlocks.Application.Contracts;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
@@ -49,20 +51,55 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
             ) || string.IsNullOrWhiteSpace(keyValues)
         )
         {
-            context.Result = new BadRequestObjectResult(
-                "Idempotency-Key header is required for this endpoint."
-            );
+            context.Result = new ObjectResult(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Missing Idempotency Key",
+                    Detail = "Idempotency-Key header is required for this endpoint.",
+                }
+            )
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+            };
             return;
         }
 
-        string key = keyValues.ToString();
-        if (key.Length > IdempotencyConstants.MaxKeyLength)
+        string clientKey = keyValues.ToString();
+        if (clientKey.Length > IdempotencyConstants.MaxKeyLength)
         {
-            context.Result = new BadRequestObjectResult(
-                $"Idempotency key must not exceed {IdempotencyConstants.MaxKeyLength} characters."
-            );
+            context.Result = new ObjectResult(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Invalid Idempotency Key",
+                    Detail =
+                        $"Idempotency key must not exceed {IdempotencyConstants.MaxKeyLength} characters.",
+                }
+            )
+            {
+                StatusCode = StatusCodes.Status400BadRequest,
+            };
             return;
         }
+
+        var tenantProvider =
+            context.HttpContext.RequestServices.GetRequiredService<BuildingBlocks.Application.Context.ITenantProvider>();
+        var actorProvider =
+            context.HttpContext.RequestServices.GetRequiredService<BuildingBlocks.Application.Context.IActorProvider>();
+        string method = context.HttpContext.Request.Method;
+        string route =
+            context.ActionDescriptor.AttributeRouteInfo?.Template
+            ?? context.ActionDescriptor.RouteValues["action"]?.ToString()
+            ?? string.Empty;
+
+        string compositeKey =
+            $"{tenantProvider.TenantId}:{actorProvider.ActorId}:{method}:{route}:{clientKey}";
+        string key = Convert.ToBase64String(
+            System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(compositeKey)
+            )
+        );
 
         TimeSpan resultTtl = TimeSpan.FromHours(attribute.TtlHours);
         TimeSpan lockTimeout = TimeSpan.FromSeconds(attribute.LockTimeoutSeconds);
@@ -86,9 +123,17 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
         string? lockToken = await _store.TryAcquireAsync(key, lockTimeout, ct);
         if (lockToken is null)
         {
-            context.Result = new ConflictObjectResult(
-                "A request with this idempotency key is already being processed."
-            );
+            context.Result = new ObjectResult(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Concurrent Request",
+                    Detail = "A request with this idempotency key is already being processed.",
+                }
+            )
+            {
+                StatusCode = StatusCodes.Status409Conflict,
+            };
             return;
         }
 
@@ -99,13 +144,13 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
         }
         catch
         {
-            await _store.ReleaseAsync(key, lockToken, ct);
+            await _store.ReleaseAsync(key, lockToken, CancellationToken.None);
             throw;
         }
 
         if (executedContext.Exception is not null && !executedContext.ExceptionHandled)
         {
-            await _store.ReleaseAsync(key, lockToken, ct);
+            await _store.ReleaseAsync(key, lockToken, CancellationToken.None);
             return;
         }
 
@@ -127,7 +172,7 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
         }
         else
         {
-            await _store.ReleaseAsync(key, lockToken, ct);
+            await _store.ReleaseAsync(key, lockToken, CancellationToken.None);
         }
     }
 
@@ -145,18 +190,25 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
             return;
         }
 
-        CancellationToken ct = context.HttpContext.RequestAborted;
         try
         {
-            await next();
-
             string? responseBody = null;
             if (ctx.Result is ObjectResult objectResult && objectResult.Value is not null)
                 responseBody = JsonSerializer.Serialize(objectResult.Value, _jsonOptions);
 
-            string? contentType = context.HttpContext.Response.ContentType;
+            string? contentType = context.HttpContext.Response.ContentType ?? "application/json";
             string? locationHeader = context.HttpContext.Response.Headers.Location;
             int statusCode = context.HttpContext.Response.StatusCode;
+
+            // Determine status code if it's not set yet on the response object
+            if (
+                statusCode == 200
+                && ctx.Result is ObjectResult objRes
+                && objRes.StatusCode.HasValue
+            )
+            {
+                statusCode = objRes.StatusCode.Value;
+            }
 
             IdempotencyCacheEntry entry = new(
                 statusCode,
@@ -164,11 +216,15 @@ public sealed class IdempotencyActionFilter : IAsyncActionFilter, IAsyncResultFi
                 contentType,
                 locationHeader
             );
-            await _store.SetAsync(ctx.Key, entry, ctx.Ttl, ct);
+
+            // Store the entry before the response is sent to the client
+            await _store.SetAsync(ctx.Key, entry, ctx.Ttl, CancellationToken.None);
+
+            await next();
         }
         finally
         {
-            await _store.ReleaseAsync(ctx.Key, ctx.LockToken, ct);
+            await _store.ReleaseAsync(ctx.Key, ctx.LockToken, CancellationToken.None);
         }
     }
 

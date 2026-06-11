@@ -41,6 +41,7 @@ public sealed class CreateProductsCommandHandler
         IReadOnlyList<ProductEntity> entities,
         ProductRepositoryContract repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        ITenantProvider tenantProvider,
         CancellationToken ct
     )
     {
@@ -53,7 +54,8 @@ public sealed class CreateProductsCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForProductChange);
+        messages.AddRange(CacheInvalidationCascades.ForProductChange(tenantProvider.TenantId));
+
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }

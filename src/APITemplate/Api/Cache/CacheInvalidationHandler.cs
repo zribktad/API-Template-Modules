@@ -10,6 +10,6 @@ public sealed class CacheInvalidationHandler
         CancellationToken ct
     )
     {
-        return outputCacheInvalidationService.EvictAsync(@event.CacheTag, ct);
+        return outputCacheInvalidationService.EvictAsync(@event.CacheTag, @event.TenantId, ct);
     }
 }

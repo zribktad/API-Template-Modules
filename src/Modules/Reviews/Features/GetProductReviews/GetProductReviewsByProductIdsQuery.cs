@@ -6,6 +6,9 @@ namespace Reviews.Features;
 /// <summary>Handles <see cref="GetProductReviewsByProductIdsQuery" />.</summary>
 public sealed class GetProductReviewsByProductIdsQueryHandler
 {
+    // Caps how many (newest) reviews are returned per product to keep a wide GraphQL query bounded.
+    private const int MaxReviewsPerProduct = 50;
+
     public static async Task<
         ErrorOr<IReadOnlyDictionary<Guid, ProductReviewResponse[]>>
     > HandleAsync(
@@ -21,12 +24,14 @@ public sealed class GetProductReviewsByProductIdsQueryHandler
         }
 
         List<ProductReviewResponse> reviews = await reviewRepository.ListAsync(
-            new ProductReviewByProductIdsSpecification(request.ProductIds),
+            new ProductReviewByProductIdsSpecification(request.ProductIds, MaxReviewsPerProduct),
             ct
         );
         ILookup<Guid, ProductReviewResponse> lookup = reviews.ToLookup(review => review.ProductId);
 
         return (ErrorOr<IReadOnlyDictionary<Guid, ProductReviewResponse[]>>)
-            request.ProductIds.Distinct().ToDictionary(id => id, id => lookup[id].ToArray());
+            request
+                .ProductIds.Distinct()
+                .ToDictionary(id => id, id => lookup[id].Take(MaxReviewsPerProduct).ToArray());
     }
 }

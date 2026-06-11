@@ -34,6 +34,7 @@ public static class NotificationsRuntimeBridge
             .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<NotificationsDbMarker>()
+            .ForwardStoredProcedureExecutor<NotificationsDbMarker>()
             .AddRepository<IFailedEmailRepository, FailedEmailRepository>();
 
         services.AddModuleOptions<EmailOptions>(configuration);

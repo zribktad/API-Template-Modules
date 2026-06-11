@@ -145,7 +145,8 @@ public sealed class CleanupOrphanedProductDataHandler
     )
     {
         List<Guid> linkedIds = await dbContext
-            .ProductDataLinks.Where(l => candidateIds.Contains(l.ProductDataId))
+            .ProductDataLinks.IgnoreQueryFilters() // Bypass tenant filter since this is a global background job
+            .Where(l => candidateIds.Contains(l.ProductDataId))
             .Select(l => l.ProductDataId)
             .Distinct()
             .ToListAsync(ct);

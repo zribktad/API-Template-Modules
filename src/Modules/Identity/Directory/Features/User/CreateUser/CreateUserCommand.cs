@@ -64,7 +64,7 @@ public sealed class CreateUserCommandHandler
         messages.Add(
             new ProvisionKeycloakUserEvent(user.Id, user.Username.Value, user.Email.Value)
         );
-        messages.Add(new CacheInvalidationNotification(CacheTags.Users));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Users, user.TenantId));
         return (user.ToResponse(), messages);
     }
 }

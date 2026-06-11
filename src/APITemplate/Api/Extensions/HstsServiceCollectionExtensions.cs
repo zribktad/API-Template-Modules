@@ -1,7 +1,4 @@
-using BuildingBlocks.Application.Configuration;
 using BuildingBlocks.Application.Options.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.Extensions.Options;
 
 namespace APITemplate.Api.Extensions;
 
@@ -21,23 +18,11 @@ public static class HstsServiceCollectionExtensions
         IConfiguration configuration
     )
     {
+        // Only the validated ApiHstsOptions are needed; the HSTS header is emitted by
+        // UseSecurityHeadersPolicy (SecurityHeadersExtensions), not the framework's UseHsts()
+        // middleware (which is never wired up), so AddHsts()/HstsOptions setup would be dead code.
         services.AddValidatedOptions<ApiHstsOptions>(configuration.GetSection("Hsts"));
 
-        services.AddSingleton<IConfigureOptions<HstsOptions>, HstsOptionsSetup>();
-        services.AddHsts(_ => { });
-
         return services;
-    }
-
-    private sealed class HstsOptionsSetup(IOptions<ApiHstsOptions> hstsOptions)
-        : IConfigureOptions<HstsOptions>
-    {
-        public void Configure(HstsOptions options)
-        {
-            ApiHstsOptions o = hstsOptions.Value;
-            options.Preload = o.Preload;
-            options.IncludeSubDomains = o.IncludeSubDomains;
-            options.MaxAge = TimeSpan.FromDays(o.MaxAgeDays);
-        }
     }
 }

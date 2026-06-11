@@ -12,8 +12,9 @@ public sealed class DeleteRoleCommandHandler
     public static Task<ErrorOr<CustomRole>> LoadAsync(
         DeleteRoleCommand command,
         IRoleRepository repository,
+        ITenantProvider tenantProvider,
         CancellationToken ct
-    ) => RoleLoader.LoadMutableAsync(command.Id, repository, ct);
+    ) => RoleLoader.LoadMutableAsync(command.Id, tenantProvider.TenantId, repository, ct);
 
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         DeleteRoleCommand command,

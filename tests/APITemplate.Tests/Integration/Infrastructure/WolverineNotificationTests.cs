@@ -27,7 +27,8 @@ public sealed class WolverineNotificationTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         var exception = await Record.ExceptionAsync(() =>
-            bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Products)).AsTask()
+            bus.PublishAsync(new CacheInvalidationNotification(CacheTags.Products, Guid.Empty))
+                .AsTask()
         );
 
         exception.ShouldBeNull();

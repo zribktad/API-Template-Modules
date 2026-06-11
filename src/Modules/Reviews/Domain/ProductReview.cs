@@ -5,12 +5,14 @@ namespace Reviews.Domain;
 /// </summary>
 public sealed class ProductReview : IAuditableTenantEntity, IHasId
 {
-    public Guid ProductId { get; set; }
-    public Guid UserId { get; set; }
-    public string? Comment { get; set; }
+    // Domain state is set only via Create (or EF materialization, which uses the private setters),
+    // so callers cannot assign a Rating that bypasses Rating.Create's 1–5 validation.
+    public Guid ProductId { get; private set; }
+    public Guid UserId { get; private set; }
+    public string? Comment { get; private set; }
 
     /// <summary>Rating value object enforcing a 1–5 range via <see cref="Rating.Create" />.</summary>
-    public Rating Rating { get; set; }
+    public Rating Rating { get; private set; }
 
     public Guid TenantId { get; set; }
     public AuditInfo Audit { get; set; } = new();

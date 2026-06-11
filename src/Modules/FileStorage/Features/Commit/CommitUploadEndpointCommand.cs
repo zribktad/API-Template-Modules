@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using BuildingBlocks.Application.Context;
 using FileStorage.Domain.Sagas;
 using Microsoft.Extensions.Options;
 using Wolverine;
@@ -26,6 +27,7 @@ public sealed class CommitUploadEndpointCommandHandler
     public static async Task<ErrorOr<FileUploadResponse>> HandleAsync(
         CommitUploadEndpointCommand command,
         IOptions<FileStorageOptions> options,
+        ITenantProvider tenantProvider,
         IMessageBus bus,
         CancellationToken ct
     )
@@ -36,7 +38,9 @@ public sealed class CommitUploadEndpointCommandHandler
         if (!opts.AllowedContentTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase))
             return DomainErrors.Files.InvalidFileType(contentType);
 
+        // Carry the caller's tenant so the saga can reject a commit from a different tenant.
         CommitUploadCommand sagaMessage = new(
+            tenantProvider.TenantId,
             command.Request.UploadToken,
             contentType,
             command.Request.Description

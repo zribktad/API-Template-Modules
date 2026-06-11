@@ -15,6 +15,7 @@ namespace APITemplate.Tests.Unit.FileStorage;
 public sealed class CommitUploadEndpointCommandHandlerTests
 {
     private readonly Mock<IMessageBus> _bus = new();
+    private readonly MutableTenantProvider _tenantProvider = new() { TenantId = Guid.NewGuid() };
     private readonly FileStorageOptions _options = new()
     {
         BasePath = "/tmp",
@@ -47,6 +48,7 @@ public sealed class CommitUploadEndpointCommandHandlerTests
         ErrorOr<FileUploadResponse> result = await CommitUploadEndpointCommandHandler.HandleAsync(
             cmd,
             Options.Create(_options),
+            _tenantProvider,
             _bus.Object,
             CancellationToken.None
         );
@@ -77,6 +79,7 @@ public sealed class CommitUploadEndpointCommandHandlerTests
         ErrorOr<FileUploadResponse> result = await CommitUploadEndpointCommandHandler.HandleAsync(
             cmd,
             Options.Create(_options),
+            _tenantProvider,
             _bus.Object,
             CancellationToken.None
         );
@@ -114,6 +117,7 @@ public sealed class CommitUploadEndpointCommandHandlerTests
         ErrorOr<FileUploadResponse> result = await CommitUploadEndpointCommandHandler.HandleAsync(
             cmd,
             Options.Create(_options),
+            _tenantProvider,
             _bus.Object,
             CancellationToken.None
         );
@@ -139,6 +143,7 @@ public sealed class CommitUploadEndpointCommandHandlerTests
         ErrorOr<FileUploadResponse> result = await CommitUploadEndpointCommandHandler.HandleAsync(
             cmd,
             Options.Create(_options),
+            _tenantProvider,
             _bus.Object,
             CancellationToken.None
         );

@@ -24,6 +24,9 @@ public interface IProductDataRepository
     /// <summary>Inserts a new product-data document and returns the persisted instance.</summary>
     public Task<ProductData> CreateAsync(ProductData productData, CancellationToken ct = default);
 
+    /// <summary>Checks if a product-data document exists for the current tenant (including soft-deleted).</summary>
+    public Task<bool> AnyAsync(Guid id, CancellationToken ct = default);
+
     /// <summary>Soft-deletes the product-data document with the given ID, recording the actor and timestamp.</summary>
     public Task<bool> SoftDeleteAsync(
         Guid id,

@@ -39,7 +39,9 @@ public static class SecurityHeadersExtensions
 
             if (hstsOptions.Preload)
             {
-                // If a dedicated Preload method isn't available, we can set the header manually.
+                // No dedicated preload helper, so set the header manually. The HSTS preload spec
+                // REQUIRES includeSubDomains, so it is always present when preload is enabled —
+                // this is intentional and not affected by hstsOptions.IncludeSubDomains.
                 policyCollection.AddCustomHeader(
                     "Strict-Transport-Security",
                     $"max-age={maxAgeSeconds}; includeSubDomains; preload"

@@ -179,6 +179,8 @@ services:
       Keycloak__credentials__secret: "${KC_CLIENT_SECRET}"
       Redis__ConnectionString: "dragonfly-proxy:6379,password=${DRAGONFLY_PASSWORD:-}"
       APITEMPLATE_REDACTION_HMAC_KEY: "${REDACTION_HMAC_KEY}"
+      Webhook__IncomingSecret: "${WEBHOOK_INCOMING_SECRET}"
+      Webhook__OutgoingSecret: "${WEBHOOK_OUTGOING_SECRET}"
       KeycloakHealthCheck__DiscoveryUrl: "https://keycloak:8443/realms/${KC_REALM:-api-template}/.well-known/openid-configuration"
       Observability__Otlp__Endpoint: "http://alloy:4317"
       Observability__Exporters__Otlp__Enabled: "true"

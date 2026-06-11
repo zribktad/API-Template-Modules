@@ -1,10 +1,10 @@
+using BuildingBlocks.Application.Options.Infrastructure;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Domain.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using BuildingBlocks.Application.Options.Infrastructure;
-using BuildingBlocks.Domain.Interfaces;
-using BuildingBlocks.Domain.Options;
 
 namespace BuildingBlocks.Infrastructure.EFCore.UnitOfWork;
 
@@ -60,6 +60,12 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         IExecutionStrategy strategy = _transactionProvider.CreateExecutionStrategy(
             effectiveOptions
         );
+        // CAVEAT: NpgsqlRetryingExecutionStrategy retries this delegate on transient failures. If the
+        // server committed but the acknowledgement was lost (ambiguous commit), the retry re-runs
+        // SaveChangesAsync — Added entities can re-insert (PK violation) and Modified ones can hit
+        // xmin concurrency conflicts. This yields at-least-once write semantics. Callers needing
+        // exactly-once must rely on unique constraints / idempotency keys (see TenantInvitation,
+        // IncomingWebhook) rather than assuming a single physical apply.
         return strategy.ExecuteAsync(
             async cancellationToken =>
             {
@@ -255,4 +261,3 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext>
         return ex is InvalidOperationException or NotSupportedException;
     }
 }
-

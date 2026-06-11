@@ -31,7 +31,7 @@ public sealed class DeleteUserCommandHandler
         OutgoingMessages messages = new();
         if (user.KeycloakUserId is not null)
             messages.Add(new DeleteKeycloakUserEvent(user.KeycloakUserId));
-        messages.Add(new CacheInvalidationNotification(CacheTags.Users));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Users, user.TenantId));
         return (Result.Success, messages);
     }
 }

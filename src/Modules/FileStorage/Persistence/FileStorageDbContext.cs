@@ -25,5 +25,6 @@ public sealed class FileStorageDbContext : ModuleDbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema("file_storage");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FileStorageDbContext).Assembly);
+        ApplyGlobalFilters(modelBuilder);
     }
 }

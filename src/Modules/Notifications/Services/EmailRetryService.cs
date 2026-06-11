@@ -103,8 +103,11 @@ public sealed class EmailRetryService : IEmailRetryService
 
             try
             {
-                // Commit after each email to ensure durable progress — avoids duplicate sends on crash
-                // After the "point of no return" (successful SMTP), commit with None and surface OCE only to outer loop.
+                // Commit after each email to ensure durable progress. NOTE: this is at-least-once, not
+                // at-most-once — if SMTP succeeds but this commit (the staged delete) fails or the process
+                // crashes before it persists, the email is retried on restart and the recipient may get it
+                // twice. Recipients/consumers should dedupe. After the "point of no return" (successful
+                // SMTP) we commit with None so cancellation doesn't strand the delete.
                 await _unitOfWork.CommitAsync(
                     stagedDeleteAfterSuccessfulSend ? CancellationToken.None : ct
                 );

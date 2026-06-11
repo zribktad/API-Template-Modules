@@ -102,6 +102,12 @@
   "RateLimiting": {
     "AllowDistributedRateLimiting": true
   },
+  "Cors": {
+    "AllowedOrigins": [
+      "https://api.yourdomain.com",
+      "https://app.yourdomain.com"
+    ]
+  },
   "Request": {
     "RequestSizeLimitMb": 1
   },

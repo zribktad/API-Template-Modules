@@ -1,5 +1,6 @@
 using global::ProductCatalog;
 using APITemplate.Tests.Unit.Infrastructure;
+using BuildingBlocks.Application.Context;
 using BuildingBlocks.Application.DTOs;
 using BuildingBlocks.Domain.Interfaces;
 using ErrorOr;
@@ -65,6 +66,7 @@ public sealed class CreateCategoriesCommandHandlerTests
                 entities,
                 _repository.Object,
                 _unitOfWork.Object,
+                Mock.Of<ITenantProvider>(),
                 TestContext.Current.CancellationToken
             );
 

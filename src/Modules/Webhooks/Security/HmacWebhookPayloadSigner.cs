@@ -10,7 +10,7 @@ public sealed class HmacWebhookPayloadSigner : IWebhookPayloadSigner
 
     public HmacWebhookPayloadSigner(IOptions<WebhookOptions> options, TimeProvider timeProvider)
     {
-        _keyBytes = HmacHelper.GetKeyBytes(options.Value.Secret);
+        _keyBytes = HmacHelper.GetKeyBytes(options.Value.OutgoingSecret);
         _timeProvider = timeProvider;
     }
 

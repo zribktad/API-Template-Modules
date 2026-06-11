@@ -65,4 +65,11 @@ internal static partial class WebhooksInfrastructureLogs
         string eventType,
         string eventId
     );
+
+    [LoggerMessage(
+        EventId = 7006,
+        Level = LogLevel.Information,
+        Message = "Ignored duplicate inbound webhook with EventId={EventId}"
+    )]
+    public static partial void WebhookDuplicateIgnored(this ILogger logger, string eventId);
 }

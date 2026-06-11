@@ -29,7 +29,7 @@ public sealed class CreateImageProductDataCommandHandler
 
         Entities.ProductData.ProductData created = await repository.CreateAsync(entity, ct);
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.ProductData));
+        messages.Add(new CacheInvalidationNotification(CacheTags.ProductData, entity.TenantId));
         return (created.ToResponse(), messages);
     }
 }

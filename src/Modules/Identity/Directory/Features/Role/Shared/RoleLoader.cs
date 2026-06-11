@@ -6,6 +6,7 @@ public static class RoleLoader
 {
     public static async Task<ErrorOr<CustomRole>> LoadMutableAsync(
         Guid roleId,
+        Guid tenantId,
         IRoleRepository repository,
         CancellationToken ct
     )
@@ -18,6 +19,8 @@ public static class RoleLoader
             return DomainErrors.Roles.NotFound(roleId);
         if (role.IsImmutable)
             return DomainErrors.Roles.Immutable();
+        if (role.TenantId != tenantId)
+            return DomainErrors.Roles.NotFound(roleId);
         return role;
     }
 }

@@ -35,6 +35,10 @@ public static class RateLimitingServiceCollectionExtensions
     )
     {
         services.AddValidatedOptions<RateLimitingOptions>(configuration);
+        services.AddSingleton<
+            IValidateOptions<RateLimitingOptions>,
+            RateLimitingOptionsValidator
+        >();
         services.AddRateLimiter();
         services.ConfigureOptions<RateLimiterOptionsSetup>();
         return services;

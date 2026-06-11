@@ -62,6 +62,7 @@ public sealed class UpdateCategoriesCommandHandler
         UpdateCategoriesState state,
         ICategoryRepository repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        ITenantProvider tenantProvider,
         CancellationToken ct
     )
     {
@@ -84,7 +85,9 @@ public sealed class UpdateCategoriesCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        messages.Add(
+            new CacheInvalidationNotification(CacheTags.Categories, tenantProvider.TenantId)
+        );
 
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }

@@ -26,6 +26,7 @@ public static class MvcConventionsServiceCollectionExtensions
                 new RouteTokenTransformerConvention(new KebabCaseRouteTokenTransformer())
             );
             options.Filters.Add<BuildingBlocks.Web.Api.Filters.PaginationFilter>();
+            options.Filters.Add<BuildingBlocks.Web.Api.Filters.Idempotency.IdempotencyActionFilter>();
         });
 
         services.Configure<ApiBehaviorOptions>(options =>

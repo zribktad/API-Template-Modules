@@ -87,6 +87,14 @@ public sealed class ProductDataRepository : IProductDataRepository
         return productData;
     }
 
+    /// <inheritdoc />
+    public async Task<bool> AnyAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _collection
+            .Find(x => x.Id == id && x.TenantId == _tenantProvider.TenantId)
+            .AnyAsync(ct);
+    }
+
     /// <summary>Soft-deletes a single document by setting <c>IsDeleted</c>, <c>DeletedAtUtc</c>, and <c>DeletedBy</c>.</summary>
     public async Task<bool> SoftDeleteAsync(
         Guid id,

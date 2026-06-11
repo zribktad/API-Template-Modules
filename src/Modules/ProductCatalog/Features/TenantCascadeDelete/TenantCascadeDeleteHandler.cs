@@ -22,14 +22,18 @@ public static class TenantCascadeDeleteHandler
         CancellationToken ct
     )
     {
-        IReadOnlyList<Guid> productIds = await productRepository.GetNonDeletedIdsByTenantAsync(
-            notification.TenantId,
-            ct
-        );
+        // Read the ids INSIDE the transaction (just before the bulk delete) so a product created
+        // concurrently between the read and the delete cannot be soft-deleted yet excluded from the
+        // ProductsBatchSoftDeletedNotification (which would leave its reviews un-cascaded).
+        List<Guid> productIds = [];
 
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
             {
+                productIds.AddRange(
+                    await productRepository.GetNonDeletedIdsByTenantAsync(notification.TenantId, ct)
+                );
+
                 await categoryRepository.BulkSoftDeleteByTenantAsync(
                     notification.TenantId,
                     notification.ActorId,
@@ -55,7 +59,7 @@ public static class TenantCascadeDeleteHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForProductDeletion);
+        messages.AddRange(CacheInvalidationCascades.ForProductDeletion(notification.TenantId));
 
         if (productIds.Count > 0)
         {

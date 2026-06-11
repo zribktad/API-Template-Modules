@@ -4,17 +4,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Webhooks.Contracts;
 using Webhooks.Security;
+using Wolverine;
 
 namespace Webhooks.Features;
 
 [ApiVersion(1.0)]
 public sealed class WebhooksController : ApiControllerBase
 {
-    private readonly IWebhookProcessingQueue _queue;
+    private readonly IMessageBus _bus;
 
-    public WebhooksController(IWebhookProcessingQueue queue)
+    public WebhooksController(IMessageBus bus)
     {
-        _queue = queue;
+        _bus = bus;
     }
 
     [HttpPost]
@@ -30,7 +31,10 @@ public sealed class WebhooksController : ApiControllerBase
         CancellationToken ct
     )
     {
-        await _queue.EnqueueAsync(payload, ct);
+        // Publish to Wolverine's durable inbox/local queue. The envelope is persisted in PostgreSQL
+        // before we return 2xx, so a crash before IncomingWebhookHandler runs no longer loses the
+        // event (unlike the previous in-memory channel).
+        await _bus.PublishAsync(payload);
         return Ok();
     }
 }

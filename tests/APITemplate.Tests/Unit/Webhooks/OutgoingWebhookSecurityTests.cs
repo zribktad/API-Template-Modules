@@ -110,7 +110,11 @@ public sealed class OutgoingWebhookSecurityTests
     [InlineData("100.127.255.255", false)] // End of CGNAT
     [InlineData("100.128.0.0", true)] // Just after CGNAT
     [InlineData("0.0.0.0", false)] // Unspecified
-    [InlineData("255.255.255.255", true)] // Broadcast — not private; outbound is typically safe
+    [InlineData("255.255.255.255", false)] // Limited broadcast (240.0.0.0/4 reserved) — blocked
+    [InlineData("224.0.0.1", false)] // Multicast (224.0.0.0/4) — blocked
+    [InlineData("198.18.0.1", false)] // Benchmarking (198.18.0.0/15) — blocked
+    [InlineData("0.1.2.3", false)] // 0.0.0.0/8 "this network" — blocked
+    [InlineData("223.255.255.255", true)] // Just before multicast range — allowed
     public void IsAllowed_ShouldBeExact_AtRangeBoundaries(string ipAddress, bool expected)
     {
         // Arrange

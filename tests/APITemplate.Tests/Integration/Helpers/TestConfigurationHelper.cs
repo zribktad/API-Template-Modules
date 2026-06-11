@@ -45,7 +45,10 @@ internal static class TestConfigurationHelper
             ["Observability:Exporters:Console:Enabled"] = "false",
             ["RuntimeFeatures:ModuleHealthChecksEnabled"] = "false",
             ["Redis:ConnectionString"] = "",
-            ["Webhook:Secret"] = TestWebhookSecret,
+            // Incoming webhooks in tests are signed with TestWebhookSecret, so it must back the
+            // inbound validator. Outgoing signing uses a distinct secret (see M6 — separate secrets).
+            ["Webhook:IncomingSecret"] = TestWebhookSecret,
+            ["Webhook:OutgoingSecret"] = "test-webhook-outgoing-secret-at-least-16-chars",
         };
     }
 }

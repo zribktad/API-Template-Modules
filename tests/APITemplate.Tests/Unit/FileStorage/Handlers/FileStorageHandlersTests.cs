@@ -24,6 +24,7 @@ public sealed class FileStorageHandlersTests
     private readonly Mock<IStoredFileRepository> _repository = new();
     private readonly Mock<IBlobStoreFactory> _factory = new();
     private readonly Mock<IBlobStore> _store = new();
+    private readonly MutableTenantProvider _tenantProvider = new();
 
     [Fact]
     public async Task UploadHandler_WhenBeginFails_ShouldReturnErrors()
@@ -88,6 +89,8 @@ public sealed class FileStorageHandlersTests
         StoredFile entity = StoredFile.Create("a.png", "hash", "local", "image/png", 10, null);
         entity.Id = id;
         entity.TenantId = Guid.NewGuid();
+        // The delete handler relies on the global tenant filter; align the ambient tenant with the row.
+        _tenantProvider.TenantId = entity.TenantId;
         await using FileStorageDbContext db = CreateDbContext();
         db.StoredFiles.Add(entity);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -96,6 +99,8 @@ public sealed class FileStorageHandlersTests
             await DeleteFileCommandHandler.HandleAsync(
                 new DeleteFileCommand(id),
                 db,
+                TimeProvider.System,
+                DesignTimeServices.ActorProvider,
                 TestContext.Current.CancellationToken
             );
 
@@ -104,7 +109,7 @@ public sealed class FileStorageHandlersTests
         entity.IsDeleted.ShouldBeTrue();
     }
 
-    private static FileStorageDbContext CreateDbContext()
+    private FileStorageDbContext CreateDbContext()
     {
         DbContextOptions<FileStorageDbContext> opts =
             new DbContextOptionsBuilder<FileStorageDbContext>()
@@ -112,7 +117,7 @@ public sealed class FileStorageHandlersTests
                 .Options;
         return new FileStorageDbContext(
             opts,
-            DesignTimeServices.TenantProvider,
+            _tenantProvider,
             DesignTimeServices.ActorProvider,
             TimeProvider.System,
             DesignTimeServices.AuditableEntityStateManager

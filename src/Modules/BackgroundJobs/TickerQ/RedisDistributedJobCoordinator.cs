@@ -139,16 +139,32 @@ public sealed class RedisDistributedJobCoordinator : IDistributedJobCoordinator
         using PeriodicTimer timer = new(TimeSpan.FromSeconds(LeaseSeconds / LeaseRenewalDivider));
         while (await timer.WaitForNextTickAsync(executionCts.Token))
         {
-            long renewed = (long)
-                await database.ScriptEvaluateAsync(
-                    RenewLeaseScript,
-                    new
-                    {
-                        key,
-                        value,
-                        leaseSeconds = LeaseSeconds,
-                    }
+            long renewed;
+            try
+            {
+                renewed = (long)
+                    await database.ScriptEvaluateAsync(
+                        RenewLeaseScript,
+                        new
+                        {
+                            key,
+                            value,
+                            leaseSeconds = LeaseSeconds,
+                        }
+                    );
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // A Redis outage means we can no longer prove we hold the lease. Fail safe: cancel
+                // the in-flight execution rather than letting it run unprotected until the lease
+                // expires and another node acquires it (split-brain).
+                _logger.CoordinationLeaseRenewalError(ex, jobName);
+                executionCts.Cancel();
+                throw new InvalidOperationException(
+                    $"Background job '{jobName}' could not renew its Redis coordination lease.",
+                    ex
                 );
+            }
 
             if (renewed != 0)
                 continue;

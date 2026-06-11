@@ -13,10 +13,10 @@ public class HmacWebhookPayloadSignerTests
     private const string TestSecret = "test-webhook-secret-at-least-16";
 
     private static HmacWebhookPayloadSigner CreateSigner(TimeProvider timeProvider) =>
-        new(Options.Create(new WebhookOptions { Secret = TestSecret }), timeProvider);
+        new(Options.Create(new WebhookOptions { OutgoingSecret = TestSecret }), timeProvider);
 
     private static HmacWebhookPayloadValidator CreateValidator(TimeProvider timeProvider) =>
-        new(Options.Create(new WebhookOptions { Secret = TestSecret }), timeProvider);
+        new(Options.Create(new WebhookOptions { IncomingSecret = TestSecret }), timeProvider);
 
     [Fact]
     public void Sign_ProducesSignatureThatValidatorAccepts()

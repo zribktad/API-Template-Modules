@@ -3,6 +3,8 @@ using Identity.Common.Email;
 using Identity.Directory.Entities;
 using Identity.Directory.Features.TenantInvitation.Mappings;
 using Identity.Directory.Options;
+using Identity.Directory.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Wolverine;
 using TenantEntity = Identity.Directory.Entities.Tenant;
@@ -32,10 +34,7 @@ public sealed class CreateTenantInvitationCommandHandler
 
         if (await invitationRepository.HasPendingInvitationAsync(normalizedEmail, ct))
         {
-            return (
-                DomainErrors.Invitations.AlreadyPending(email),
-                OutgoingMessagesHelper.Empty
-            );
+            return (DomainErrors.Invitations.AlreadyPending(email), OutgoingMessagesHelper.Empty);
         }
 
         ErrorOr<TenantEntity> tenantResult = await tenantRepository.GetByIdOrError(
@@ -57,8 +56,17 @@ public sealed class CreateTenantInvitationCommandHandler
             timeProvider
         );
 
-        await invitationRepository.AddAsync(invitation, ct);
-        await unitOfWork.CommitAsync(ct);
+        try
+        {
+            await invitationRepository.AddAsync(invitation, ct);
+            await unitOfWork.CommitAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.IsPendingInvitationUniqueViolation())
+        {
+            // Lost the check-then-insert race against a concurrent invite for the same email;
+            // the partial unique index rejected the duplicate. Surface the same domain error.
+            return (DomainErrors.Invitations.AlreadyPending(email), OutgoingMessagesHelper.Empty);
+        }
 
         string invitationUrl = $"{opts.BaseUrl}/invitations/accept?token={rawToken}";
 
@@ -73,7 +81,9 @@ public sealed class CreateTenantInvitationCommandHandler
                 opts.InvitationTokenExpiryHours
             )
         );
-        messages.Add(new CacheInvalidationNotification(CacheTags.TenantInvitations));
+        messages.Add(
+            new CacheInvalidationNotification(CacheTags.TenantInvitations, invitation.TenantId)
+        );
         return (invitation.ToResponse(), messages);
     }
 }

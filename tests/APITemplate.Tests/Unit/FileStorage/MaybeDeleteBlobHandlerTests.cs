@@ -1,4 +1,6 @@
 using Ardalis.Specification;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Domain.Options;
 using FileStorage.Domain;
 using FileStorage.Domain.Sagas;
 using FileStorage.Domain.Storage;
@@ -16,10 +18,31 @@ public sealed class MaybeDeleteBlobHandlerTests
     private readonly Mock<IStoredFileRepository> _repository = new();
     private readonly Mock<IBlobStoreFactory> _factory = new();
     private readonly Mock<IBlobStore> _store = new();
+    private readonly Mock<IUnitOfWork<FileStorageDbMarker>> _unitOfWork = new();
 
     public MaybeDeleteBlobHandlerTests()
     {
         _factory.Setup(f => f.Get(It.IsAny<string>())).Returns(_store.Object);
+        _repository
+            .Setup(r =>
+                r.AcquireBlobDeletionLockAsync(
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        _unitOfWork
+            .Setup(u =>
+                u.ExecuteInTransactionAsync(
+                    It.IsAny<Func<Task>>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<TransactionOptions?>()
+                )
+            )
+            .Returns<Func<Task>, CancellationToken, TransactionOptions?>(
+                async (action, _, _) => await action()
+            );
     }
 
     [Fact]
@@ -39,6 +62,7 @@ public sealed class MaybeDeleteBlobHandlerTests
             new MaybeDeleteBlobCommand(tenant, "abc", "local"),
             _repository.Object,
             _factory.Object,
+            _unitOfWork.Object,
             NullLogger<MaybeDeleteBlobHandler>.Instance,
             CancellationToken.None
         );
@@ -63,6 +87,7 @@ public sealed class MaybeDeleteBlobHandlerTests
             new MaybeDeleteBlobCommand(Guid.NewGuid(), "abc", "local"),
             _repository.Object,
             _factory.Object,
+            _unitOfWork.Object,
             NullLogger<MaybeDeleteBlobHandler>.Instance,
             CancellationToken.None
         );
@@ -89,6 +114,7 @@ public sealed class MaybeDeleteBlobHandlerTests
             new MaybeDeleteBlobCommand(Guid.NewGuid(), "abc", backendKey),
             _repository.Object,
             _factory.Object,
+            _unitOfWork.Object,
             NullLogger<MaybeDeleteBlobHandler>.Instance,
             CancellationToken.None
         );
@@ -113,6 +139,7 @@ public sealed class MaybeDeleteBlobHandlerTests
                 new MaybeDeleteBlobCommand(Guid.NewGuid(), "abc", "local"),
                 _repository.Object,
                 _factory.Object,
+                _unitOfWork.Object,
                 NullLogger<MaybeDeleteBlobHandler>.Instance,
                 cts.Token
             )

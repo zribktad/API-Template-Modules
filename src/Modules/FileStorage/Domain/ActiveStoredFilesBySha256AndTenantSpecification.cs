@@ -10,6 +10,8 @@ public sealed class ActiveStoredFilesBySha256AndTenantSpecification : Specificat
 {
     public ActiveStoredFilesBySha256AndTenantSpecification(Guid tenantId, string sha256)
     {
-        Query.Where(f => f.TenantId == tenantId && f.Sha256 == sha256 && !f.IsDeleted);
+        Query
+            .IgnoreQueryFilters()
+            .Where(f => f.TenantId == tenantId && f.Sha256 == sha256 && !f.IsDeleted);
     }
 }

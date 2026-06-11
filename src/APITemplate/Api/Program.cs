@@ -22,6 +22,8 @@ using Notifications;
 using ProductCatalog;
 using Reviews;
 using Serilog;
+using TickerQ;
+using TickerQ.DependencyInjection;
 using Webhooks;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
@@ -34,9 +36,21 @@ using Wolverine.Postgresql;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // NEW: Explicit Configuration Ordering (JSON5 Only)
-builder.Configuration.Sources.Clear();
-builder
-    .Configuration.AddJson5File("appsettings.json5", optional: false, reloadOnChange: true)
+int jsonIndex = builder
+    .Configuration.Sources.ToList()
+    .FindIndex(s => s.GetType().Name == "JsonConfigurationSource");
+if (jsonIndex < 0)
+    jsonIndex = 0;
+
+var toRemove = builder
+    .Configuration.Sources.Where(s => s.GetType().Name == "JsonConfigurationSource")
+    .ToList();
+foreach (var s in toRemove)
+    builder.Configuration.Sources.Remove(s);
+
+var tempBuilder = new ConfigurationBuilder();
+tempBuilder
+    .AddJson5File("appsettings.json5", optional: false, reloadOnChange: true)
     .AddJson5File(
         $"appsettings.{builder.Environment.EnvironmentName}.json5",
         optional: true,
@@ -44,15 +58,12 @@ builder
     )
     .AddJson5File("appsettings.Identity.json5", optional: true, reloadOnChange: true)
     .AddJson5File("appsettings.Catalog.json5", optional: true, reloadOnChange: true)
-    .AddJson5File("appsettings.local.json5", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables();
+    .AddJson5File("appsettings.local.json5", optional: true, reloadOnChange: true);
 
-if (builder.Environment.IsDevelopment())
+foreach (var source in tempBuilder.Sources.Reverse())
 {
-    builder.Configuration.AddUserSecrets<Program>();
+    builder.Configuration.Sources.Insert(jsonIndex, source);
 }
-
-builder.Configuration.AddCommandLine(args);
 
 string connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
@@ -150,6 +161,7 @@ builder.Host.UseWolverine(options =>
     // After all retries are exhausted the message moves to wolverine_dead_letters in PostgreSQL.
     options.AddDurableRetryPolicy<HttpRequestException>();
     options.AddDurableRetryPolicy<MongoException>();
+    options.AddDurableRetryPolicy<TimeoutException>();
 });
 
 #endregion
@@ -160,6 +172,21 @@ WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
     await app.UseDatabaseAsync(app.Lifetime.ApplicationStopping);
+
+// TickerQ is only wired up when enabled (BackgroundJobs:TickerQ:Enabled). When disabled — e.g. in
+// integration tests — neither AddTickerQ nor the registrar is registered, so UseTickerQ()/SyncAsync
+// must be skipped to avoid failing host startup.
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    BackgroundJobs.TickerQ.TickerQRecurringJobRegistrar? registrar =
+        scope.ServiceProvider.GetService<BackgroundJobs.TickerQ.TickerQRecurringJobRegistrar>();
+    if (registrar is not null)
+    {
+        app.UseTickerQ();
+        // Seed TickerQ recurring job definitions at startup.
+        await registrar.SyncAsync(app.Lifetime.ApplicationStopping);
+    }
+}
 
 app.UseApiPipeline();
 app.MapApplicationEndpoints();

@@ -1,13 +1,17 @@
 using BuildingBlocks.Application.Configuration;
+using BuildingBlocks.Application.Constants;
 using BuildingBlocks.Application.Options;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Infrastructure.EFCore.Registration;
+using BuildingBlocks.Web.Configuration;
 using BuildingBlocks.Web.Resilience;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using Webhooks.Contracts;
+using Webhooks.Persistence;
 using Webhooks.Security;
 using Webhooks.Services;
 
@@ -20,6 +24,16 @@ public static class WebhooksRuntimeBridge
         IConfiguration configuration
     )
     {
+        string connectionString = configuration.GetConnectionString(
+            ConfigurationSections.DefaultConnection
+        )!;
+
+        services
+            .AddModule<WebhooksDbContext>(configuration)
+            .ConfigureDbContext(options => options.UseNpgsql(connectionString))
+            .AddDefaultInfrastructure()
+            .ForwardUnitOfWork<WebhooksDbMarker>();
+
         AddIncomingWebhookServices(services, configuration);
         AddOutgoingWebhookServices(services);
         return services;
@@ -32,12 +46,8 @@ public static class WebhooksRuntimeBridge
     {
         services.AddModuleOptions<WebhookOptions>(configuration);
         services.AddSingleton<IWebhookPayloadValidator, HmacWebhookPayloadValidator>();
-        services.AddQueueWithConsumer<
-            ChannelWebhookQueue,
-            IWebhookProcessingQueue,
-            IWebhookQueueReader,
-            WebhookProcessingBackgroundService
-        >();
+        // Inbound payloads are processed by the durable Wolverine IncomingWebhookHandler
+        // (auto-discovered) instead of an in-memory channel + hosted consumer.
         services.AddScoped<IWebhookEventHandler, LoggingWebhookEventHandler>();
     }
 
@@ -45,15 +55,17 @@ public static class WebhooksRuntimeBridge
     {
         services.AddSingleton<INetworkSecurityPolicy, DefaultNetworkSecurityPolicy>();
         services.AddSingleton<IWebhookPayloadSigner, HmacWebhookPayloadSigner>();
-        services.AddQueueWithConsumer<
-            ChannelOutgoingWebhookQueue,
-            IOutgoingWebhookQueue,
-            IOutgoingWebhookQueueReader,
-            OutgoingWebhookBackgroundService
-        >();
+        // Outgoing deliveries run inside the durable Wolverine SendWebhookCallbackHandler
+        // (auto-discovered) instead of an in-memory channel + hosted consumer.
 
         services
-            .AddHttpClient(WebhookConstants.OutgoingHttpClientName)
+            .AddHttpClient(
+                WebhookConstants.OutgoingHttpClientName,
+                client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                }
+            )
             .ConfigurePrimaryHttpMessageHandler(sp =>
                 SsrfProtectedSocketsHttpHandlerFactory.Create(
                     sp.GetRequiredService<INetworkSecurityPolicy>()

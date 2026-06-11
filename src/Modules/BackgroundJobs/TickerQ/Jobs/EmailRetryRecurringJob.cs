@@ -22,11 +22,11 @@ public sealed class EmailRetryRecurringJob
         _logger = logger;
     }
 
-    [TickerFunction("email-retry-recurring-job")]
+    [TickerFunction(TickerQFunctionNames.EmailRetry)]
     public Task ExecuteAsync(TickerFunctionContext context, CancellationToken ct)
     {
         return _coordinator.ExecuteIfLeaderAsync(
-            "email-retry-recurring-job",
+            TickerQFunctionNames.EmailRetry,
             async token =>
             {
                 _logger.ExecutingEmailRetryRecurringJob(context.Id);

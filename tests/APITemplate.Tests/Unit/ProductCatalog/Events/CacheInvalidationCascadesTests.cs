@@ -13,7 +13,8 @@ public sealed class CacheInvalidationCascadesTests
     public void ForProductChange_ShouldContainProductsAndCategories()
     {
         CacheInvalidationCascades
-            .ForProductChange.Select(x => x.CacheTag)
+            .ForProductChange(Guid.Empty)
+            .Select(x => x.CacheTag)
             .ShouldBe([CacheTags.Products, CacheTags.Categories], ignoreOrder: true);
     }
 
@@ -21,7 +22,8 @@ public sealed class CacheInvalidationCascadesTests
     public void ForProductDeletion_ShouldContainProductsCategoriesAndReviews()
     {
         CacheInvalidationCascades
-            .ForProductDeletion.Select(x => x.CacheTag)
+            .ForProductDeletion(Guid.Empty)
+            .Select(x => x.CacheTag)
             .ShouldBe(
                 [CacheTags.Products, CacheTags.Categories, CrossModuleCacheTags.Reviews],
                 ignoreOrder: true
@@ -32,7 +34,8 @@ public sealed class CacheInvalidationCascadesTests
     public void ForCategoryDeletion_ShouldContainCategoriesAndProducts()
     {
         CacheInvalidationCascades
-            .ForCategoryDeletion.Select(x => x.CacheTag)
+            .ForCategoryDeletion(Guid.Empty)
+            .Select(x => x.CacheTag)
             .ShouldBe([CacheTags.Categories, CacheTags.Products], ignoreOrder: true);
     }
 
@@ -40,7 +43,8 @@ public sealed class CacheInvalidationCascadesTests
     public void ForProductDataDeletion_ShouldContainProductDataAndProducts()
     {
         CacheInvalidationCascades
-            .ForProductDataDeletion.Select(x => x.CacheTag)
+            .ForProductDataDeletion(Guid.Empty)
+            .Select(x => x.CacheTag)
             .ShouldBe([CacheTags.ProductData, CacheTags.Products], ignoreOrder: true);
     }
 }

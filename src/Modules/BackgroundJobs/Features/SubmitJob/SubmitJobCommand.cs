@@ -1,5 +1,4 @@
-using BackgroundJobs.Logging;
-using Microsoft.Extensions.Logging;
+using Wolverine;
 
 namespace BackgroundJobs.Features;
 
@@ -7,14 +6,12 @@ public sealed record SubmitJobCommand(SubmitJobRequest Request);
 
 public sealed class SubmitJobCommandHandler
 {
-    public static async Task<ErrorOr<JobStatusResponse>> HandleAsync(
+    public static async Task<(ErrorOr<JobStatusResponse>, OutgoingMessages)> HandleAsync(
         SubmitJobCommand command,
         IJobExecutionRepository repository,
-        IJobQueue jobQueue,
         IUnitOfWork<BackgroundJobsDbMarker> unitOfWork,
         TimeProvider timeProvider,
         IIdGenerator idGenerator,
-        ILogger<SubmitJobCommandHandler> logger,
         CancellationToken ct
     )
     {
@@ -34,30 +31,11 @@ public sealed class SubmitJobCommandHandler
             ct
         );
 
-        try
-        {
-            await jobQueue.EnqueueAsync(entity.Id, ct);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.JobEnqueueFailed(ex, entity.Id);
-
-            // The job was persisted as Pending but never entered Processing.
-            // Remove the persisted Pending record to avoid leaving a dangling entry.
-            await unitOfWork.ExecuteInTransactionAsync(
-                async () =>
-                {
-                    await repository.DeleteAsync(entity, ct);
-                },
-                ct
-            );
-
-            return Error.Failure(
-                ErrorCatalog.General.Unknown,
-                $"Failed to enqueue job for processing ({ex.GetType().Name})."
-            );
-        }
-
-        return entity.ToResponse();
+        // Drive processing via a durable Wolverine command instead of an in-memory channel.
+        // UseDurableLocalQueues persists the cascaded message in PostgreSQL, so it survives a
+        // restart and is retried/dead-lettered by Wolverine — no silent at-most-once downgrade.
+        OutgoingMessages messages = new();
+        messages.Add(new ProcessJobCommand(entity.Id));
+        return (entity.ToResponse(), messages);
     }
 }

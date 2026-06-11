@@ -10,12 +10,21 @@ namespace Reviews.Features;
 public sealed class ProductReviewByProductIdsSpecification
     : Specification<ProductReviewEntity, ProductReviewResponse>
 {
-    /// <summary>Initialises the specification for the given set of <paramref name="productIds" />.</summary>
-    public ProductReviewByProductIdsSpecification(IReadOnlyCollection<Guid> productIds)
+    /// <summary>
+    ///     Initialises the specification for the given set of <paramref name="productIds" />, bounding the
+    ///     total rows fetched to <paramref name="maxPerProduct" /> × product count so a wide GraphQL query
+    ///     (many products × all-reviews) cannot pull an unbounded result set. The per-product cap is
+    ///     enforced by the caller after grouping.
+    /// </summary>
+    public ProductReviewByProductIdsSpecification(
+        IReadOnlyCollection<Guid> productIds,
+        int maxPerProduct
+    )
     {
         Query
             .Where(r => productIds.Contains(r.ProductId))
             .OrderByDescending(r => r.Audit.CreatedAtUtc)
+            .Take(productIds.Count * maxPerProduct)
             .Select(ProductReviewMappings.Projection);
     }
 }
