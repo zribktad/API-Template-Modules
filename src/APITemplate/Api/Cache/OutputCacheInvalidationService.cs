@@ -1,28 +1,25 @@
 using APITemplate.Api;
-using BuildingBlocks.Application.Context;
 using Microsoft.AspNetCore.OutputCaching;
 
 namespace APITemplate.Api.Cache;
 
 public sealed class OutputCacheInvalidationService(
     IOutputCacheStore outputCacheStore,
-    ITenantProvider tenantProvider,
     ILogger<OutputCacheInvalidationService> logger
 ) : IOutputCacheInvalidationService
 {
-    public Task EvictAsync(string tag, CancellationToken cancellationToken = default)
+    public Task EvictAsync(string tag, Guid tenantId, CancellationToken cancellationToken = default)
     {
-        return EvictAsync([tag], cancellationToken);
+        return EvictAsync([tag], tenantId, cancellationToken);
     }
 
     public async Task EvictAsync(
         IEnumerable<string> tags,
+        Guid tenantId,
         CancellationToken cancellationToken = default
     )
     {
-        string tenantSuffix = tenantProvider.HasTenant
-            ? $"-{tenantProvider.TenantId}"
-            : string.Empty;
+        string tenantSuffix = tenantId != Guid.Empty ? $"-{tenantId}" : string.Empty;
 
         foreach (string tag in tags.Distinct(StringComparer.Ordinal))
         {

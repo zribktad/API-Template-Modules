@@ -44,14 +44,19 @@ internal sealed class DefaultNetworkSecurityPolicy(
             Span<byte> bytes = stackalloc byte[4];
             ipv4.TryWriteBytes(bytes, out _);
 
-            // Block private ranges and restricted networks
+            // Block private ranges and IANA special-purpose networks.
             return bytes[0] switch
             {
+                0 => false, // 0.0.0.0/8 ("this network" — whole block, not just 0.0.0.0)
                 10 => false, // 10.0.0.0/8 (Private)
-                100 => bytes[1] < 64 || bytes[1] > 127, // 100.64.0.0/10 (Carrier-grade NAT) - block if second octet is 64-127
-                172 => bytes[1] < 16 || bytes[1] > 31, // 172.16.0.0/12 (Private) - block if in range
-                192 => bytes[1] != 168, // 192.168.0.0/16 (Private) - block if 168
+                100 => bytes[1] < 64 || bytes[1] > 127, // 100.64.0.0/10 (Carrier-grade NAT)
                 169 => bytes[1] != 254, // 169.254.0.0/16 (Link-local) - block if 254
+                172 => bytes[1] < 16 || bytes[1] > 31, // 172.16.0.0/12 (Private)
+                // 192.168.0.0/16 (Private) and 192.0.0.0/24 (IETF Protocol Assignments)
+                192 => bytes[1] != 168 && !(bytes[1] == 0 && bytes[2] == 0),
+                198 => bytes[1] != 18 && bytes[1] != 19, // 198.18.0.0/15 (benchmarking)
+                // 224.0.0.0/4 multicast + 240.0.0.0/4 reserved (includes 255.255.255.255 broadcast)
+                >= 224 => false,
                 _ => true,
             };
         }

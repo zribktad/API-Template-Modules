@@ -47,6 +47,8 @@ public sealed class CustomRoleConfiguration : IEntityTypeConfiguration<CustomRol
         builder.Property(e => e.DeletedAtUtc).HasColumnType("timestamp with time zone");
         builder.Property(e => e.DeletedBy);
 
+        builder.HasQueryFilter(r => !r.IsDeleted);
+
         builder.ConfigurePostgresXminConcurrency();
 
         builder.HasIndex(r => r.TenantId);

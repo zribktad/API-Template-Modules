@@ -277,7 +277,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "admin",
+          "value": "${ADMIN_PASSWORD}",
           "temporary": false
         }
       ],

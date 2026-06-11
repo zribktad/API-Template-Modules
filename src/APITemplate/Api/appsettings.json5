@@ -23,7 +23,7 @@
 
   // ── Databases ────────────────────────────────────────────────────────────
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=apitemplate;Username=postgres;Password=postgres"
+    "DefaultConnection": ""
   },
   "MongoDB": {
     "ConnectionString": "mongodb://localhost:27017",
@@ -225,7 +225,8 @@
     }
   },
   "Webhook": {
-    "Secret": "",
+    "IncomingSecret": "",
+    "OutgoingSecret": "",
     "TimestampToleranceSeconds": 300,
     "AllowLocalRequests": false
   }

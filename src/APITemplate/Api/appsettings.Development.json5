@@ -50,7 +50,9 @@
     "KeyId": 1001
   },
   "Webhook": {
-    "Secret": "dev-webhook-secret-at-least-16-chars",
+    // Separate inbound/outbound secrets (see M6). Dev-only values; production supplies env vars.
+    "IncomingSecret": "dev-webhook-incoming-secret-at-least-16-chars",
+    "OutgoingSecret": "dev-webhook-outgoing-secret-at-least-16-chars",
     "AllowLocalRequests": true // Allow sending webhooks to localhost in dev
   },
   

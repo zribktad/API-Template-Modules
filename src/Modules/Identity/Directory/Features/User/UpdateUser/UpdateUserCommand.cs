@@ -92,7 +92,7 @@ public sealed class UpdateUserCommandHandler
         }
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Users));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Users, user.TenantId));
         return (Result.Success, messages);
     }
 }

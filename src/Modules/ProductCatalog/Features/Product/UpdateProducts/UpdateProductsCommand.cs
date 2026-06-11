@@ -88,6 +88,7 @@ public sealed class UpdateProductsCommandHandler
         EntityLookup<ProductEntity> lookup,
         ProductRepositoryContract repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        ITenantProvider tenantProvider,
         CancellationToken ct
     )
     {
@@ -117,7 +118,7 @@ public sealed class UpdateProductsCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForProductChange);
+        messages.AddRange(CacheInvalidationCascades.ForProductChange(tenantProvider.TenantId));
         return (new BatchResponse([], items.Count, 0), messages);
     }
 }

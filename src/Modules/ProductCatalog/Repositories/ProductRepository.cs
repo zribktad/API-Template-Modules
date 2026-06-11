@@ -12,12 +12,14 @@ namespace ProductCatalog.Repositories;
 /// </summary>
 public class ProductRepository : RepositoryBase<Product>, ProductApplicationRepository
 {
+    // Labels use half-open notation to match the [min, max) bucket counting below (a product priced
+    // at exactly 50 falls in the "50 to <100" bucket, not "0 to <50").
     private static readonly IReadOnlyList<ProductPriceFacetBucketResponse> DefaultPriceBuckets =
     [
-        new("0 - 50", 0m, 50m, 0),
-        new("50 - 100", 50m, 100m, 0),
-        new("100 - 250", 100m, 250m, 0),
-        new("250 - 500", 250m, 500m, 0),
+        new("0 to <50", 0m, 50m, 0),
+        new("50 to <100", 50m, 100m, 0),
+        new("100 to <250", 100m, 250m, 0),
+        new("250 to <500", 250m, 500m, 0),
         new("500+", 500m, null, 0),
     ];
 

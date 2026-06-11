@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.Context;
 using FileStorage.Domain.Sagas;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
@@ -18,6 +19,8 @@ public sealed class DeleteFileCommandHandler
     public static async Task<(ErrorOr<Success>, OutgoingMessages)> HandleAsync(
         DeleteFileCommand command,
         FileStorageDbContext dbContext,
+        TimeProvider timeProvider,
+        IActorProvider actorProvider,
         CancellationToken ct
     )
     {
@@ -28,8 +31,11 @@ public sealed class DeleteFileCommandHandler
         if (entity is null)
             return (DomainErrors.Files.FileNotFound(command.Id.ToString()), new OutgoingMessages());
 
+        // Stamp the soft-delete via TimeProvider and record the actor, matching the audit conventions
+        // (the manual flag set bypasses MarkSoftDeleted, so we set DeletedBy/DeletedAtUtc explicitly).
         entity.IsDeleted = true;
-        entity.DeletedAtUtc = DateTime.UtcNow;
+        entity.DeletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        entity.DeletedBy = actorProvider.ActorId;
 
         OutgoingMessages messages = new();
         messages.Add(new MaybeDeleteBlobCommand(entity.TenantId, entity.Sha256, entity.BackendKey));

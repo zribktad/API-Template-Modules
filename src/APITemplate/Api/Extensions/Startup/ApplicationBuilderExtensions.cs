@@ -16,6 +16,18 @@ public static class ApplicationBuilderExtensions
 {
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
+        var forwardedHeadersOptions = new Microsoft.AspNetCore.Builder.ForwardedHeadersOptions
+        {
+            ForwardedHeaders =
+                Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor
+                | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto,
+        };
+        // In Kubernetes, the ingress controller strips incoming X-Forwarded-For headers from
+        // the public internet and sets its own. So we trust the ingress proxy.
+        forwardedHeadersOptions.KnownIPNetworks.Clear();
+        forwardedHeadersOptions.KnownProxies.Clear();
+        app.UseForwardedHeaders(forwardedHeadersOptions);
+
         app.UseExceptionHandler();
 
         // Explicitly trigger routing here so the next middleware (RequestSizeLimits)
@@ -35,6 +47,10 @@ public static class ApplicationBuilderExtensions
         app.UseCors();
         // Correlation in Items + Serilog only (no Response) so Challenge runs before response headers.
         app.UseMiddleware<CorrelationContextMiddleware>();
+
+        // Cheap IP-keyed limiter before Authentication as a first line of defense
+        app.UseMiddleware<IpRateLimitMiddleware>();
+
         app.UseAuthentication();
         app.UseMiddleware<CsrfValidationMiddleware>();
         app.UseAuthorization();
@@ -94,7 +110,8 @@ public static class ApplicationBuilderExtensions
                     TypedResults.Ok(new HostStatusResponse(options.Value.ServiceName, "ready"))
             )
             .WithName("HostStatus")
-            .WithTags("Host");
+            .WithTags("Host")
+            .AllowAnonymous();
 
         foreach (
             HealthCheckEndpointDefinition endpoint in HealthCheckEndpointConfiguration.Endpoints
@@ -119,7 +136,7 @@ public static class ApplicationBuilderExtensions
             opts.UseDataAnnotationsValidationProblemDetailMiddleware();
         });
 
-        app.MapGraphQL();
+        app.MapGraphQL(GraphQLPathConstants.BasePath);
 
         return app;
     }

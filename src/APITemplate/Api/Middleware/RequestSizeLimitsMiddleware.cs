@@ -45,11 +45,24 @@ public sealed class RequestSizeLimitsMiddleware
             maxRequestBodySizeFeature.MaxRequestBodySize = opts.RequestSizeLimitBytes;
         }
 
-        // Manual check for Content-Length (Defense in Depth / TestServer compatibility)
+        // Manual check for Content-Length (Defense in Depth / TestServer compatibility).
+        // NOTE: chunked requests (null ContentLength) cannot be pre-checked here; Kestrel still
+        // enforces MaxRequestBodySize (set above) for those in non-test hosts.
         if (!hasCustomLimit && context.Request.ContentLength > opts.RequestSizeLimitBytes)
         {
             context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
-            await context.Response.WriteAsync("Request body too large.");
+            context.Response.ContentType = "application/problem+json";
+
+            Microsoft.AspNetCore.Mvc.ProblemDetails problemDetails = new()
+            {
+                Status = StatusCodes.Status413PayloadTooLarge,
+                Title = "Payload Too Large",
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.11",
+                Detail =
+                    $"Request body exceeds the maximum allowed size of {opts.RequestSizeLimitBytes} bytes.",
+            };
+
+            await context.Response.WriteAsJsonAsync(problemDetails, context.RequestAborted);
             return;
         }
 

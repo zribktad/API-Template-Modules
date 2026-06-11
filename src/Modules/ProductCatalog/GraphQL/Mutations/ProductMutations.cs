@@ -42,7 +42,20 @@ public class ProductMutations
         );
         BatchResponse batch = result.ToGraphQLResult();
         if (batch.FailureCount > 0)
-            throw new GraphQLException(string.Join("; ", batch.Failures[0].Errors));
+        {
+            BatchResultItem failure = batch.Failures[0];
+            // Emit structured GraphQL errors with a code instead of a raw concatenated message.
+            throw new GraphQLException(
+                failure.Errors.Select(message =>
+                    HotChocolate
+                        .ErrorBuilder.New()
+                        .SetMessage(message)
+                        .SetCode("PRODUCT_DELETE_FAILED")
+                        .SetExtension("index", failure.Index)
+                        .Build()
+                )
+            );
+        }
 
         return true;
     }

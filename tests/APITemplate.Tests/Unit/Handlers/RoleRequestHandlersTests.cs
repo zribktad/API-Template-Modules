@@ -250,6 +250,7 @@ public class RoleRequestHandlersTests
         ErrorOr<CustomRole> loadResult = await UpdateRoleCommandHandler.LoadAsync(
             command,
             _repository.Object,
+            _tenantProvider.Object,
             CancellationToken.None
         );
 
@@ -378,6 +379,7 @@ public class RoleRequestHandlersTests
         ErrorOr<CustomRole> loadResult = await DeleteRoleCommandHandler.LoadAsync(
             command,
             _repository.Object,
+            _tenantProvider.Object,
             CancellationToken.None
         );
 

@@ -32,7 +32,9 @@ public sealed class AcceptTenantInvitationCommandHandler
         await unitOfWork.CommitAsync(ct);
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.TenantInvitations));
+        messages.Add(
+            new CacheInvalidationNotification(CacheTags.TenantInvitations, invitation.TenantId)
+        );
         return (Result.Success, messages);
     }
 }

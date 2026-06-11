@@ -231,8 +231,12 @@ internal sealed class OrphanBlobSweepService : IOrphanBlobSweepService
             int take = Math.Min(RefcountQueryBatchSize, allShas.Count - offset);
             List<string> chunk = allShas.GetRange(offset, take);
 
+            // Background sweep runs with no HTTP scope; the tenant global query filter would
+            // collapse to WHERE false and make every blob look orphaned (data loss). Bypass it
+            // and scope explicitly by the tenant we are sweeping.
             List<string> live = await _dbContext
                 .StoredFiles.AsNoTracking()
+                .IgnoreQueryFilters()
                 .Where(f => f.TenantId == tenantId && !f.IsDeleted && chunk.Contains(f.Sha256))
                 .Select(f => f.Sha256)
                 .ToListAsync(ct);

@@ -47,11 +47,14 @@ public sealed class CreateTenantCommandHandler
         }
         catch (DbUpdateException ex) when (ex.IsTenantCodeUniqueViolation())
         {
-            return (DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code), OutgoingMessagesHelper.Empty);
+            return (
+                DomainErrors.Tenants.CodeAlreadyExists(command.Request.Code),
+                OutgoingMessagesHelper.Empty
+            );
         }
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Tenants));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Tenants, Guid.Empty));
         return (tenant.ToResponse(), messages);
     }
 }

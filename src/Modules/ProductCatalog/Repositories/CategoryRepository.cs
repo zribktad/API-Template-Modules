@@ -12,12 +12,12 @@ namespace ProductCatalog.Repositories;
 public sealed class CategoryRepository : RepositoryBase<Category>, ICategoryRepository
 {
     private readonly ProductCatalogDbContext _dbContext;
-    private readonly IStoredProcedureExecutor _spExecutor;
+    private readonly IStoredProcedureExecutor<ProductCatalogDbMarker> _spExecutor;
     private readonly ITenantProvider _tenantProvider;
 
     public CategoryRepository(
         ProductCatalogDbContext dbContext,
-        IStoredProcedureExecutor spExecutor,
+        IStoredProcedureExecutor<ProductCatalogDbMarker> spExecutor,
         ITenantProvider tenantProvider
     )
         : base(dbContext)

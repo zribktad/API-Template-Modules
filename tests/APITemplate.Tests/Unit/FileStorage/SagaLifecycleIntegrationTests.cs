@@ -1,6 +1,8 @@
 using System.Text;
 using BuildingBlocks.Application.Resilience;
 using BuildingBlocks.Domain.Ids;
+using BuildingBlocks.Domain.Interfaces;
+using BuildingBlocks.Domain.Options;
 using BuildingBlocks.Infrastructure.EFCore.Persistence.DesignTime;
 using ErrorOr;
 using FileStorage.Contracts;
@@ -15,6 +17,7 @@ using FileStorage.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Moq;
 using Polly;
 using Polly.Registry;
 using Polly.Retry;
@@ -44,6 +47,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
     private readonly LocalBlobStore _blobStore;
     private readonly StubBlobStoreFactory _factory;
     private readonly string _dbName = $"saga-{Guid.NewGuid():N}";
+    private readonly MutableTenantProvider _tenantProvider = new();
 
     public SagaLifecycleIntegrationTests()
     {
@@ -77,11 +81,29 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             new DbContextOptionsBuilder<FileStorageDbContext>()
                 .UseInMemoryDatabase(_dbName)
                 .Options,
-            DesignTimeServices.TenantProvider,
+            _tenantProvider,
             DesignTimeServices.ActorProvider,
             _time,
             DesignTimeServices.AuditableEntityStateManager
         );
+
+    // Runs the handler's transactional action inline; the in-memory provider has no real transaction
+    // and the advisory lock is a Postgres no-op, so this faithfully exercises the delete logic.
+    private static IUnitOfWork<FileStorageDbMarker> InlineUnitOfWork()
+    {
+        Mock<IUnitOfWork<FileStorageDbMarker>> uow = new();
+        uow.Setup(u =>
+                u.ExecuteInTransactionAsync(
+                    It.IsAny<Func<Task>>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<TransactionOptions?>()
+                )
+            )
+            .Returns<Func<Task>, CancellationToken, TransactionOptions?>(
+                async (action, _, _) => await action()
+            );
+        return uow.Object;
+    }
 
     private async Task<StagingResult> StageAsync(string content) =>
         (
@@ -112,9 +134,10 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         using FileStorageDbContext db = Db();
         (ErrorOr<UploadCommittedReply> commitReply, StoredFileCreatedNotification? notif) =
             await saga.Handle(
-                new CommitUploadCommand(token, "text/plain", null),
+                new CommitUploadCommand(saga.TenantId, token, "text/plain", null),
                 _factory,
                 db,
+                new StoredFileRepository(db),
                 NullLogger<FileUploadSaga>.Instance,
                 TestContext.Current.CancellationToken
             );
@@ -182,6 +205,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
 
         List<StoredFile> rows = await db
             .StoredFiles.AsNoTracking()
+            .IgnoreQueryFilters()
             .ToListAsync(TestContext.Current.CancellationToken);
         rows.Count.ShouldBe(2);
         rows[0].Sha256.ShouldBe(rows[1].Sha256); // same hash
@@ -218,6 +242,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
 
         List<StoredFile> rows = await db
             .StoredFiles.AsNoTracking()
+            .IgnoreQueryFilters()
             .ToListAsync(TestContext.Current.CancellationToken);
         rows.Count.ShouldBe(2);
         string sha = rows[0].Sha256;
@@ -235,6 +260,8 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
     public async Task DeleteFlow_LastReferenceRemoved_MaybeDeleteBlobRemovesBlob()
     {
         Guid tenant = Guid.NewGuid();
+        // DeleteFileCommandHandler scopes by the ambient tenant via the global filter.
+        _tenantProvider.TenantId = tenant;
         using FileStorageDbContext db = Db();
         StoredFile row = await CommitForTenant(db, tenant, "solo", "s.txt");
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -254,6 +281,8 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             await DeleteFileCommandHandler.HandleAsync(
                 new DeleteFileCommand(row.Id),
                 db2,
+                _time,
+                DesignTimeServices.ActorProvider,
                 TestContext.Current.CancellationToken
             );
         deleteResult.IsError.ShouldBeFalse();
@@ -269,6 +298,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             cascade,
             repo,
             _factory,
+            InlineUnitOfWork(),
             NullLogger<MaybeDeleteBlobHandler>.Instance,
             TestContext.Current.CancellationToken
         );
@@ -280,6 +310,8 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
     public async Task DeleteFlow_OtherRefsStillExist_BlobRetained()
     {
         Guid tenant = Guid.NewGuid();
+        // DeleteFileCommandHandler scopes by the ambient tenant via the global filter.
+        _tenantProvider.TenantId = tenant;
         using FileStorageDbContext db = Db();
         StoredFile row1 = await CommitForTenant(db, tenant, "shared", "a.txt");
         StoredFile row2 = await CommitForTenant(db, tenant, "shared", "b.txt");
@@ -296,6 +328,8 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         (_, Wolverine.OutgoingMessages outgoing) = await DeleteFileCommandHandler.HandleAsync(
             new DeleteFileCommand(row1.Id),
             db2,
+            _time,
+            DesignTimeServices.ActorProvider,
             TestContext.Current.CancellationToken
         );
         await db2.SaveChangesAsync(TestContext.Current.CancellationToken);
@@ -307,6 +341,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             cascade,
             repo,
             _factory,
+            InlineUnitOfWork(),
             NullLogger<MaybeDeleteBlobHandler>.Instance,
             TestContext.Current.CancellationToken
         );
@@ -384,9 +419,10 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
 
         using FileStorageDbContext db = Db();
         (ErrorOr<UploadCommittedReply> first, _) = await saga.Handle(
-            new CommitUploadCommand(token, "text/plain", null),
+            new CommitUploadCommand(saga.TenantId, token, "text/plain", null),
             _factory,
             db,
+            new StoredFileRepository(db),
             NullLogger<FileUploadSaga>.Instance,
             TestContext.Current.CancellationToken
         );
@@ -396,16 +432,21 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         // Simulate redelivery
         (ErrorOr<UploadCommittedReply> second, StoredFileCreatedNotification? notif2) =
             await saga.Handle(
-                new CommitUploadCommand(token, "text/plain", null),
+                new CommitUploadCommand(saga.TenantId, token, "text/plain", null),
                 _factory,
                 db,
+                new StoredFileRepository(db),
                 NullLogger<FileUploadSaga>.Instance,
                 TestContext.Current.CancellationToken
             );
         second.IsError.ShouldBeFalse();
         second.Value.StoredFileId.ShouldBe(first.Value.StoredFileId);
         notif2.ShouldBeNull();
-        (await db.StoredFiles.CountAsync(TestContext.Current.CancellationToken)).ShouldBe(1);
+        (
+            await db
+                .StoredFiles.IgnoreQueryFilters()
+                .CountAsync(TestContext.Current.CancellationToken)
+        ).ShouldBe(1);
     }
 
     private async Task<StoredFile> CommitForTenant(
@@ -431,9 +472,10 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
             _time
         );
         (ErrorOr<UploadCommittedReply> reply, _) = await saga.Handle(
-            new CommitUploadCommand(token, "text/plain", null),
+            new CommitUploadCommand(saga.TenantId, token, "text/plain", null),
             _factory,
             db,
+            new StoredFileRepository(db),
             NullLogger<FileUploadSaga>.Instance,
             TestContext.Current.CancellationToken
         );
@@ -441,6 +483,7 @@ public sealed class SagaLifecycleIntegrationTests : IDisposable
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         return await db
             .StoredFiles.AsNoTracking()
+            .IgnoreQueryFilters()
             .FirstAsync(
                 f => f.Id == reply.Value.StoredFileId,
                 TestContext.Current.CancellationToken

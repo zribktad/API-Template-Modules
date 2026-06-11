@@ -16,10 +16,7 @@ public sealed class CreateCategoriesCommandHandler
         HandlerContinuation,
         IReadOnlyList<CategoryEntity>?,
         OutgoingMessages
-    )> LoadAsync(
-        CreateCategoriesCommand command,
-        CancellationToken ct
-    )
+    )> LoadAsync(CreateCategoriesCommand command, CancellationToken ct)
     {
         IReadOnlyList<CreateCategoryRequest> items = command.Request.Items;
         List<CategoryEntity> entities = items
@@ -34,6 +31,7 @@ public sealed class CreateCategoriesCommandHandler
         IReadOnlyList<CategoryEntity> entities,
         ICategoryRepository repository,
         IUnitOfWork<ProductCatalogDbMarker> unitOfWork,
+        ITenantProvider tenantProvider,
         CancellationToken ct
     )
     {
@@ -46,7 +44,9 @@ public sealed class CreateCategoriesCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Categories));
+        messages.Add(
+            new CacheInvalidationNotification(CacheTags.Categories, tenantProvider.TenantId)
+        );
         return (new BatchResponse([], command.Request.Items.Count, 0), messages);
     }
 }

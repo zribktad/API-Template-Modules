@@ -115,11 +115,14 @@ public sealed class HighPriorityEdgeCaseIntegrationTests : IAsyncLifetime
         );
         await firstProductDataDelete.ShouldBeStatusAsync(HttpStatusCode.NoContent, ct);
 
+        // The cross-store delete is idempotent: a second delete of an already-soft-deleted document
+        // re-runs the link cleanup and succeeds, rather than failing with NotFound (which previously
+        // stranded the PG links if the first attempt failed between the Mongo and PG steps).
         HttpResponseMessage secondProductDataDelete = await _tenantAClient.DeleteAsync(
             $"/api/v1/product-data/{productDataId}",
             ct
         );
-        await secondProductDataDelete.ShouldBeStatusAsync(HttpStatusCode.NotFound, ct);
+        await secondProductDataDelete.ShouldBeStatusAsync(HttpStatusCode.NoContent, ct);
     }
 
     private static async Task<Guid> CreateReviewAsync(

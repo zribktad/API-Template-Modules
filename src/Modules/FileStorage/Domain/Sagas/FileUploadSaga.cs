@@ -86,18 +86,31 @@ public sealed class FileUploadSaga : Saga
         CommitUploadCommand command,
         IBlobStoreFactory blobStoreFactory,
         FileStorageDbContext dbContext,
+        IStoredFileRepository repository,
         ILogger<FileUploadSaga> logger,
         CancellationToken ct
     )
     {
+        // Assert the caller's tenant matches the saga's tenant before doing anything. The saga is
+        // correlated only by the opaque upload token; without this a token leaked/guessed across
+        // tenants could be committed (or its committed file read back) from another tenant's context.
+        if (command.TenantId != TenantId)
+        {
+            logger.LogWarning("CommitUploadCommand for saga {Id} rejected: tenant mismatch", Id);
+            return (DomainErrors.Files.FileNotFound(Id ?? "<null>"), null);
+        }
+
         if (Status == FileUploadStatus.Committed && StoredFileId.HasValue)
         {
             logger.LogInformation(
                 "CommitUploadCommand redelivered for already-committed saga {Id}",
                 Id
             );
+            // Runs on the Wolverine worker with no HTTP scope, so the ambient tenant global
+            // query filter would evaluate to WHERE false; bypass it and scope by saga state.
             StoredFile? existing = await dbContext
                 .StoredFiles.AsNoTracking()
+                .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(
                     f => f.Id == StoredFileId!.Value && f.TenantId == TenantId,
                     ct
@@ -127,6 +140,11 @@ public sealed class FileUploadSaga : Saga
             );
             return (DomainErrors.Files.CommitAfterTerminalState(Id ?? "<null>"), null);
         }
+
+        // Take the per-(tenant, sha256) advisory lock (shared with MaybeDeleteBlobHandler) before
+        // promoting the blob and inserting the referencing row, so an orphan-blob delete cannot run
+        // its refcount check between our promote and the row commit and remove a live blob.
+        await repository.AcquireBlobDeletionLockAsync(TenantId, Sha256, ct);
 
         IBlobStore store = blobStoreFactory.Get(BackendKey);
         ErrorOr<string> promoted = await store.PromoteToCommittedAsync(
@@ -162,7 +180,9 @@ public sealed class FileUploadSaga : Saga
             entity.ContentType,
             entity.SizeBytes,
             entity.Description,
-            DateTime.SpecifyKind(entity.Audit.CreatedAtUtc, DateTimeKind.Utc)
+            // entity.Audit.CreatedAtUtc is only stamped during SaveChangesAsync (after this handler),
+            // so it is still 0001-01-01 here. Use the saga's own creation timestamp instead.
+            DateTime.SpecifyKind(CreatedAtUtc.UtcDateTime, DateTimeKind.Utc)
         );
 
         StoredFileCreatedNotification notification = new(

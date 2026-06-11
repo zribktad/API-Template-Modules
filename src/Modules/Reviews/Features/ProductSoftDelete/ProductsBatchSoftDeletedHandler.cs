@@ -26,7 +26,10 @@ public static class ProductsBatchSoftDeletedHandler
         if (affected == 0)
             return OutgoingMessagesHelper.Empty;
 
-        OutgoingMessages messages = [new CacheInvalidationNotification(CacheTags.Reviews)];
+        OutgoingMessages messages =
+        [
+            new CacheInvalidationNotification(CacheTags.Reviews, notification.TenantId),
+        ];
         return messages;
     }
 }

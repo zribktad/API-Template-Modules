@@ -78,7 +78,7 @@ public sealed class PatchProductCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.Add(new CacheInvalidationNotification(CacheTags.Products));
+        messages.Add(new CacheInvalidationNotification(CacheTags.Products, product.TenantId));
 
         return (product.ToResponse(), messages);
     }

@@ -4,28 +4,20 @@ namespace ProductCatalog.Common.Events;
 
 public static class CacheInvalidationCascades
 {
-    public static readonly IReadOnlyList<CacheInvalidationNotification> ForProductChange =
-    [
-        new(CacheTags.Products),
-        new(CacheTags.Categories),
-    ];
+    public static IReadOnlyList<CacheInvalidationNotification> ForProductChange(Guid tenantId) =>
+        [new(CacheTags.Products, tenantId), new(CacheTags.Categories, tenantId)];
 
-    public static readonly IReadOnlyList<CacheInvalidationNotification> ForProductDeletion =
-    [
-        new(CacheTags.Products),
-        new(CacheTags.Categories),
-        new(CrossModuleCacheTags.Reviews),
-    ];
+    public static IReadOnlyList<CacheInvalidationNotification> ForProductDeletion(Guid tenantId) =>
+        [
+            new(CacheTags.Products, tenantId),
+            new(CacheTags.Categories, tenantId),
+            new(CrossModuleCacheTags.Reviews, tenantId),
+        ];
 
-    public static readonly IReadOnlyList<CacheInvalidationNotification> ForCategoryDeletion =
-    [
-        new(CacheTags.Categories),
-        new(CacheTags.Products),
-    ];
+    public static IReadOnlyList<CacheInvalidationNotification> ForCategoryDeletion(Guid tenantId) =>
+        [new(CacheTags.Categories, tenantId), new(CacheTags.Products, tenantId)];
 
-    public static readonly IReadOnlyList<CacheInvalidationNotification> ForProductDataDeletion =
-    [
-        new(CacheTags.ProductData),
-        new(CacheTags.Products),
-    ];
+    public static IReadOnlyList<CacheInvalidationNotification> ForProductDataDeletion(
+        Guid tenantId
+    ) => [new(CacheTags.ProductData, tenantId), new(CacheTags.Products, tenantId)];
 }

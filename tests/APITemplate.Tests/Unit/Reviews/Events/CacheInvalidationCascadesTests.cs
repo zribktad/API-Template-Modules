@@ -13,7 +13,8 @@ public sealed class CacheInvalidationCascadesTests
     public void ForReviewChange_ShouldContainReviewsAndCategories()
     {
         CacheInvalidationCascades
-            .ForReviewChange.Select(x => x.CacheTag)
+            .ForReviewChange(Guid.Empty)
+            .Select(x => x.CacheTag)
             .ShouldBe([CacheTags.Reviews, CrossModuleCacheTags.Categories], ignoreOrder: true);
     }
 }

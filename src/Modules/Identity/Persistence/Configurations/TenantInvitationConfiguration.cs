@@ -6,6 +6,14 @@ namespace Identity.Persistence.Configurations;
 
 public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<TenantInvitation>
 {
+    /// <summary>
+    ///     Partial unique index guaranteeing at most one <see cref="InvitationStatus.Pending" /> invitation per
+    ///     (tenant, normalised email). Backs the duplicate-pending check against the concurrent check-then-insert
+    ///     race; the unique-violation is translated to a domain error.
+    /// </summary>
+    public const string PendingInvitationIndexName =
+        "IX_TenantInvitations_TenantId_NormalizedEmail_Pending";
+
     public void Configure(EntityTypeBuilder<TenantInvitation> builder)
     {
         builder.HasKey(i => i.Id);
@@ -47,6 +55,12 @@ public sealed class TenantInvitationConfiguration : IEntityTypeConfiguration<Ten
 
         builder.HasIndex(i => i.TokenHash);
 
-        builder.HasIndex(i => new { i.TenantId, i.DbNormalizedEmail });
+        // Partial unique index: one Pending invitation per (tenant, normalised email). Status is
+        // persisted as text (HasConversion<string>), so the filter compares the string literal.
+        builder
+            .HasIndex(i => new { i.TenantId, i.DbNormalizedEmail })
+            .HasDatabaseName(PendingInvitationIndexName)
+            .IsUnique()
+            .HasFilter("\"Status\" = 'Pending'");
     }
 }

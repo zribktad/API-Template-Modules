@@ -13,11 +13,11 @@ namespace Notifications.Repositories;
 public sealed class FailedEmailRepository : IFailedEmailRepository
 {
     private readonly NotificationsDbContext _dbContext;
-    private readonly IStoredProcedureExecutor _executor;
+    private readonly IStoredProcedureExecutor<NotificationsDbMarker> _executor;
 
     public FailedEmailRepository(
         NotificationsDbContext dbContext,
-        IStoredProcedureExecutor executor
+        IStoredProcedureExecutor<NotificationsDbMarker> executor
     )
     {
         _dbContext = dbContext;

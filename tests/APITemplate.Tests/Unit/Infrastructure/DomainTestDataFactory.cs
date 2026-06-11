@@ -81,16 +81,18 @@ internal static class DomainTestDataFactory
         Guid? tenantId = null,
         int rating = 5,
         string? comment = "Great"
-    ) =>
-        new()
-        {
-            Id = id ?? Guid.NewGuid(),
-            ProductId = productId ?? Guid.NewGuid(),
-            UserId = userId ?? Guid.NewGuid(),
-            TenantId = tenantId ?? Guid.NewGuid(),
-            Rating = Rating.Create(rating).Value,
-            Comment = comment,
-        };
+    )
+    {
+        ProductReview review = global::Reviews.Domain.ProductReview.Create(
+            productId ?? Guid.NewGuid(),
+            userId ?? Guid.NewGuid(),
+            Rating.Create(rating).Value,
+            comment
+        );
+        review.Id = id ?? Guid.NewGuid();
+        review.TenantId = tenantId ?? Guid.NewGuid();
+        return review;
+    }
 
     public static TenantInvitation TenantInvitation(
         string email = "user@example.com",

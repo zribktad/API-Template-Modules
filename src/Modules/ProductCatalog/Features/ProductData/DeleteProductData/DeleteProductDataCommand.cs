@@ -48,7 +48,19 @@ public sealed class DeleteProductDataCommandHandler
         );
 
         if (!productDataDeleted)
-            return (DomainErrors.ProductData.NotFound(command.Id), OutgoingMessagesHelper.Empty);
+        {
+            // The cross-store delete is non-atomic: the Mongo document is soft-deleted before the
+            // PG link cleanup commits. A retry after a partial failure finds the document already
+            // soft-deleted (SoftDeleteAsync == false) — but the links may still be active. Only
+            // return NotFound when the document truly does not exist; otherwise fall through so the
+            // idempotent link cleanup still runs and the stores converge.
+            bool productDataExists = await productDataRepository.AnyAsync(command.Id, ct);
+            if (!productDataExists)
+                return (
+                    DomainErrors.ProductData.NotFound(command.Id),
+                    OutgoingMessagesHelper.Empty
+                );
+        }
 
         await unitOfWork.ExecuteInTransactionAsync(
             async () =>
@@ -65,7 +77,7 @@ public sealed class DeleteProductDataCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForProductDataDeletion);
+        messages.AddRange(CacheInvalidationCascades.ForProductDataDeletion(state.TenantId));
         return (Result.Success, messages);
     }
 

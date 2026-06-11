@@ -17,12 +17,12 @@ public sealed partial class ReindexService : IReindexService
     private const double BloatThresholdPercent = 30.0;
 
     private readonly BackgroundJobsDbContext _dbContext;
-    private readonly IStoredProcedureExecutor _executor;
+    private readonly IStoredProcedureExecutor<BackgroundJobsDbMarker> _executor;
     private readonly ILogger<ReindexService> _logger;
 
     public ReindexService(
         BackgroundJobsDbContext dbContext,
-        IStoredProcedureExecutor executor,
+        IStoredProcedureExecutor<BackgroundJobsDbMarker> executor,
         ILogger<ReindexService> logger
     )
     {

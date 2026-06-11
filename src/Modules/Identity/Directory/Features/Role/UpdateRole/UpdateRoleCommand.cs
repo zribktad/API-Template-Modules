@@ -28,8 +28,9 @@ public sealed class UpdateRoleCommandHandler
     public static Task<ErrorOr<CustomRole>> LoadAsync(
         UpdateRoleCommand command,
         IRoleRepository repository,
+        ITenantProvider tenantProvider,
         CancellationToken ct
-    ) => RoleLoader.LoadMutableAsync(command.Id, repository, ct);
+    ) => RoleLoader.LoadMutableAsync(command.Id, tenantProvider.TenantId, repository, ct);
 
     public static async Task<(ErrorOr<RoleResponse>, OutgoingMessages)> HandleAsync(
         UpdateRoleCommand command,

@@ -49,11 +49,21 @@ public static class RedisServiceCollectionExtensions
             {
                 opts.ConfigurationOptions = redisConfiguration;
             });
+            services.AddSingleton<
+                BuildingBlocks.Application.Contracts.IIdempotencyStore,
+                BuildingBlocks.Infrastructure.Redis.Idempotency.DistributedCacheIdempotencyStore
+            >();
         }
         else
         {
             // Fallback to in-memory cache if Redis is not configured.
             services.AddDistributedMemoryCache();
+            // InMemoryIdempotencyStore depends on IMemoryCache (not IDistributedCache), so register it.
+            services.AddMemoryCache();
+            services.AddSingleton<
+                BuildingBlocks.Application.Contracts.IIdempotencyStore,
+                BuildingBlocks.Web.Idempotency.InMemoryIdempotencyStore
+            >();
         }
 
         return services;

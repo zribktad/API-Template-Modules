@@ -40,6 +40,7 @@ public static class BackgroundJobsRuntimeBridge
             .ConfigureDbContext(options => options.UseNpgsql(connectionString))
             .AddDefaultInfrastructure()
             .ForwardUnitOfWork<BackgroundJobsDbMarker>()
+            .ForwardStoredProcedureExecutor<BackgroundJobsDbMarker>()
             .AddRepository<IJobExecutionRepository, JobExecutionRepository>();
 
         services.AddSingleton<
@@ -52,13 +53,8 @@ public static class BackgroundJobsRuntimeBridge
             configuration.GetSection(BackgroundJobsOptions.SectionName).Get<BackgroundJobsOptions>()
             ?? new BackgroundJobsOptions();
 
-        services.AddQueueWithConsumer<
-            ChannelJobQueue,
-            IJobQueue,
-            IJobQueueReader,
-            JobProcessingBackgroundService
-        >();
-
+        // Job processing is driven by the durable Wolverine ProcessJobCommand handler
+        // (auto-discovered), not an in-memory channel + hosted consumer.
         services.AddScoped<ICleanupService, CleanupService>();
         services.AddScoped<IReindexService, ReindexService>();
         services.AddScoped<IEmailRetryJobService, EmailRetryJobService>();
@@ -142,6 +138,9 @@ public static class BackgroundJobsRuntimeBridge
                 {
                     scheduler.NodeIdentifier =
                         $"{options.TickerQ.InstanceNamePrefix}-{Environment.MachineName}-{Environment.ProcessId}";
+                    // Serialize recurring jobs per node: they mutate shared state (soft-delete cleanup,
+                    // FTS reindex, email retry, orphan-blob sweep) and are not designed to run in parallel.
+                    // Note: a long cleanup run can delay email retry on the same node (acceptable trade-off).
                     scheduler.MaxConcurrency = 1;
                 })
                 .AddTickerQDiscovery([typeof(CleanupRecurringJob).Assembly]);

@@ -42,7 +42,8 @@ public sealed class FailedEmailStore : IFailedEmailStore
             using IServiceScope scope = _scopeFactory.CreateScope();
             IFailedEmailRepository repository =
                 scope.ServiceProvider.GetRequiredService<IFailedEmailRepository>();
-            IUnitOfWork unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            IUnitOfWork<NotificationsDbMarker> unitOfWork =
+                scope.ServiceProvider.GetRequiredService<IUnitOfWork<NotificationsDbMarker>>();
             TimeProvider timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
             FailedEmail failedEmail = FailedEmail.Create(

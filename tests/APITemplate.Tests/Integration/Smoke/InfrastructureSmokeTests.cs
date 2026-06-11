@@ -23,11 +23,13 @@ public sealed class InfrastructureSmokeTests
     }
 
     [Fact]
-    public async Task Root_RequiresAuthentication()
+    public async Task Root_IsAnonymous_ReturnsOk()
     {
+        // The root host-status endpoint is intentionally anonymous so load balancers / status pages
+        // get 200 instead of a 401 challenge.
         CancellationToken ct = TestContext.Current.CancellationToken;
         HttpResponseMessage response = await Client.GetAsync("/", ct);
-        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
 
     [Fact]

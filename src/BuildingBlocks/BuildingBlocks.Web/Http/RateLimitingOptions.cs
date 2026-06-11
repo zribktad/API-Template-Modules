@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Options;
 
 namespace BuildingBlocks.Application.Http;
 
@@ -17,16 +18,22 @@ public sealed class RateLimitingOptions
 
     // Baseline budget applied to every request via GlobalLimiter.
     [Required]
+    [ValidateObjectMembers]
     public RateLimitPolicyOptions Global { get; init; } = new();
 
     // Fixed window budget for endpoints decorated with [EnableRateLimiting(RateLimitPolicies.Fixed)].
     [Required]
+    [ValidateObjectMembers]
     public RateLimitPolicyOptions Fixed { get; init; } = new();
 
     // Sliding window budget for endpoints decorated with [EnableRateLimiting(RateLimitPolicies.Sliding)].
     [Required]
+    [ValidateObjectMembers]
     public RateLimitPolicyOptions Sliding { get; init; } = new();
 }
+
+[OptionsValidator]
+public partial class RateLimitingOptionsValidator : IValidateOptions<RateLimitingOptions>;
 
 public sealed class RateLimitPolicyOptions
 {

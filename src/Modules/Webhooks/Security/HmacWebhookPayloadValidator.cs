@@ -12,7 +12,7 @@ public sealed class HmacWebhookPayloadValidator : IWebhookPayloadValidator
 
     public HmacWebhookPayloadValidator(IOptions<WebhookOptions> options, TimeProvider timeProvider)
     {
-        _keyBytes = HmacHelper.GetKeyBytes(options.Value.Secret);
+        _keyBytes = HmacHelper.GetKeyBytes(options.Value.IncomingSecret);
         _toleranceSeconds = options.Value.TimestampToleranceSeconds;
         _timeProvider = timeProvider;
     }

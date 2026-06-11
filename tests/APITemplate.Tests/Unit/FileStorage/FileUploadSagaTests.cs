@@ -128,9 +128,10 @@ public sealed class FileUploadSagaTests
 
         (ErrorOr<UploadCommittedReply> reply, StoredFileCreatedNotification? notification) =
             await saga.Handle(
-                new CommitUploadCommand(saga.Id!, "image/png", "desc"),
+                new CommitUploadCommand(saga.TenantId, saga.Id!, "image/png", "desc"),
                 _factory.Object,
                 db,
+                new StoredFileRepository(db),
                 NullLogger<FileUploadSaga>.Instance,
                 TestContext.Current.CancellationToken
             );
@@ -144,9 +145,9 @@ public sealed class FileUploadSagaTests
         saga.StoredFileId.ShouldNotBeNull();
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         (
-            await db.StoredFiles.CountAsync(
-                cancellationToken: TestContext.Current.CancellationToken
-            )
+            await db
+                .StoredFiles.IgnoreQueryFilters()
+                .CountAsync(cancellationToken: TestContext.Current.CancellationToken)
         ).ShouldBe(1);
     }
 
@@ -173,9 +174,10 @@ public sealed class FileUploadSagaTests
 
         (ErrorOr<UploadCommittedReply> reply, StoredFileCreatedNotification? notification) =
             await saga.Handle(
-                new CommitUploadCommand(saga.Id!, "image/png", null),
+                new CommitUploadCommand(saga.TenantId, saga.Id!, "image/png", null),
                 _factory.Object,
                 db,
+                new StoredFileRepository(db),
                 NullLogger<FileUploadSaga>.Instance,
                 TestContext.Current.CancellationToken
             );
@@ -206,9 +208,10 @@ public sealed class FileUploadSagaTests
 
         (ErrorOr<UploadCommittedReply> reply, StoredFileCreatedNotification? notification) =
             await saga.Handle(
-                new CommitUploadCommand(saga.Id!, "image/png", null),
+                new CommitUploadCommand(saga.TenantId, saga.Id!, "image/png", null),
                 _factory.Object,
                 db,
+                new StoredFileRepository(db),
                 NullLogger<FileUploadSaga>.Instance,
                 TestContext.Current.CancellationToken
             );

@@ -84,6 +84,22 @@ public sealed class ModuleRegistrationBuilder<TContext>
         return this;
     }
 
+    /// <summary>
+    ///     Registers a domain-layer marker type as an <see cref="IStoredProcedureExecutor{TMarker}" /> discriminator
+    ///     bound to this module's <typeparamref name="TContext" />. Consumers resolve the marker interface so the
+    ///     executor always targets the correct module's <see cref="DbContext" /> — unlike the plain, non-discriminated
+    ///     <see cref="IStoredProcedureExecutor" />, whose multiple module registrations collapse to last-wins.
+    /// </summary>
+    public ModuleRegistrationBuilder<TContext> ForwardStoredProcedureExecutor<TMarker>()
+    {
+        Services.AddScoped<IStoredProcedureExecutor<TMarker>>(
+            sp => new StoredProcedureExecutorForwarder<TMarker>(
+                new StoredProcedureExecutor(sp.GetRequiredService<TContext>())
+            )
+        );
+        return this;
+    }
+
     public ModuleRegistrationBuilder<TContext> AddDefaultInfrastructure()
     {
         Services.AddValidatedOptions<TransactionDefaultsOptions>(Configuration);

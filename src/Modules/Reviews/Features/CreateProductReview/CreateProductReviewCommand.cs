@@ -71,6 +71,7 @@ public sealed class CreateProductReviewCommandHandler
         CreateProductReviewState state,
         IProductReviewRepository reviewRepository,
         IUnitOfWork<ReviewsDbMarker> unitOfWork,
+        ITenantProvider tenantProvider,
         CancellationToken ct
     )
     {
@@ -93,7 +94,7 @@ public sealed class CreateProductReviewCommandHandler
         );
 
         OutgoingMessages messages = new();
-        messages.AddRange(CacheInvalidationCascades.ForReviewChange);
+        messages.AddRange(CacheInvalidationCascades.ForReviewChange(tenantProvider.TenantId));
         return (review.ToResponse(), messages);
     }
 

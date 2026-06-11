@@ -18,7 +18,11 @@ public class HmacWebhookPayloadValidatorTests
     )
     {
         var options = Options.Create(
-            new WebhookOptions { Secret = TestSecret, TimestampToleranceSeconds = toleranceSeconds }
+            new WebhookOptions
+            {
+                IncomingSecret = TestSecret,
+                TimestampToleranceSeconds = toleranceSeconds,
+            }
         );
         return new HmacWebhookPayloadValidator(options, timeProvider);
     }

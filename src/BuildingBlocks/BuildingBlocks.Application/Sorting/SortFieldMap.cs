@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Reflection;
 using Ardalis.Specification;
 
 namespace BuildingBlocks.Application.Sorting;
@@ -10,6 +11,11 @@ namespace BuildingBlocks.Application.Sorting;
 public sealed class SortFieldMap<TEntity>
     where TEntity : class
 {
+    // Deterministic tiebreaker on the primary key so pages stay stable when the chosen sort key has
+    // ties (e.g. batch-inserted rows sharing CreatedAtUtc, or non-unique Name/Price/Rating). Without
+    // it PostgreSQL gives no stable order among ties and Skip/Take can duplicate or drop rows.
+    private static readonly Expression<Func<TEntity, object?>>? IdTiebreaker = BuildIdTiebreaker();
+
     private readonly List<Entry> _entries = [];
     private Expression<Func<TEntity, object?>>? _default;
 
@@ -56,10 +62,30 @@ public sealed class SortFieldMap<TEntity>
         if (key is null)
             return;
 
-        if (desc)
-            query.OrderByDescending(key);
-        else
-            query.OrderBy(key);
+        IOrderedSpecificationBuilder<TEntity> ordered = desc
+            ? query.OrderByDescending(key)
+            : query.OrderBy(key);
+
+        // Append the primary-key tiebreaker unless the primary sort already is the key.
+        if (IdTiebreaker is not null && !ReferenceEquals(key, IdTiebreaker))
+            ordered.ThenBy(IdTiebreaker);
+    }
+
+    private static Expression<Func<TEntity, object?>>? BuildIdTiebreaker()
+    {
+        PropertyInfo? idProperty = typeof(TEntity).GetProperty(
+            "Id",
+            BindingFlags.Public | BindingFlags.Instance
+        );
+        if (idProperty is null)
+            return null;
+
+        ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "e");
+        Expression body = Expression.Convert(
+            Expression.Property(parameter, idProperty),
+            typeof(object)
+        );
+        return Expression.Lambda<Func<TEntity, object?>>(body, parameter);
     }
 
     private readonly record struct Entry(
@@ -67,4 +93,3 @@ public sealed class SortFieldMap<TEntity>
         Expression<Func<TEntity, object?>> KeySelector
     );
 }
-
