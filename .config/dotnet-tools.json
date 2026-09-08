@@ -31,6 +31,12 @@
       "commands": [
         "dotnet-stryker"
       ]
+    },
+    "microsoft.openapi.kiota": {
+      "version": "1.23.0",
+      "commands": [
+        "kiota"
+      ]
     }
   }
 }

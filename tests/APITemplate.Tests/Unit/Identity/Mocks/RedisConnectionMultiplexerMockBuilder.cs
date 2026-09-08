@@ -143,7 +143,13 @@ internal sealed class RedisConnectionMultiplexerMockBuilder
         where TException : Exception
     {
         if (typeof(TException) == typeof(RedisConnectionException))
-            return new RedisConnectionException(ConnectionFailureType.UnableToConnect, "boom");
+            return new RedisConnectionException(
+                ConnectionFailureType.UnableToConnect,
+                CommandFlags.None,
+                "boom",
+                null!,
+                CommandStatus.Unknown
+            );
 
         if (typeof(TException) == typeof(ObjectDisposedException))
             return new ObjectDisposedException("redis");

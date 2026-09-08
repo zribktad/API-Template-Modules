@@ -27,6 +27,8 @@
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Kiota.Abstractions" />
+    <PackageReference Include="Microsoft.Kiota.Serialization.Json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
@@ -114,6 +116,7 @@
     <ProjectReference Include="..\..\src\Contracts\Webhooks.Contracts\Webhooks.Contracts.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel.GraphQL\SharedKernel.GraphQL.csproj" />
+    <ProjectReference Include="..\..\src\Clients\APITemplate.ApiClient\APITemplate.ApiClient.csproj" />
   </ItemGroup>
 </Project>
 
