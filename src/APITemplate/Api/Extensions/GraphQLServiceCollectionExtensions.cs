@@ -14,9 +14,14 @@ public static class GraphQLServiceCollectionExtensions
 {
     public static IServiceCollection AddGraphQLRegistration(
         this IServiceCollection services,
-        IWebHostEnvironment environment
+        IWebHostEnvironment environment,
+        IConfiguration configuration
     )
     {
+        bool enableIntrospection =
+            configuration.GetValue<bool?>("GraphQL:EnableIntrospection")
+            ?? environment.IsDevelopment();
+
         IRequestExecutorBuilder builder = services
             .AddGraphQLServer()
             .AddQueryType(d => d.Name(HotChocolate.Types.OperationTypeNames.Query))
@@ -38,9 +43,9 @@ public static class GraphQLServiceCollectionExtensions
                 options.EnforceCostLimits = true;
             });
 
-        if (!environment.IsDevelopment())
+        if (!enableIntrospection)
         {
-            builder.DisableIntrospection(); // Disable introspection in production
+            builder.DisableIntrospection(); // Disable introspection when not explicitly enabled
         }
 
         return services;

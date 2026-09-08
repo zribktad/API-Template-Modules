@@ -88,6 +88,17 @@ public sealed class EmailRetryService : IEmailRetryService
             }
             catch (OperationCanceledException)
             {
+                email.ReleaseClaim();
+                try
+                {
+                    await _repository.UpdateAsync(email, CancellationToken.None);
+                    await _unitOfWork.CommitAsync(CancellationToken.None);
+                }
+                catch
+                {
+                    // Suppress secondary failures during cancellation cleanup
+                }
+
                 throw;
             }
             catch (Exception ex)

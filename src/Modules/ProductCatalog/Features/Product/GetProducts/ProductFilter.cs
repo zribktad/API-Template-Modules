@@ -48,5 +48,6 @@ public sealed record ProductFilter(
     [Range(1, PaginationFilter.MaxPageSize, ErrorMessage = PaginationFilter.PageSizeErrorMessage)]
         int PageSize = PaginationFilter.DefaultPageSize,
     string? Query = null,
-    [NoEmptyGuidItems] IReadOnlyCollection<Guid>? CategoryIds = null
+    [NoEmptyGuidItems] IReadOnlyCollection<Guid>? CategoryIds = null,
+    bool PriceLessThanMax = false
 ) : PaginationFilter(PageNumber, PageSize), IDateRangeFilter, ISortableFilter;
