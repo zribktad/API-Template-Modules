@@ -10,7 +10,7 @@ public sealed record UpdateUserCommand(Guid Id, UpdateUserRequest Request) : IHa
 
 public sealed class UpdateUserCommandHandler
 {
-    public static async Task<ErrorOr<AppUser>> ValidateAsync(
+    public static async Task<ErrorOr<AppUser>> LoadAsync(
         UpdateUserCommand command,
         IUserRepository repository,
         IUserUniquenessChecker uniqueness,
@@ -60,14 +60,10 @@ public sealed class UpdateUserCommandHandler
         UpdateUserCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        ErrorOr<AppUser> validationResult,
+        AppUser user,
         CancellationToken ct
     )
     {
-        if (validationResult.IsError)
-            return (validationResult.Errors, OutgoingMessagesHelper.Empty);
-        AppUser user = validationResult.Value;
-
         user.Username = new NormalizedString(command.Request.Username);
         user.Email = new NormalizedString(command.Request.Email);
 

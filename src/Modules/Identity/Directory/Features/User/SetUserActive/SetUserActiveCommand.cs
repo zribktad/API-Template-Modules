@@ -7,7 +7,7 @@ public sealed record SetUserActiveCommand(Guid Id, bool IsActive) : IHasId;
 
 public sealed class SetUserActiveCommandHandler
 {
-    public static async Task<ErrorOr<AppUser>> ValidateAsync(
+    public static async Task<ErrorOr<AppUser>> LoadAsync(
         SetUserActiveCommand command,
         IUserRepository repository,
         CancellationToken ct
@@ -17,14 +17,10 @@ public sealed class SetUserActiveCommandHandler
         SetUserActiveCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        ErrorOr<AppUser> userResult,
+        AppUser user,
         CancellationToken ct
     )
     {
-        if (userResult.IsError)
-            return (userResult.Errors, OutgoingMessagesHelper.Empty);
-        AppUser user = userResult.Value;
-
         user.IsActive = command.IsActive;
         await repository.UpdateAsync(user, ct);
         await unitOfWork.CommitAsync(ct);

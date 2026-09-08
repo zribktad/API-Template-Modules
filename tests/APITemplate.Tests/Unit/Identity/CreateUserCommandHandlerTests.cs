@@ -45,7 +45,7 @@ public sealed class CreateUserCommandHandlerTests
             .Callback<AppUser, CancellationToken>((u, _) => addedUser = u)
             .ReturnsAsync((AppUser u, CancellationToken _) => u);
 
-        ErrorOr<Success> validation = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Success> validation = await CreateUserCommandHandler.EnsureUniqueAsync(
             command,
             _uniqueness.Object,
             ct
@@ -94,7 +94,7 @@ public sealed class CreateUserCommandHandlerTests
             .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<string>(), ct))
             .ReturnsAsync(DomainErrors.Users.EmailAlreadyExists(request.Email));
 
-        ErrorOr<Success> result = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Success> result = await CreateUserCommandHandler.EnsureUniqueAsync(
             new CreateUserCommand(request),
             _uniqueness.Object,
             ct
@@ -115,7 +115,7 @@ public sealed class CreateUserCommandHandlerTests
             .Setup(u => u.EnsureUniqueAsync(request.Username, It.IsAny<string>(), ct))
             .ReturnsAsync(DomainErrors.Users.UsernameAlreadyExists(request.Username));
 
-        ErrorOr<Success> result = await CreateUserCommandHandler.ValidateAsync(
+        ErrorOr<Success> result = await CreateUserCommandHandler.EnsureUniqueAsync(
             new CreateUserCommand(request),
             _uniqueness.Object,
             ct

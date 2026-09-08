@@ -28,14 +28,10 @@ public sealed class AssignUserRolesCommandHandler
         IUserRepository userRepository,
         IRoleRepository roleRepository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        ErrorOr<AppUser> userResult,
+        AppUser user,
         CancellationToken ct
     )
     {
-        if (userResult.IsError)
-            return (userResult.Errors, OutgoingMessagesHelper.Empty);
-        var user = userResult.Value;
-
         List<Guid> distinctRoleIds = (command.Request.RoleIds ?? []).Distinct().ToList();
         List<CustomRole> requestedRoles = await roleRepository.ListAsync(
             new RolesByIdsSpecification(distinctRoleIds),

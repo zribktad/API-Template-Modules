@@ -7,7 +7,7 @@ public sealed record DeleteUserCommand(Guid Id) : IHasId;
 
 public sealed class DeleteUserCommandHandler
 {
-    public static async Task<ErrorOr<AppUser>> ValidateAsync(
+    public static async Task<ErrorOr<AppUser>> LoadAsync(
         DeleteUserCommand command,
         IUserRepository repository,
         CancellationToken ct
@@ -17,14 +17,10 @@ public sealed class DeleteUserCommandHandler
         DeleteUserCommand command,
         IUserRepository repository,
         IUnitOfWork<IdentityDbMarker> unitOfWork,
-        ErrorOr<AppUser> userResult,
+        AppUser user,
         CancellationToken ct
     )
     {
-        if (userResult.IsError)
-            return (userResult.Errors, OutgoingMessagesHelper.Empty);
-        AppUser user = userResult.Value;
-
         await repository.DeleteAsync(user, ct);
         await unitOfWork.CommitAsync(ct);
 

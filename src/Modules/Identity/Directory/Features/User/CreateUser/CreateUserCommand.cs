@@ -3,6 +3,7 @@ using Identity.Directory.Domain.Services;
 using Identity.Directory.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
+using Wolverine.Attributes;
 
 namespace Identity.Directory.Features.User;
 
@@ -10,7 +11,8 @@ public sealed record CreateUserCommand(CreateUserRequest Request);
 
 public sealed class CreateUserCommandHandler
 {
-    public static async Task<ErrorOr<Success>> ValidateAsync(
+    [WolverineBefore]
+    public static async Task<ErrorOr<Success>> EnsureUniqueAsync(
         CreateUserCommand command,
         IUserUniquenessChecker uniqueness,
         CancellationToken ct

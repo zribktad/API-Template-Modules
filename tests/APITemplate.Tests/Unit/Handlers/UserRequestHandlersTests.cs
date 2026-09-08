@@ -158,7 +158,7 @@ public class UserRequestHandlersTests
             new UpdateUserRequest("updateduser", "updated@test.com")
         );
 
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await UpdateUserCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
             Uniqueness,
@@ -169,7 +169,7 @@ public class UserRequestHandlersTests
                 command,
                 _repositoryMock.Object,
                 _unitOfWorkMock.Object,
-                validation,
+                loadResult.Value,
                 ct
             );
 
@@ -195,7 +195,7 @@ public class UserRequestHandlersTests
             new UpdateUserRequest(user.Username.Value, user.Email.Value)
         );
 
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await UpdateUserCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
             Uniqueness,
@@ -206,7 +206,7 @@ public class UserRequestHandlersTests
                 command,
                 _repositoryMock.Object,
                 _unitOfWorkMock.Object,
-                validation,
+                loadResult.Value,
                 TestContext.Current.CancellationToken
             );
 
@@ -231,22 +231,15 @@ public class UserRequestHandlersTests
 
         UpdateUserCommand command = new(Guid.NewGuid(), new UpdateUserRequest("name", "e@e.com"));
 
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await UpdateUserCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
             Uniqueness,
             TestContext.Current.CancellationToken
         );
-        (ErrorOr<Success> result, _) = await UpdateUserCommandHandler.HandleAsync(
-            command,
-            _repositoryMock.Object,
-            _unitOfWorkMock.Object,
-            validation,
-            TestContext.Current.CancellationToken
-        );
 
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Type.ShouldBe(ErrorType.NotFound);
+        loadResult.IsError.ShouldBeTrue();
+        loadResult.FirstError.Type.ShouldBe(ErrorType.NotFound);
     }
 
     [Fact]
@@ -265,7 +258,7 @@ public class UserRequestHandlersTests
             new UpdateUserRequest(user.Username.Value, "taken@test.com")
         );
 
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
             Uniqueness,
@@ -299,7 +292,7 @@ public class UserRequestHandlersTests
             user.Id,
             new UpdateUserRequest("another-name", "another@test.com")
         );
-        ErrorOr<AppUser> validation = await UpdateUserCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await UpdateUserCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
             Uniqueness,
@@ -310,7 +303,7 @@ public class UserRequestHandlersTests
                 command,
                 _repositoryMock.Object,
                 _unitOfWorkMock.Object,
-                validation,
+                loadResult.Value,
                 ct
             );
 
@@ -332,7 +325,7 @@ public class UserRequestHandlersTests
 
         SetUserActiveCommand command = new(user.Id, IsActive: true);
 
-        ErrorOr<AppUser> validation = await SetUserActiveCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await SetUserActiveCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
             TestContext.Current.CancellationToken
@@ -342,7 +335,7 @@ public class UserRequestHandlersTests
                 command,
                 _repositoryMock.Object,
                 _unitOfWorkMock.Object,
-                validation,
+                loadResult.Value,
                 TestContext.Current.CancellationToken
             );
 
@@ -363,7 +356,7 @@ public class UserRequestHandlersTests
 
         SetUserActiveCommand command = new(user.Id, IsActive: false);
 
-        ErrorOr<AppUser> validation = await SetUserActiveCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await SetUserActiveCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
             TestContext.Current.CancellationToken
@@ -373,7 +366,7 @@ public class UserRequestHandlersTests
                 command,
                 _repositoryMock.Object,
                 _unitOfWorkMock.Object,
-                validation,
+                loadResult.Value,
                 TestContext.Current.CancellationToken
             );
 
@@ -393,21 +386,14 @@ public class UserRequestHandlersTests
 
         SetUserActiveCommand command = new(Guid.NewGuid(), IsActive: true);
 
-        ErrorOr<AppUser> validation = await SetUserActiveCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await SetUserActiveCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
-            TestContext.Current.CancellationToken
-        );
-        (ErrorOr<Success> result, _) = await SetUserActiveCommandHandler.HandleAsync(
-            command,
-            _repositoryMock.Object,
-            _unitOfWorkMock.Object,
-            validation,
             TestContext.Current.CancellationToken
         );
 
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Type.ShouldBe(ErrorType.NotFound);
+        loadResult.IsError.ShouldBeTrue();
+        loadResult.FirstError.Type.ShouldBe(ErrorType.NotFound);
     }
 
     // --- DeleteAsync ---
@@ -422,7 +408,7 @@ public class UserRequestHandlersTests
 
         DeleteUserCommand command = new(user.Id);
 
-        ErrorOr<AppUser> validation = await DeleteUserCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await DeleteUserCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
             TestContext.Current.CancellationToken
@@ -432,7 +418,7 @@ public class UserRequestHandlersTests
                 command,
                 _repositoryMock.Object,
                 _unitOfWorkMock.Object,
-                validation,
+                loadResult.Value,
                 TestContext.Current.CancellationToken
             );
 
@@ -451,21 +437,14 @@ public class UserRequestHandlersTests
 
         DeleteUserCommand command = new(Guid.NewGuid());
 
-        ErrorOr<AppUser> validation = await DeleteUserCommandHandler.ValidateAsync(
+        ErrorOr<AppUser> loadResult = await DeleteUserCommandHandler.LoadAsync(
             command,
             _repositoryMock.Object,
-            TestContext.Current.CancellationToken
-        );
-        (ErrorOr<Success> result, _) = await DeleteUserCommandHandler.HandleAsync(
-            command,
-            _repositoryMock.Object,
-            _unitOfWorkMock.Object,
-            validation,
             TestContext.Current.CancellationToken
         );
 
-        result.IsError.ShouldBeTrue();
-        result.FirstError.Type.ShouldBe(ErrorType.NotFound);
+        loadResult.IsError.ShouldBeTrue();
+        loadResult.FirstError.Type.ShouldBe(ErrorType.NotFound);
     }
 
     // --- Helpers ---
