@@ -1,8 +1,12 @@
 <Solution>
     <Folder Name="/src/">
         <Project Path="src/APITemplate/Api/APITemplate.csproj" />
+        <Project Path="src/APITemplate.AppHost/APITemplate.AppHost.csproj" />
         <Project Path="src/SharedKernel/SharedKernel.csproj" />
         <Project Path="src/SharedKernel.GraphQL/SharedKernel.GraphQL.csproj" />
+    </Folder>
+    <Folder Name="/src/Clients/">
+        <Project Path="src/Clients/APITemplate.ApiClient/APITemplate.ApiClient.csproj" />
     </Folder>
     <Folder Name="/src/BuildingBlocks/">
         <Project Path="src/BuildingBlocks/BuildingBlocks.Application/BuildingBlocks.Application.csproj" />
