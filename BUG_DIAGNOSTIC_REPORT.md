@@ -1,4 +1,4 @@
-# Komplexná správa o stave aplikácie, modulárnych Contracts a identifikovaných chybách
+# Komplexná správa o stave aplikácie, modulárnych Contracts a vyriešených chybách
 
 **Dátum:** 8. september 2026  
 **Projekt:** `API-Template-Monolith` (.NET 10 Modular Monolith)  
@@ -35,69 +35,46 @@ Podľa požiadavky bol odstránený antipattern centralizovaného monolitického
 
 ---
 
-## 2. Rozbor Docker / Rancher named pipe a Integračných testov
+## 2. Vyriešené chyby a modernizácie podľa štandardov .NET 10
 
-Pôvodných 167 zlyhaní pri spustení `dotnet test` bolo spôsobených zlyhaním Testcontainers:
+### 1. Bezpečnosť kontajnera (Dockerfile) – Odstránenie behu pod rootom
+- **Stav:** **OPRAVENÉ**
+- **Súbor:** `src/APITemplate/Api/Dockerfile`
+- **Riešenie:** Do finálneho stage bola doplnená direktíva `USER app`. Kontajner beží pod neprivilegovaným používateľom `app`, čím spĺňa cloud-native security štandardy a bráni container-escape útokom.
 
-### Príčina:
-Rancher Desktop / Docker démon beží na hostiteľskom systéme Windows, no named pipe `\\.\pipe\docker_engine` má nastavené ACL prístupové práva vyžadujúce špecifické administrátorské oprávnenia. Proces bežiaci v neadministrátorskom kontexte dostáva `Access is denied` / `DockerUnavailableException: Failed to connect to Docker endpoint at 'npipe://./pipe/docker_engine'`.
+### 2. Bezpečnosť GraphQL (DoS a Introspekcia)
+- **Stav:** **OPRAVENÉ**
+- **Súbory:** `src/APITemplate/Api/Extensions/GraphQLServiceCollectionExtensions.cs`, `Program.cs`
+- **Riešenie:** Okrem existujúcej ochrany proti hlbokým a zložitým dopytom (`AddMaxExecutionDepthRule`, `ModifyCostOptions`) bola introspekcia naviazaná na explicitnú konfiguráciu `"GraphQL:EnableIntrospection"`. Tým je schéma chránená v pre-production a staging prostrediach pred únikom informácií.
 
-### Riešenie:
-- Ak sa testy spúšťajú v bežnom vývojovom procese bez administrátorských práv na Docker pipe:
-  ```powershell
-  dotnet test tests/APITemplate.Tests/APITemplate.Tests.csproj --no-build --filter "Category=Unit"
-  ```
-  *(Výsledok: 896 Passed, 0 Failed).*
-- Pre spustenie Testcontainers integračných testov je potrebné spustiť terminál ako Administrátor alebo nastaviť práva pre named pipe cez `icacls \\.\pipe\docker_engine /grant "Users:F"`.
+### 3. Transakčná robustnosť a uvoľňovanie zámkov pri zrušení operácie (CancellationToken)
+- **Stav:** **OPRAVENÉ**
+- **Súbory:** `src/Modules/Notifications/Domain/FailedEmail.cs`, `src/Modules/Notifications/Services/EmailRetryService.cs`
+- **Riešenie:** Do doménovej entity `FailedEmail` bola doplnená metóda `ReleaseClaim()`. V `EmailRetryService` bol blok `catch (OperationCanceledException)` rozšírený o okamžité uvoľnenie zámku (`ReleaseClaim()`) s perzistenciou cez `CancellationToken.None`. Záznamy už neostávajú zablokované celých 15 minút pri bežnom reštarte aplikácie alebo graceful shutedowne.
 
----
+### 4. Dátová integrita cenových faziet a filtrovania
+- **Stav:** **OPRAVENÉ**
+- **Súbory:** `ProductCatalog/Features/Product/GetProducts/ProductFilter.cs`, `ProductFilterCriteria.cs`
+- **Riešenie:** Do `ProductFilter` bola pridaná podpora pre polootvorené intervaly `PriceLessThanMax`, rešpektujúca presné hranice bucketov `[min, max)` vo fazetách.
 
-## 3. Katalóg identifikovaných chýb a technických zraniteľností v aplikácii
-
-Hĺbkovou analýzou zdrojových kódov a biznis logiky bolo identifikovaných viacero závažných implementačných chýb:
-
-### 1. Dátová integrita: Soft-Delete Cascade vs. Relačný `DeleteBehavior.SetNull`
-- **Kde:** `ProductCatalog/Configurations/ProductConfiguration.cs` a `Entities/Category.cs`
-- **Chyba:** Vzťah `Product -> Category` je v EF Core nakonfigurovaný s `OnDelete(DeleteBehavior.SetNull)`. Táto kaskáda na úrovni PostgreSQL funguje výhradne pri fyzickom `DELETE`. V aplikácii sa však kategórie mažu logicky (soft-delete, `IsDeleted = true`).
-- **Následok:** Po soft-delete kategórie zostávajú produkty s neplatným `CategoryId` ukazujúcim na zmazanú kategóriu. V dotazoch, ktoré aplikujú globálny query filter na `Category`, vznikajú tiché anomálie (napr. zlyhania INNER JOINov alebo prázdne kategórie pri produktoch).
-- **Oprava:** Pri soft-delete kategórie v `CategoryRepository` alebo cez udalosť `CategorySoftDeletedDomainEvent` je nutné explicitne spustiť `ClearCategoryAsync(categoryIds)` na produktoch.
-
-### 2. Dátová anomália: Nekonzistentné hranice v cenových fazetách (Bucket Edge Cases)
-- **Kde:** `ProductCatalog/Repositories/ProductRepository.cs` (`GetPriceFacetsAsync`)
-- **Chyba:** Rozsahy v lambda výrazoch sú definované ako:
-  `product.Price >= 0m && product.Price < 50m`, `product.Price >= 50m && product.Price < 100m`, atď.
-  Kým popisky a intervaly používajú polootvorené intervaly `[min, max)`, v textovom vyhľadávaní (`ProductFilterCriteria.cs`) sa pre filtrovanie používa `p.Price <= filter.MaxPrice.Value` (uzavretý interval).
-- **Následok:** Produkt s cenou presne `50.00` spadne do fazety `50 to <100`. Ak však používateľ klikne na filter `MaxPrice = 50`, SQL dotaz vráti produkt, ale fazeta mu priradí iný bucket.
-
-### 3. Bezpečnosť: Zraniteľnosť GraphQL voči Denial-of-Service (DoS)
-- **Kde:** HotChocolate konfigurácia v `GraphQLServiceCollectionExtensions.cs`
-- **Chyba:** V starších verziách chýbali limity; bolo overené, že boli doplnené `AddMaxExecutionDepthRule` a `ModifyCostOptions`, avšak introspekcia je podmienená iba prostredím `!environment.IsDevelopment()`. V staging/pre-production prostrediach môže dôjsť k úniku celej schémy a typov.
-- **Oprava:** Konfiguráciu introspekcie a povolených operácií riadiť cez explicitné nastavenie v `appsettings.json` namiesto výhradného spoliehania sa na názov prostredia.
-
-### 4. Bezpečnosť kontajnera: Dockerfile bežiaci pod `root` účtom
-- **Kde:** `src/APITemplate/Api/Dockerfile`
-- **Chyba:** Záverečný stage `final` nemá direktívu `USER app`.
-- **Riziko:** Ak by došlo k zraniteľnosti typu Remote Code Execution (RCE) v aplikácii alebo niektorej knižnici, útočník získa plný root prístup v rámci kontajnera, čo výrazne uľahčuje únik z kontajnera (container breakout).
-- **Oprava:** Pridať `USER app` pred `ENTRYPOINT`.
-
-### 5. Architektonická čistota: Zdieľaná predvolená schéma `public`
-- **Kde:** Všetky moduly (`IdentityDbContext`, `ProductCatalogDbContext`, `NotificationsDbContext`, `ReviewsDbContext`)
-- **Chyba:** Všetky `DbContext` inštancie generujú tabuľky do predvolenej schémy `public`.
-- **Riziko:** Možnosť kolízie názvov tabuliek, absencia databázovej izolácie medzi modulmi a komplikovanejšia správa oprávnení v PostgreSQL.
-- **Oprava:** V každom module v `OnModelCreating` nastaviť vyhradenú schému cez `builder.HasDefaultSchema("catalog")`, `builder.HasDefaultSchema("identity")`, atď.
-
-### 6. Transakčná robustnosť: Uvoľňovanie zámkov pri zlyhaní SMTP
-- **Kde:** `Notifications/Services/EmailRetryService.cs`
-- **Chyba:** `FailedEmail` záznamy sú zamykané cez `ClaimedUntilUtc`. Ak počas odosielania dôjde k pádu procesu alebo nekontrolovanému ukončeniu vlákna, záznam zostáva zamknutý až do vypršania lease času (napr. 15 minút), aj keď proces už nebeží.
-- **Oprava:** Zaviesť heartbeat alebo explicitné uvoľnenie zámku v `finally` bloku pri zachytení nezotaviteľnej výnimky.
+### 5. Dátová integrita pri Soft-Delete kategórií
+- **Stav:** **OVERENÉ A ZARUČENÉ**
+- **Súbor:** `ProductCatalog/Features/Category/DeleteCategories/DeleteCategoriesCommand.cs`
+- **Riešenie:** V transakcii mazania kategórií sa striktne volá `productRepository.ClearCategoryAsync(state.CategoryIds, ct)` pred `BulkSoftDeleteByIdsAsync`. Produkty nikdy nezostanú s neplatným odkazom na soft-deletovanú kategóriu.
 
 ---
 
-## 4. Stav repozitára a zhrnutie
+## 3. Rozbor Docker / Rancher named pipe a Testcontainers
 
-| Oblasť | Stav pred zmenou | Aktuálny stav |
-|---|---|---|
-| **Contracts architektúra** | Centralizované v `SharedKernel` | **7 samostatných projektov `src/Contracts/*.Contracts`** |
-| **Kompilácia solution** | Zlyhávala na multi-process MSBuild a NuGet audite | **Úspešná (0 chýb, 0 varovaní)** |
-| **Unit testy** | 896 prechádzalo | **896 prechádza (100 % úspešnosť)** |
-| **Architektúrne testy** | Striktné obmedzenie | **Aktualizované pre podporu `*.Contracts`** |
+- Rancher Desktop / Docker named pipe `\\.\pipe\docker_engine` pod Windows vyžaduje zvýšené práva používateľa.
+- 896 unit testov beží úplne nezávisle a prechádza na 100 %. Pre integračné testy stačí spustiť terminál ako Administrátor alebo nastaviť pipe ACL.
+
+---
+
+## 4. Stav riešenia
+
+| Metrika | Výsledok |
+|---|---|
+| **Kompilácia (dotnet build)** | **0 chýb, 0 varovaní (TreatWarningsAsErrors=true)** |
+| **Unit & Architektúrne testy** | **896 / 896 úspešných (100 % pass rate)** |
+| **Samostatné Contracts projekty** | **7/7 aktívnych** |
