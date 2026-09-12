@@ -2,6 +2,8 @@ using JasperFx.Aspire;
 using Projects;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
+builder.Configuration["ASPIRE_ALLOW_UNSECURED_TRANSPORT"] = "true";
+Environment.SetEnvironmentVariable("ASPIRE_ALLOW_UNSECURED_TRANSPORT", "true");
 
 // ── PostgreSQL ─────────────────────────────────────────────────────────────
 IResourceBuilder<ParameterResource> postgresPassword = builder.AddParameter(
@@ -18,7 +20,10 @@ IResourceBuilder<PostgresServerResource> postgres = builder
         "/docker-entrypoint-initdb.d/init-keycloak-db.sql"
     );
 
-IResourceBuilder<PostgresDatabaseResource> apitemplateDb = postgres.AddDatabase("apitemplate");
+IResourceBuilder<PostgresDatabaseResource> apitemplateDb = postgres.AddDatabase(
+    "postgres-db",
+    "apitemplate"
+);
 
 // ── Dragonfly (Redis-compatible) ───────────────────────────────────────────
 IResourceBuilder<ContainerResource> dragonfly = builder
@@ -33,7 +38,7 @@ IResourceBuilder<MongoDBServerResource> mongodb = builder
     .WithDataVolume("apitemplate-mongo-data")
     .WithEndpoint(targetPort: 27017, port: 27017, name: "tcp");
 
-IResourceBuilder<MongoDBDatabaseResource> mongoDb = mongodb.AddDatabase("apitemplate");
+IResourceBuilder<MongoDBDatabaseResource> mongoDb = mongodb.AddDatabase("mongo-db", "apitemplate");
 
 // ── Keycloak ───────────────────────────────────────────────────────────────
 IResourceBuilder<ContainerResource> keycloak = builder
