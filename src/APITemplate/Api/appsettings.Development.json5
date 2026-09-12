@@ -9,11 +9,24 @@
   "ErrorDocumentation": {
     "ErrorTypeBaseUri": "https://localhost:7289/errors"
   },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=apitemplate;Username=postgres;Password=postgres"
+  },
   "KeycloakHealthCheck": {
     "DiscoveryUrl": "http://localhost:8180/realms/api-template/.well-known/openid-configuration"
   },
   "Dragonfly": {
     "ConnectionString": "localhost:6379"
+  },
+  "Observability": {
+    "Exporters": {
+      "Aspire": {
+        "Enabled": false
+      },
+      "Otlp": {
+        "Enabled": false
+      }
+    }
   },
   
   // Local development overrides for Keycloak
@@ -26,7 +39,11 @@
     "credentials": {
       "secret": "dev-client-secret"
     },
-    "confidential-port": 0
+    "confidential-port": 0,
+    "passwordVerification": {
+      "clientId": "api-template-password-verification",
+      "clientSecret": "dev-password-verification-secret"
+    }
   },
   
   // Local development MailHog/Mailpit SMTP server

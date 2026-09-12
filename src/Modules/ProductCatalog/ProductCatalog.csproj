@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Contracts\ProductCatalog.Contracts\ProductCatalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\Contracts\Reviews.Contracts\Reviews.Contracts.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Domain\BuildingBlocks.Domain.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Infrastructure.EFCore\BuildingBlocks.Infrastructure.EFCore.csproj" />

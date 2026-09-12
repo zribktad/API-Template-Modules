@@ -27,6 +27,8 @@
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Kiota.Abstractions" />
+    <PackageReference Include="Microsoft.Kiota.Serialization.Json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
@@ -99,15 +101,22 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\APITemplate\Api\APITemplate.csproj" />
     <ProjectReference Include="..\..\src\Modules\BackgroundJobs\BackgroundJobs.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\BackgroundJobs.Contracts\BackgroundJobs.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Chatting\Chatting.csproj" />
     <ProjectReference Include="..\..\src\Modules\FileStorage\FileStorage.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\Identity.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\Identity.Contracts\Identity.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Notifications\Notifications.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\Notifications.Contracts\Notifications.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\ProductCatalog\ProductCatalog.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\ProductCatalog.Contracts\ProductCatalog.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\Reviews.Contracts\Reviews.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Modules\Webhooks\Webhooks.csproj" />
+    <ProjectReference Include="..\..\src\Contracts\Webhooks.Contracts\Webhooks.Contracts.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel\SharedKernel.csproj" />
     <ProjectReference Include="..\..\src\SharedKernel.GraphQL\SharedKernel.GraphQL.csproj" />
+    <ProjectReference Include="..\..\src\Clients\APITemplate.ApiClient\APITemplate.ApiClient.csproj" />
   </ItemGroup>
 </Project>
 

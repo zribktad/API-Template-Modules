@@ -128,3 +128,36 @@
 
 - [ ] **SignalR remains optional future work**  
   Real-time infrastructure via SignalR (`NotificationHub`, `ChatHub`, backplane, persistence) is not implemented. Keep it only if the project is actually moving beyond the current HTTP/SSE shape.
+
+
+## .NET Aspire AppHost Enhancements
+
+### Developer Tooling & UI Containers
+- [ ] **Add pgAdmin 4 container with auto-registered connections**  
+  Add `dpage/pgadmin4` container on port `5050` with a pre-mounted `servers.json` configuration so PostgreSQL databases (`apitemplate`, `keycloak`) are pre-connected without manual credential entry.
+- [ ] **Add Mongo Express container for document inspection**  
+  Add `mongo-express` container on port `8081` linked to the MongoDB resource to visually explore polymorphic product documents and catalog collections.
+- [ ] **Add Redis Commander / RedisInsight container for Dragonfly**  
+  Add a lightweight Redis web GUI on port `8082` for real-time inspection of BFF sessions, distributed locks, and L2 cache entries.
+
+### Architecture & Shared Infrastructure
+- [ ] **Extract `APITemplate.ServiceDefaults` project**  
+  Create standard Aspire `ServiceDefaults` project encapsulating `AddServiceDefaults()`: OpenTelemetry configuration, Polly resilience pipelines, service discovery, and standardized health check endpoints across API and future worker/client services.
+- [ ] **Implement Container Health Checks with HTTP/Readiness probes**  
+  Replace process-start waiting with real HTTP probes in AppHost (e.g. wait for Keycloak `.../.well-known/openid-configuration` HTTP 200 before launching API).
+
+### Operational & Observability Controls
+- [ ] **Add custom Aspire Dashboard Developer Action Buttons**  
+  Use `WithCommand(...)` on the API resource to provide one-click developer triggers:
+  - 🔄 *Trigger Soft-Delete Cleanup* (TickerQ)
+  - ✉️ *Retry Failed Emails* (`EmailRetryService`)
+  - 📦 *Reindex Products to MongoDB*
+- [ ] **Full Observability Stack Integration in AppHost (`full-observability` profile)**  
+  Wire existing `infrastructure/observability/` (Grafana port 3001, Prometheus port 9090, Tempo port 3200, Loki port 3100) under an optional Aspire profile with auto-linking in the dashboard.
+- [ ] **Automated Development Data Seeder Resource**  
+  Create an init/seed resource or pre-startup task that verifies/provisions dev Keycloak users (Admin, Tenant Owner) and baseline test catalog data if the database is fresh.
+- [ ] **Aspire Deployment Manifest generation for Kubernetes (`aspire-manifest.json`)**  
+  Add script/profile to generate Aspire deployment manifest (`--publisher manifest`) for automated generation of Kubernetes manifests or deployment via Aspirate.
+- [ ] **Wolverine Dead-Letter Queue & TickerQ Inspection Dashboard**  
+  Add diagnostic dashboard view or management command to inspect and replay poison messages from Postgres `wolverine_dead_letters` and monitor recurring TickerQ job execution statuses.
+

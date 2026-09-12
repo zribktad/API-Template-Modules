@@ -170,6 +170,7 @@ public sealed class ModuleBoundaryArchitectureTests
             .Select(include => Path.GetFileNameWithoutExtension(include))
             .Where(targetModule =>
                 !string.Equals(sourceModule, targetModule, StringComparison.Ordinal)
+                && !targetModule.EndsWith(".Contracts", StringComparison.Ordinal)
             )
             .Select(targetModule => $"{sourceModule} -> {targetModule}");
     }

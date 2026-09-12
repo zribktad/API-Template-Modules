@@ -48,7 +48,12 @@ internal static class ProductFilterCriteria
             query.Where(p => p.Price >= filter.MinPrice.Value);
 
         if (!options.IgnorePriceRange && filter.MaxPrice.HasValue)
-            query.Where(p => p.Price <= filter.MaxPrice.Value);
+        {
+            if (filter.PriceLessThanMax)
+                query.Where(p => p.Price < filter.MaxPrice.Value);
+            else
+                query.Where(p => p.Price <= filter.MaxPrice.Value);
+        }
 
         if (filter.CreatedFrom.HasValue)
         {

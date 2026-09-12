@@ -65,3 +65,6 @@ publish/
 # MkDocs site output
 docs/site/
 
+
+*.binlog
+

@@ -1,0 +1,5 @@
+{
+    "appHost": {
+        "path": "src\\APITemplate.AppHost\\APITemplate.AppHost.csproj"
+    }
+}

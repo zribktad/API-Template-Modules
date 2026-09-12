@@ -6,9 +6,11 @@ using Asp.Versioning;
 using BackgroundJobs;
 using BuildingBlocks.Application.Context;
 using BuildingBlocks.Application.Http;
+using BuildingBlocks.Application.Modules;
 using BuildingBlocks.Application.Options;
 using BuildingBlocks.Infrastructure.EFCore.Persistence;
 using BuildingBlocks.Infrastructure.Mongo;
+using BuildingBlocks.Messaging.Pipeline;
 using BuildingBlocks.Web.Health;
 using Chatting;
 using FileStorage;
@@ -103,7 +105,7 @@ builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddRateLimiting(builder.Configuration);
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddInfrastructureDiagnostics();
-builder.Services.AddGraphQLRegistration(builder.Environment);
+builder.Services.AddGraphQLRegistration(builder.Environment, builder.Configuration);
 
 builder.Services.AddWolverineHttp();
 builder.Services.AddModuleHealthChecks(
@@ -140,6 +142,9 @@ builder.Host.UseWolverine(options =>
 
     // Only activates for handlers with a DbContext enrolled via AddDbContextWithWolverineIntegration.
     options.UseEntityFrameworkCoreTransactions();
+
+    // Automatically short-circuit on ErrorOr before-phase errors and unwrap success values.
+    options.Policies.Add(new ErrorOrRailwayPolicy());
 
     // UseDurableLocalQueues persists cascading messages in PostgreSQL so they survive a crash
     // between handler commit and message dispatch. UseStrictLocalQueues would additionally

@@ -90,6 +90,16 @@ public sealed class FailedEmail : IHasId
     }
 
     /// <summary>
+    ///     Releases any active claim without incrementing retry count or recording a failure.
+    /// </summary>
+    public void ReleaseClaim()
+    {
+        ClaimedBy = null;
+        ClaimedAtUtc = null;
+        ClaimedUntilUtc = null;
+    }
+
+    /// <summary>
     ///     Marks this email as permanently undeliverable and releases any active claim.
     /// </summary>
     public void MarkDeadLettered()
